@@ -6,12 +6,13 @@ import "./reward-element.js";
 import "./game-hud.js";
 import "@awesome.me/webawesome/dist/components/card/card.js";
 import "@awesome.me/webawesome/dist/components/details/details.js";
+import { GAME_CONFIG } from "../constants/game-config.js";
 import { sharedStyles } from "../styles/shared.js";
 
 /**
  * @element game-viewport
  * @property {Object} currentConfig
- * @property {Object} heroPos
+ * @property {{x: number, y: number}} heroPos
  * @property {Boolean} isEvolving
  * @property {String} hotSwitchState
  * @property {Boolean} isRewardCollected
@@ -19,14 +20,10 @@ import { sharedStyles } from "../styles/shared.js";
  * @property {Boolean} isInHub
  * @property {Boolean} hasSeenIntro
  * @property {Boolean} hasCollectedItem
- * @property {String} lockedMessage
- * @property {Boolean} isCloseToTarget
- * @property {String} lockedMessage
  * @property {Boolean} isCloseToTarget
  * @property {Number} currentChapterNumber
  * @property {Number} totalChapters
  * @property {String} questTitle
- * @property {Boolean} isRewardCollected
  */
 export class GameViewport extends LitElement {
 	static properties = {
@@ -67,7 +64,7 @@ export class GameViewport extends LitElement {
 			setTimeout(() => {
 				this.rewardAnimState = "moving";
 				this.requestUpdate();
-			}, 1000);
+			}, GAME_CONFIG.ANIMATION.REWARD_DELAY);
 
 			// Step 3: End
 			setTimeout(() => {
@@ -82,7 +79,7 @@ export class GameViewport extends LitElement {
 					}),
 				);
 				this.requestUpdate();
-			}, 1800);
+			}, GAME_CONFIG.ANIMATION.REWARD_DURATION);
 		}
 	}
 
@@ -121,7 +118,7 @@ export class GameViewport extends LitElement {
 	}
 
 	_renderThemeZones() {
-		if (!this.currentConfig.canToggleTheme) return "";
+		if (!this.currentConfig.hasThemeZones) return "";
 		return html`
 			<div class="zone zone-light">
 				<small class="zone-label">Light Theme</small>
@@ -136,9 +133,13 @@ export class GameViewport extends LitElement {
 		if (!this.hasCollectedItem || !this.currentConfig.exitZone) return "";
 
 		const { x, y, width, height, label } = this.currentConfig.exitZone;
-		const justifyContent = x > 80 ? "flex-end" : x < 20 ? "flex-start" : "center";
-		const paddingRight = x > 80 ? "1rem" : "0";
-		const paddingLeft = x < 20 ? "1rem" : "0";
+		// Determine layout based on position relative to legacy/new zones
+		const isRight = x > GAME_CONFIG.VIEWPORT.ZONES.LEGACY.minX; // Previously 80
+		const isLeft = x < GAME_CONFIG.VIEWPORT.ZONES.NEW.maxX; // Using NEW.maxX as a left boundary threshold
+
+		const justifyContent = isRight ? "flex-end" : isLeft ? "flex-start" : "center";
+		const paddingRight = isRight ? "1rem" : "0";
+		const paddingLeft = isLeft ? "1rem" : "0";
 
 		return html`
 			<div class="exit-zone" style="
@@ -160,6 +161,16 @@ export class GameViewport extends LitElement {
 
 		const isLegacyActive = this.hotSwitchState === "legacy";
 		const isNewActive = this.hotSwitchState === "new";
+
+		// Use constants implies defining the zones here using them? 
+		// The CSS defines the positions: .ctx-legacy { left: 50% }.
+		// We should probably inject these styles dynamically if we want them configurable, 
+		// OR just acknowledge they are in CSS and the controller uses the logic.
+		// The controller (GameZoneController) logic matches these visual zones.
+		// Here it's just rendering the DOM elements.
+		// The Implementation Plan said: "Extract layout values (50, 40, etc.)"
+		// The rendered DOM helpers don't hardcode them except in styles?
+		// Ah, the CSS block at the bottom has them.
 
 		return html`
 			<div class="ctx-zone ctx-legacy ${isLegacyActive ? "active" : "inactive"}">
@@ -191,7 +202,10 @@ export class GameViewport extends LitElement {
 	}
 
 	_renderReward() {
-		if (!this.isAnimatingReward && (this.hasCollectedItem || !this.currentConfig.reward)) {
+		if (
+			!this.isAnimatingReward &&
+			(this.hasCollectedItem || !this.currentConfig.reward)
+		) {
 			return "";
 		}
 
@@ -226,9 +240,10 @@ export class GameViewport extends LitElement {
 			: "left 0.075s linear, top 0.075s linear";
 
 		// Use reward image if collected, otherwise normal hero image
-		const imageSrc = (this.isRewardCollected && this.currentConfig.hero?.reward)
-			? this.currentConfig.hero.reward
-			: this.currentConfig.hero?.image;
+		const imageSrc =
+			this.isRewardCollected && this.currentConfig.hero?.reward
+				? this.currentConfig.hero.reward
+				: this.currentConfig.hero?.image;
 
 		return html`
 			<hero-profile 

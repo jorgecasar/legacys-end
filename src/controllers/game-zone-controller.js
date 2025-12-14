@@ -2,7 +2,7 @@
  * GameZoneController - Lit Reactive Controller for zone detection
  *
  * Handles:
- * - Theme zones (dark/light based on Y position) - if chapter.canToggleTheme
+ * - Theme zones (dark/light based on Y position) - if chapter.hasThemeZones
  * - Context zones (legacy/new based on position) - if chapter.hasHotSwitch
  *
  * Usage:
@@ -18,12 +18,14 @@
  * this.zones.checkZones(x, y);
  * ```
  */
+import { GAME_CONFIG } from "../constants/game-config.js";
+
 export class GameZoneController {
 	constructor(host, options = {}) {
 		this.host = host;
 		this.options = {
-			onThemeChange: () => {},
-			onContextChange: () => {},
+			onThemeChange: () => { },
+			onContextChange: () => { },
 			getChapterData: () => null,
 			hasCollectedItem: () => false,
 			...options,
@@ -50,7 +52,7 @@ export class GameZoneController {
 		if (!chapter) return;
 
 		// Theme Zones (Dark/Light based on Y position)
-		if (chapter.canToggleTheme && this.options.hasCollectedItem()) {
+		if (chapter.hasThemeZones && this.options.hasCollectedItem()) {
 			const theme = this.getThemeForPosition(x, y);
 			this.options.onThemeChange(theme);
 		}
@@ -69,7 +71,7 @@ export class GameZoneController {
 	 * @returns {string} 'wa-dark' or 'wa-light'
 	 */
 	getThemeForPosition(_x, y) {
-		if (y <= 25) {
+		if (y <= GAME_CONFIG.VIEWPORT.ZONES.THEME.DARK_HEIGHT) {
 			return "dark";
 		}
 		return "light";
