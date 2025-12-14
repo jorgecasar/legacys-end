@@ -1,4 +1,4 @@
-import { html, LitElement } from "lit";
+import { css, html, LitElement } from "lit";
 import { sharedStyles } from "../../styles/shared.js";
 import "@awesome.me/webawesome/dist/components/details/details.js";
 
@@ -18,7 +18,17 @@ export class GameControls extends LitElement {
 		`;
 	}
 
-	static styles = [sharedStyles];
+	static styles = [
+		sharedStyles,
+		css`
+			:host {
+				position: absolute;
+				bottom: 1rem;
+				right: 1rem;
+				z-index: 50;
+			}
+		`
+	];
 }
 
 customElements.define("game-controls", GameControls);
