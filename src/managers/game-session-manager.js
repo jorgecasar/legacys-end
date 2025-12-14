@@ -235,4 +235,46 @@ export class GameSessionManager extends Observable {
 		this.returnToHub();
 		this.gameState.setPaused(false);
 	}
+
+	/**
+	 * Get callbacks for QuestController
+	 * These will be passed to QuestController during initialization
+	 */
+	getQuestControllerCallbacks() {
+		return {
+			onQuestStart: (quest) => {
+				this.isLoading = true;
+				this.currentQuest = quest;
+				this.isInHub = false;
+				logger.info(`🎮 Started quest: ${quest.name}`);
+				this.notify({ type: 'loading', isLoading: true });
+				this.isLoading = false;
+				this.notify({ type: 'loading', isLoading: false });
+			},
+			onChapterChange: (chapter, index) => {
+				this.notify({
+					type: 'chapter-change',
+					chapter,
+					index
+				});
+			},
+			onQuestComplete: (quest) => {
+				logger.info(`✅ Completed quest: ${quest.name}`);
+				logger.info(`🏆 Earned badge: ${quest.reward.badge}`);
+				this.notify({
+					type: 'quest-complete',
+					quest
+				});
+			},
+			onReturnToHub: () => {
+				this.currentQuest = null;
+				this.isInHub = true;
+				logger.info(`🏛️ Returned to Hub`);
+				this.notify({
+					type: 'navigation',
+					location: 'hub'
+				});
+			},
+		};
+	}
 }

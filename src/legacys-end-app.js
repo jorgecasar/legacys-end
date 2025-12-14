@@ -7,6 +7,7 @@ import { InteractionController } from "./controllers/interaction-controller.js";
 import { KeyboardController } from "./controllers/keyboard-controller.js";
 import { QuestController } from "./controllers/quest-controller.js";
 import { ServiceController } from "./controllers/service-controller.js";
+import { GameSessionManager } from "./managers/game-session-manager.js";
 import { ContextMixin } from "./mixins/context-mixin.js";
 import { getComingSoonQuests } from "./quests/quest-registry.js";
 // Services
@@ -145,7 +146,9 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 
 			// Helper to continue quest from last available chapter
 			const continueFromLastAvailable = async () => {
-				logger.info(`📖 Continuing quest ${questId} from last available chapter...`);
+				logger.info(
+					`📖 Continuing quest ${questId} from last available chapter...`,
+				);
 				await this.questController.continueQuest(questId);
 			};
 
@@ -191,7 +194,9 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 				const data = this.getChapterData(levelId);
 				if (data) {
 					// Use router for consistent state
-					this.router.navigate(`/quest/${this.currentQuest?.id}/chapter/${levelId}`);
+					this.router.navigate(
+						`/quest/${this.currentQuest?.id}/chapter/${levelId}`,
+					);
 				}
 			},
 			giveItem: () => {
@@ -327,8 +332,7 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 				hotSwitchState: this.hotSwitchState,
 				hasCollectedItem: this.hasCollectedItem,
 			}),
-			getNpcPosition: () =>
-				this.getChapterData(this.chapterId)?.npc?.position,
+			getNpcPosition: () => this.getChapterData(this.chapterId)?.npc?.position,
 		});
 
 		// Initialize QuestController
@@ -354,7 +358,10 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 
 				// Update URL to reflect chapter (without reloading)
 				if (this.currentQuest) {
-					this.router.navigate(`/quest/${this.currentQuest.id}/chapter/${chapter.id}`, true);
+					this.router.navigate(
+						`/quest/${this.currentQuest.id}/chapter/${chapter.id}`,
+						true,
+					);
 				}
 
 				// Ensure we have fresh data
@@ -409,6 +416,21 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 				this.currentQuest = null;
 				logger.info(`🏛️ Returned to Hub`);
 				this.router.navigate("/hub");
+			},
+		});
+
+		// Initialize GameSessionManager (for future use)
+		// Currently not actively used, but available for gradual migration
+		this.sessionManager = new GameSessionManager({
+			gameState: this.gameState,
+			progressService: this.progressService,
+			questController: this.questController,
+			router: this.router,
+			controllers: {
+				keyboard: this.keyboard,
+				interaction: this.interaction,
+				collision: this.collision,
+				zones: this.zones,
 			},
 		});
 	}
