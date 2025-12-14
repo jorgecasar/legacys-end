@@ -1,6 +1,5 @@
 import { Difficulty, QuestType } from "../quest-types.js";
 
-
 export const THE_ORB_OF_INQUIRY_QUEST = {
 	id: "the-orb-of-inquiry",
 	name: "The Orb of Inquiry",

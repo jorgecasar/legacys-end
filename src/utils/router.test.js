@@ -59,5 +59,4 @@ describe("SimpleRouter", () => {
 	// _matchPattern splits by "/" so leading "/" makes empty string first element.
 	// "/hub" -> ["", "hub"]
 	// "/" -> ["", ""]
-
 });

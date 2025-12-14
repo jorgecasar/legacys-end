@@ -41,14 +41,16 @@ describe("LegacysEndApp Component", () => {
 
 		// 2. Simulate Start Quest by dispatching custom event
 		const questId = "the-aura-of-sovereignty";
-		hub.dispatchEvent(new CustomEvent('quest-select', {
-			detail: { questId },
-			bubbles: true,
-			composed: true
-		}));
+		hub.dispatchEvent(
+			new CustomEvent("quest-select", {
+				detail: { questId },
+				bubbles: true,
+				composed: true,
+			}),
+		);
 
 		// Wait for event to be handled and quest to start
-		await new Promise(resolve => setTimeout(resolve, 100));
+		await new Promise((resolve) => setTimeout(resolve, 100));
 
 		await el.updateComplete;
 
@@ -116,15 +118,17 @@ describe("LegacysEndApp Component", () => {
 			el.progressService.isQuestAvailable = vi.fn().mockReturnValue(true);
 
 			// Mock chapter completion - only chapter 1 is completed
-			el.progressService.isChapterCompleted = vi.fn().mockImplementation(
-				(chapterId) => chapterId === "chapter-1"
-			);
+			el.progressService.isChapterCompleted = vi
+				.fn()
+				.mockImplementation((chapterId) => chapterId === "chapter-1");
 
 			// Spy on continueQuest
 			const continueQuestSpy = vi.spyOn(el.questController, "continueQuest");
 
 			// Try to navigate to chapter 3 (locked)
-			await el.router._matchRoute("/quest/the-aura-of-sovereignty/chapter/chapter-3");
+			await el.router._matchRoute(
+				"/quest/the-aura-of-sovereignty/chapter/chapter-3",
+			);
 			await el.updateComplete;
 
 			// Should call continueQuest to fall back to last available
@@ -148,7 +152,9 @@ describe("LegacysEndApp Component", () => {
 			const jumpSpy = vi.spyOn(el.questController, "jumpToChapter");
 
 			// Navigate to hall-of-fragments (second chapter - should be accessible if first is complete)
-			await el.router._matchRoute("/quest/the-aura-of-sovereignty/chapter/hall-of-fragments");
+			await el.router._matchRoute(
+				"/quest/the-aura-of-sovereignty/chapter/hall-of-fragments",
+			);
 			await el.updateComplete;
 
 			// Should have called jumpToChapter

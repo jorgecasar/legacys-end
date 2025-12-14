@@ -85,4 +85,3 @@ export class GameStateService extends Observable {
 		});
 	}
 }
-

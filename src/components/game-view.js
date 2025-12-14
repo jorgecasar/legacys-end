@@ -73,8 +73,9 @@ export class GameView extends LitElement {
 				></game-viewport>
 			</main>
 
-			${ui?.showDialog
-				? html`
+			${
+				ui?.showDialog
+					? html`
 				<level-dialog
 					.config="${dialogConfig}"
 					.level="${quest?.levelId}"
@@ -83,7 +84,7 @@ export class GameView extends LitElement {
 					@close="${() => this.dispatchEvent(new CustomEvent("close-dialog"))}"
 				></level-dialog>
 			`
-				: ""
+					: ""
 			}
 		`;
 	}

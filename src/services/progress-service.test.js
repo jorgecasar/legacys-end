@@ -76,7 +76,7 @@ describe("ProgressService", () => {
 		progressService.saveProgress();
 		expect(mockStorage.setItem).toHaveBeenCalledWith(
 			"legacys-end-progress",
-			expect.any(Object)
+			expect.any(Object),
 		);
 	});
 

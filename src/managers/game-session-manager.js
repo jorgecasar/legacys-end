@@ -247,23 +247,23 @@ export class GameSessionManager extends Observable {
 				this.currentQuest = quest;
 				this.isInHub = false;
 				logger.info(`🎮 Started quest: ${quest.name}`);
-				this.notify({ type: 'loading', isLoading: true });
+				this.notify({ type: "loading", isLoading: true });
 				this.isLoading = false;
-				this.notify({ type: 'loading', isLoading: false });
+				this.notify({ type: "loading", isLoading: false });
 			},
 			onChapterChange: (chapter, index) => {
 				this.notify({
-					type: 'chapter-change',
+					type: "chapter-change",
 					chapter,
-					index
+					index,
 				});
 			},
 			onQuestComplete: (quest) => {
 				logger.info(`✅ Completed quest: ${quest.name}`);
 				logger.info(`🏆 Earned badge: ${quest.reward.badge}`);
 				this.notify({
-					type: 'quest-complete',
-					quest
+					type: "quest-complete",
+					quest,
 				});
 			},
 			onReturnToHub: () => {
@@ -271,8 +271,8 @@ export class GameSessionManager extends Observable {
 				this.isInHub = true;
 				logger.info(`🏛️ Returned to Hub`);
 				this.notify({
-					type: 'navigation',
-					location: 'hub'
+					type: "navigation",
+					location: "hub",
 				});
 			},
 		};

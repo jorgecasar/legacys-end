@@ -37,10 +37,10 @@ describe("LocalStorageAdapter", () => {
 	it("should return null if valid JSON parsing fails", () => {
 		localStorage.setItem("bad-json", "{ invalid }");
 
-		// In a real browser, getItem returns string, but we can't easily force JSON.parse to fail 
+		// In a real browser, getItem returns string, but we can't easily force JSON.parse to fail
 		// if getItem Mock returns a string unless we mock getItem implementation.
 		// However, let's verify error handling by mocking getItem to return unparseable string directly if needed,
-		// or rely on behavior. 
+		// or rely on behavior.
 		// Actually, let's skip complex error simulation for basic adapter test and trust try/catch block.
 	});
 
@@ -48,7 +48,10 @@ describe("LocalStorageAdapter", () => {
 		const data = { user: "Mario" };
 		adapter.setItem("user-key", data);
 
-		expect(localStorage.setItem).toHaveBeenCalledWith("user-key", JSON.stringify(data));
+		expect(localStorage.setItem).toHaveBeenCalledWith(
+			"user-key",
+			JSON.stringify(data),
+		);
 	});
 
 	it("should remove item from storage", () => {

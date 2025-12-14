@@ -88,37 +88,39 @@ export class QuestHub extends LitElement {
 		return html`
 			<wa-card
 				class=${classMap({
-			"quest-card": true,
-			locked: locked,
-			completed: completed,
-			current: isCurrent,
-			[`variant-${variant}`]: true,
-		})}
+					"quest-card": true,
+					locked: locked,
+					completed: completed,
+					current: isCurrent,
+					[`variant-${variant}`]: true,
+				})}
 				.appearance="${completed ? "filled" : "outlined"}"
 			>
 				<h5 slot="header" class="quest-header">${quest.name}</h5>
 				<wa-icon slot="header-actions" .name="${quest.icon || "box"}"></wa-icon>
 
 				<div class="quest-content">
-					${quest.subtitle
-				? html`
+					${
+						quest.subtitle
+							? html`
 						<h6 class="quest-subtitle">${quest.subtitle}</h6>
 					`
-				: ""
-			}
+							: ""
+					}
 					
 					<p class="quest-description">${quest.description}</p>
 					
-					${!locked
-				? html`
+					${
+						!locked
+							? html`
 						<div style="display: flex; justify-content: space-between; font-size: var(--wa-font-size-2xs); margin-bottom: var(--wa-space-3xs);">
 							<span>Progress</span>
 							<span>${Math.round(progress)}%</span>
 						</div>
 						<wa-progress-bar .value="${progress}" style="--height: 6px;"></wa-progress-bar>
 					`
-				: ""
-			}
+							: ""
+					}
 				</div>
 				<div slot="footer" class="wa-stack wa-gap-0">
 					<span class="quest-time">
@@ -130,49 +132,56 @@ export class QuestHub extends LitElement {
 				</div>
 
 				
-				${locked
-				? html`
-					${isComingSoon
+				${
+					locked
 						? html`
+					${
+						isComingSoon
+							? html`
 							<p class="quest-desc">Coming soon in the next update!</p>
 							<wa-button slot="footer-actions" ?disabled="${true}" .variant="${"neutral"}">
 								Coming Soon
 							</wa-button>
 						`
-						: html`
+							: html`
 							<wa-button slot="footer-actions" .variant="${"neutral"}" ?disabled="${true}">
 								<wa-icon slot="start" name="lock"></wa-icon> Locked
 							</wa-button>
 						`
 					}
 				`
-				: nothing
-			}
+						: nothing
+				}
 
-				${!locked && completed
-				? html`
-					<wa-button slot="footer-actions" .variant="${"success"}" @click="${() => this.dispatchEvent(new CustomEvent('quest-select', { detail: { questId: quest.id } }))}">
+				${
+					!locked && completed
+						? html`
+					<wa-button slot="footer-actions" .variant="${"success"}" @click="${() => this.dispatchEvent(new CustomEvent("quest-select", { detail: { questId: quest.id } }))}">
 						<wa-icon slot="start" name="rotate-right"></wa-icon> Restart
 					</wa-button>
 				`
-				: ""
-			}
+						: ""
+				}
 
-				${!locked && !completed
-				? html`
+				${
+					!locked && !completed
+						? html`
 						<wa-button 
 							slot="footer-actions" 
 							.variant="${"brand"}" 
 							@click="${() => {
-						const eventName = progress > 0 ? 'quest-continue' : 'quest-select';
-						this.dispatchEvent(new CustomEvent(eventName, { detail: { questId: quest.id } }));
-					}}"
+								const eventName =
+									progress > 0 ? "quest-continue" : "quest-select";
+								this.dispatchEvent(
+									new CustomEvent(eventName, { detail: { questId: quest.id } }),
+								);
+							}}"
 						>
 							<wa-icon slot="start" name="play"></wa-icon> ${progress > 0 ? "Continue" : "Start"}
 						</wa-button>
 				`
-				: ""
-			}
+						: ""
+				}
 			</wa-card>
 		`;
 	}
@@ -201,8 +210,8 @@ export class QuestHub extends LitElement {
 							<p style="font-weight: bold;">Start your adventure today and become a Master of Clean Code!</p>
 						</div>
 						<wa-button @click="${() => {
-				this.showFullDescription = !this.showFullDescription;
-			}}">
+							this.showFullDescription = !this.showFullDescription;
+						}}">
 							${this.showFullDescription ? "Read Less" : "Read More"}
 						</wa-button>
 						<wa-button variant="brand" @click="${this.dispatchOpenAbout}">
@@ -221,15 +230,16 @@ export class QuestHub extends LitElement {
 					</div>
 				</section>
 
-				${this.comingSoonQuests.length > 0
-				? html`<section class="coming-soon-section">
+				${
+					this.comingSoonQuests.length > 0
+						? html`<section class="coming-soon-section">
 					<h2 class="section-title">Coming Soon</h2>
 					<div class="wa-grid">
 						${this.comingSoonQuests.map((quest) => this.renderQuestCard(quest, true))}
 					</div>
 				</section>`
-				: nothing
-			}
+						: nothing
+				}
 
 				<footer class="hub-footer">
 					<wa-button variant="danger" @click="${this.dispatchReset}">

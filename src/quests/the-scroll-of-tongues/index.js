@@ -1,6 +1,5 @@
 import { Difficulty, QuestType } from "../quest-types.js";
 
-
 export const THE_SCROLL_OF_TONGUES_QUEST = {
 	id: "the-scroll-of-tongues",
 	name: "The Scroll of Tongues",

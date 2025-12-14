@@ -106,7 +106,7 @@ describe("GameSessionManager", () => {
 			expect(manager.isInHub).toBe(false);
 			expect(manager.currentQuest).toEqual(mockQuestController.currentQuest);
 			expect(notifySpy).toHaveBeenCalledWith(
-				expect.objectContaining({ type: "navigation", location: "quest" })
+				expect.objectContaining({ type: "navigation", location: "quest" }),
 			);
 		});
 
@@ -115,8 +115,14 @@ describe("GameSessionManager", () => {
 
 			await manager.startQuest("test-quest");
 
-			expect(notifySpy).toHaveBeenCalledWith({ type: "loading", isLoading: true });
-			expect(notifySpy).toHaveBeenCalledWith({ type: "loading", isLoading: false });
+			expect(notifySpy).toHaveBeenCalledWith({
+				type: "loading",
+				isLoading: true,
+			});
+			expect(notifySpy).toHaveBeenCalledWith({
+				type: "loading",
+				isLoading: false,
+			});
 		});
 	});
 
@@ -124,7 +130,9 @@ describe("GameSessionManager", () => {
 		it("should continue a quest from last checkpoint", async () => {
 			await manager.continueQuest("test-quest");
 
-			expect(mockQuestController.continueQuest).toHaveBeenCalledWith("test-quest");
+			expect(mockQuestController.continueQuest).toHaveBeenCalledWith(
+				"test-quest",
+			);
 			expect(manager.isInHub).toBe(false);
 		});
 	});
@@ -133,7 +141,9 @@ describe("GameSessionManager", () => {
 		it("should jump to chapter if successful", () => {
 			const result = manager.jumpToChapter("chapter-2");
 
-			expect(mockQuestController.jumpToChapter).toHaveBeenCalledWith("chapter-2");
+			expect(mockQuestController.jumpToChapter).toHaveBeenCalledWith(
+				"chapter-2",
+			);
 			expect(result).toBe(true);
 		});
 
@@ -143,7 +153,10 @@ describe("GameSessionManager", () => {
 
 			manager.jumpToChapter("chapter-2");
 
-			expect(notifySpy).toHaveBeenCalledWith({ type: "loading", isLoading: false });
+			expect(notifySpy).toHaveBeenCalledWith({
+				type: "loading",
+				isLoading: false,
+			});
 		});
 	});
 
@@ -159,7 +172,7 @@ describe("GameSessionManager", () => {
 			expect(manager.currentQuest).toBeNull();
 			expect(manager.isInHub).toBe(true);
 			expect(notifySpy).toHaveBeenCalledWith(
-				expect.objectContaining({ type: "navigation", location: "hub" })
+				expect.objectContaining({ type: "navigation", location: "hub" }),
 			);
 		});
 	});

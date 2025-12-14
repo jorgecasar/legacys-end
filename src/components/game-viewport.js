@@ -110,8 +110,9 @@ export class GameViewport extends LitElement {
 					</wa-details>
 					
 					<!-- Theme Zones (Level 2 Equivalent) -->
-					${canToggleTheme
-				? html`
+					${
+						canToggleTheme
+							? html`
 						<div class="zone zone-light">
 							<small class="zone-label">Light Theme</small>
 						</div>
@@ -119,12 +120,13 @@ export class GameViewport extends LitElement {
 							<small class="zone-label">Dark Theme</small>
 						</div>
 					`
-				: ""
-			}
+							: ""
+					}
 
 					<!-- Exit Zone -->
-					${this.hasCollectedItem && this.currentConfig.exitZone
-				? html`
+					${
+						this.hasCollectedItem && this.currentConfig.exitZone
+							? html`
 						<div class="exit-zone" style="
 							left: ${this.currentConfig.exitZone.x}%; 
 							top: ${this.currentConfig.exitZone.y}%; 
@@ -137,12 +139,13 @@ export class GameViewport extends LitElement {
 							<wa-tag variant="neutral" class="exit-text">${this.currentConfig.exitZone.label || "EXIT"}</wa-tag>
 						</div>
 					`
-				: ""
-			}
+							: ""
+					}
 
 					<!-- Context Zones (Level 6 Equivalent) -->
-					${hasHotSwitch
-				? html`
+					${
+						hasHotSwitch
+							? html`
 						<div class="ctx-zone ctx-legacy ${this.hotSwitchState === "legacy" ? "active" : "inactive"}">
 							<h6 class="ctx-title" style="color: ${this.hotSwitchState === "legacy" ? "white" : "#991b1b"}">Legacy</h6>
 							<small class="ctx-sub" style="color: #fca5a5">LegacyUserService</small>
@@ -152,12 +155,13 @@ export class GameViewport extends LitElement {
 							<small class="ctx-sub" style="color: #93c5fd">NewUserService</small>
 						</div>
 					`
-				: ""
-			}
+							: ""
+					}
 
 					<!-- NPC -->
-					${this.currentConfig.npc
-				? html`
+					${
+						this.currentConfig.npc
+							? html`
 						<npc-element
 							.name="${this.currentConfig.npc.name}"
 							.image="${this.currentConfig.npc.image}"
@@ -169,13 +173,14 @@ export class GameViewport extends LitElement {
 							.hasCollectedItem="${this.hasCollectedItem}"
 						></npc-element>
 					`
-				: ""
-			}
+							: ""
+					}
 
 						<!-- Reward -->
-						${this.isAnimatingReward ||
-				(!this.hasCollectedItem && this.currentConfig.reward)
-				? html`
+						${
+							this.isAnimatingReward ||
+							(!this.hasCollectedItem && this.currentConfig.reward)
+								? html`
 							<reward-element
 								.image="${this.currentConfig.reward.image}"
 								.icon="${this.currentConfig.reward.icon}"
@@ -184,8 +189,8 @@ export class GameViewport extends LitElement {
 								class=${classMap({ [this.rewardAnimState]: this.isAnimatingReward })}
 							></reward-element>
 						`
-				: ""
-			}
+								: ""
+						}
 
 					<!-- Alarion -->
 					<hero-profile 

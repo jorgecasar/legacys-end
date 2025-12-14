@@ -1,6 +1,5 @@
 import { Difficulty, QuestType } from "../quest-types.js";
 
-
 export const STATE_MANAGEMENT_RAID_QUEST = {
 	id: "the-flowing-heartstone",
 	name: "The Flowing Heartstone",

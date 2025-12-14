@@ -1,6 +1,5 @@
 import { Difficulty, QuestType } from "../quest-types.js";
 
-
 export const THE_MIRROR_OF_VERACITY_QUEST = {
 	id: "the-mirror-of-veracity",
 	name: "The Mirror of Veracity",

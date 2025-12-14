@@ -29,10 +29,10 @@ export class QuestController {
 		this.options = {
 			progressService: null,
 			registry: DefaultRegistry,
-			onQuestStart: (quest) => { },
-			onChapterChange: (chapter, index) => { },
-			onQuestComplete: (quest) => { },
-			onReturnToHub: () => { },
+			onQuestStart: (_quest) => {},
+			onChapterChange: (_chapter, _index) => {},
+			onQuestComplete: (_quest) => {},
+			onReturnToHub: () => {},
 			...options,
 		};
 

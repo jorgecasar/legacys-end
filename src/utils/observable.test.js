@@ -35,7 +35,7 @@ describe("Observable Utility", () => {
 			throw new Error("Oops");
 		});
 		const successListener = vi.fn();
-		const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => { });
+		const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
 		observable.subscribe(errorListener);
 		observable.subscribe(successListener);

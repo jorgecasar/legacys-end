@@ -1,6 +1,5 @@
 import { Difficulty, QuestType } from "../quest-types.js";
 
-
 export const THE_SCRYING_POOL_OF_CHAOS_QUEST = {
 	id: "the-crimson-altar",
 	name: "The Crimson Altar",
@@ -24,7 +23,9 @@ export const THE_SCRYING_POOL_OF_CHAOS_QUEST = {
 	chapterIds: [],
 	// Chapter data
 	loadChapters: async () => {
-		const { THE_SCRYING_POOL_OF_CHAOS_CHAPTERS } = await import("./chapters.js");
+		const { THE_SCRYING_POOL_OF_CHAOS_CHAPTERS } = await import(
+			"./chapters.js"
+		);
 		return THE_SCRYING_POOL_OF_CHAOS_CHAPTERS;
 	},
 	reward: {

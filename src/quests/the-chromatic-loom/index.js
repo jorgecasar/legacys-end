@@ -1,6 +1,5 @@
 import { Difficulty, QuestType } from "../quest-types.js";
 
-
 /**
  * The Token of Agnosticism Quest Metadata
  *
