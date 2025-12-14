@@ -49,10 +49,28 @@ export class QuestController {
 		// Restore current quest/chapter from progress
 		const progress = this.progressService.getProgress();
 		if (progress.currentQuest) {
-			this.currentQuest = this.registry.getQuest(progress.currentQuest);
-			if (progress.currentChapter !== null) {
-				this.currentChapterIndex = progress.currentChapter;
-				this.currentChapter = this.getCurrentChapterData();
+			const quest = this.registry.getQuest(progress.currentQuest);
+			if (quest) {
+				this.currentQuest = quest;
+				// Load content asynchronously
+				this._loadQuestContent(quest).then(() => {
+					if (progress.currentChapter !== null) {
+						this.currentChapterIndex = progress.currentChapter;
+						this.currentChapter = this.getCurrentChapterData();
+						this.host.requestUpdate();
+					}
+				});
+			}
+		}
+	}
+
+	async _loadQuestContent(quest) {
+		if (quest.chapters) return;
+		if (quest.loadChapters && typeof quest.loadChapters === "function") {
+			try {
+				quest.chapters = await quest.loadChapters();
+			} catch (e) {
+				console.error(`Failed to load chapters for quest ${quest.id}:`, e);
 			}
 		}
 	}
@@ -71,7 +89,7 @@ export class QuestController {
 	 * Start a quest
 	 * @param {string} questId - Quest ID to start
 	 */
-	startQuest(questId) {
+	async startQuest(questId) {
 		const quest = this.registry.getQuest(questId);
 		if (!quest) {
 			console.error(`Quest not found: ${questId}`);
@@ -83,6 +101,9 @@ export class QuestController {
 			console.warn(`Quest not available: ${questId}`);
 			return;
 		}
+
+		// Ensure content is loaded
+		await this._loadQuestContent(quest);
 
 		// Reset progress for this quest (handles restarts)
 		this.progressService.resetQuestProgress(questId);
@@ -106,12 +127,12 @@ export class QuestController {
 	/**
 	 * Resume the currently active quest from saved state
 	 */
-	resumeQuest() {
+	async resumeQuest() {
 		if (!this.currentQuest) {
 			// Try to load from progress service if not loaded yet
 			const progress = this.progressService.getProgress();
 			if (progress.currentQuest) {
-				this.continueQuest(progress.currentQuest);
+				await this.continueQuest(progress.currentQuest);
 				return;
 			}
 		}
@@ -120,6 +141,9 @@ export class QuestController {
 			console.warn("No quest to resume");
 			return;
 		}
+
+		// Ensure content is loaded (if currentQuest was set but content missing)
+		await this._loadQuestContent(this.currentQuest);
 
 		// Notify host
 		this.options.onQuestStart(this.currentQuest);
@@ -137,12 +161,14 @@ export class QuestController {
 	 * Continue a specific quest from the last uncompleted chapter
 	 * @param {string} questId
 	 */
-	continueQuest(questId) {
+	async continueQuest(questId) {
 		const quest = this.registry.getQuest(questId);
 		if (!quest) {
 			console.error(`Quest not found: ${questId}`);
 			return;
 		}
+
+		await this._loadQuestContent(quest);
 
 		// Find the first uncompleted chapter
 		let nextChapterIndex = 0;

@@ -1,5 +1,5 @@
 import { Difficulty, QuestType } from "../quest-types.js";
-import { STATE_MANAGEMENT_RAID_CHAPTERS } from "./chapters.js";
+
 
 export const STATE_MANAGEMENT_RAID_QUEST = {
 	id: "the-flowing-heartstone",
@@ -23,7 +23,11 @@ export const STATE_MANAGEMENT_RAID_QUEST = {
 		"Unidirectional Data Flow",
 	],
 	chapterIds: [],
-	chapters: STATE_MANAGEMENT_RAID_CHAPTERS,
+	// Chapter data
+	loadChapters: async () => {
+		const { STATE_MANAGEMENT_RAID_CHAPTERS } = await import("./chapters.js");
+		return STATE_MANAGEMENT_RAID_CHAPTERS;
+	},
 	reward: {
 		badge: "State Master",
 		description: "Reactive, predictable component without prop drilling",

@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => {
 		},
 		plugins: [],
 		optimizeDeps: {
+			include: ["@awesome.me/webawesome/dist/components/spinner/spinner.js"],
 			esbuildOptions: {
 				target: "esnext",
 			},

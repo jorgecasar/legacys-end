@@ -62,13 +62,13 @@ describe("QuestController", () => {
 	});
 
 	describe("startQuest", () => {
-		it("should start a quest successfully", () => {
+		it("should start a quest successfully", async () => {
 			const onQuestStart = vi.fn();
 			controller.options.onQuestStart = onQuestStart;
 			const onChapterChange = vi.fn();
 			controller.options.onChapterChange = onChapterChange;
 
-			controller.startQuest("test-quest");
+			await controller.startQuest("test-quest");
 
 			expect(getQuest).toHaveBeenCalledWith("test-quest");
 			expect(controller.currentQuest).toEqual(mockQuest);
@@ -86,23 +86,23 @@ describe("QuestController", () => {
 			expect(host.requestUpdate).toHaveBeenCalled();
 		});
 
-		it("should not start a quest if it does not exist", () => {
+		it("should not start a quest if it does not exist", async () => {
 			getQuest.mockReturnValue(null);
 			const onQuestStart = vi.fn();
 			controller.options.onQuestStart = onQuestStart;
 
-			controller.startQuest("non-existent");
+			await controller.startQuest("non-existent");
 
 			expect(controller.currentQuest).toBeNull();
 			expect(onQuestStart).not.toHaveBeenCalled();
 		});
 
-		it("should not start a quest if it is not available", () => {
+		it("should not start a quest if it is not available", async () => {
 			controller.progressService.isQuestAvailable.mockReturnValue(false);
 			const onQuestStart = vi.fn();
 			controller.options.onQuestStart = onQuestStart;
 
-			controller.startQuest("test-quest");
+			await controller.startQuest("test-quest");
 
 			expect(controller.currentQuest).toBeNull();
 			expect(onQuestStart).not.toHaveBeenCalled();
@@ -110,8 +110,8 @@ describe("QuestController", () => {
 	});
 
 	describe("Chapter Progression", () => {
-		beforeEach(() => {
-			controller.startQuest("test-quest");
+		beforeEach(async () => {
+			await controller.startQuest("test-quest");
 			vi.clearAllMocks(); // Clear mocks called during startQuest
 		});
 
@@ -162,7 +162,7 @@ describe("QuestController", () => {
 	});
 
 	describe("resumeQuest", () => {
-		it("should resume quest from progress service if no current quest", () => {
+		it("should resume quest from progress service if no current quest", async () => {
 			// Setup progress service to return a saved quest
 			controller.progressService.getProgress.mockReturnValue({
 				currentQuest: "test-quest",
@@ -170,24 +170,24 @@ describe("QuestController", () => {
 			const onQuestStart = vi.fn();
 			controller.options.onQuestStart = onQuestStart;
 
-			controller.resumeQuest();
+			await controller.resumeQuest();
 
 			expect(controller.progressService.getProgress).toHaveBeenCalled();
 			expect(getQuest).toHaveBeenCalledWith("test-quest");
 			expect(onQuestStart).toHaveBeenCalledWith(mockQuest);
 		});
 
-		it("should do nothing if no quest to resume", () => {
+		it("should do nothing if no quest to resume", async () => {
 			controller.progressService.getProgress.mockReturnValue({}); // No current quest
 
-			controller.resumeQuest();
+			await controller.resumeQuest();
 
 			expect(controller.currentQuest).toBeNull();
 		});
 	});
 
 	describe("continueQuest", () => {
-		it("should continue from the first uncompleted chapter", () => {
+		it("should continue from the first uncompleted chapter", async () => {
 			// Mock that chapter 1 is completed
 			controller.progressService.isChapterCompleted.mockImplementation(
 				(id) => id === "chapter-1",
@@ -195,7 +195,7 @@ describe("QuestController", () => {
 			const onQuestStart = vi.fn();
 			controller.options.onQuestStart = onQuestStart;
 
-			controller.continueQuest("test-quest");
+			await controller.continueQuest("test-quest");
 
 			expect(controller.currentQuest).toEqual(mockQuest);
 			expect(controller.currentChapterIndex).toBe(1); // Should skip to chapter 2

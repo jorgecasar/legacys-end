@@ -1,5 +1,5 @@
 import { Difficulty, QuestType } from "../quest-types.js";
-import { THE_SCROLL_OF_TONGUES_CHAPTERS } from "./chapters.js";
+
 
 export const THE_SCROLL_OF_TONGUES_QUEST = {
 	id: "the-scroll-of-tongues",
@@ -22,7 +22,11 @@ export const THE_SCROLL_OF_TONGUES_QUEST = {
 		"String Management",
 	],
 	chapterIds: [],
-	chapters: THE_SCROLL_OF_TONGUES_CHAPTERS,
+	// Chapter data
+	loadChapters: async () => {
+		const { THE_SCROLL_OF_TONGUES_CHAPTERS } = await import("./chapters.js");
+		return THE_SCROLL_OF_TONGUES_CHAPTERS;
+	},
 	reward: {
 		badge: "Polyglot Master",
 		description: "Globally accessible component, adapted to any culture",

@@ -1,5 +1,4 @@
 import { Difficulty, QuestType } from "../quest-types.js";
-import { THE_AURA_OF_SOVEREIGNTY_CHAPTERS } from "./chapters.js";
 
 /**
  * The Tunic of Isolation Quest Metadata
@@ -25,8 +24,11 @@ export const THE_AURA_OF_SOVEREIGNTY_QUEST = {
 	// Chapter IDs
 	chapterIds: ["swamp-of-scope", "hall-of-fragments"],
 
-	// Chapter data
-	chapters: THE_AURA_OF_SOVEREIGNTY_CHAPTERS,
+	// Chapter data (Lazy Loaded)
+	loadChapters: async () => {
+		const module = await import("./chapters.js");
+		return module.THE_AURA_OF_SOVEREIGNTY_CHAPTERS;
+	},
 
 	reward: {
 		badge: "Isolated Component",

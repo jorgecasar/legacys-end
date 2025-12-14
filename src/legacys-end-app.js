@@ -32,6 +32,7 @@ import "./components/pause-menu.js";
 import "@awesome.me/webawesome/dist/components/tooltip/tooltip.js";
 import "@awesome.me/webawesome/dist/components/tag/tag.js";
 import "@awesome.me/webawesome/dist/components/button/button.js";
+import "@awesome.me/webawesome/dist/components/spinner/spinner.js";
 import "@awesome.me/webawesome/dist/styles/webawesome.css";
 import "./pixel.css";
 
@@ -74,11 +75,13 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		currentQuest: { type: Object },
 		isInHub: { type: Boolean },
 		hasSeenIntro: { type: Boolean },
+		isLoading: { type: Boolean },
 	};
 
 	constructor() {
 		super();
 		// UI State
+		this.isLoading = false;
 		this.showDialog = false;
 		this.hasSeenIntro = false;
 		this.showQuestCompleteDialog = false;
@@ -528,6 +531,21 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
     }
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      color: white;
+    }
   `,
 	];
 
@@ -539,6 +557,15 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 
 		// Show hub if not in a quest
 		if (this.isInHub) {
+			if (this.isLoading) {
+				return html`
+					<div class="loading-overlay">
+						<wa-spinner></wa-spinner>
+						<p>Loading Quest...</p>
+					</div>
+					${this.renderHub()}
+				`;
+			}
 			return html`
 				${this.renderHub()}
 				<about-slides></about-slides>
@@ -584,11 +611,17 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 	}
 
 	handleQuestSelect(questId) {
-		this.questController.startQuest(questId);
+		this.isLoading = true;
+		return this.questController.startQuest(questId).finally(() => {
+			this.isLoading = false;
+		});
 	}
 
 	handleContinueQuest(questId) {
-		this.questController.continueQuest(questId);
+		this.isLoading = true;
+		return this.questController.continueQuest(questId).finally(() => {
+			this.isLoading = false;
+		});
 	}
 
 	renderGame() {

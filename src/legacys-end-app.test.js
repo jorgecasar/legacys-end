@@ -44,7 +44,7 @@ describe("LegacysEndApp Component", () => {
 		// We simulate the callback invocation.
 		const questId = "the-aura-of-sovereignty";
 		if (hub.onQuestSelect) {
-			hub.onQuestSelect(questId);
+			await hub.onQuestSelect(questId);
 		} else {
 			// Fallback if property not set yet (unlikely if rendered)
 			throw new Error("onQuestSelect prop missing on quest-hub");

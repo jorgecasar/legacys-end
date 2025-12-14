@@ -1,5 +1,4 @@
 import { Difficulty, QuestType } from "../quest-types.js";
-import { GATE_OF_IDENTITY_CHAPTERS } from "./chapters.js";
 
 export const GATE_OF_IDENTITY_QUEST = {
 	id: "the-watchers-bastion",
@@ -25,7 +24,11 @@ export const GATE_OF_IDENTITY_QUEST = {
 		"Route Protection",
 	],
 	chapterIds: [],
-	chapters: GATE_OF_IDENTITY_CHAPTERS,
+	// Chapter data
+	loadChapters: async () => {
+		const { GATE_OF_IDENTITY_CHAPTERS } = await import("./chapters.js");
+		return GATE_OF_IDENTITY_CHAPTERS;
+	},
 	reward: {
 		badge: "Security Sentinel Badge",
 		description:

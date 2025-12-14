@@ -1,5 +1,5 @@
 import { Difficulty, QuestType } from "../quest-types.js";
-import { THE_SCRYING_POOL_OF_CHAOS_CHAPTERS } from "./chapters.js";
+
 
 export const THE_SCRYING_POOL_OF_CHAOS_QUEST = {
 	id: "the-crimson-altar",
@@ -22,7 +22,11 @@ export const THE_SCRYING_POOL_OF_CHAOS_QUEST = {
 		"Boundary Error Components",
 	],
 	chapterIds: [],
-	chapters: THE_SCRYING_POOL_OF_CHAOS_CHAPTERS,
+	// Chapter data
+	loadChapters: async () => {
+		const { THE_SCRYING_POOL_OF_CHAOS_CHAPTERS } = await import("./chapters.js");
+		return THE_SCRYING_POOL_OF_CHAOS_CHAPTERS;
+	},
 	reward: {
 		badge: "Chaos Warden",
 		description: "Resilient application with full error observability",
