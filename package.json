@@ -1,23 +1,29 @@
 {
-  "name": "legacys-end",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@awesome.me/webawesome": "^3.0.0",
-    "@lit/context": "^1.1.6",
-    "@speed-highlight/core": "^1.2.12",
-    "lit": "^3.3.1",
-    "syntax-highlight-element": "^1.2.0"
-  },
-  "devDependencies": {
-    "@types/node": "^22.14.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
-  }
+	"name": "legacys-end",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview",
+		"lint": "npm run lint:biome && npm run lint:lit",
+		"lint:biome": "biome check .",
+		"lint:lit": "lit-analyzer src",
+		"format": "biome check --write ."
+	},
+	"dependencies": {
+		"@awesome.me/webawesome": "^3.0.0",
+		"@lit/context": "^1.1.6",
+		"@speed-highlight/core": "^1.2.12",
+		"lit": "^3.3.1",
+		"syntax-highlight-element": "^1.2.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.3.8",
+		"@types/node": "^22.14.0",
+		"lit-analyzer": "^2.0.3",
+		"typescript": "~5.8.2",
+		"vite": "^6.2.0"
+	}
 }
