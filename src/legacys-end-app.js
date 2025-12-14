@@ -1,40 +1,44 @@
-import { LitElement, html, css } from 'lit';
-import { ContextProvider } from '@lit/context';
-import { profileContext } from './contexts/profile-context.js';
-import { themeContext } from './contexts/theme-context.js';
-import { suitContext } from './contexts/suit-context.js';
-import { gearContext } from './contexts/gear-context.js';
-import { powerContext } from './contexts/power-context.js';
-import { masteryContext } from './contexts/mastery-context.js';
-import { ServiceType } from './types.js';
-import { LegacyUserService, MockUserService, NewUserService } from './services/userServices.js';
-import { KeyboardController } from './controllers/keyboard-controller.js';
-import { DebugController } from './controllers/debug-controller.js';
-import { GameZoneController } from './controllers/game-zone-controller.js';
-import { CharacterContextController } from './controllers/character-context-controller.js';
-import { CollisionController } from './controllers/collision-controller.js';
-import { ServiceController } from './controllers/service-controller.js';
-import { InteractionController } from './controllers/interaction-controller.js';
-import { QuestController } from './controllers/quest-controller.js';
-import { ProgressService } from './services/progress-service.js';
-import { GameStateService } from './services/game-state-service.js';
-import { getComingSoonQuests } from './quests/quest-registry.js';
-import './components/quest-hub.js';
-import './components/about-slides.js';
-import './components/game-hud.js';
-import './components/game-view.js';
-import './components/hero-profile.js';
-import './components/npc-element.js';
-import './components/reward-element.js';
-import './components/level-dialog.js';
-import './components/victory-screen.js';
-import './components/pause-menu.js';
-import '@awesome.me/webawesome/dist/components/tooltip/tooltip.js';
-import '@awesome.me/webawesome/dist/components/tag/tag.js';
-import '@awesome.me/webawesome/dist/components/button/button.js';
-import '@awesome.me/webawesome/dist/styles/webawesome.css';
-import './pixel.css';
-import { sharedStyles } from './styles/shared.js';
+import { ContextProvider } from "@lit/context";
+import { css, html, LitElement } from "lit";
+import { gearContext } from "./contexts/gear-context.js";
+import { masteryContext } from "./contexts/mastery-context.js";
+import { powerContext } from "./contexts/power-context.js";
+import { profileContext } from "./contexts/profile-context.js";
+import { suitContext } from "./contexts/suit-context.js";
+import { themeContext } from "./contexts/theme-context.js";
+import { CharacterContextController } from "./controllers/character-context-controller.js";
+import { CollisionController } from "./controllers/collision-controller.js";
+import { DebugController } from "./controllers/debug-controller.js";
+import { GameZoneController } from "./controllers/game-zone-controller.js";
+import { InteractionController } from "./controllers/interaction-controller.js";
+import { KeyboardController } from "./controllers/keyboard-controller.js";
+import { QuestController } from "./controllers/quest-controller.js";
+import { ServiceController } from "./controllers/service-controller.js";
+import { getComingSoonQuests } from "./quests/quest-registry.js";
+import { GameStateService } from "./services/game-state-service.js";
+import { ProgressService } from "./services/progress-service.js";
+import {
+	LegacyUserService,
+	MockUserService,
+	NewUserService,
+} from "./services/userServices.js";
+import { ServiceType } from "./types.js";
+import "./components/quest-hub.js";
+import "./components/about-slides.js";
+import "./components/game-hud.js";
+import "./components/game-view.js";
+import "./components/hero-profile.js";
+import "./components/npc-element.js";
+import "./components/reward-element.js";
+import "./components/level-dialog.js";
+import "./components/victory-screen.js";
+import "./components/pause-menu.js";
+import "@awesome.me/webawesome/dist/components/tooltip/tooltip.js";
+import "@awesome.me/webawesome/dist/components/tag/tag.js";
+import "@awesome.me/webawesome/dist/components/button/button.js";
+import "@awesome.me/webawesome/dist/styles/webawesome.css";
+import "./pixel.css";
+import { sharedStyles } from "./styles/shared.js";
 
 export class LegacysEndApp extends LitElement {
 	static properties = {
@@ -53,7 +57,7 @@ export class LegacysEndApp extends LitElement {
 		// Quest system properties
 		currentQuest: { type: Object },
 		isInHub: { type: Boolean },
-		hasSeenIntro: { type: Boolean }
+		hasSeenIntro: { type: Boolean },
 	};
 
 	constructor() {
@@ -92,7 +96,8 @@ export class LegacysEndApp extends LitElement {
 			onMove: (dx, dy) => this.handleMove(dx, dy),
 			onInteract: () => this.handleInteract(),
 			onPause: () => this.togglePause(),
-			isEnabled: () => !this.isEvolving && !this.showDialog && !this.isPaused && !this.isInHub
+			isEnabled: () =>
+				!this.isEvolving && !this.showDialog && !this.isPaused && !this.isInHub,
 		});
 
 		// Initialize DebugController
@@ -122,10 +127,10 @@ export class LegacysEndApp extends LitElement {
 				position: this.heroPos,
 				themeMode: this.themeMode,
 				hotSwitchState: this.hotSwitchState,
-				userData: this.userData
+				userData: this.userData,
 			}),
 			setTheme: (mode) => {
-				if (mode === 'light' || mode === 'dark') {
+				if (mode === "light" || mode === "dark") {
 					this.gameState.setThemeMode(mode);
 					this.applyTheme();
 					console.log(`🎨 Theme set to: ${mode}`);
@@ -141,14 +146,14 @@ export class LegacysEndApp extends LitElement {
 				if (this.questController.currentQuest) {
 					this.questController.completeQuest();
 				} else {
-					console.warn('⚠️ No active quest to complete');
+					console.warn("⚠️ No active quest to complete");
 				}
 			},
 			completeChapter: () => {
 				if (this.questController.currentQuest) {
 					this.questController.completeChapter();
 				} else {
-					console.warn('⚠️ No active quest');
+					console.warn("⚠️ No active quest");
 				}
 			},
 			returnToHub: () => {
@@ -156,11 +161,11 @@ export class LegacysEndApp extends LitElement {
 			},
 			listQuests: () => {
 				const available = this.questController.getAvailableQuests();
-				console.log('📋 Available Quests:');
-				available.forEach(q => {
+				console.log("📋 Available Quests:");
+				available.forEach((q) => {
 					const progress = this.questController.getQuestProgress(q.id);
 					const completed = this.questController.isQuestCompleted(q.id);
-					console.log(`  ${completed ? '✅' : '⏳'} ${q.name} (${progress}%)`);
+					console.log(`  ${completed ? "✅" : "⏳"} ${q.name} (${progress}%)`);
 				});
 				return available;
 			},
@@ -169,7 +174,7 @@ export class LegacysEndApp extends LitElement {
 			},
 			resetProgress: () => {
 				this.questController.resetProgress();
-			}
+			},
 		});
 
 		// Initialize GameZoneController
@@ -183,20 +188,24 @@ export class LegacysEndApp extends LitElement {
 				}
 			},
 			getChapterData: () => this.getChapterData(this.chapterId),
-			hasCollectedItem: () => this.hasCollectedItem
+			hasCollectedItem: () => this.hasCollectedItem,
 		});
 
 		// Initialize CollisionController
 		this.collision = new CollisionController(this, {
-			onExitCollision: () => this.triggerLevelTransition()
+			onExitCollision: () => this.triggerLevelTransition(),
 		});
 
 		// Initialize ServiceController
 		this.serviceController = new ServiceController(this, {
 			services: this.services,
 			getActiveService: () => this.getActiveService(),
-			onDataLoaded: (userData) => { this.userData = userData; },
-			onError: (error) => { this.userError = error; }
+			onDataLoaded: (userData) => {
+				this.userData = userData;
+			},
+			onError: (error) => {
+				this.userError = error;
+			},
 		});
 
 		// Initialize CharacterContextController
@@ -212,28 +221,35 @@ export class LegacysEndApp extends LitElement {
 				hotSwitchState: this.hotSwitchState,
 				hasCollectedItem: this.hasCollectedItem,
 				userData: this.userData,
-				activeService: this.getActiveService()
-			})
+				activeService: this.getActiveService(),
+			}),
 		});
 
 		// Initialize InteractionController
 		this.interaction = new InteractionController(this, {
-			onShowDialog: () => { this.showDialog = true; },
+			onShowDialog: () => {
+				this.showDialog = true;
+			},
 			onVictory: () => {
 				this.gameState.setCollectedItem(true);
 				if (this.questController.currentChapter) {
-					this.progressService.updateChapterState(this.questController.currentChapter.id, { collectedItem: true });
+					this.progressService.updateChapterState(
+						this.questController.currentChapter.id,
+						{ collectedItem: true },
+					);
 				}
 			},
-			onLocked: (message) => { this.gameState.setLockedMessage(message); },
+			onLocked: (message) => {
+				this.gameState.setLockedMessage(message);
+			},
 			getState: () => ({
 				level: this.chapterId,
 				chapterData: this.getChapterData(this.chapterId),
 				heroPos: this.heroPos,
 				hotSwitchState: this.hotSwitchState,
-				hasCollectedItem: this.hasCollectedItem
+				hasCollectedItem: this.hasCollectedItem,
 			}),
-			getNpcPosition: () => this.getChapterData(this.chapterId)?.npc?.position
+			getNpcPosition: () => this.getChapterData(this.chapterId)?.npc?.position,
 		});
 
 		// Initialize QuestController
@@ -251,22 +267,28 @@ export class LegacysEndApp extends LitElement {
 				// Ensure we have fresh data
 				const chapterData = this.getChapterData(chapter.id);
 				if (chapterData) {
-					this.gameState.setHeroPosition(chapterData.startPos.x, chapterData.startPos.y);
+					this.gameState.setHeroPosition(
+						chapterData.startPos.x,
+						chapterData.startPos.y,
+					);
 
 					// Set initial hotSwitchState based on ServiceType
 					let initialHotSwitch = null;
 					if (chapterData.serviceType === ServiceType.LEGACY) {
-						initialHotSwitch = 'legacy';
+						initialHotSwitch = "legacy";
 					} else if (chapterData.serviceType === ServiceType.MOCK) {
-						initialHotSwitch = 'test';
+						initialHotSwitch = "test";
 					} else if (chapterData.serviceType === ServiceType.NEW) {
-						initialHotSwitch = 'new';
+						initialHotSwitch = "new";
 					}
 					this.gameState.setHotSwitchState(initialHotSwitch);
 
 					// If chapter has hot switch, check zones (might override to null if outside zones)
 					if (chapterData.hasHotSwitch) {
-						this.zones.checkZones(chapterData.startPos.x, chapterData.startPos.y);
+						this.zones.checkZones(
+							chapterData.startPos.x,
+							chapterData.startPos.y,
+						);
 					}
 				}
 				this.gameState.resetChapterState();
@@ -276,10 +298,14 @@ export class LegacysEndApp extends LitElement {
 				if (state.collectedItem) {
 					this.gameState.setCollectedItem(true);
 					this.gameState.setRewardCollected(true); // Assume animation already happened if restoring state
-					console.log(`🔄 Restored collected item state for chapter ${chapter.id}`);
+					console.log(
+						`🔄 Restored collected item state for chapter ${chapter.id}`,
+					);
 				}
 
-				console.log(`📖 Chapter ${index + 1}/${chapter.total}: ${chapterData?.name || chapter.id}`);
+				console.log(
+					`📖 Chapter ${index + 1}/${chapter.total}: ${chapterData?.name || chapter.id}`,
+				);
 			},
 			onQuestComplete: (quest) => {
 				console.log(`✅ Completed quest: ${quest.name}`);
@@ -290,7 +316,7 @@ export class LegacysEndApp extends LitElement {
 				this.isInHub = true;
 				this.currentQuest = null;
 				console.log(`🏛️ Returned to Hub`);
-			}
+			},
 		});
 	}
 
@@ -298,12 +324,30 @@ export class LegacysEndApp extends LitElement {
 		super.connectedCallback();
 
 		// Initialize Context Providers (must be done after element is connected)
-		this.profileProvider = new ContextProvider(this, { context: profileContext, initialValue: { loading: true } });
-		this.themeProvider = new ContextProvider(this, { context: themeContext, initialValue: { themeMode: 'light' } });
-		this.suitProvider = new ContextProvider(this, { context: suitContext, initialValue: {} });
-		this.gearProvider = new ContextProvider(this, { context: gearContext, initialValue: {} });
-		this.powerProvider = new ContextProvider(this, { context: powerContext, initialValue: {} });
-		this.masteryProvider = new ContextProvider(this, { context: masteryContext, initialValue: {} });
+		this.profileProvider = new ContextProvider(this, {
+			context: profileContext,
+			initialValue: { loading: true },
+		});
+		this.themeProvider = new ContextProvider(this, {
+			context: themeContext,
+			initialValue: { themeMode: "light" },
+		});
+		this.suitProvider = new ContextProvider(this, {
+			context: suitContext,
+			initialValue: {},
+		});
+		this.gearProvider = new ContextProvider(this, {
+			context: gearContext,
+			initialValue: {},
+		});
+		this.powerProvider = new ContextProvider(this, {
+			context: powerContext,
+			initialValue: {},
+		});
+		this.masteryProvider = new ContextProvider(this, {
+			context: masteryContext,
+			initialValue: {},
+		});
 
 		// Update controller references to providers
 		this.serviceController.options.profileProvider = this.profileProvider;
@@ -324,27 +368,30 @@ export class LegacysEndApp extends LitElement {
 	}
 
 	applyTheme() {
-		this.classList.add('wa-theme-pixel');
-		this.classList.add(this.themeMode === 'dark' ? 'wa-dark' : 'wa-light');
+		this.classList.add("wa-theme-pixel");
+		this.classList.add(this.themeMode === "dark" ? "wa-dark" : "wa-light");
 		this.themeProvider.setValue({ themeMode: this.themeMode });
 	}
 
 	// Removed get visualLevel() and get numericLevel()
 
 	updated(changedProperties) {
-		if (changedProperties.has('chapterId')) {
+		if (changedProperties.has("chapterId")) {
 			// Reload user data when chapter changes (service might change)
 			this.serviceController.loadUserData();
 		}
-		if (changedProperties.has('chapterId') || changedProperties.has('hasCollectedItem') || changedProperties.has('themeMode') || changedProperties.has('hotSwitchState')) {
+		if (
+			changedProperties.has("chapterId") ||
+			changedProperties.has("hasCollectedItem") ||
+			changedProperties.has("themeMode") ||
+			changedProperties.has("hotSwitchState")
+		) {
 			this.updateContexts();
 		}
 		// Reload user data when switching between services in Level 6
-		if (changedProperties.has('hotSwitchState')) {
+		if (changedProperties.has("hotSwitchState")) {
 			this.serviceController.loadUserData();
 		}
-
-
 	}
 
 	syncState() {
@@ -392,9 +439,9 @@ export class LegacysEndApp extends LitElement {
 	 */
 	getChapterData(levelId) {
 		// If in a quest, try to get chapter data from quest
-		if (this.questController && this.questController.currentQuest) {
+		if (this.questController?.currentQuest) {
 			const quest = this.questController.currentQuest;
-			if (quest.chapters && quest.chapters[levelId]) {
+			if (quest.chapters?.[levelId]) {
 				return quest.chapters[levelId];
 			}
 		}
@@ -427,17 +474,21 @@ export class LegacysEndApp extends LitElement {
 
 		// Check Exit Collision using CollisionController
 		// Only check if not in last chapter of quest
-		if (this.questController && this.questController.hasExitZone()) {
-			this.collision.checkExitZone(x, y, currentConfig.exitZone, this.hasCollectedItem);
+		if (this.questController?.hasExitZone()) {
+			this.collision.checkExitZone(
+				x,
+				y,
+				currentConfig.exitZone,
+				this.hasCollectedItem,
+			);
 		}
 
 		this.gameState.setHeroPosition(x, y);
 		this.zones.checkZones(x, y);
 	}
 
-
 	triggerLevelTransition() {
-		if (this.questController && this.questController.isInQuest()) {
+		if (this.questController?.isInQuest()) {
 			this.gameState.setEvolving(true);
 			setTimeout(() => {
 				this.questController.completeChapter();
@@ -446,10 +497,12 @@ export class LegacysEndApp extends LitElement {
 		}
 	}
 
-
 	getActiveService() {
 		const chapterData = this.getChapterData(this.chapterId);
-		return this.serviceController.getActiveService(chapterData?.serviceType, this.hotSwitchState);
+		return this.serviceController.getActiveService(
+			chapterData?.serviceType,
+			this.hotSwitchState,
+		);
 	}
 
 	static styles = [
@@ -481,7 +534,8 @@ export class LegacysEndApp extends LitElement {
     }
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  `];
+  `,
+	];
 
 	render() {
 		// Show quest complete screen if quest is completed
@@ -511,9 +565,9 @@ export class LegacysEndApp extends LitElement {
 			<victory-screen
 				.quest="${quest}"
 				.onReturn="${() => {
-				this.showQuestCompleteDialog = false;
-				this.questController.returnToHub();
-			}}"
+					this.showQuestCompleteDialog = false;
+					this.questController.returnToHub();
+				}}"
 			></victory-screen>
 		`;
 	}
@@ -530,7 +584,7 @@ export class LegacysEndApp extends LitElement {
 				.isQuestCompleted="${(questId) => this.questController.isQuestCompleted(questId)}"
 				.isQuestLocked="${(questId) => !this.progressService.isQuestAvailable(questId)}"
 				@reset-progress="${() => this.debug.options.resetProgress()}"
-				@open-about="${() => this.shadowRoot.querySelector('about-slides').show()}"
+				@open-about="${() => this.shadowRoot.querySelector("about-slides").show()}"
 			></quest-hub>
 		`;
 	}
@@ -550,23 +604,23 @@ export class LegacysEndApp extends LitElement {
 		}
 
 		// Handle dynamic background
-		let effectiveConfig = { ...currentConfig };
+		const effectiveConfig = { ...currentConfig };
 		// Only change background after reward animation is complete
 		if (this.isRewardCollected && currentConfig.postDialogBackgroundStyle) {
 			effectiveConfig.backgroundStyle = currentConfig.postDialogBackgroundStyle;
 		}
 
 		const isCloseToTarget = this.interaction.isCloseToNpc();
-		const isLastChapter = this.questController && this.questController.isLastChapter();
+		const isLastChapter = this.questController?.isLastChapter();
 
 		// Replaced hardcoded levels with flags
-		const canToggleTheme = currentConfig.canToggleTheme;
-		const hasHotSwitch = currentConfig.hasHotSwitch;
-		const isFinalBoss = currentConfig.isFinalBoss;
-		const assetId = currentConfig.assetId || 'level_1';
+		const _canToggleTheme = currentConfig.canToggleTheme;
+		const _hasHotSwitch = currentConfig.hasHotSwitch;
+		const _isFinalBoss = currentConfig.isFinalBoss;
+		const _assetId = currentConfig.assetId || "level_1";
 
 		// Dialog Config Logic
-		let dialogConfig = currentConfig;
+		const _dialogConfig = currentConfig;
 
 		return html`
 			<game-view
@@ -589,26 +643,26 @@ export class LegacysEndApp extends LitElement {
 				@restart="${this.handleRestartQuest}"
 				@quit="${this.handleQuitToHub}"
 				@complete="${() => {
-				this.showDialog = false;
-				this.gameState.setCollectedItem(true);
-			}}"
+					this.showDialog = false;
+					this.gameState.setCollectedItem(true);
+				}}"
 				@close-dialog="${() => {
-				this.showDialog = false;
-				this.hasSeenIntro = true;
-			}}"
+					this.showDialog = false;
+					this.hasSeenIntro = true;
+				}}"
 				@toggle-hot-switch="${() => {
-				const newState = this.hotSwitchState === 'legacy' ? 'new' : 'legacy';
-				this.gameState.setHotSwitchState(newState);
-				console.log('🔄 Hot Switch toggled to:', newState);
-			}}"
+					const newState = this.hotSwitchState === "legacy" ? "new" : "legacy";
+					this.gameState.setHotSwitchState(newState);
+					console.log("🔄 Hot Switch toggled to:", newState);
+				}}"
 				@reward-collected="${() => {
-				console.log('🎉 LegacysEndApp received reward-collected event');
-				this.gameState.setRewardCollected(true);
-				this.requestUpdate(); // Force update just in case
-			}}"
+					console.log("🎉 LegacysEndApp received reward-collected event");
+					this.gameState.setRewardCollected(true);
+					this.requestUpdate(); // Force update just in case
+				}}"
 			></game-view>
 		`;
 	}
 }
 
-customElements.define('legacys-end-app', LegacysEndApp);
+customElements.define("legacys-end-app", LegacysEndApp);

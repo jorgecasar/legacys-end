@@ -1,31 +1,31 @@
-import { LitElement, html, css } from 'lit';
-import '@awesome.me/webawesome/dist/components/button/button.js';
-import { sharedStyles } from '../styles/shared.js';
+import { css, html, LitElement } from "lit";
+import "@awesome.me/webawesome/dist/components/button/button.js";
+import { sharedStyles } from "../styles/shared.js";
 
 export class VictoryScreen extends LitElement {
 	static properties = {
 		quest: { type: Object },
-		onReturn: { type: Function }
+		onReturn: { type: Function },
 	};
 
 	constructor() {
 		super();
 		this.quest = null;
-		this.onReturn = () => { };
+		this.onReturn = () => {};
 	}
 
 	connectedCallback() {
 		super.connectedCallback();
-		window.addEventListener('keydown', this.handleKeyDown);
+		window.addEventListener("keydown", this.handleKeyDown);
 	}
 
 	disconnectedCallback() {
 		super.disconnectedCallback();
-		window.removeEventListener('keydown', this.handleKeyDown);
+		window.removeEventListener("keydown", this.handleKeyDown);
 	}
 
 	handleKeyDown = (e) => {
-		if (e.code === 'Space' || e.key === 'Enter') {
+		if (e.code === "Space" || e.key === "Enter") {
 			e.preventDefault();
 			this.onReturn();
 		}
@@ -39,9 +39,9 @@ export class VictoryScreen extends LitElement {
 		// Collect all rewards from chapters
 		const collectedRewards = [];
 		if (this.quest.chapterIds && this.quest.chapters) {
-			this.quest.chapterIds.forEach(chapterId => {
+			this.quest.chapterIds.forEach((chapterId) => {
 				const chapter = this.quest.chapters[chapterId];
-				if (chapter && chapter.reward) {
+				if (chapter?.reward) {
 					collectedRewards.push(chapter.reward);
 				}
 			});
@@ -52,16 +52,18 @@ export class VictoryScreen extends LitElement {
 				<h1 class="victory-title">QUEST COMPLETE!</h1>
 				<p class="victory-text"><small>
 					Congratulations, hero! You have successfully completed the quest:
-					<span style="color: ${this.quest.color || 'white'};">${this.quest.name}</span>.
+					<span style="color: ${this.quest.color || "white"};">${this.quest.name}</span>.
 				</small></p>
 
 				<div class="rewards-container">
-					${collectedRewards.map(reward => html`
+					${collectedRewards.map(
+						(reward) => html`
 						<div class="reward-item">
 							<img src="${reward.image}" alt="${reward.name}" class="reward-img" />
 							<span class="reward-name">${reward.name}</span>
 						</div>
-					`)}
+					`,
+					)}
 				</div>
 
 				<p class="victory-text"><small>
@@ -118,8 +120,8 @@ export class VictoryScreen extends LitElement {
 				50% { transform: none; animation-timing-function: cubic-bezier(0,0,0.2,1); }
 			}
 			@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-		`
+		`,
 	];
 }
 
-customElements.define('victory-screen', VictoryScreen);
+customElements.define("victory-screen", VictoryScreen);

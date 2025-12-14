@@ -1,6 +1,6 @@
 /**
  * GameStateService - Manages ephemeral game state
- * 
+ *
  * Tracks:
  * - Hero position
  * - Collected items (per session/chapter)
@@ -19,7 +19,7 @@ export class GameStateService {
 			isPaused: false,
 			isEvolving: false,
 			lockedMessage: null,
-			themeMode: 'light'
+			themeMode: "light",
 		};
 	}
 
@@ -32,7 +32,7 @@ export class GameStateService {
 
 	/**
 	 * Update state and notify listeners
-	 * @param {Object} partialState 
+	 * @param {Object} partialState
 	 */
 	setState(partialState) {
 		const oldState = { ...this.state };
@@ -42,7 +42,7 @@ export class GameStateService {
 
 	/**
 	 * Subscribe to state changes
-	 * @param {Function} listener 
+	 * @param {Function} listener
 	 * @returns {Function} Unsubscribe function
 	 */
 	subscribe(listener) {
@@ -54,7 +54,9 @@ export class GameStateService {
 	 * Notify all listeners of state change
 	 */
 	notifyListeners(newState, oldState) {
-		this.listeners.forEach(listener => listener(newState, oldState));
+		this.listeners.forEach((listener) => {
+			listener(newState, oldState);
+		});
 	}
 
 	// --- Convenience Methods ---
@@ -96,7 +98,7 @@ export class GameStateService {
 			hasCollectedItem: false,
 			isRewardCollected: false,
 			lockedMessage: null,
-			isEvolving: false
+			isEvolving: false,
 		});
 	}
 }

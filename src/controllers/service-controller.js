@@ -1,13 +1,11 @@
-
-
 /**
  * ServiceController - Manages user service loading
- * 
+ *
  * Handles:
  * - Service selection based on level and zone
  * - User data loading and error handling
  * - Profile context updates
- * 
+ *
  * Usage:
  * ```js
  * this.serviceController = new ServiceController(this, {
@@ -17,7 +15,7 @@
  *   onDataLoaded: (userData) => { this.userData = userData; },
  *   onError: (error) => { this.userError = error; }
  * });
- * 
+ *
  * // Load data
  * await this.serviceController.loadUserData();
  * ```
@@ -29,9 +27,9 @@ export class ServiceController {
 			services: {},
 			profileProvider: null,
 			getActiveService: () => null,
-			onDataLoaded: () => { },
-			onError: () => { },
-			...options
+			onDataLoaded: () => {},
+			onError: () => {},
+			...options,
 		};
 
 		this.userData = null;
@@ -83,7 +81,7 @@ export class ServiceController {
 			role: this.userData?.role,
 			loading: this.userLoading,
 			error: this.userError,
-			serviceName: this.options.getActiveService()?.getServiceName()
+			serviceName: this.options.getActiveService()?.getServiceName(),
 		});
 	}
 
@@ -118,15 +116,15 @@ export class ServiceController {
 		if (!serviceType) return null;
 
 		// If service type is NEW (dynamic), check hotSwitchState
-		if (serviceType === 'new') {
-			if (hotSwitchState === 'legacy') return this.options.services.legacy;
-			if (hotSwitchState === 'new') return this.options.services.new;
+		if (serviceType === "new") {
+			if (hotSwitchState === "legacy") return this.options.services.legacy;
+			if (hotSwitchState === "new") return this.options.services.new;
 			return null; // Neutral zone - no service active
 		}
 
 		// Static service mapping
-		if (serviceType === 'legacy') return this.options.services.legacy;
-		if (serviceType === 'mock') return this.options.services.mock;
+		if (serviceType === "legacy") return this.options.services.legacy;
+		if (serviceType === "mock") return this.options.services.mock;
 
 		return null;
 	}

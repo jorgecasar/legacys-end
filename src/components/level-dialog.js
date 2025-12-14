@@ -1,43 +1,43 @@
-import { LitElement, html, css, nothing } from 'lit';
-import 'syntax-highlight-element';
-import '@awesome.me/webawesome/dist/components/dialog/dialog.js';
-import '@awesome.me/webawesome/dist/components/button/button.js';
-import '@awesome.me/webawesome/dist/components/icon/icon.js';
-import { sharedStyles } from '../styles/shared.js';
-import { map } from 'lit/directives/map.js';
+import { css, html, LitElement } from "lit";
+import "syntax-highlight-element";
+import "@awesome.me/webawesome/dist/components/dialog/dialog.js";
+import "@awesome.me/webawesome/dist/components/button/button.js";
+import "@awesome.me/webawesome/dist/components/icon/icon.js";
+import { map } from "lit/directives/map.js";
+import { sharedStyles } from "../styles/shared.js";
 
 export class LevelDialog extends LitElement {
 	static properties = {
 		config: { type: Object },
 		level: { type: String },
 		hotSwitchState: { type: String },
-		slideIndex: { state: true }
+		slideIndex: { state: true },
 	};
 
 	constructor() {
 		super();
 		this.config = {};
-		this.level = '';
-		this.hotSwitchState = 'legacy';
+		this.level = "";
+		this.hotSwitchState = "legacy";
 		this.slideIndex = 0;
 	}
 
 	connectedCallback() {
 		super.connectedCallback();
-		window.addEventListener('keydown', this.handleKeyDown);
+		window.addEventListener("keydown", this.handleKeyDown);
 	}
 
 	disconnectedCallback() {
 		super.disconnectedCallback();
-		window.removeEventListener('keydown', this.handleKeyDown);
+		window.removeEventListener("keydown", this.handleKeyDown);
 	}
 
 	updated(changedProperties) {
-		if (changedProperties.has('slideIndex')) {
+		if (changedProperties.has("slideIndex")) {
 			const slides = this.getSlides();
-			if (slides[this.slideIndex] === 'confirmation') {
+			if (slides[this.slideIndex] === "confirmation") {
 				this.updateComplete.then(() => {
-					const btn = this.shadowRoot.querySelector('.complete-btn');
+					const btn = this.shadowRoot.querySelector(".complete-btn");
 					if (btn) btn.focus();
 				});
 			}
@@ -48,7 +48,7 @@ export class LevelDialog extends LitElement {
 		e.stopPropagation();
 		const slides = this.getSlides();
 
-		if (e.key === 'ArrowRight') {
+		if (e.key === "ArrowRight") {
 			if (this.slideIndex < slides.length - 1) {
 				this.slideIndex++;
 			} else {
@@ -56,7 +56,7 @@ export class LevelDialog extends LitElement {
 			}
 		}
 
-		if (e.code === 'Space') {
+		if (e.code === "Space") {
 			if (this.slideIndex < slides.length - 1) {
 				this.slideIndex++;
 			} else {
@@ -64,42 +64,51 @@ export class LevelDialog extends LitElement {
 			}
 		}
 
-		if (e.key === 'ArrowLeft') {
+		if (e.key === "ArrowLeft") {
 			this.slideIndex = Math.max(this.slideIndex - 1, 0);
 		}
 	};
 
 	getSlides() {
-		const sequence = []
+		const sequence = [];
 		if (this.config.description) {
-			sequence.push('narrative');
+			sequence.push("narrative");
 		}
 		if (this.config.codeSnippets?.start) {
-			sequence.push('code-start');
+			sequence.push("code-start");
 		}
 		if (this.config.problemDesc) {
-			sequence.push('problem');
+			sequence.push("problem");
 		}
 		if (this.config.codeSnippets?.end) {
-			sequence.push('code-end');
+			sequence.push("code-end");
 		}
-		if (this.config.architecturalChanges && this.config.architecturalChanges.length > 0) {
-			sequence.push('analysis');
+		if (
+			this.config.architecturalChanges &&
+			this.config.architecturalChanges.length > 0
+		) {
+			sequence.push("analysis");
 		}
-		sequence.push('confirmation');
+		sequence.push("confirmation");
 		return sequence;
 	}
 
 	dispatchComplete() {
-		this.dispatchEvent(new CustomEvent('complete', { bubbles: true, composed: true }));
+		this.dispatchEvent(
+			new CustomEvent("complete", { bubbles: true, composed: true }),
+		);
 	}
 
 	dispatchToggleHotSwitch() {
-		this.dispatchEvent(new CustomEvent('toggle-hot-switch', { bubbles: true, composed: true }));
+		this.dispatchEvent(
+			new CustomEvent("toggle-hot-switch", { bubbles: true, composed: true }),
+		);
 	}
 
 	dispatchClose() {
-		this.dispatchEvent(new CustomEvent('close', { bubbles: true, composed: true }));
+		this.dispatchEvent(
+			new CustomEvent("close", { bubbles: true, composed: true }),
+		);
 	}
 
 	static styles = [
@@ -423,7 +432,8 @@ export class LevelDialog extends LitElement {
       color: var(--wa-color-text-quiet);
       margin: 0;
     }
-  `];
+  `,
+	];
 
 	renderCode({ title = "Identified Problem", code }, type) {
 		return html`
@@ -434,11 +444,15 @@ export class LevelDialog extends LitElement {
 
 	renderSlideContent(type) {
 		switch (type) {
-			case 'code-start':
-				return map(this.config.codeSnippets.start, (snippet) => this.renderCode(snippet, type));
-			case 'code-end':
-				return map(this.config.codeSnippets.end, (snippet) => this.renderCode(snippet, type));
-			case 'problem':
+			case "code-start":
+				return map(this.config.codeSnippets.start, (snippet) =>
+					this.renderCode(snippet, type),
+				);
+			case "code-end":
+				return map(this.config.codeSnippets.end, (snippet) =>
+					this.renderCode(snippet, type),
+				);
+			case "problem":
 				return html`
 					<div class= "slide-content-centered">
 					<div class="narrative-icon problem-icon">
@@ -447,7 +461,7 @@ export class LevelDialog extends LitElement {
             ${this.config.problemDesc}
           </div >
 					`;
-			case 'narrative':
+			case "narrative":
 				return html`
 					<div class= "slide-content-centered">
 					<div class="narrative-icon">
@@ -456,41 +470,46 @@ export class LevelDialog extends LitElement {
             ${this.config.description}
           </div >
 					`;
-			case 'analysis':
+			case "analysis":
 				return html`
 					<h6 class= "slide-title-analysis" > Key Architectural Changes</h6>
 				<div class="analysis-list">
-					${this.config.architecturalChanges?.map(change => html`
+					${this.config.architecturalChanges?.map(
+						(change) => html`
                 <div class="analysis-item">
                   <wa-icon name="arrow-right" class="analysis-arrow"></wa-icon>
                   <span>${change}</span>
                 </div>
-              `)}
+              `,
+					)}
 				</div>
         `;
-			case 'confirmation':
+			case "confirmation":
 				return html`
           <div class="slide-content-between">
             <div></div>
 
-            ${this.config.isFinalBoss
-						? html`
+            ${
+							this.config.isFinalBoss
+								? html`
                   <div class="console">
                     <h6 class="console-title">CONTROL CONSOLE</h6>
                     <div class="console-controls">
-                      <div class="status-dot legacy ${this.hotSwitchState === 'legacy' ? 'pulse' : ''}"></div>
+                      <div class="status-dot legacy ${this.hotSwitchState === "legacy" ? "pulse" : ""}"></div>
                       <wa-button class="switch-btn" @click="${this.dispatchToggleHotSwitch}">SWITCH CONTEXT</wa-button>
-                      <div class="status-dot new ${this.hotSwitchState === 'new' ? 'pulse' : ''}"></div>
+                      <div class="status-dot new ${this.hotSwitchState === "new" ? "pulse" : ""}"></div>
                     </div>
                     <div class="console-status-text">
-                      Active: ${this.hotSwitchState === 'legacy' ? 'LEGACY API' : 'NEW V2 API'}
+                      Active: ${this.hotSwitchState === "legacy" ? "LEGACY API" : "NEW V2 API"}
                     </div>
                   </div>
                 `
-						: html`
+								: html`
                     <div class="quest-complete-container">
                       <h2 class="quest-complete-title">Level Complete!</h2>
-                      ${this.config.reward ? html`
+                      ${
+												this.config.reward
+													? html`
                         <div class="reward-preview">
                           <img src="${this.config.reward.image}" alt="${this.config.reward.name}" class="reward-img" />
                           <div class="reward-info">
@@ -498,9 +517,12 @@ export class LevelDialog extends LitElement {
                             <p class="reward-desc">Acquired! This item has been added to your inventory.</p>
                           </div>
                         </div>
-                      ` : ''}
+                      `
+													: ""
+											}
                     </div>
-                  `}
+                  `
+						}
 
             <div class="spacer-top"></div>
           </div>
@@ -543,12 +565,16 @@ export class LevelDialog extends LitElement {
           
           <!-- Indicators -->
           <div class="indicators">
-            ${slides.map((_, i) => html`
-              <div class="indicator ${i === this.slideIndex ? 'active' : 'inactive'}"></div>
-            `)}
+            ${slides.map(
+							(_, i) => html`
+              <div class="indicator ${i === this.slideIndex ? "active" : "inactive"}"></div>
+            `,
+						)}
           </div>
           
-          ${this.slideIndex === slides.length - 1 ? html`
+          ${
+						this.slideIndex === slides.length - 1
+							? html`
             <wa-button 
                 variant="brand"
                 @click="${this.dispatchComplete}"
@@ -557,7 +583,8 @@ export class LevelDialog extends LitElement {
                 ${this.config.isFinalBoss ? "COMPLETE" : "EVOLVE"}
                 <wa-icon slot="end" name="arrow-right"></wa-icon>
             </wa-button>
-          ` : html`
+          `
+							: html`
             <wa-button 
 				autofocus
                 variant="brand"
@@ -566,11 +593,12 @@ export class LevelDialog extends LitElement {
                 NEXT
                 <wa-icon slot="end" name="arrow-right"></wa-icon>
             </wa-button>
-          `}
+          `
+					}
         </div>
       </wa-dialog>
     `;
 	}
 }
 
-customElements.define('level-dialog', LevelDialog);
+customElements.define("level-dialog", LevelDialog);

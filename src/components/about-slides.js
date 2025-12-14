@@ -1,9 +1,9 @@
-import { LitElement, html, css } from 'lit';
-import '@awesome.me/webawesome/dist/components/dialog/dialog.js';
-import '@awesome.me/webawesome/dist/components/carousel/carousel.js';
-import '@awesome.me/webawesome/dist/components/carousel-item/carousel-item.js';
-import '@awesome.me/webawesome/dist/components/button/button.js';
-import { sharedStyles } from '../styles/shared.js';
+import { css, html, LitElement } from "lit";
+import "@awesome.me/webawesome/dist/components/dialog/dialog.js";
+import "@awesome.me/webawesome/dist/components/carousel/carousel.js";
+import "@awesome.me/webawesome/dist/components/carousel-item/carousel-item.js";
+import "@awesome.me/webawesome/dist/components/button/button.js";
+import { sharedStyles } from "../styles/shared.js";
 
 export class AboutSlides extends LitElement {
 	static styles = [
@@ -52,13 +52,13 @@ export class AboutSlides extends LitElement {
 				margin: 0.5rem 0;
 				font-size: 1.1rem;
 			}
-		`
+		`,
 	];
 
 	render() {
 		return html`
 			<wa-dialog label="About Legacy's End" class="about-dialog" style="--width: 800px;">
-				<wa-carousel navigation pagination mouse-dragging>
+				<wa-carousel navigation pagination ?mouseDragging>
 					<wa-carousel-item>
 						<h2>Legacy's End</h2>
 						<p>A game built with Lit and Web Awesome.</p>
@@ -82,18 +82,18 @@ export class AboutSlides extends LitElement {
 	}
 
 	show() {
-		const dialog = this.shadowRoot.querySelector('wa-dialog');
+		const dialog = this.shadowRoot.querySelector("wa-dialog");
 		if (dialog) {
 			dialog.show();
 		}
 	}
 
 	hide() {
-		const dialog = this.shadowRoot.querySelector('wa-dialog');
+		const dialog = this.shadowRoot.querySelector("wa-dialog");
 		if (dialog) {
 			dialog.hide();
 		}
 	}
 }
 
-customElements.define('about-slides', AboutSlides);
+customElements.define("about-slides", AboutSlides);

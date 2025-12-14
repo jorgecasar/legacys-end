@@ -1,14 +1,14 @@
-import { LitElement, html, css, nothing } from 'lit';
-import './game-hud.js';
-import './hero-profile.js';
-import './npc-element.js';
-import './reward-element.js';
-import './game-viewport.js';
-import './level-dialog.js';
-import './pause-menu.js';
-import '@awesome.me/webawesome/dist/components/card/card.js';
-import '@awesome.me/webawesome/dist/components/button/button.js';
-import { sharedStyles } from '../styles/shared.js';
+import { css, html, LitElement } from "lit";
+import "./game-hud.js";
+import "./hero-profile.js";
+import "./npc-element.js";
+import "./reward-element.js";
+import "./game-viewport.js";
+import "./level-dialog.js";
+import "./pause-menu.js";
+import "@awesome.me/webawesome/dist/components/card/card.js";
+import "@awesome.me/webawesome/dist/components/button/button.js";
+import { sharedStyles } from "../styles/shared.js";
 
 export class GameView extends LitElement {
 	static properties = {
@@ -26,7 +26,7 @@ export class GameView extends LitElement {
 		showDialog: { type: Boolean },
 		level: { type: String },
 		isLastChapter: { type: Boolean },
-		isRewardCollected: { type: Boolean }
+		isRewardCollected: { type: Boolean },
 	};
 
 	render() {
@@ -35,21 +35,20 @@ export class GameView extends LitElement {
 		}
 
 		// Replaced hardcoded levels with flags
-		const canToggleTheme = this.currentConfig.canToggleTheme;
-		const hasHotSwitch = this.currentConfig.hasHotSwitch;
-		const isFinalBoss = this.currentConfig.isFinalBoss;
-
+		const _canToggleTheme = this.currentConfig.canToggleTheme;
+		const _hasHotSwitch = this.currentConfig.hasHotSwitch;
+		const _isFinalBoss = this.currentConfig.isFinalBoss;
 
 		// Dialog Config Logic
-		let dialogConfig = this.currentConfig;
+		const dialogConfig = this.currentConfig;
 
 		return html`
 
 			<pause-menu
 				.open="${this.isPaused}"
-				@resume="${() => this.dispatchEvent(new CustomEvent('resume'))}"
-				@restart="${() => this.dispatchEvent(new CustomEvent('restart'))}"
-				@quit="${() => this.dispatchEvent(new CustomEvent('quit'))}"
+				@resume="${() => this.dispatchEvent(new CustomEvent("resume"))}"
+				@restart="${() => this.dispatchEvent(new CustomEvent("restart"))}"
+				@quit="${() => this.dispatchEvent(new CustomEvent("quit"))}"
 			></pause-menu>
 
 			<main>
@@ -68,15 +67,19 @@ export class GameView extends LitElement {
 				></game-viewport>
 			</main>
 
-			${this.showDialog ? html`
+			${
+				this.showDialog
+					? html`
 				<level-dialog
 					.config="${dialogConfig}"
 					.level="${this.level}"
 					.hotSwitchState="${this.hotSwitchState}"
-					@complete="${() => this.dispatchEvent(new CustomEvent('complete'))}"
-					@close="${() => this.dispatchEvent(new CustomEvent('close-dialog'))}"
+					@complete="${() => this.dispatchEvent(new CustomEvent("complete"))}"
+					@close="${() => this.dispatchEvent(new CustomEvent("close-dialog"))}"
 				></level-dialog>
-			` : ''}
+			`
+					: ""
+			}
 		`;
 	}
 
@@ -114,7 +117,8 @@ export class GameView extends LitElement {
 			box-sizing: border-box;
 		}
 
-	`];
+	`,
+	];
 }
 
-customElements.define('game-view', GameView);
+customElements.define("game-view", GameView);

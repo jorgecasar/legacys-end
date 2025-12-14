@@ -1,16 +1,14 @@
-import { ServiceType } from '../types.js'; // Assuming ServiceType is needed or will use string
-
 const DEFAULT_INTERACTION_DISTANCE = 15;
 
 /**
  * InteractionController - Handles NPC interaction logic
- * 
+ *
  * Handles:
  * - Distance calculation to NPCs
  * - Proximity detection
  * - Interaction validation (Level 6 victory conditions)
  * - Dialog triggering
- * 
+ *
  * Usage:
  * ```js
  * this.interaction = new InteractionController(this, {
@@ -26,7 +24,7 @@ const DEFAULT_INTERACTION_DISTANCE = 15;
  *   }),
  *   getNpcPosition: () => currentConfig.npc?.position
  * });
- * 
+ *
  * // Handle interaction
  * this.interaction.handleInteract();
  * ```
@@ -36,12 +34,12 @@ export class InteractionController {
 		this.host = host;
 		this.options = {
 			interactionDistance: DEFAULT_INTERACTION_DISTANCE,
-			onShowDialog: () => { },
-			onVictory: () => { },
-			onLocked: () => { },
+			onShowDialog: () => {},
+			onVictory: () => {},
+			onLocked: () => {},
 			getState: () => ({}),
 			getNpcPosition: () => null,
-			...options
+			...options,
 		};
 
 		host.addController(this);
@@ -64,8 +62,7 @@ export class InteractionController {
 	calculateDistance(heroPos, targetPos) {
 		if (!targetPos) return Infinity;
 		return Math.sqrt(
-			Math.pow(heroPos.x - targetPos.x, 2) +
-			Math.pow(heroPos.y - targetPos.y, 2)
+			(heroPos.x - targetPos.x) ** 2 + (heroPos.y - targetPos.y) ** 2,
 		);
 	}
 
@@ -89,8 +86,8 @@ export class InteractionController {
 		const { chapterData, hotSwitchState, hasCollectedItem } = state;
 
 		// Final Boss Victory condition check
-		if (chapterData && chapterData.isFinalBoss && isClose) {
-			if (hotSwitchState === 'new') {
+		if (chapterData?.isFinalBoss && isClose) {
+			if (hotSwitchState === "new") {
 				// Allow dialog to open for final victory sequence
 				this.options.onShowDialog();
 			} else {

@@ -1,11 +1,11 @@
-import { LitElement, html, css } from 'lit';
-import '@awesome.me/webawesome/dist/components/dialog/dialog.js';
-import '@awesome.me/webawesome/dist/components/button/button.js';
-import '@awesome.me/webawesome/dist/components/icon/icon.js';
+import { css, html, LitElement } from "lit";
+import "@awesome.me/webawesome/dist/components/dialog/dialog.js";
+import "@awesome.me/webawesome/dist/components/button/button.js";
+import "@awesome.me/webawesome/dist/components/icon/icon.js";
 
 export class PauseMenu extends LitElement {
 	static properties = {
-		open: { type: Boolean }
+		open: { type: Boolean },
 	};
 
 	constructor() {
@@ -41,21 +41,30 @@ export class PauseMenu extends LitElement {
 	handleRequestClose(event) {
 		// Only allow closing via Resume button or external logic (which updates .open)
 		// If the user clicks overlay or escape, we treat it as "Resume"
-		if (event.detail.source === 'overlay' || event.detail.source === 'keyboard') {
+		if (
+			event.detail.source === "overlay" ||
+			event.detail.source === "keyboard"
+		) {
 			this.dispatchResume();
 		}
 	}
 
 	dispatchResume() {
-		this.dispatchEvent(new CustomEvent('resume', { bubbles: true, composed: true }));
+		this.dispatchEvent(
+			new CustomEvent("resume", { bubbles: true, composed: true }),
+		);
 	}
 
 	dispatchRestart() {
-		this.dispatchEvent(new CustomEvent('restart', { bubbles: true, composed: true }));
+		this.dispatchEvent(
+			new CustomEvent("restart", { bubbles: true, composed: true }),
+		);
 	}
 
 	dispatchQuit() {
-		this.dispatchEvent(new CustomEvent('quit', { bubbles: true, composed: true }));
+		this.dispatchEvent(
+			new CustomEvent("quit", { bubbles: true, composed: true }),
+		);
 	}
 
 	static styles = css`
@@ -112,4 +121,4 @@ export class PauseMenu extends LitElement {
 	`;
 }
 
-customElements.define('pause-menu', PauseMenu);
+customElements.define("pause-menu", PauseMenu);

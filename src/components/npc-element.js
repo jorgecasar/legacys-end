@@ -1,7 +1,7 @@
-import { LitElement, html, css } from 'lit';
-import '@awesome.me/webawesome/dist/components/icon/icon.js';
-import '@awesome.me/webawesome/dist/components/tag/tag.js';
-import '@awesome.me/webawesome/dist/components/tooltip/tooltip.js';
+import { css, html, LitElement } from "lit";
+import "@awesome.me/webawesome/dist/components/icon/icon.js";
+import "@awesome.me/webawesome/dist/components/tag/tag.js";
+import "@awesome.me/webawesome/dist/components/tooltip/tooltip.js";
 
 export class NpcElement extends LitElement {
 	static properties = {
@@ -12,7 +12,7 @@ export class NpcElement extends LitElement {
 		y: { type: Number },
 		isClose: { type: Boolean },
 		action: { type: String },
-		hasCollectedItem: { type: Boolean }
+		hasCollectedItem: { type: Boolean },
 	};
 
 	static styles = css`
@@ -62,17 +62,21 @@ export class NpcElement extends LitElement {
             .open="${open}"
             trigger="manual"
         >
-		${this.action || 'TALK'}
+		${this.action || "TALK"}
         </wa-tooltip>
-		${this.image ? html`
+		${
+			this.image
+				? html`
             <img src="${this.image}" id="npc-tooltip" class="npc-img" alt="${this.name}" />
-            ` : html`
-            <wa-icon name="${this.icon}" id="npc-tooltip"  style="font-size: var(--wa-font-size-2xl); color: ${this.isClose ? 'var(--wa-color-primary-500)' : 'var(--wa-color-neutral-200)'}; transition: color 0.3s;"></wa-icon>
-            `}
+            `
+				: html`
+            <wa-icon name="${this.icon}" id="npc-tooltip"  style="font-size: var(--wa-font-size-2xl); color: ${this.isClose ? "var(--wa-color-primary-500)" : "var(--wa-color-neutral-200)"}; transition: color 0.3s;"></wa-icon>
+            `
+		}
 
       <wa-tag variant="neutral" size="small" pill class="npc-name-tag">${this.name}</wa-tag>
     `;
 	}
 }
 
-customElements.define('npc-element', NpcElement);
+customElements.define("npc-element", NpcElement);

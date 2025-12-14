@@ -1,10 +1,10 @@
 /**
  * GameZoneController - Lit Reactive Controller for zone detection
- * 
+ *
  * Handles:
  * - Theme zones (dark/light based on Y position) - if chapter.canToggleTheme
  * - Context zones (legacy/new based on position) - if chapter.hasHotSwitch
- * 
+ *
  * Usage:
  * ```js
  * this.zones = new GameZoneController(this, {
@@ -13,7 +13,7 @@
  *   getChapterData: () => currentConfig,
  *   hasCollectedItem: () => this.hasCollectedItem
  * });
- * 
+ *
  * // Check zones when position changes
  * this.zones.checkZones(x, y);
  * ```
@@ -22,11 +22,11 @@ export class GameZoneController {
 	constructor(host, options = {}) {
 		this.host = host;
 		this.options = {
-			onThemeChange: () => { },
-			onContextChange: () => { },
+			onThemeChange: () => {},
+			onContextChange: () => {},
 			getChapterData: () => null,
 			hasCollectedItem: () => false,
-			...options
+			...options,
 		};
 
 		host.addController(this);
@@ -68,11 +68,11 @@ export class GameZoneController {
 	 * @param {number} y - Y position
 	 * @returns {string} 'wa-dark' or 'wa-light'
 	 */
-	getThemeForPosition(x, y) {
+	getThemeForPosition(_x, y) {
 		if (y <= 25) {
-			return 'dark';
+			return "dark";
 		}
-		return 'light';
+		return "light";
 	}
 
 	/**
@@ -85,10 +85,20 @@ export class GameZoneController {
 		const legacyZone = { xMin: 50, xMax: 100, yMin: 40, yMax: 100 };
 		const newZone = { xMin: 0, xMax: 50, yMin: 40, yMax: 100 };
 
-		if (x >= legacyZone.xMin && x <= legacyZone.xMax && y >= legacyZone.yMin && y <= legacyZone.yMax) {
-			return 'legacy';
-		} else if (x >= newZone.xMin && x < newZone.xMax && y >= newZone.yMin && y <= newZone.yMax) {
-			return 'new';
+		if (
+			x >= legacyZone.xMin &&
+			x <= legacyZone.xMax &&
+			y >= legacyZone.yMin &&
+			y <= legacyZone.yMax
+		) {
+			return "legacy";
+		} else if (
+			x >= newZone.xMin &&
+			x < newZone.xMax &&
+			y >= newZone.yMin &&
+			y <= newZone.yMax
+		) {
+			return "new";
 		}
 
 		return null; // Neutral zone

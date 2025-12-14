@@ -1,11 +1,11 @@
-import { LitElement, html, css } from 'lit';
-import './hero-profile.js';
-import './npc-element.js';
-import './reward-element.js';
-import './game-hud.js';
-import '@awesome.me/webawesome/dist/components/card/card.js';
-import '@awesome.me/webawesome/dist/components/details/details.js';
-import { sharedStyles } from '../styles/shared.js';
+import { css, html, LitElement } from "lit";
+import "./hero-profile.js";
+import "./npc-element.js";
+import "./reward-element.js";
+import "./game-hud.js";
+import "@awesome.me/webawesome/dist/components/card/card.js";
+import "@awesome.me/webawesome/dist/components/details/details.js";
+import { sharedStyles } from "../styles/shared.js";
 
 export class GameViewport extends LitElement {
 	static properties = {
@@ -21,40 +21,45 @@ export class GameViewport extends LitElement {
 		questTitle: { type: String },
 		isAnimatingReward: { state: true },
 		rewardAnimState: { state: true },
-		isRewardCollected: { state: true }
+		isRewardCollected: { state: true },
 	};
 
 	willUpdate(changedProperties) {
-		if (changedProperties.has('hasCollectedItem')) {
+		if (changedProperties.has("hasCollectedItem")) {
 			if (!this.hasCollectedItem) {
 				this.isRewardCollected = false;
 			} else if (this.hasCollectedItem) {
 				this.isAnimatingReward = true;
-				this.rewardAnimState = 'start';
+				this.rewardAnimState = "start";
 				// ... animation logic ...
 			}
 		}
 
-		if (changedProperties.has('hasCollectedItem') && this.hasCollectedItem) {
+		if (changedProperties.has("hasCollectedItem") && this.hasCollectedItem) {
 			// Step 1: Grow to center
 			setTimeout(() => {
-				this.rewardAnimState = 'growing';
+				this.rewardAnimState = "growing";
 				this.requestUpdate();
 			}, 50);
 
 			// Step 2: Move to hero
 			setTimeout(() => {
-				this.rewardAnimState = 'moving';
+				this.rewardAnimState = "moving";
 				this.requestUpdate();
 			}, 1000);
 
 			// Step 3: End
 			setTimeout(() => {
 				this.isAnimatingReward = false;
-				this.rewardAnimState = '';
+				this.rewardAnimState = "";
 				this.isRewardCollected = true; // New state to trigger visual changes
-				console.log('✨ GameViewport dispatching reward-collected');
-				this.dispatchEvent(new CustomEvent('reward-collected', { bubbles: true, composed: true }));
+				console.log("✨ GameViewport dispatching reward-collected");
+				this.dispatchEvent(
+					new CustomEvent("reward-collected", {
+						bubbles: true,
+						composed: true,
+					}),
+				);
 				this.requestUpdate();
 			}, 1800);
 		}
@@ -63,8 +68,8 @@ export class GameViewport extends LitElement {
 	render() {
 		const canToggleTheme = this.currentConfig.canToggleTheme;
 		const hasHotSwitch = this.currentConfig.hasHotSwitch;
-		const isFinalBoss = this.currentConfig.isFinalBoss;
-		const backgroundStyle = this.currentConfig.backgroundStyle || '#374151';
+		const _isFinalBoss = this.currentConfig.isFinalBoss;
+		const backgroundStyle = this.currentConfig.backgroundStyle || "#374151";
 
 		return html`
 			<div class="viewport-container">
@@ -84,44 +89,58 @@ export class GameViewport extends LitElement {
 					</wa-details>
 					
 					<!-- Theme Zones (Level 2 Equivalent) -->
-					${canToggleTheme ? html`
+					${
+						canToggleTheme
+							? html`
 						<div class="zone zone-light">
 							<small class="zone-label">Light Theme</small>
 						</div>
 						<div class="zone zone-dark">
 							<small class="zone-label">Dark Theme</small>
 						</div>
-					` : ''}
+					`
+							: ""
+					}
 
 					<!-- Exit Zone -->
-					${this.hasCollectedItem && this.currentConfig.exitZone ? html`
+					${
+						this.hasCollectedItem && this.currentConfig.exitZone
+							? html`
 						<div class="exit-zone" style="
 							left: ${this.currentConfig.exitZone.x}%; 
 							top: ${this.currentConfig.exitZone.y}%; 
 							width: ${this.currentConfig.exitZone.width}%; 
 							height: ${this.currentConfig.exitZone.height}%;
-							justify-content: ${this.currentConfig.exitZone.x > 80 ? 'flex-end' : (this.currentConfig.exitZone.x < 20 ? 'flex-start' : 'center')};
-							padding-right: ${this.currentConfig.exitZone.x > 80 ? '1rem' : '0'};
-							padding-left: ${this.currentConfig.exitZone.x < 20 ? '1rem' : '0'};
+							justify-content: ${this.currentConfig.exitZone.x > 80 ? "flex-end" : this.currentConfig.exitZone.x < 20 ? "flex-start" : "center"};
+							padding-right: ${this.currentConfig.exitZone.x > 80 ? "1rem" : "0"};
+							padding-left: ${this.currentConfig.exitZone.x < 20 ? "1rem" : "0"};
 						">
-							<wa-tag variant="neutral" class="exit-text">${this.currentConfig.exitZone.label || 'EXIT'}</wa-tag>
+							<wa-tag variant="neutral" class="exit-text">${this.currentConfig.exitZone.label || "EXIT"}</wa-tag>
 						</div>
-					` : ''}
+					`
+							: ""
+					}
 
 					<!-- Context Zones (Level 6 Equivalent) -->
-					${hasHotSwitch ? html`
-						<div class="ctx-zone ctx-legacy ${this.hotSwitchState === 'legacy' ? 'active' : 'inactive'}">
-							<h6 class="ctx-title" style="color: ${this.hotSwitchState === 'legacy' ? 'white' : '#991b1b'}">Legacy</h6>
+					${
+						hasHotSwitch
+							? html`
+						<div class="ctx-zone ctx-legacy ${this.hotSwitchState === "legacy" ? "active" : "inactive"}">
+							<h6 class="ctx-title" style="color: ${this.hotSwitchState === "legacy" ? "white" : "#991b1b"}">Legacy</h6>
 							<small class="ctx-sub" style="color: #fca5a5">LegacyUserService</small>
 						</div>
-						<div class="ctx-zone ctx-new ${this.hotSwitchState === 'new' ? 'active' : 'inactive'}">
-							<h6 class="ctx-title" style="color: ${this.hotSwitchState === 'new' ? 'white' : '#1e40af'}">New API V2</h6>
+						<div class="ctx-zone ctx-new ${this.hotSwitchState === "new" ? "active" : "inactive"}">
+							<h6 class="ctx-title" style="color: ${this.hotSwitchState === "new" ? "white" : "#1e40af"}">New API V2</h6>
 							<small class="ctx-sub" style="color: #93c5fd">NewUserService</small>
 						</div>
-					` : ''}
+					`
+							: ""
+					}
 
 					<!-- NPC -->
-					${this.currentConfig.npc ? html`
+					${
+						this.currentConfig.npc
+							? html`
 						<npc-element
 							.name="${this.currentConfig.npc.name}"
 							.image="${this.currentConfig.npc.image}"
@@ -132,18 +151,25 @@ export class GameViewport extends LitElement {
 							.action="${this.lockedMessage}"
 							.hasCollectedItem="${this.hasCollectedItem}"
 						></npc-element>
-					` : ''}
+					`
+							: ""
+					}
 
 						<!-- Reward -->
-						${(this.isAnimatingReward || (!this.hasCollectedItem && this.currentConfig.reward)) ? html`
+						${
+							this.isAnimatingReward ||
+							(!this.hasCollectedItem && this.currentConfig.reward)
+								? html`
 							<reward-element
 								.image="${this.currentConfig.reward.image}"
 								.icon="${this.currentConfig.reward.icon}"
-								.x="${this.isAnimatingReward && this.rewardAnimState === 'growing' ? 50 : (this.isAnimatingReward && this.rewardAnimState === 'moving' ? this.heroPos.x : this.currentConfig.reward.position.x)}"
-								.y="${this.isAnimatingReward && this.rewardAnimState === 'growing' ? 50 : (this.isAnimatingReward && this.rewardAnimState === 'moving' ? this.heroPos.y : this.currentConfig.reward.position.y)}"
-								class="${this.isAnimatingReward ? this.rewardAnimState : ''}"
+								.x="${this.isAnimatingReward && this.rewardAnimState === "growing" ? 50 : this.isAnimatingReward && this.rewardAnimState === "moving" ? this.heroPos.x : this.currentConfig.reward.position.x}"
+								.y="${this.isAnimatingReward && this.rewardAnimState === "growing" ? 50 : this.isAnimatingReward && this.rewardAnimState === "moving" ? this.heroPos.y : this.currentConfig.reward.position.y}"
+								class="${this.isAnimatingReward ? this.rewardAnimState : ""}"
 							></reward-element>
-						` : ''}
+						`
+								: ""
+						}
 
 					<!-- Alarion -->
 					<hero-profile 
@@ -151,9 +177,9 @@ export class GameViewport extends LitElement {
 							left: ${this.heroPos.x}%; 
 							top: ${this.heroPos.y}%;
 							opacity: ${this.isEvolving ? 0 : 1};
-							transition: ${this.isEvolving ? 'opacity 0.5s ease-out' : 'left 0.075s linear, top 0.075s linear'};
+							transition: ${this.isEvolving ? "opacity 0.5s ease-out" : "left 0.075s linear, top 0.075s linear"};
 						"
-						.imageSrc="${(this.isRewardCollected && this.currentConfig.hero?.reward) ? this.currentConfig.hero.reward : this.currentConfig.hero?.image}"
+						.imageSrc="${this.isRewardCollected && this.currentConfig.hero?.reward ? this.currentConfig.hero.reward : this.currentConfig.hero?.image}"
 						.hotSwitchState="${this.hotSwitchState}"
 					></hero-profile>
 
@@ -321,7 +347,8 @@ export class GameViewport extends LitElement {
 			0%, 100% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0.8,0,1,1); }
 			50% { transform: none; animation-timing-function: cubic-bezier(0,0,0.2,1); }
 		}
-	`];
+	`,
+	];
 }
 
-customElements.define('game-viewport', GameViewport);
+customElements.define("game-viewport", GameViewport);

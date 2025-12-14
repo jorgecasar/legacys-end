@@ -1,20 +1,20 @@
-import { QUESTS, getQuest, isQuestLocked } from '../quests/quest-registry.js';
-import { QuestType } from '../quests/quest-types.js';
+import { getQuest, isQuestLocked, QUESTS } from "../quests/quest-registry.js";
+import { QuestType } from "../quests/quest-types.js";
 
 /**
  * ProgressService - Manages player progress and persistence
- * 
+ *
  * Tracks:
  * - Completed quests and chapters
  * - Current quest/chapter
  * - Unlocked quests
  * - Achievements
- * 
+ *
  * Persists to localStorage
  */
 export class ProgressService {
 	constructor() {
-		this.storageKey = 'legacys-end-progress';
+		this.storageKey = "legacys-end-progress";
 		this.progress = this.loadProgress();
 	}
 
@@ -26,28 +26,28 @@ export class ProgressService {
 			const stored = localStorage.getItem(this.storageKey);
 			if (stored) {
 				const data = JSON.parse(stored);
-				console.log('💾 Loaded progress:', data);
+				console.log("💾 Loaded progress:", data);
 				return data;
 			}
 		} catch (e) {
-			console.error('Failed to load progress:', e);
+			console.error("Failed to load progress:", e);
 		}
 
 		// Default progress for new players
-		console.log('🆕 Creating new progress');
+		console.log("🆕 Creating new progress");
 		return {
 			completedQuests: [],
 			completedChapters: [],
 			currentQuest: null,
 			currentChapter: null,
-			unlockedQuests: ['the-aura-of-sovereignty'], // First quest always unlocked
+			unlockedQuests: ["the-aura-of-sovereignty"], // First quest always unlocked
 			achievements: [],
 			stats: {
 				totalPlayTime: 0,
 				questsCompleted: 0,
-				chaptersCompleted: 0
+				chaptersCompleted: 0,
 			},
-			chapterStates: {} // Stores state per chapter (e.g. collectedItem)
+			chapterStates: {}, // Stores state per chapter (e.g. collectedItem)
 		};
 	}
 
@@ -56,10 +56,10 @@ export class ProgressService {
 	 */
 	saveProgress() {
 		try {
-			console.log('💾 Saving progress:', this.progress);
+			console.log("💾 Saving progress:", this.progress);
 			localStorage.setItem(this.storageKey, JSON.stringify(this.progress));
 		} catch (e) {
-			console.error('Failed to save progress:', e);
+			console.error("Failed to save progress:", e);
 		}
 	}
 
@@ -74,33 +74,35 @@ export class ProgressService {
 			completedChapters: [],
 			currentQuest: null,
 			currentChapter: null,
-			unlockedQuests: ['the-aura-of-sovereignty'],
+			unlockedQuests: ["the-aura-of-sovereignty"],
 			achievements: [],
 			stats: {
 				totalPlayTime: 0,
 				questsCompleted: 0,
-				chaptersCompleted: 0
+				chaptersCompleted: 0,
 			},
-			chapterStates: {}
+			chapterStates: {},
 		};
 		this.saveProgress();
 	}
 
 	/**
 	 * Reset progress for a specific quest
-	 * @param {string} questId 
+	 * @param {string} questId
 	 */
 	resetQuestProgress(questId) {
 		const quest = getQuest(questId);
 		if (!quest) return;
 
 		// Remove from completed quests
-		this.progress.completedQuests = this.progress.completedQuests.filter(id => id !== questId);
+		this.progress.completedQuests = this.progress.completedQuests.filter(
+			(id) => id !== questId,
+		);
 
 		// Remove quest chapters from completed chapters
 		if (quest.chapterIds) {
 			this.progress.completedChapters = this.progress.completedChapters.filter(
-				chapterId => !quest.chapterIds.includes(chapterId)
+				(chapterId) => !quest.chapterIds.includes(chapterId),
 			);
 		}
 
@@ -127,8 +129,8 @@ export class ProgressService {
 			console.warn(`⚠️ Chapter ${chapterId} already completed`);
 		}
 
-		// Removed auto-check for quest completion here. 
-		// Quest completion should be driven by the QuestController flow 
+		// Removed auto-check for quest completion here.
+		// Quest completion should be driven by the QuestController flow
 		// to prevent premature completion if chapters were previously completed.
 	}
 
@@ -142,8 +144,8 @@ export class ProgressService {
 		if (!quest || !quest.chapterIds) return;
 
 		// Check if all chapters are completed
-		const allChaptersComplete = quest.chapterIds.every(chapterId =>
-			this.progress.completedChapters.includes(chapterId)
+		const allChaptersComplete = quest.chapterIds.every((chapterId) =>
+			this.progress.completedChapters.includes(chapterId),
 		);
 
 		if (allChaptersComplete) {
@@ -162,8 +164,8 @@ export class ProgressService {
 
 			// Ensure all chapters are marked as completed (consistency check)
 			const quest = getQuest(questId);
-			if (quest && quest.chapterIds) {
-				quest.chapterIds.forEach(chapterId => {
+			if (quest?.chapterIds) {
+				quest.chapterIds.forEach((chapterId) => {
 					if (!this.progress.completedChapters.includes(chapterId)) {
 						this.progress.completedChapters.push(chapterId);
 						this.progress.stats.chaptersCompleted++;
@@ -185,8 +187,11 @@ export class ProgressService {
 	 * Unlock quests that have their prerequisites met
 	 */
 	unlockNewQuests() {
-		Object.values(QUESTS).forEach(quest => {
-			if (quest.type === QuestType.QUEST && !this.progress.unlockedQuests.includes(quest.id)) {
+		Object.values(QUESTS).forEach((quest) => {
+			if (
+				quest.type === QuestType.QUEST &&
+				!this.progress.unlockedQuests.includes(quest.id)
+			) {
 				// Check if all prerequisites are completed
 				if (!isQuestLocked(quest.id, this.progress.completedQuests)) {
 					this.progress.unlockedQuests.push(quest.id);
@@ -249,8 +254,8 @@ export class ProgressService {
 			return 0;
 		}
 
-		const completedCount = quest.chapterIds.filter(chapterId =>
-			this.isChapterCompleted(chapterId)
+		const completedCount = quest.chapterIds.filter((chapterId) =>
+			this.isChapterCompleted(chapterId),
 		).length;
 
 		return Math.round((completedCount / quest.chapterIds.length) * 100);
@@ -260,11 +265,13 @@ export class ProgressService {
 	 * Get overall game completion percentage
 	 */
 	getOverallProgress() {
-		const allQuests = Object.values(QUESTS).filter(q => q.type === 'quest' && q.status !== 'coming-soon');
+		const allQuests = Object.values(QUESTS).filter(
+			(q) => q.type === "quest" && q.status !== "coming-soon",
+		);
 		if (allQuests.length === 0) return 0;
 
-		const completedCount = allQuests.filter(q =>
-			this.isQuestCompleted(q.id)
+		const completedCount = allQuests.filter((q) =>
+			this.isQuestCompleted(q.id),
 		).length;
 
 		return Math.round((completedCount / allQuests.length) * 100);
@@ -279,8 +286,8 @@ export class ProgressService {
 
 	/**
 	 * Update state for a specific chapter
-	 * @param {string} chapterId 
-	 * @param {Object} state 
+	 * @param {string} chapterId
+	 * @param {Object} state
 	 */
 	updateChapterState(chapterId, state) {
 		if (!this.progress.chapterStates) {
@@ -289,14 +296,14 @@ export class ProgressService {
 
 		this.progress.chapterStates[chapterId] = {
 			...(this.progress.chapterStates[chapterId] || {}),
-			...state
+			...state,
 		};
 		this.saveProgress();
 	}
 
 	/**
 	 * Get state for a specific chapter
-	 * @param {string} chapterId 
+	 * @param {string} chapterId
 	 */
 	getChapterState(chapterId) {
 		if (!this.progress.chapterStates) return {};

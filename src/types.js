@@ -1,9 +1,7 @@
-
-
 export const ServiceType = {
-	LEGACY: 'Legacy API',
-	MOCK: 'Mock Service',
-	NEW: 'New V2 API',
+	LEGACY: "Legacy API",
+	MOCK: "Mock Service",
+	NEW: "New V2 API",
 };
 
 /**

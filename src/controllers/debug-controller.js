@@ -1,6 +1,6 @@
 /**
  * DebugController - Lit Reactive Controller for debug mode
- * 
+ *
  * Enables debug mode when ?debug is present in URL
  * Exposes window.game API with commands:
  * - setLevel(1-6)
@@ -9,7 +9,7 @@
  * - getState()
  * - setTheme('light'|'dark')
  * - help()
- * 
+ *
  * Usage:
  * ```js
  * this.debug = new DebugController(this, {
@@ -23,7 +23,7 @@ export class DebugController {
 	constructor(host, options = {}) {
 		this.host = host;
 		this.options = options;
-		this.isEnabled = new URLSearchParams(window.location.search).has('debug');
+		this.isEnabled = new URLSearchParams(window.location.search).has("debug");
 
 		host.addController(this);
 	}
@@ -114,7 +114,7 @@ export class DebugController {
 			getProgress: () => {
 				if (this.options.getProgress) {
 					const progress = this.options.getProgress();
-					console.log('📊 Quest Progress:');
+					console.log("📊 Quest Progress:");
 					console.table(progress);
 					return progress;
 				}
@@ -122,9 +122,9 @@ export class DebugController {
 
 			resetProgress: () => {
 				if (this.options.resetProgress) {
-					if (confirm('⚠️ Reset all quest progress? This cannot be undone!')) {
+					if (confirm("⚠️ Reset all quest progress? This cannot be undone!")) {
 						this.options.resetProgress();
-						console.log('🔄 Progress reset!');
+						console.log("🔄 Progress reset!");
 					}
 				}
 			},
@@ -154,7 +154,7 @@ GENERAL:
   game.help()                 - Show this help
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 				`);
-			}
+			},
 		};
 
 		console.log(`

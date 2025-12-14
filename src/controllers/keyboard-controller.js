@@ -1,11 +1,11 @@
 /**
  * KeyboardController - Lit Reactive Controller for keyboard input
- * 
+ *
  * Handles:
  * - Movement keys (WASD, Arrow keys)
  * - Interaction key (Space)
  * - Prevents default browser behavior
- * 
+ *
  * Usage:
  * ```js
  * this.keyboard = new KeyboardController(this, {
@@ -20,11 +20,11 @@ export class KeyboardController {
 		this.host = host;
 		this.options = {
 			speed: 2.5,
-			onMove: () => { },
-			onInteract: () => { },
-			onPause: () => { },
+			onMove: () => {},
+			onInteract: () => {},
+			onPause: () => {},
 			isEnabled: () => true,
-			...options
+			...options,
 		};
 
 		host.addController(this);
@@ -32,16 +32,16 @@ export class KeyboardController {
 
 	hostConnected() {
 		this.handleKeyDown = this.handleKeyDown.bind(this);
-		window.addEventListener('keydown', this.handleKeyDown);
+		window.addEventListener("keydown", this.handleKeyDown);
 	}
 
 	hostDisconnected() {
-		window.removeEventListener('keydown', this.handleKeyDown);
+		window.removeEventListener("keydown", this.handleKeyDown);
 	}
 
 	handleKeyDown(e) {
 		// Handle Pause (Escape) - Always allowed unless specifically blocked by logic outside
-		if (e.code === 'Escape') {
+		if (e.code === "Escape") {
 			e.preventDefault();
 			this.options.onPause();
 			return;
@@ -53,7 +53,7 @@ export class KeyboardController {
 		}
 
 		// Handle interaction (Space)
-		if (e.code === 'Space') {
+		if (e.code === "Space") {
 			e.preventDefault();
 			this.options.onInteract();
 			return;
@@ -64,19 +64,19 @@ export class KeyboardController {
 		let moveX = 0;
 		let moveY = 0;
 
-		if (['ArrowUp', 'w', 'W'].includes(e.key)) {
+		if (["ArrowUp", "w", "W"].includes(e.key)) {
 			moveY -= speed;
 			e.preventDefault();
 		}
-		if (['ArrowDown', 's', 'S'].includes(e.key)) {
+		if (["ArrowDown", "s", "S"].includes(e.key)) {
 			moveY += speed;
 			e.preventDefault();
 		}
-		if (['ArrowLeft', 'a', 'A'].includes(e.key)) {
+		if (["ArrowLeft", "a", "A"].includes(e.key)) {
 			moveX -= speed;
 			e.preventDefault();
 		}
-		if (['ArrowRight', 'd', 'D'].includes(e.key)) {
+		if (["ArrowRight", "d", "D"].includes(e.key)) {
 			moveX += speed;
 			e.preventDefault();
 		}

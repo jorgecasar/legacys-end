@@ -1,20 +1,20 @@
-import { LitElement, html, css } from 'lit';
-import { sharedStyles } from '../styles/shared.js';
+import { css, html, LitElement } from "lit";
+import { sharedStyles } from "../styles/shared.js";
 
 export class GameHud extends LitElement {
 	static properties = {
 		currentChapterNumber: { type: Number },
 		totalChapters: { type: Number },
 		levelTitle: { type: String },
-		questTitle: { type: String }
+		questTitle: { type: String },
 	};
 
 	constructor() {
 		super();
 		this.currentChapterNumber = 1;
 		this.totalChapters = 1;
-		this.levelTitle = '';
-		this.questTitle = '';
+		this.levelTitle = "";
+		this.questTitle = "";
 	}
 
 	static styles = [
@@ -50,7 +50,8 @@ export class GameHud extends LitElement {
 			font-size: var(--wa-font-size-s);
 			color: var(--wa-color-text-quiet);
 		}
-  `];
+  `,
+	];
 
 	render() {
 		return html`
@@ -66,4 +67,4 @@ export class GameHud extends LitElement {
 	}
 }
 
-customElements.define('game-hud', GameHud);
+customElements.define("game-hud", GameHud);

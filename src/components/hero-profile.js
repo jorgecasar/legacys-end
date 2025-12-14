@@ -1,14 +1,14 @@
-import { LitElement, html, css } from 'lit';
-import { ContextConsumer } from '@lit/context';
-import { profileContext } from '../contexts/profile-context.js';
-import { themeContext } from '../contexts/theme-context.js';
-import { suitContext } from '../contexts/suit-context.js';
-import { gearContext } from '../contexts/gear-context.js';
-import { powerContext } from '../contexts/power-context.js';
-import { masteryContext } from '../contexts/mastery-context.js';
-import '@awesome.me/webawesome/dist/components/tooltip/tooltip.js';
-import '@awesome.me/webawesome/dist/components/tag/tag.js';
-import { sharedStyles } from '../styles/shared.js';
+import { ContextConsumer } from "@lit/context";
+import { css, html, LitElement } from "lit";
+import { gearContext } from "../contexts/gear-context.js";
+import { masteryContext } from "../contexts/mastery-context.js";
+import { powerContext } from "../contexts/power-context.js";
+import { profileContext } from "../contexts/profile-context.js";
+import { suitContext } from "../contexts/suit-context.js";
+import { themeContext } from "../contexts/theme-context.js";
+import "@awesome.me/webawesome/dist/components/tooltip/tooltip.js";
+import "@awesome.me/webawesome/dist/components/tag/tag.js";
+import { sharedStyles } from "../styles/shared.js";
 
 export class HeroProfile extends LitElement {
 	static properties = {
@@ -19,60 +19,75 @@ export class HeroProfile extends LitElement {
 		gearData: { state: true },
 		powerData: { state: true },
 		masteryData: { state: true },
-		masteryData: { state: true },
 		tooltipText: { type: String },
-		hotSwitchState: { type: String }
+		hotSwitchState: { type: String },
 	};
 
 	constructor() {
 		super();
-		this.imageSrc = '';
-		this.tooltipText = '';
+		this.imageSrc = "";
+		this.tooltipText = "";
 
 		// Initialize context consumers
 		new ContextConsumer(this, {
 			context: profileContext,
-			callback: (value) => { this.profileData = value; },
-			subscribe: true
+			callback: (value) => {
+				this.profileData = value;
+			},
+			subscribe: true,
 		});
 		new ContextConsumer(this, {
 			context: themeContext,
-			callback: (value) => { this.themeData = value; },
-			subscribe: true
+			callback: (value) => {
+				this.themeData = value;
+			},
+			subscribe: true,
 		});
 		new ContextConsumer(this, {
 			context: suitContext,
-			callback: (value) => { this.suitData = value; },
-			subscribe: true
+			callback: (value) => {
+				this.suitData = value;
+			},
+			subscribe: true,
 		});
 		new ContextConsumer(this, {
 			context: gearContext,
-			callback: (value) => { this.gearData = value; },
-			subscribe: true
+			callback: (value) => {
+				this.gearData = value;
+			},
+			subscribe: true,
 		});
 		new ContextConsumer(this, {
 			context: powerContext,
-			callback: (value) => { this.powerData = value; },
-			subscribe: true
+			callback: (value) => {
+				this.powerData = value;
+			},
+			subscribe: true,
 		});
 		new ContextConsumer(this, {
 			context: masteryContext,
-			callback: (value) => { this.masteryData = value; },
-			subscribe: true
+			callback: (_state) => {
+				this.masteryData = _state;
+			},
+			subscribe: true,
 		});
 	}
 
 	updated(changedProperties) {
-		if (changedProperties.has('themeData') && this.themeData) {
-			if (this.themeData.themeMode === 'dark') {
-				this.classList.add('wa-dark');
+		if (changedProperties.has("themeData") && this.themeData) {
+			if (this.themeData.themeMode === "dark") {
+				this.classList.add("wa-dark");
 			} else {
-				this.classList.remove('wa-dark');
+				this.classList.remove("wa-dark");
 			}
 		}
 
-		if (changedProperties.has('hotSwitchState')) {
-			this.classList.remove('injection-mock-api', 'injection-legacy-api', 'injection-new-api');
+		if (changedProperties.has("hotSwitchState")) {
+			this.classList.remove(
+				"injection-mock-api",
+				"injection-legacy-api",
+				"injection-new-api",
+			);
 			if (this.hotSwitchState) {
 				this.classList.add(`injection-${this.hotSwitchState}-api`);
 			}
@@ -219,44 +234,69 @@ export class HeroProfile extends LitElement {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-5px); }
     }
-  `];
+  `,
+	];
 
 	render() {
-		const { name, role, loading, error, serviceName } = this.profileData || {};
+		const {
+			name,
+			role: _role,
+			loading,
+			error,
+			serviceName: _serviceName,
+		} = this.profileData || {};
 
 		return html`
         <!-- Optional Tooltip -->
-        ${this.tooltipText ? html`
+        ${
+					this.tooltipText
+						? html`
           <div class="hero-tooltip">${this.tooltipText}</div>
-        ` : ''}
+        `
+						: ""
+				}
 
         <!-- Character Image -->
-        ${(this.suitData?.image || this.imageSrc) ? html`
+        ${
+					this.suitData?.image || this.imageSrc
+						? html`
             <img src="${this.suitData?.image || this.imageSrc}" class="character-img" alt="Alarion" />
-        ` : ''}
+        `
+						: ""
+				}
 
 		<!-- Gear Image -->
-		${this.gearData?.image ? html`
+		${
+			this.gearData?.image
+				? html`
 			<img src="${this.gearData.image}" class="gear-img" alt="Gear" />
-		` : ''}
+		`
+				: ""
+		}
 
 		<!-- Weapon Image -->
-		${this.powerData?.image ? html`
+		${
+			this.powerData?.image
+				? html`
 			<img src="${this.powerData.image}" class="weapon-img" alt="Weapon" />
-		` : ''}
+		`
+				: ""
+		}
 
         <!-- Nameplate (Bottom) -->
         <div class="nameplate">
-          ${loading
-				? html`<span class="loading">...</span>`
-				: error
-					? html`<span class="error">${error}</span>`
-					: html`
-                  <wa-tag variant="neutral" size="small" pill class="name-tag">${name || 'Alarion'}</wa-tag>
-                `}
+          ${
+						loading
+							? html`<span class="loading">...</span>`
+							: error
+								? html`<span class="error">${error}</span>`
+								: html`
+                  <wa-tag variant="neutral" size="small" pill class="name-tag">${name || "Alarion"}</wa-tag>
+                `
+					}
         </div>
     `;
 	}
 }
 
-customElements.define('hero-profile', HeroProfile);
+customElements.define("hero-profile", HeroProfile);

@@ -1,13 +1,11 @@
-import { ServiceType } from '../types.js';
-
 /**
  * CharacterContextController - Manages character appearance contexts
- * 
+ *
  * Handles:
  * - Suit/Skin images based on level and theme
  * - Gear images based on level
  * - Power images based on level
- * 
+ *
  * Usage:
  * ```js
  * this.characterContexts = new CharacterContextController(this, {
@@ -25,7 +23,7 @@ import { ServiceType } from '../types.js';
  *     activeService: this.getActiveService()
  *   })
  * });
- * 
+ *
  * // Update contexts when state changes
  * this.characterContexts.update();
  * ```
@@ -61,7 +59,7 @@ export class CharacterContextController {
 	/**
 	 * Update suit and skin images
 	 */
-	updateSuitContext(state) {
+	updateSuitContext(_state) {
 		if (!this.options.suitProvider) return;
 
 		// TODO: Implement image selection logic based on state
@@ -73,7 +71,7 @@ export class CharacterContextController {
 	/**
 	 * Update gear images
 	 */
-	updateGearContext(state) {
+	updateGearContext(_state) {
 		if (!this.options.gearProvider) return;
 
 		// TODO: Implement gear image selection logic
@@ -84,7 +82,7 @@ export class CharacterContextController {
 	/**
 	 * Update power images
 	 */
-	updatePowerContext(state) {
+	updatePowerContext(_state) {
 		if (!this.options.powerProvider) return;
 
 		// TODO: Implement power image selection logic
@@ -95,7 +93,7 @@ export class CharacterContextController {
 	/**
 	 * Update mastery state
 	 */
-	updateMasteryContext(state) {
+	updateMasteryContext(_state) {
 		if (!this.options.masteryProvider) return;
 
 		// TODO: Check if mastery context is still needed

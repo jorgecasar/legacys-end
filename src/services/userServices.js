@@ -1,6 +1,6 @@
-import { ServiceType } from '../types.js';
+import { ServiceType } from "../types.js";
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export class LegacyUserService {
 	async fetchUserData(id) {
@@ -10,7 +10,7 @@ export class LegacyUserService {
 			name: "Alarion",
 			role: "Monolith Dweller",
 			hp: 50,
-			avatarColor: "#ef4444" // Red
+			avatarColor: "#ef4444", // Red
 		};
 	}
 	getServiceName() {
@@ -26,7 +26,7 @@ export class MockUserService {
 			name: "Test Dummy",
 			role: "QA Subject",
 			hp: 9999,
-			avatarColor: "#eab308" // Yellow
+			avatarColor: "#eab308", // Yellow
 		};
 	}
 	getServiceName() {
@@ -42,7 +42,7 @@ export class NewUserService {
 			name: "Alarion",
 			role: "System Walker",
 			hp: 100,
-			avatarColor: "#22c55e" // Green
+			avatarColor: "#22c55e", // Green
 		};
 	}
 	getServiceName() {

@@ -1,12 +1,12 @@
-import { LitElement, html, css } from 'lit';
-import '@awesome.me/webawesome/dist/components/icon/icon.js';
+import { css, html, LitElement } from "lit";
+import "@awesome.me/webawesome/dist/components/icon/icon.js";
 
 export class RewardElement extends LitElement {
 	static properties = {
 		image: { type: String },
 		icon: { type: String },
 		x: { type: Number },
-		y: { type: Number }
+		y: { type: Number },
 	};
 
 	static styles = css`
@@ -64,15 +64,19 @@ export class RewardElement extends LitElement {
 		const hasImage = !!this.image;
 
 		return html`
-      <div class="reward-box ${hasImage ? 'has-image' : ''}">
-        ${hasImage ? html`
+      <div class="reward-box ${hasImage ? "has-image" : ""}">
+        ${
+					hasImage
+						? html`
           <img src="${this.image}" class="reward-img" alt="Reward" />
-        ` : html`
+        `
+						: html`
           <wa-icon name="${this.icon}" style="font-size: var(--wa-font-size-l); color: #facc15;"></wa-icon>
-        `}
+        `
+				}
       </div>
     `;
 	}
 }
 
-customElements.define('reward-element', RewardElement);
+customElements.define("reward-element", RewardElement);

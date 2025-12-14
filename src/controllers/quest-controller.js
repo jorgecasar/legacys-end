@@ -1,15 +1,15 @@
-import { getQuest, getAvailableQuests } from '../quests/quest-registry.js';
-import { ProgressService } from '../services/progress-service.js';
+import { getAvailableQuests, getQuest } from "../quests/quest-registry.js";
+import { ProgressService } from "../services/progress-service.js";
 
 /**
  * QuestController - Orchestrates quest progression
- * 
+ *
  * Handles:
  * - Quest selection and starting
  * - Chapter progression
  * - Quest completion
  * - Navigation between hub and quests
- * 
+ *
  * Usage:
  * ```js
  * this.questController = new QuestController(this, {
@@ -26,14 +26,15 @@ export class QuestController {
 		this.host = host;
 		this.options = {
 			progressService: null,
-			onQuestStart: () => { },
-			onChapterChange: () => { },
-			onQuestComplete: () => { },
-			onReturnToHub: () => { },
-			...options
+			onQuestStart: () => {},
+			onChapterChange: () => {},
+			onQuestComplete: () => {},
+			onReturnToHub: () => {},
+			...options,
 		};
 
-		this.progressService = this.options.progressService || new ProgressService();
+		this.progressService =
+			this.options.progressService || new ProgressService();
 		this.currentQuest = null;
 		this.currentChapter = null;
 		this.currentChapterIndex = 0;
@@ -58,7 +59,7 @@ export class QuestController {
 		if (this.currentQuest) {
 			this.progressService.setCurrentQuest(
 				this.currentQuest.id,
-				this.currentChapterIndex
+				this.currentChapterIndex,
 			);
 		}
 	}
@@ -113,14 +114,17 @@ export class QuestController {
 		}
 
 		if (!this.currentQuest) {
-			console.warn('No quest to resume');
+			console.warn("No quest to resume");
 			return;
 		}
 
 		// Notify host
 		this.options.onQuestStart(this.currentQuest);
 		if (this.currentChapter) {
-			this.options.onChapterChange(this.currentChapter, this.currentChapterIndex);
+			this.options.onChapterChange(
+				this.currentChapter,
+				this.currentChapterIndex,
+			);
 		}
 
 		this.host.requestUpdate();
@@ -128,7 +132,7 @@ export class QuestController {
 
 	/**
 	 * Continue a specific quest from the last uncompleted chapter
-	 * @param {string} questId 
+	 * @param {string} questId
 	 */
 	continueQuest(questId) {
 		const quest = getQuest(questId);
@@ -143,14 +147,18 @@ export class QuestController {
 			for (let i = 0; i < quest.chapterIds.length; i++) {
 				const chapterId = quest.chapterIds[i];
 				const isCompleted = this.progressService.isChapterCompleted(chapterId);
-				console.log(`🔍 Checking chapter ${i} (${chapterId}): ${isCompleted ? 'Completed' : 'Not Completed'}`);
+				console.log(
+					`🔍 Checking chapter ${i} (${chapterId}): ${isCompleted ? "Completed" : "Not Completed"}`,
+				);
 				if (!isCompleted) {
 					nextChapterIndex = i;
 					break;
 				}
 			}
 		}
-		console.log(`▶️ Resuming quest ${questId} at chapter index ${nextChapterIndex}`);
+		console.log(
+			`▶️ Resuming quest ${questId} at chapter index ${nextChapterIndex}`,
+		);
 
 		this.currentQuest = quest;
 		this.currentChapterIndex = nextChapterIndex;
@@ -183,7 +191,9 @@ export class QuestController {
 		}
 
 		// Fetch full chapter data from quest definition
-		const { stats, ...restChapterData } = this.currentQuest.chapters ? this.currentQuest.chapters[chapterId] : {};
+		const { stats: _stats, ...restChapterData } = this.currentQuest.chapters
+			? this.currentQuest.chapters[chapterId]
+			: {};
 
 		if (!restChapterData) {
 			console.warn(`Chapter data not found for ID: ${chapterId}`);
@@ -195,7 +205,7 @@ export class QuestController {
 			questId: this.currentQuest.id,
 			index: this.currentChapterIndex,
 			total: this.currentQuest.chapterIds.length,
-			isQuestComplete: this.isLastChapter()
+			isQuestComplete: this.isLastChapter(),
 		};
 	}
 
@@ -208,8 +218,11 @@ export class QuestController {
 			return null;
 		}
 
-		const nextChapterId = this.currentQuest.chapterIds[this.currentChapterIndex + 1];
-		const nextChapterData = this.currentQuest.chapters ? this.currentQuest.chapters[nextChapterId] : null;
+		const nextChapterId =
+			this.currentQuest.chapterIds[this.currentChapterIndex + 1];
+		const nextChapterData = this.currentQuest.chapters
+			? this.currentQuest.chapters[nextChapterId]
+			: null;
 
 		return nextChapterData;
 	}
@@ -258,7 +271,7 @@ export class QuestController {
 		// Save progress
 		this.progressService.setCurrentQuest(
 			this.currentQuest.id,
-			this.currentChapterIndex
+			this.currentChapterIndex,
 		);
 
 		// Notify host
