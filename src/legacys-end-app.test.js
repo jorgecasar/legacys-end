@@ -50,7 +50,14 @@ describe("LegacysEndApp Component", () => {
 		);
 
 		// Wait for event to be handled and quest to start
-		await new Promise((resolve) => setTimeout(resolve, 100));
+		// await new Promise((resolve) => setTimeout(resolve, 100));
+		// Poll for game-view
+		let retries = 0;
+		while (!el.shadowRoot.querySelector("game-view") && retries < 10) {
+			await new Promise((resolve) => setTimeout(resolve, 50));
+			await el.updateComplete;
+			retries++;
+		}
 
 		await el.updateComplete;
 
