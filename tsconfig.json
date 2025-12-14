@@ -4,7 +4,7 @@
 		"module": "ESNext",
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
 		"allowJs": true,
-		"checkJs": false,
+		"checkJs": true,
 		"noEmit": true,
 		"moduleResolution": "bundler",
 		"plugins": [

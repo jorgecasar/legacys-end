@@ -58,7 +58,7 @@ export class AboutSlides extends LitElement {
 	render() {
 		return html`
 			<wa-dialog label="About Legacy's End" class="about-dialog" style="--width: 800px;">
-				<wa-carousel navigation pagination ?mouseDragging>
+				<wa-carousel navigation pagination mouseDragging>
 					<wa-carousel-item>
 						<h2>Legacy's End</h2>
 						<p>A game built with Lit and Web Awesome.</p>

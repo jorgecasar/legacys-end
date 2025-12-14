@@ -1,4 +1,5 @@
 import { css, html, LitElement } from "lit";
+import { classMap } from "lit/directives/class-map.js";
 import "./hero-profile.js";
 import "./npc-element.js";
 import "./reward-element.js";
@@ -165,7 +166,7 @@ export class GameViewport extends LitElement {
 								.icon="${this.currentConfig.reward.icon}"
 								.x="${this.isAnimatingReward && this.rewardAnimState === "growing" ? 50 : this.isAnimatingReward && this.rewardAnimState === "moving" ? this.heroPos.x : this.currentConfig.reward.position.x}"
 								.y="${this.isAnimatingReward && this.rewardAnimState === "growing" ? 50 : this.isAnimatingReward && this.rewardAnimState === "moving" ? this.heroPos.y : this.currentConfig.reward.position.y}"
-								class="${this.isAnimatingReward ? this.rewardAnimState : ""}"
+								class=${classMap({ [this.rewardAnimState]: this.isAnimatingReward })}
 							></reward-element>
 						`
 								: ""

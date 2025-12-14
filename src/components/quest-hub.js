@@ -15,6 +15,12 @@ import { sharedStyles } from "../styles/shared.js";
  * - Lock status
  * - Badges for completed quests
  * - Continue button for in-progress quests
+ *
+ * @element quest-hub
+ * @property {Array<Object>} availableQuests
+ * @property {Array<Object>} comingSoonQuests
+ * @property {Array<string>} completedQuests
+ * @property {String} currentQuestId
  */
 export class QuestHub extends LitElement {
 	static properties = {
