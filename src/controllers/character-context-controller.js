@@ -59,45 +59,60 @@ export class CharacterContextController {
 	/**
 	 * Update suit and skin images
 	 */
-	updateSuitContext(_state) {
+	updateSuitContext(state) {
 		if (!this.options.suitProvider) return;
 
-		// TODO: Implement image selection logic based on state
-		// const { chapterData, hasCollectedItem, themeMode, hotSwitchState } = state;
+		const { level, isRewardCollected } = state;
+		if (!level) return;
 
-		this.options.suitProvider.setValue({});
+		const baseUrl = `/assets/${level}`;
+		// If reward is collected (evolution), show evolved hero, else standard hero
+		const image = isRewardCollected
+			? `${baseUrl}/hero-reward.png`
+			: `${baseUrl}/hero.png`;
+
+		this.options.suitProvider.setValue({ image });
 	}
 
 	/**
 	 * Update gear images
 	 */
-	updateGearContext(_state) {
+	updateGearContext(state) {
 		if (!this.options.gearProvider) return;
 
-		// TODO: Implement gear image selection logic
+		const { level, hasCollectedItem } = state;
+		if (!level) return;
 
-		this.options.gearProvider.setValue({});
+		// If item is collected, show the reward item
+		const image = hasCollectedItem ? `/assets/${level}/reward.png` : null;
+
+		this.options.gearProvider.setValue({ image });
 	}
 
 	/**
 	 * Update power images
 	 */
-	updatePowerContext(_state) {
+	updatePowerContext(state) {
 		if (!this.options.powerProvider) return;
 
-		// TODO: Implement power image selection logic
+		const { hotSwitchState, themeMode } = state;
 
-		this.options.powerProvider.setValue({});
+		// Visual effect based on hot switch state or theme
+		const effect = hotSwitchState === "new" ? "stable" : "glitch";
+		const intensity = themeMode === "dark" ? "high" : "low";
+
+		this.options.powerProvider.setValue({ effect, intensity });
 	}
 
 	/**
 	 * Update mastery state
 	 */
-	updateMasteryContext(_state) {
+	updateMasteryContext(state) {
 		if (!this.options.masteryProvider) return;
 
-		// TODO: Check if mastery context is still needed
-
-		this.options.masteryProvider.setValue({});
+		// Pass through relevant mastery data if any
+		this.options.masteryProvider.setValue({
+			level: state.level
+		});
 	}
 }
