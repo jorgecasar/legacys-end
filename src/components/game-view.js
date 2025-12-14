@@ -112,9 +112,6 @@ export class GameView extends LitElement {
 			width: 100%;
 			max-width: 90rem;
 			height: 100%;
-			max-height: calc(100vh - 2rem);
-			border-left: var(--wa-border-width-l) solid var(--wa-color-neutral-fill-loud);
-			border-right: var(--wa-border-width-l) solid var(--wa-color-neutral-fill-loud);
 			box-shadow: var(--wa-shadow-large);
 			position: relative;
 			transition: all 1s;

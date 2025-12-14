@@ -93,7 +93,6 @@ export class GameViewport extends LitElement {
 		const backgroundStyle = this.currentConfig.backgroundStyle || "#374151";
 
 		return html`
-			<div class="viewport-container">
 				<game-hud 
 					.currentChapterNumber="${this.currentChapterNumber}" 
 					.totalChapters="${this.totalChapters}"
@@ -110,9 +109,8 @@ export class GameViewport extends LitElement {
 					</wa-details>
 					
 					<!-- Theme Zones (Level 2 Equivalent) -->
-					${
-						canToggleTheme
-							? html`
+					${canToggleTheme
+				? html`
 						<div class="zone zone-light">
 							<small class="zone-label">Light Theme</small>
 						</div>
@@ -120,13 +118,12 @@ export class GameViewport extends LitElement {
 							<small class="zone-label">Dark Theme</small>
 						</div>
 					`
-							: ""
-					}
+				: ""
+			}
 
 					<!-- Exit Zone -->
-					${
-						this.hasCollectedItem && this.currentConfig.exitZone
-							? html`
+					${this.hasCollectedItem && this.currentConfig.exitZone
+				? html`
 						<div class="exit-zone" style="
 							left: ${this.currentConfig.exitZone.x}%; 
 							top: ${this.currentConfig.exitZone.y}%; 
@@ -139,13 +136,12 @@ export class GameViewport extends LitElement {
 							<wa-tag variant="neutral" class="exit-text">${this.currentConfig.exitZone.label || "EXIT"}</wa-tag>
 						</div>
 					`
-							: ""
-					}
+				: ""
+			}
 
 					<!-- Context Zones (Level 6 Equivalent) -->
-					${
-						hasHotSwitch
-							? html`
+					${hasHotSwitch
+				? html`
 						<div class="ctx-zone ctx-legacy ${this.hotSwitchState === "legacy" ? "active" : "inactive"}">
 							<h6 class="ctx-title" style="color: ${this.hotSwitchState === "legacy" ? "white" : "#991b1b"}">Legacy</h6>
 							<small class="ctx-sub" style="color: #fca5a5">LegacyUserService</small>
@@ -155,13 +151,12 @@ export class GameViewport extends LitElement {
 							<small class="ctx-sub" style="color: #93c5fd">NewUserService</small>
 						</div>
 					`
-							: ""
-					}
+				: ""
+			}
 
 					<!-- NPC -->
-					${
-						this.currentConfig.npc
-							? html`
+					${this.currentConfig.npc
+				? html`
 						<npc-element
 							.name="${this.currentConfig.npc.name}"
 							.image="${this.currentConfig.npc.image}"
@@ -173,14 +168,13 @@ export class GameViewport extends LitElement {
 							.hasCollectedItem="${this.hasCollectedItem}"
 						></npc-element>
 					`
-							: ""
-					}
+				: ""
+			}
 
 						<!-- Reward -->
-						${
-							this.isAnimatingReward ||
-							(!this.hasCollectedItem && this.currentConfig.reward)
-								? html`
+						${this.isAnimatingReward ||
+				(!this.hasCollectedItem && this.currentConfig.reward)
+				? html`
 							<reward-element
 								.image="${this.currentConfig.reward.image}"
 								.icon="${this.currentConfig.reward.icon}"
@@ -189,8 +183,8 @@ export class GameViewport extends LitElement {
 								class=${classMap({ [this.rewardAnimState]: this.isAnimatingReward })}
 							></reward-element>
 						`
-								: ""
-						}
+				: ""
+			}
 
 					<!-- Alarion -->
 					<hero-profile 
@@ -205,33 +199,12 @@ export class GameViewport extends LitElement {
 					></hero-profile>
 
 				</div>
-			</div>
 		`;
 	}
 
 	static styles = [
 		...sharedStyles,
 		css`
-		:host {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			width: 100%;
-			flex: 1;
-			min-height: 0;
-		}
-
-		.viewport-container {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			max-width: 100%;
-			max-height: 100%;
-			position: relative;
-			overflow: hidden;
-			flex: 1;
-		}
-
 		.controls-details {
 			position: absolute;
 			bottom: var(--wa-space-m);
@@ -262,14 +235,16 @@ export class GameViewport extends LitElement {
 
 		.game-area {
 			position: relative;
+			/* Force square by using the smaller dimension */
+			width: min(100%, calc(100vh - 96px)); /* 96px approximate HUD height */
+			height: min(100%, calc(100vh - 96px));
 			aspect-ratio: 1/1;
-			/* Always square: use the smaller of viewport width or height */
-			width: min(100vw, 100vh);
-			height: min(100vw, 100vh);
-			/* Ensure it doesn't overflow */
-			max-width: 100%;
-			max-height: 100%;
+			/* Center the square */
+			margin: 0 auto;
 			transition: background 1s ease-in-out;
+			background-size: cover;
+			background-position: center;
+			background-repeat: no-repeat;
 		}
 
 		/* Zone Overlays */
