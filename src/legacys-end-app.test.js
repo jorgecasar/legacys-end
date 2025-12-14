@@ -164,4 +164,41 @@ describe("LegacysEndApp Component", () => {
 			expect(el.questController.currentChapter?.id).toBe("hall-of-fragments");
 		});
 	});
+	describe("GameZoneController Integration", () => {
+		it("should update hotSwitchState when entering context zones", async () => {
+			const el = document.createElement("legacys-end-app");
+			document.body.appendChild(el);
+			await el.updateComplete;
+
+			// Mock getChapterData to return a config with hot switch enabled (Level 6)
+			// We can spy on the method or just rely on the controller using the bound method.
+			// Since getChapterData is a method on the app, we spy it.
+			vi.spyOn(el, "getChapterData").mockReturnValue({
+				id: "liberated-battlefield",
+				hasHotSwitch: true,
+				canToggleTheme: false,
+				startPos: { x: 50, y: 50 },
+			});
+
+			// Define zones based on GameZoneController logic:
+			// Legacy: x >= 50, y >= 40
+			// New: x < 50, y >= 40
+
+			// 1. Move to Legacy Zone
+			el.zones.checkZones(60, 50);
+			expect(el.hotSwitchState).toBe("legacy");
+
+			// 2. Move to New Zone
+			el.zones.checkZones(20, 50);
+			expect(el.hotSwitchState).toBe("new");
+
+			// 3. Move to Neutral Zone (y < 40)
+			el.zones.checkZones(20, 10);
+			// Should stay as is? Controller returns null for neutral, 
+			// app implementation is: 
+			// if (this.hotSwitchState !== context) { this.gameState.setHotSwitchState(context); }
+			// If context is null, it should set it to null.
+			expect(el.gameState.getState().hotSwitchState).toBeNull();
+		});
+	});
 });

@@ -372,7 +372,7 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 
 				// Ensure we have fresh data
 				const chapterData = this.getChapterData(chapter.id);
-				if (chapterData) {
+				if (chapterData?.startPos) {
 					this.gameState.setHeroPosition(
 						chapterData.startPos.x,
 						chapterData.startPos.y,
