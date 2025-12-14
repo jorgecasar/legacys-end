@@ -156,7 +156,7 @@ export class GameViewport extends LitElement {
 	}
 
 	_renderContextZones() {
-		if (!this.currentConfig.hasHotSwitch) return "";
+		if (!this.currentConfig?.hasHotSwitch) return "";
 
 		const isLegacyActive = this.hotSwitchState === "legacy";
 		const isNewActive = this.hotSwitchState === "new";

@@ -266,11 +266,17 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 
 		// Initialize GameZoneController
 		this.zones = new GameZoneController(this, {
-			onZoneEnter: (zoneId) => {
-				logger.info(`Entered zone: ${zoneId}`);
+			getChapterData: () => this.getChapterData(this.chapterId),
+			hasCollectedItem: () => this.hasCollectedItem,
+			onThemeChange: (theme) => {
+				this.gameState.setThemeMode(theme);
+				this.applyTheme();
 			},
-			onZoneExit: (zoneId) => {
-				logger.info(`Exited zone: ${zoneId}`);
+			onContextChange: (context) => {
+				// Only update if changed to avoid loop/thrashing (though setState usually handles check)
+				if (this.hotSwitchState !== context) {
+					this.gameState.setHotSwitchState(context);
+				}
 			},
 		});
 
@@ -694,9 +700,9 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 			<victory-screen
 				.quest="${quest}"
 				.onReturn="${() => {
-					this.showQuestCompleteDialog = false;
-					this.questController.returnToHub();
-				}}"
+				this.showQuestCompleteDialog = false;
+				this.questController.returnToHub();
+			}}"
 			></victory-screen>
 		`;
 	}
@@ -723,7 +729,7 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 				@quest-continue="${(e) => this.handleContinueQuest(e.detail.questId)}"
 				@reset-progress="${() => this.debug.options.resetProgress()}"
 				@open-about="${() =>
-					this.shadowRoot.querySelector("about-slides").show()}"
+				this.shadowRoot.querySelector("about-slides").show()}"
 			></quest-hub>
 		`;
 	}
@@ -794,23 +800,23 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 				@restart="${this.handleRestartQuest}"
 				@quit="${this.handleQuitToHub}"
 				@complete="${() => {
-					this.showDialog = false;
-					this.gameState.setCollectedItem(true);
-				}}"
+				this.showDialog = false;
+				this.gameState.setCollectedItem(true);
+			}}"
 				@close-dialog="${() => {
-					this.showDialog = false;
-					this.hasSeenIntro = true;
-				}}"
+				this.showDialog = false;
+				this.hasSeenIntro = true;
+			}}"
 				@toggle-hot-switch="${() => {
-					const newState = this.hotSwitchState === "legacy" ? "new" : "legacy";
-					this.gameState.setHotSwitchState(newState);
-					logger.info("🔄 Hot Switch toggled to:", newState);
-				}}"
+				const newState = this.hotSwitchState === "legacy" ? "new" : "legacy";
+				this.gameState.setHotSwitchState(newState);
+				logger.info("🔄 Hot Switch toggled to:", newState);
+			}}"
 				@reward-collected="${() => {
-					logger.info("🎉 LegacysEndApp received reward-collected event");
-					this.gameState.setRewardCollected(true);
-					this.requestUpdate(); // Force update just in case
-				}}"
+				logger.info("🎉 LegacysEndApp received reward-collected event");
+				this.gameState.setRewardCollected(true);
+				this.requestUpdate(); // Force update just in case
+			}}"
 			></game-view>
 		`;
 	}
