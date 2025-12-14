@@ -1,4 +1,5 @@
 import { css, html, LitElement, nothing } from "lit";
+import { classMap } from "lit/directives/class-map.js";
 import "@awesome.me/webawesome/dist/components/card/card.js";
 import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/icon/icon.js";
@@ -100,11 +101,17 @@ export class QuestHub extends LitElement {
 
 		return html`
 			<wa-card
-				class="quest-card ${locked ? "locked" : ""} ${completed ? "completed" : ""} ${isCurrent ? "current" : ""} variant-${variant}"
-				appearance="${completed ? "filled" : "outlined"}"
+				class=${classMap({
+					"quest-card": true,
+					locked: locked,
+					completed: completed,
+					current: isCurrent,
+					[`variant-${variant}`]: true,
+				})}
+				.appearance="${completed ? "filled" : "outlined"}"
 			>
 				<h5 slot="header" class="quest-header">${quest.name}</h5>
-				<wa-icon slot="header-actions" name="${quest.icon || "box"}"></wa-icon>
+				<wa-icon slot="header-actions" .name="${quest.icon || "box"}"></wa-icon>
 
 				<div class="quest-content">
 					${
@@ -124,7 +131,7 @@ export class QuestHub extends LitElement {
 							<span>Progress</span>
 							<span>${Math.round(progress)}%</span>
 						</div>
-						<wa-progress-bar value="${progress}" style="--height: 6px;"></wa-progress-bar>
+						<wa-progress-bar .value="${progress}" style="--height: 6px;"></wa-progress-bar>
 					`
 							: ""
 					}
@@ -133,7 +140,7 @@ export class QuestHub extends LitElement {
 					<span class="quest-time">
 						<wa-icon name="clock"></wa-icon> ${quest.estimatedTime}
 					</span>
-					<wa-badge variant="${this.getDifficultyVariant(quest.difficulty)}">
+					<wa-badge .variant="${this.getDifficultyVariant(quest.difficulty)}">
 						${quest.difficulty}
 					</wa-badge>
 				</div>
@@ -142,9 +149,20 @@ export class QuestHub extends LitElement {
 				${
 					locked
 						? html`
-					<wa-button slot="footer-actions" variant="neutral" disabled>
-						<wa-icon slot="start" name="lock"></wa-icon> Locked
-					</wa-button>
+					${
+						isComingSoon
+							? html`
+							<p class="quest-desc">Coming soon in the next update!</p>
+							<wa-button slot="footer-actions" ?disabled="${true}" .variant="${"neutral"}">
+								Coming Soon
+							</wa-button>
+						`
+							: html`
+							<wa-button slot="footer-actions" .variant="${"neutral"}" ?disabled="${true}">
+								<wa-icon slot="start" name="lock"></wa-icon> Locked
+							</wa-button>
+						`
+					}
 				`
 						: nothing
 				}
@@ -152,7 +170,7 @@ export class QuestHub extends LitElement {
 				${
 					!locked && completed
 						? html`
-					<wa-button slot="footer-actions" variant="success" @click="${() => this.onQuestSelect(quest.id)}">
+					<wa-button slot="footer-actions" .variant="${"success"}" @click="${() => this.onQuestSelect(quest.id)}">
 						<wa-icon slot="start" name="rotate-right"></wa-icon> Restart
 					</wa-button>
 				`
@@ -162,7 +180,7 @@ export class QuestHub extends LitElement {
 				${
 					!locked && !completed
 						? html`
-						<wa-button slot="footer-actions" variant="brand" @click="${() => (progress > 0 ? this.onContinueQuest(quest.id) : this.onQuestSelect(quest.id))}">
+						<wa-button slot="footer-actions" .variant="${"brand"}" @click="${() => (progress > 0 ? this.onContinueQuest(quest.id) : this.onQuestSelect(quest.id))}">
 							<wa-icon slot="start" name="play"></wa-icon> ${progress > 0 ? "Continue" : "Start"}
 						</wa-button>
 				`

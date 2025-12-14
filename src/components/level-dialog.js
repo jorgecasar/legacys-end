@@ -37,8 +37,10 @@ export class LevelDialog extends LitElement {
 			const slides = this.getSlides();
 			if (slides[this.slideIndex] === "confirmation") {
 				this.updateComplete.then(() => {
-					const btn = this.shadowRoot.querySelector(".complete-btn");
-					if (btn) btn.focus();
+					requestAnimationFrame(() => {
+						const btn = this.shadowRoot.querySelector(".complete-btn");
+						if (btn) btn.focus();
+					});
 				});
 			}
 		}
@@ -489,7 +491,6 @@ export class LevelDialog extends LitElement {
 				return html`
           <div class="slide-content-between">
             <div></div>
-
             ${
 							this.config.isFinalBoss
 								? html`
@@ -555,7 +556,7 @@ export class LevelDialog extends LitElement {
         <!-- Footer -->
         <div slot="footer" class="footer">
           <wa-button 
-            variant="neutral"
+            .variant="${"neutral"}"
             ?disabled="${this.slideIndex === 0}"
             @click="${() => this.slideIndex--}"
           >
@@ -576,7 +577,7 @@ export class LevelDialog extends LitElement {
 						this.slideIndex === slides.length - 1
 							? html`
             <wa-button 
-                variant="brand"
+                .variant="${"brand"}"
                 @click="${this.dispatchComplete}"
                 style="--border-radius: 0; animation: bounce 1s infinite;"
             >
@@ -586,8 +587,7 @@ export class LevelDialog extends LitElement {
           `
 							: html`
             <wa-button 
-				.autofocus="${true}"
-                variant="brand"
+				.variant="${"brand"}"
                 @click="${() => this.slideIndex++}"
             >
                 NEXT
