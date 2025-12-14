@@ -16,12 +16,16 @@ describe("GameView Component", () => {
 
 	it("renders game-viewport when config is provided", async () => {
 		const el = document.createElement("game-view");
-		el.currentConfig = {
-			canToggleTheme: true,
-			hasHotSwitch: true,
-			isFinalBoss: false,
+		el.gameState = {
+			config: {
+				canToggleTheme: true,
+				hasHotSwitch: true,
+				isFinalBoss: false,
+			},
+			hero: {
+				pos: { x: 0, y: 0 },
+			},
 		};
-		el.heroPos = { x: 0, y: 0 };
 		document.body.appendChild(el);
 		await el.updateComplete;
 

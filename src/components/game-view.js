@@ -30,40 +30,28 @@ import { sharedStyles } from "../styles/shared.js";
  */
 export class GameView extends LitElement {
 	static properties = {
-		currentConfig: { type: Object },
-		isPaused: { type: Boolean },
-		currentChapterNumber: { type: Number },
-		totalChapters: { type: Number },
-		questTitle: { type: String },
-		heroPos: { type: Object },
-		isEvolving: { type: Boolean },
-		hotSwitchState: { type: String },
-		hasCollectedItem: { type: Boolean },
-		lockedMessage: { type: String },
-		isCloseToTarget: { type: Boolean },
-		showDialog: { type: Boolean },
-		level: { type: String },
-		isLastChapter: { type: Boolean },
-		isRewardCollected: { type: Boolean },
+		gameState: { type: Object },
 	};
 
 	render() {
-		if (!this.currentConfig) {
+		const { config, ui, quest, hero, levelState } = this.gameState || {};
+
+		if (!config) {
 			return html`<div>Loading level data...</div>`;
 		}
 
 		// Replaced hardcoded levels with flags
-		const _canToggleTheme = this.currentConfig.canToggleTheme;
-		const _hasHotSwitch = this.currentConfig.hasHotSwitch;
-		const _isFinalBoss = this.currentConfig.isFinalBoss;
+		const _canToggleTheme = config.canToggleTheme;
+		const _hasHotSwitch = config.hasHotSwitch;
+		const _isFinalBoss = config.isFinalBoss;
 
 		// Dialog Config Logic
-		const dialogConfig = this.currentConfig;
+		const dialogConfig = config;
 
 		return html`
 
 			<pause-menu
-				.open="${this.isPaused}"
+				.open="${ui?.isPaused}"
 				@resume="${() => this.dispatchEvent(new CustomEvent("resume"))}"
 				@restart="${() => this.dispatchEvent(new CustomEvent("restart"))}"
 				@quit="${() => this.dispatchEvent(new CustomEvent("quit"))}"
@@ -71,32 +59,31 @@ export class GameView extends LitElement {
 
 			<main>
 				<game-viewport
-					.currentConfig="${this.currentConfig}"
-					.heroPos="${this.heroPos}"
-					.isEvolving="${this.isEvolving}"
-					.hotSwitchState="${this.hotSwitchState}"
-					.hasCollectedItem="${this.hasCollectedItem}"
-					.isRewardCollected="${this.isRewardCollected}"
-					.lockedMessage="${this.lockedMessage}"
-					.isCloseToTarget="${this.isCloseToTarget}"
-					.currentChapterNumber="${this.currentChapterNumber}" 
-					.totalChapters="${this.totalChapters}"
-					.questTitle="${this.questTitle}"
+					.currentConfig="${config}"
+					.heroPos="${hero?.pos}"
+					.isEvolving="${hero?.isEvolving}"
+					.hotSwitchState="${hero?.hotSwitchState}"
+					.hasCollectedItem="${levelState?.hasCollectedItem}"
+					.isRewardCollected="${levelState?.isRewardCollected}"
+					.lockedMessage="${ui?.lockedMessage}"
+					.isCloseToTarget="${levelState?.isCloseToTarget}"
+					.currentChapterNumber="${quest?.chapterNumber}" 
+					.totalChapters="${quest?.totalChapters}"
+					.questTitle="${quest?.title}"
 				></game-viewport>
 			</main>
 
-			${
-				this.showDialog
-					? html`
+			${ui?.showDialog
+				? html`
 				<level-dialog
 					.config="${dialogConfig}"
-					.level="${this.level}"
-					.hotSwitchState="${this.hotSwitchState}"
+					.level="${quest?.levelId}"
+					.hotSwitchState="${hero?.hotSwitchState}"
 					@complete="${() => this.dispatchEvent(new CustomEvent("complete"))}"
 					@close="${() => this.dispatchEvent(new CustomEvent("close-dialog"))}"
 				></level-dialog>
 			`
-					: ""
+				: ""
 			}
 		`;
 	}

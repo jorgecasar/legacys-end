@@ -125,9 +125,11 @@ describe("GameView Integration", () => {
 
 	it("should re-dispatch 'complete' event from level-dialog", async () => {
 		element = new GameView();
-		element.currentConfig = { title: "Test" };
-		element.heroPos = { x: 0, y: 0 }; // Provide required prop
-		element.showDialog = true;
+		element.gameState = {
+			config: { title: "Test" },
+			hero: { pos: { x: 0, y: 0 } },
+			ui: { showDialog: true },
+		};
 		container.appendChild(element);
 		await element.updateComplete;
 
@@ -144,9 +146,11 @@ describe("GameView Integration", () => {
 
 	it("should re-dispatch 'close-dialog' event from level-dialog close", async () => {
 		element = new GameView();
-		element.currentConfig = { title: "Test" };
-		element.heroPos = { x: 0, y: 0 }; // Provide required prop
-		element.showDialog = true;
+		element.gameState = {
+			config: { title: "Test" },
+			hero: { pos: { x: 0, y: 0 } },
+			ui: { showDialog: true },
+		};
 		container.appendChild(element);
 		await element.updateComplete;
 

@@ -616,23 +616,35 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		// Dialog Config Logic
 		const _dialogConfig = currentConfig;
 
+		const gameState = {
+			config: effectiveConfig,
+			ui: {
+				isPaused: this.isPaused || false,
+				showDialog: this.showDialog,
+				lockedMessage: this.interaction?.lockedMessage,
+			},
+			quest: {
+				title: this.currentQuest?.name,
+				chapterNumber: this.questController.getCurrentChapterNumber(),
+				totalChapters: this.questController.getTotalChapters(),
+				isLastChapter: isLastChapter,
+				levelId: this.chapterId,
+			},
+			hero: {
+				pos: this.heroPos || { x: 0, y: 0 },
+				isEvolving: this.isEvolving || false,
+				hotSwitchState: this.hotSwitchState,
+			},
+			levelState: {
+				hasCollectedItem: this.hasCollectedItem || false,
+				isRewardCollected: this.isRewardCollected || false,
+				isCloseToTarget: isCloseToTarget,
+			},
+		};
+
 		return html`
 			<game-view
-				.currentConfig="${effectiveConfig}"
-				.isPaused="${this.isPaused || false}"
-				.currentChapterNumber="${this.questController.getCurrentChapterNumber()}"
-				.totalChapters="${this.questController.getTotalChapters()}"
-				.questTitle="${this.currentQuest?.name}"
-				.heroPos="${this.heroPos || { x: 0, y: 0 }}"
-				.isEvolving="${this.isEvolving || false}"
-				.hotSwitchState="${this.hotSwitchState}"
-				.hasCollectedItem="${this.hasCollectedItem || false}"
-				.isRewardCollected="${this.isRewardCollected || false}"
-				.lockedMessage="${this.lockedMessage}"
-				.isCloseToTarget="${isCloseToTarget}"
-				.showDialog="${this.showDialog}"
-				.level="${this.chapterId}"
-				.isLastChapter="${isLastChapter}"
+				.gameState="${gameState}"
 				@resume="${this.handleResume}"
 				@restart="${this.handleRestartQuest}"
 				@quit="${this.handleQuitToHub}"
