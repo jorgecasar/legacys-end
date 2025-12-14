@@ -29,9 +29,9 @@ export class QuestController {
 		this.options = {
 			progressService: null,
 			registry: DefaultRegistry,
-			onQuestStart: () => { },
-			onChapterChange: () => { },
-			onQuestComplete: () => { },
+			onQuestStart: (quest) => { },
+			onChapterChange: (chapter, index) => { },
+			onQuestComplete: (quest) => { },
 			onReturnToHub: () => { },
 			...options,
 		};
@@ -204,6 +204,51 @@ export class QuestController {
 		}
 
 		this.host.requestUpdate();
+	}
+
+	/**
+	 * Jump to a specific chapter (for deep linking or debug)
+	 * @param {string} chapterId
+	 */
+	jumpToChapter(chapterId) {
+		if (!this.currentQuest) {
+			console.warn("Cannot jump to chapter: No active quest");
+			return false;
+		}
+
+		// 1. Validate Chapter Exists
+		const index = this.currentQuest.chapterIds?.indexOf(chapterId);
+		if (index === -1 || index === undefined) {
+			console.warn(`Chapter not found: ${chapterId}`);
+			return false;
+		}
+
+		// 2. Validate Sequential Progression
+		// Use progress service for checking if previous chapters are done
+		// We allow re-playing any completed chapter or the immediate next one.
+		// Strict mode: can't skip ahead of unlocked progress.
+		for (let i = 0; i < index; i++) {
+			const prevChapterId = this.currentQuest.chapterIds[i];
+			if (!this.progressService.isChapterCompleted(prevChapterId)) {
+				logger.warn(
+					`🚫 Cannot jump to ${chapterId}. Previous chapter ${prevChapterId} not completed.`,
+				);
+				return false;
+			}
+		}
+
+		this.currentChapterIndex = index;
+		this.currentChapter = this.getCurrentChapterData();
+
+		// Update progress tracking
+		this.progressService.setCurrentQuest(this.currentQuest.id, index);
+
+		// Notify host
+		if (this.currentChapter) {
+			this.options.onChapterChange(this.currentChapter, index);
+		}
+		this.host.requestUpdate();
+		return true;
 	}
 
 	/**

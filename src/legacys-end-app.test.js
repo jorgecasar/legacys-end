@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import "./legacys-end-app.js";
 
 describe("LegacysEndApp Component", () => {
@@ -79,5 +79,83 @@ describe("LegacysEndApp Component", () => {
 		// Or assume the test just verifies the start->play transition which is the main navigation.
 		// Detailed flow testing might be better in E2E.
 		// Let's just assert we are in game view.
+	});
+
+	describe("Router Chapter Navigation Fallback", () => {
+		it("should redirect to hub when quest is unavailable", async () => {
+			const el = document.createElement("legacys-end-app");
+			el.hasSeenIntro = true;
+			document.body.appendChild(el);
+			await el.updateComplete;
+
+			// Mock isQuestAvailable to return false
+			const originalIsAvailable = el.progressService.isQuestAvailable;
+			el.progressService.isQuestAvailable = vi.fn().mockReturnValue(false);
+
+			// Spy on router.navigate
+			const navigateSpy = vi.spyOn(el.router, "navigate");
+
+			// Trigger the route handler directly
+			await el.router._matchRoute("/quest/locked-quest/chapter/chapter-1");
+			await el.updateComplete;
+
+			// Should redirect to hub
+			expect(navigateSpy).toHaveBeenCalledWith("/hub", true);
+
+			// Cleanup
+			el.progressService.isQuestAvailable = originalIsAvailable;
+		});
+
+		it("should fall back to last available chapter when requested chapter is locked", async () => {
+			const el = document.createElement("legacys-end-app");
+			el.hasSeenIntro = true;
+			document.body.appendChild(el);
+			await el.updateComplete;
+
+			// Mock quest availability
+			el.progressService.isQuestAvailable = vi.fn().mockReturnValue(true);
+
+			// Mock chapter completion - only chapter 1 is completed
+			el.progressService.isChapterCompleted = vi.fn().mockImplementation(
+				(chapterId) => chapterId === "chapter-1"
+			);
+
+			// Spy on continueQuest
+			const continueQuestSpy = vi.spyOn(el.questController, "continueQuest");
+
+			// Try to navigate to chapter 3 (locked)
+			await el.router._matchRoute("/quest/the-aura-of-sovereignty/chapter/chapter-3");
+			await el.updateComplete;
+
+			// Should call continueQuest to fall back to last available
+			expect(continueQuestSpy).toHaveBeenCalledWith("the-aura-of-sovereignty");
+		});
+
+		it("should successfully jump to accessible chapter", async () => {
+			const el = document.createElement("legacys-end-app");
+			el.hasSeenIntro = true;
+			document.body.appendChild(el);
+			await el.updateComplete;
+
+			// Start a quest first
+			await el.questController.startQuest("the-aura-of-sovereignty");
+			await el.updateComplete;
+
+			// Mock all previous chapters as completed
+			el.progressService.isChapterCompleted = vi.fn().mockReturnValue(true);
+
+			// Spy on jumpToChapter
+			const jumpSpy = vi.spyOn(el.questController, "jumpToChapter");
+
+			// Navigate to hall-of-fragments (second chapter - should be accessible if first is complete)
+			await el.router._matchRoute("/quest/the-aura-of-sovereignty/chapter/hall-of-fragments");
+			await el.updateComplete;
+
+			// Should have called jumpToChapter
+			expect(jumpSpy).toHaveBeenCalledWith("hall-of-fragments");
+
+			// Verify we're on the correct chapter
+			expect(el.questController.currentChapter?.id).toBe("hall-of-fragments");
+		});
 	});
 });

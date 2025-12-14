@@ -21,6 +21,7 @@ import {
 	NewUserService,
 } from "./services/user-services.js";
 import { ServiceType } from "./types.js";
+import { Router } from "./utils/router.js";
 import "./components/quest-hub.js";
 import "./components/about-slides.js";
 import "./components/game-hud.js";
@@ -37,6 +38,7 @@ import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/spinner/spinner.js";
 import "@awesome.me/webawesome/dist/styles/webawesome.css";
 import "./pixel.css";
+import { sharedStyles } from "./styles/shared.js";
 
 /**
  * @element legacys-end-app
@@ -54,11 +56,6 @@ import "./pixel.css";
  * @property {Boolean} isInHub
  * @property {Boolean} hasSeenIntro
  */
-
-import { sharedStyles } from "./styles/shared.js";
-
-// ... utilities ...
-
 export class LegacysEndApp extends ContextMixin(LitElement) {
 	static properties = {
 		chapterId: { type: String },
@@ -117,6 +114,67 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		this.currentQuest = null;
 		this.isInHub = false;
 
+		// Initialize Router
+		this.router = new Router();
+		this.router.addRoute("/hub", () => {
+			this.isInHub = true;
+			this.currentQuest = null;
+			this.showDialog = false;
+			this.isLoading = false;
+		});
+
+		this.router.addRoute("/quest/:id", (params) => {
+			const questId = params.id;
+			this.isInHub = false;
+			// Start quest if not already active or inconsistent
+			if (!this.currentQuest || this.currentQuest.id !== questId) {
+				this.questController.startQuest(questId);
+			}
+		});
+
+		this.router.addRoute("/quest/:id/chapter/:chapterId", async (params) => {
+			const questId = params.id;
+			const chapterId = params.chapterId;
+			this.isInHub = false;
+
+			// Helper to redirect to hub
+			const redirectToHub = () => {
+				logger.warn(`🚫 Quest ${questId} not available. Redirecting to hub.`);
+				this.router.navigate("/hub", true);
+			};
+
+			// Helper to continue quest from last available chapter
+			const continueFromLastAvailable = async () => {
+				logger.info(`📖 Continuing quest ${questId} from last available chapter...`);
+				await this.questController.continueQuest(questId);
+			};
+
+			// If quest not active, start it first
+			if (!this.currentQuest || this.currentQuest.id !== questId) {
+				// Check if quest is available before starting
+				if (!this.progressService.isQuestAvailable(questId)) {
+					redirectToHub();
+					return;
+				}
+
+				await this.questController.startQuest(questId);
+
+				// Now try to jump to the requested chapter
+				const success = this.questController.jumpToChapter(chapterId);
+				if (!success) {
+					// Chapter locked or invalid, continue from last available
+					await continueFromLastAvailable();
+				}
+			} else {
+				// Quest already active, just try to jump
+				const success = this.questController.jumpToChapter(chapterId);
+				if (!success) {
+					// Chapter locked, continue from last available
+					await continueFromLastAvailable();
+				}
+			}
+		});
+
 		// Initialize KeyboardController
 		this.keyboard = new KeyboardController(this, {
 			speed: 2.5,
@@ -129,15 +187,11 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 
 		// Initialize DebugController
 		this.debug = new DebugController(this, {
-			setLevel: (levelId) => {
-				// Refactored to accept ID or try to find it
-				if (levelId) {
-					this.chapterId = levelId;
-					const data = this.getChapterData(levelId);
-					if (data) {
-						this.gameState.setHeroPosition(data.startPos.x, data.startPos.y);
-						logger.info(`🎮 Jumped to Chapter ${levelId} `);
-					}
+			jumpToChapter: (levelId) => {
+				const data = this.getChapterData(levelId);
+				if (data) {
+					// Use router for consistent state
+					this.router.navigate(`/quest/${this.currentQuest?.id}/chapter/${levelId}`);
 				}
 			},
 			giveItem: () => {
@@ -200,22 +254,19 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 				return this.progressService.getProgress();
 			},
 			resetProgress: () => {
-				this.questController.resetProgress();
+				this.progressService.resetProgress();
+				logger.info("🔄 Progress reset");
 			},
 		});
 
 		// Initialize GameZoneController
 		this.zones = new GameZoneController(this, {
-			onThemeChange: (theme) => {
-				this.gameState.setThemeMode(theme);
+			onZoneEnter: (zoneId) => {
+				logger.info(`Entered zone: ${zoneId}`);
 			},
-			onContextChange: (context) => {
-				if (this.hotSwitchState !== context) {
-					this.gameState.setHotSwitchState(context);
-				}
+			onZoneExit: (zoneId) => {
+				logger.info(`Exited zone: ${zoneId}`);
 			},
-			getChapterData: () => this.getChapterData(this.chapterId),
-			hasCollectedItem: () => this.hasCollectedItem,
 		});
 
 		// Initialize CollisionController
@@ -276,21 +327,36 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 				hotSwitchState: this.hotSwitchState,
 				hasCollectedItem: this.hasCollectedItem,
 			}),
-			getNpcPosition: () => this.getChapterData(this.chapterId)?.npc?.position,
+			getNpcPosition: () =>
+				this.getChapterData(this.chapterId)?.npc?.position,
 		});
 
 		// Initialize QuestController
 		this.questController = new QuestController(this, {
 			progressService: this.progressService,
 			onQuestStart: (quest) => {
+				this.isLoading = true;
 				this.currentQuest = quest;
 				this.isInHub = false;
 				this.showDialog = false;
 				logger.info(`🎮 Started quest: ${quest.name} `);
+				// Ensure URL matches
+				// this.router.navigate(`/quest/${quest.id}`); // Duplicate navigation if caused by route match?
+				// Better: check current route? or just replace state?
+				// For now let's assume route match triggered this or user action triggered this
+
+				// Allow a brief moment for state to settle if needed, but primarily reliance on native async
+				this.isLoading = false;
 			},
 			onChapterChange: (chapter, index) => {
 				// Map chapter to level
 				this.chapterId = chapter.id;
+
+				// Update URL to reflect chapter (without reloading)
+				if (this.currentQuest) {
+					this.router.navigate(`/quest/${this.currentQuest.id}/chapter/${chapter.id}`, true);
+				}
+
 				// Ensure we have fresh data
 				const chapterData = this.getChapterData(chapter.id);
 				if (chapterData) {
@@ -340,18 +406,15 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 				this.showQuestCompleteDialog = true; // Show quest complete message
 			},
 			onReturnToHub: () => {
-				this.isInHub = true;
 				this.currentQuest = null;
 				logger.info(`🏛️ Returned to Hub`);
+				this.router.navigate("/hub");
 			},
 		});
 	}
 
 	connectedCallback() {
 		super.connectedCallback();
-
-		// Update controller references to providers (Wait for next tick or ensure they are ready)
-		// Mixin initializes them in constructor, so they are available here.
 
 		// Update controller references to providers
 		this.serviceController.options.profileProvider = this.profileProvider;
@@ -367,6 +430,24 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		this.isInHub = true;
 	}
 
+	firstUpdated() {
+		// Start intro sequence
+		setTimeout(() => {
+			const introDialog = this.shadowRoot.getElementById("intro-dialog");
+			if (introDialog) {
+				introDialog.show();
+			}
+		}, 1000);
+
+		// Initialize Router (starts listening)
+		this.router.init();
+
+		// Default redirect if root
+		if (window.location.pathname === "/" || window.location.pathname === "") {
+			this.router.navigate("/hub", true);
+		}
+	}
+
 	disconnectedCallback() {
 		super.disconnectedCallback();
 	}
@@ -376,8 +457,6 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		this.classList.add(this.themeMode === "dark" ? "wa-dark" : "wa-light");
 		this.themeProvider.setValue({ themeMode: this.themeMode });
 	}
-
-	// Removed get visualLevel() and get numericLevel()
 
 	updated(changedProperties) {
 		if (changedProperties.has("chapterId")) {
@@ -608,11 +687,15 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 				.currentQuestId="${this.progressService.getProgress().currentQuest}"
 				.onQuestSelect="${(questId) => this.handleQuestSelect(questId)}"
 				.onContinueQuest="${(questId) => this.handleContinueQuest(questId)}"
-				.getQuestProgress="${(questId) => this.questController.getQuestProgress(questId)}"
-				.isQuestCompleted="${(questId) => this.questController.isQuestCompleted(questId)}"
-				.isQuestLocked="${(questId) => !this.progressService.isQuestAvailable(questId)}"
+				.getQuestProgress="${(questId) =>
+				this.questController.getQuestProgress(questId)}"
+				.isQuestCompleted="${(questId) =>
+				this.questController.isQuestCompleted(questId)}"
+				.isQuestLocked="${(questId) =>
+				!this.progressService.isQuestAvailable(questId)}"
 				@reset-progress="${() => this.debug.options.resetProgress()}"
-				@open-about="${() => this.shadowRoot.querySelector("about-slides").show()}"
+				@open-about="${() =>
+				this.shadowRoot.querySelector("about-slides").show()}"
 			></quest-hub>
 		`;
 	}
@@ -646,12 +729,6 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 
 		const isCloseToTarget = this.interaction.isCloseToNpc();
 		const isLastChapter = this.questController?.isLastChapter();
-
-		// Replaced hardcoded levels with flags
-		const _canToggleTheme = currentConfig.canToggleTheme;
-		const _hasHotSwitch = currentConfig.hasHotSwitch;
-		const _isFinalBoss = currentConfig.isFinalBoss;
-		const _assetId = currentConfig.assetId || "level_1";
 
 		// Dialog Config Logic
 		const _dialogConfig = currentConfig;

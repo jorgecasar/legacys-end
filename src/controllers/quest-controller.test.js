@@ -21,6 +21,7 @@ vi.mock("../services/progress-service.js", () => {
 			isQuestCompleted = vi.fn().mockReturnValue(false);
 			getOverallProgress = vi.fn().mockReturnValue(0);
 			resetProgress = vi.fn();
+			updateChapterState = vi.fn();
 		},
 	};
 });
@@ -43,10 +44,11 @@ describe("QuestController", () => {
 		mockQuest = {
 			id: "test-quest",
 			name: "Test Quest",
-			chapterIds: ["chapter-1", "chapter-2"],
+			chapterIds: ["chapter-1", "chapter-2", "chapter-3"],
 			chapters: {
 				"chapter-1": { id: "chapter-1", title: "Chapter 1" },
 				"chapter-2": { id: "chapter-2", title: "Chapter 2" },
+				"chapter-3": { id: "chapter-3", title: "Chapter 3" },
 			},
 		};
 
@@ -144,15 +146,14 @@ describe("QuestController", () => {
 			const onQuestComplete = vi.fn();
 			controller.options.onQuestComplete = onQuestComplete;
 
-			// Advance to last chapter
-			controller.nextChapter();
-			expect(controller.currentChapterIndex).toBe(1); // Last chapter
-			vi.clearAllMocks();
+			// Advance to last chapter (index 2 because mockQuest has 3 chapters)
+			controller.currentChapterIndex = 2;
+			controller.currentChapter = { id: "chapter-3" };
 
 			controller.completeChapter();
 
 			expect(controller.progressService.completeChapter).toHaveBeenCalledWith(
-				"chapter-2",
+				"chapter-3",
 			);
 			expect(controller.progressService.completeQuest).toHaveBeenCalledWith(
 				"test-quest",
@@ -205,6 +206,59 @@ describe("QuestController", () => {
 				1,
 			);
 			expect(onQuestStart).toHaveBeenCalled();
+		});
+	});
+
+	describe("jumpToChapter", () => {
+		beforeEach(async () => {
+			await controller.startQuest("test-quest");
+			vi.clearAllMocks();
+		});
+
+		it("should jump to valid chapter if accessible", () => {
+			// Mock previous chapters as completed
+			controller.progressService.isChapterCompleted.mockImplementation(
+				(id) => id === "chapter-1",
+			);
+
+			const result = controller.jumpToChapter("chapter-2");
+
+			expect(result).toBe(true);
+			expect(controller.currentChapterIndex).toBe(1);
+			expect(controller.currentChapter.id).toBe("chapter-2");
+			expect(controller.progressService.setCurrentQuest).toHaveBeenCalledWith(
+				"test-quest",
+				1,
+			);
+			expect(host.requestUpdate).toHaveBeenCalled();
+		});
+
+		it("should fail to jump if no active quest", () => {
+			controller.currentQuest = null;
+			const result = controller.jumpToChapter("chapter-1");
+			expect(result).toBe(false);
+		});
+
+		it("should fail to jump if chapter does not exist", () => {
+			const result = controller.jumpToChapter("non-existent");
+			expect(result).toBe(false);
+		});
+
+		it("should fail to jump if previous chapters are not completed (sequential check)", () => {
+			// Chapter 1 is NOT completed
+			controller.progressService.isChapterCompleted.mockReturnValue(false);
+
+			// Try to jump to Chapter 3
+			const result = controller.jumpToChapter("chapter-3");
+
+			expect(result).toBe(false);
+			// Should stay on current chapter (initial 0)
+			expect(controller.currentChapterIndex).toBe(0);
+		});
+
+		it("should allow jumping to Chapter 1 from Chapter 1 (re-enter)", () => {
+			const result = controller.jumpToChapter("chapter-1");
+			expect(result).toBe(true);
 		});
 	});
 });
