@@ -1,27 +1,11 @@
 import { css, html, LitElement } from "lit";
-import { CharacterContextController } from "./controllers/character-context-controller.js";
-import { CollisionController } from "./controllers/collision-controller.js";
-import { DebugController } from "./controllers/debug-controller.js";
-import { GameZoneController } from "./controllers/game-zone-controller.js";
-import { InteractionController } from "./controllers/interaction-controller.js";
-import { KeyboardController } from "./controllers/keyboard-controller.js";
-import { QuestController } from "./controllers/quest-controller.js";
-import { ServiceController } from "./controllers/service-controller.js";
-import { GameSessionManager } from "./managers/game-session-manager.js";
 import { ContextMixin } from "./mixins/context-mixin.js";
 import { getComingSoonQuests } from "./quests/quest-registry.js";
-// Services
-import { GameStateService } from "./services/game-state-service.js";
 import { logger } from "./services/logger-service.js";
-import { ProgressService } from "./services/progress-service.js";
 import { container } from "./services/service-container.js";
-import { LocalStorageAdapter } from "./services/storage-service.js";
-import {
-	LegacyUserService,
-	MockUserService,
-	NewUserService,
-} from "./services/user-services.js";
-import { ServiceType } from "./types.js";
+import { setupControllers } from "./setup/controllers.js";
+import { setupRoutes } from "./setup/routes.js";
+import { setupServices } from "./setup/services.js";
 import { GameStateMapper } from "./utils/game-state-mapper.js";
 import { Router } from "./utils/router.js";
 import "./components/quest-hub.js";
@@ -87,21 +71,8 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		this.hasSeenIntro = false;
 		this.showQuestCompleteDialog = false;
 
-		// Initialize Services & Register to Container
-		this.storageAdapter = new LocalStorageAdapter();
-		this.gameState = new GameStateService();
-		this.progressService = new ProgressService(this.storageAdapter);
-
-		container.register("gameState", this.gameState);
-		container.register("progress", this.progressService);
-		container.register("logger", logger);
-
-		this.services = {
-			legacy: new LegacyUserService(),
-			mock: new MockUserService(),
-			new: new NewUserService(),
-		};
-		container.register("userServices", this.services);
+		// Initialize Services
+		setupServices(this);
 
 		// Sync local properties with GameStateService (Observable pattern)
 		this.syncState();
@@ -118,324 +89,10 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 
 		// Initialize Router
 		this.router = new Router();
-		this.router.addRoute("/hub", () => {
-			this.isInHub = true;
-			this.currentQuest = null;
-			this.showDialog = false;
-			this.isLoading = false;
-		});
+		setupRoutes(this.router, this);
 
-		this.router.addRoute("/quest/:id", (params) => {
-			const questId = params.id;
-			this.isInHub = false;
-			// Start quest if not already active or inconsistent
-			if (!this.currentQuest || this.currentQuest.id !== questId) {
-				this.questController.startQuest(questId);
-			}
-		});
-
-		this.router.addRoute("/quest/:id/chapter/:chapterId", async (params) => {
-			const questId = params.id;
-			const chapterId = params.chapterId;
-			this.isInHub = false;
-
-			// Helper to redirect to hub
-			const redirectToHub = () => {
-				logger.warn(`🚫 Quest ${questId} not available. Redirecting to hub.`);
-				this.router.navigate("/hub", true);
-			};
-
-			// Helper to continue quest from last available chapter
-			const continueFromLastAvailable = async () => {
-				logger.info(
-					`📖 Continuing quest ${questId} from last available chapter...`,
-				);
-				await this.questController.continueQuest(questId);
-			};
-
-			// If quest not active, start it first
-			if (!this.currentQuest || this.currentQuest.id !== questId) {
-				// Check if quest is available before starting
-				if (!this.progressService.isQuestAvailable(questId)) {
-					redirectToHub();
-					return;
-				}
-
-				await this.questController.startQuest(questId);
-
-				// Now try to jump to the requested chapter
-				const success = this.questController.jumpToChapter(chapterId);
-				if (!success) {
-					// Chapter locked or invalid, continue from last available
-					await continueFromLastAvailable();
-				}
-			} else {
-				// Quest already active, just try to jump
-				const success = this.questController.jumpToChapter(chapterId);
-				if (!success) {
-					// Chapter locked, continue from last available
-					await continueFromLastAvailable();
-				}
-			}
-		});
-
-		// Initialize KeyboardController
-		this.keyboard = new KeyboardController(this, {
-			speed: 2.5,
-			onMove: (dx, dy) => this.handleMove(dx, dy),
-			onInteract: () => this.handleInteract(),
-			onPause: () => this.togglePause(),
-			isEnabled: () =>
-				!this.isEvolving && !this.showDialog && !this.isPaused && !this.isInHub,
-		});
-
-		// Initialize DebugController
-		this.debug = new DebugController(this, {
-			jumpToChapter: (levelId) => {
-				const data = this.getChapterData(levelId);
-				if (data) {
-					// Use router for consistent state
-					this.router.navigate(
-						`/quest/${this.currentQuest?.id}/chapter/${levelId}`,
-					);
-				}
-			},
-			giveItem: () => {
-				this.gameState.setCollectedItem(true);
-				logger.info(`✨ Item collected!`);
-			},
-			teleport: (x, y) => {
-				this.gameState.setHeroPosition(x, y);
-				logger.info(`📍 Teleported to(${x}, ${y})`);
-			},
-			getState: () => ({
-				level: this.chapterId,
-				hasCollectedItem: this.hasCollectedItem,
-				position: this.heroPos,
-				themeMode: this.themeMode,
-				hotSwitchState: this.hotSwitchState,
-				userData: this.userData,
-			}),
-			setTheme: (mode) => {
-				if (mode === "light" || mode === "dark") {
-					this.gameState.setThemeMode(mode);
-					this.applyTheme();
-					logger.info(`🎨 Theme set to: ${mode} `);
-				} else {
-					logger.error(`❌ Invalid theme: ${mode}. Use 'light' or 'dark'`);
-				}
-			},
-			// Quest commands
-			startQuest: (questId) => {
-				this.questController.startQuest(questId);
-			},
-			completeQuest: () => {
-				if (this.questController.currentQuest) {
-					this.questController.completeQuest();
-				} else {
-					logger.warn("⚠️ No active quest to complete");
-				}
-			},
-			completeChapter: () => {
-				if (this.questController.currentQuest) {
-					this.questController.completeChapter();
-				} else {
-					logger.warn("⚠️ No active quest");
-				}
-			},
-			returnToHub: () => {
-				this.questController.returnToHub();
-			},
-			listQuests: () => {
-				const available = this.questController.getAvailableQuests();
-				logger.info("📋 Available Quests:");
-				available.forEach((q) => {
-					const progress = this.questController.getQuestProgress(q.id);
-					const completed = this.questController.isQuestCompleted(q.id);
-					logger.info(`  ${completed ? "✅" : "⏳"} ${q.name} (${progress}%)`);
-				});
-				return available;
-			},
-			getProgress: () => {
-				return this.progressService.getProgress();
-			},
-			resetProgress: () => {
-				this.progressService.resetProgress();
-				logger.info("🔄 Progress reset");
-			},
-		});
-
-		// Initialize GameZoneController
-		this.zones = new GameZoneController(this, {
-			getChapterData: () => this.getChapterData(this.chapterId),
-			hasCollectedItem: () => this.hasCollectedItem,
-			onThemeChange: (theme) => {
-				this.gameState.setThemeMode(theme);
-				this.applyTheme();
-			},
-			onContextChange: (context) => {
-				// Only update if changed to avoid loop/thrashing (though setState usually handles check)
-				if (this.hotSwitchState !== context) {
-					this.gameState.setHotSwitchState(context);
-				}
-			},
-		});
-
-		// Initialize CollisionController
-		this.collision = new CollisionController(this, {
-			onExitCollision: () => this.triggerLevelTransition(),
-		});
-
-		// Initialize ServiceController
-		this.serviceController = new ServiceController(this, {
-			services: this.services,
-			getActiveService: () => this.getActiveService(),
-			onDataLoaded: (userData) => {
-				this.userData = userData;
-			},
-			onError: (error) => {
-				this.userError = error;
-			},
-		});
-
-		// Initialize CharacterContextController
-		this.characterContexts = new CharacterContextController(this, {
-			suitProvider: null, // Will be set in connectedCallback
-			gearProvider: null,
-			powerProvider: null,
-			masteryProvider: null,
-			getState: () => ({
-				level: this.chapterId,
-				chapterData: this.getChapterData(this.chapterId),
-				themeMode: this.themeMode,
-				hotSwitchState: this.hotSwitchState,
-				hasCollectedItem: this.hasCollectedItem,
-				userData: this.userData,
-				activeService: this.getActiveService(),
-			}),
-		});
-
-		// Initialize InteractionController
-		this.interaction = new InteractionController(this, {
-			onShowDialog: () => {
-				this.showDialog = true;
-			},
-			onVictory: () => {
-				this.gameState.setCollectedItem(true);
-				if (this.questController.currentChapter) {
-					this.progressService.updateChapterState(
-						this.questController.currentChapter.id,
-						{ collectedItem: true },
-					);
-				}
-			},
-			onLocked: (message) => {
-				this.gameState.setLockedMessage(message);
-			},
-			getState: () => ({
-				level: this.chapterId,
-				chapterData: this.getChapterData(this.chapterId),
-				heroPos: this.heroPos,
-				hotSwitchState: this.hotSwitchState,
-				hasCollectedItem: this.hasCollectedItem,
-			}),
-			getNpcPosition: () => this.getChapterData(this.chapterId)?.npc?.position,
-		});
-
-		// Initialize QuestController
-		this.questController = new QuestController(this, {
-			progressService: this.progressService,
-			onQuestStart: (quest) => {
-				this.isLoading = true;
-				this.currentQuest = quest;
-				this.isInHub = false;
-				this.showDialog = false;
-				logger.info(`🎮 Started quest: ${quest.name} `);
-
-				// Allow a brief moment for state to settle if needed, but primarily reliance on native async
-				this.isLoading = false;
-			},
-			onChapterChange: (chapter, index) => {
-				// Map chapter to level
-				this.chapterId = chapter.id;
-
-				// Update URL to reflect chapter (without reloading)
-				if (this.currentQuest) {
-					this.router.navigate(
-						`/quest/${this.currentQuest.id}/chapter/${chapter.id}`,
-						true,
-					);
-				}
-
-				// Ensure we have fresh data
-				const chapterData = this.getChapterData(chapter.id);
-				if (chapterData?.startPos) {
-					this.gameState.setHeroPosition(
-						chapterData.startPos.x,
-						chapterData.startPos.y,
-					);
-
-					// Set initial hotSwitchState based on ServiceType
-					let initialHotSwitch = null;
-					if (chapterData.serviceType === ServiceType.LEGACY) {
-						initialHotSwitch = "legacy";
-					} else if (chapterData.serviceType === ServiceType.MOCK) {
-						initialHotSwitch = "test";
-					} else if (chapterData.serviceType === ServiceType.NEW) {
-						initialHotSwitch = "new";
-					}
-					this.gameState.setHotSwitchState(initialHotSwitch);
-
-					// If chapter has hot switch, check zones (might override to null if outside zones)
-					if (chapterData.hasHotSwitch) {
-						this.zones.checkZones(
-							chapterData.startPos.x,
-							chapterData.startPos.y,
-						);
-					}
-				}
-				this.gameState.resetChapterState();
-
-				// Restore state if available
-				const state = this.progressService.getChapterState(chapter.id);
-				if (state.collectedItem) {
-					this.gameState.setCollectedItem(true);
-					this.gameState.setRewardCollected(true); // Assume animation already happened if restoring state
-					logger.info(
-						`🔄 Restored collected item state for chapter ${chapter.id}`,
-					);
-				}
-
-				logger.info(
-					`📖 Chapter ${index + 1}/${chapter.total}: ${chapterData?.name || chapter.id}`,
-				);
-			},
-			onQuestComplete: (quest) => {
-				logger.info(`✅ Completed quest: ${quest.name}`);
-				logger.info(`🏆 Earned badge: ${quest.reward.badge}`);
-				this.showQuestCompleteDialog = true; // Show quest complete message
-			},
-			onReturnToHub: () => {
-				this.currentQuest = null;
-				logger.info(`🏛️ Returned to Hub`);
-				this.router.navigate("/hub");
-			},
-		});
-
-		// Initialize GameSessionManager (for future use)
-		// Currently not actively used, but available for gradual migration
-		this.sessionManager = new GameSessionManager({
-			gameState: this.gameState,
-			progressService: this.progressService,
-			questController: this.questController,
-			router: this.router,
-			controllers: {
-				keyboard: this.keyboard,
-				interaction: this.interaction,
-				collision: this.collision,
-				zones: this.zones,
-			},
-		});
+		// Initialize Controllers and Managers
+		setupControllers(this);
 	}
 
 	connectedCallback() {
@@ -617,17 +274,6 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		...sharedStyles,
 		css`
     :host {
-      /* Global Pixel Theme Overrides */
-      --wa-border-radius-small: 0;
-      --wa-border-radius-medium: 0;
-      --wa-border-radius-large: 0;
-      --wa-border-radius-x-large: 0;
-      --wa-border-radius-circle: 0;
-      --wa-border-radius-pill: 0;
-      
-      /* Font Override */
-      --wa-font-sans: 'Press Start 2P', monospace;
-
       display: flex;
       align-items: center;
       justify-content: center;
@@ -757,8 +403,6 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		if (this.isRewardCollected && currentConfig.postDialogBackgroundStyle) {
 			effectiveConfig.backgroundStyle = currentConfig.postDialogBackgroundStyle;
 		}
-
-
 
 		// Dialog Config Logic
 		const _dialogConfig = currentConfig;
