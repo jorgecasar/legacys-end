@@ -1,4 +1,5 @@
 import { css, html, LitElement } from "lit";
+import { ABOUT_SLIDES_CONTENT } from "../content/about-content.js";
 import "@awesome.me/webawesome/dist/components/dialog/dialog.js";
 import "@awesome.me/webawesome/dist/components/carousel/carousel.js";
 import "@awesome.me/webawesome/dist/components/carousel-item/carousel-item.js";
@@ -25,7 +26,7 @@ export class AboutSlides extends LitElement {
 				justify-content: center;
 				text-align: center;
 				padding: 2rem;
-				background-color: var(--wa-color-neutral-fill-subtle);
+				background-color: var(--wa-color-neutral-fill-loud);
 				color: var(--wa-color-text-normal);
 			}
 
@@ -59,23 +60,12 @@ export class AboutSlides extends LitElement {
 		return html`
 			<wa-dialog label="About Legacy's End" class="about-dialog" style="--width: 800px;">
 				<wa-carousel navigation pagination mouseDragging>
-					<wa-carousel-item>
-						<h2>Legacy's End</h2>
-						<p>A game built with Lit and Web Awesome.</p>
-						<p>Demonstrating the power of modern web standards.</p>
-					</wa-carousel-item>
-
-					<wa-carousel-item>
-						<h2>Jorge del Casar</h2>
-						<p>Head of Tech at ActioGlobal</p>
-						<p>Google Developer Expert</p>
-						<p>+20 years working on web</p>
-					</wa-carousel-item>
-
-					<wa-carousel-item>
-						<h2>Web Components Expert</h2>
-						<p>Creating reusable, encapsulated, and standard-based UI components.</p>
-					</wa-carousel-item>
+					${ABOUT_SLIDES_CONTENT.map((slide) => html`
+						<wa-carousel-item>
+							<h2>${slide.title}</h2>
+							${slide.lines.map((line) => html`<p>${line}</p>`)}
+						</wa-carousel-item>
+					`)}
 				</wa-carousel>
 			</wa-dialog>
 		`;

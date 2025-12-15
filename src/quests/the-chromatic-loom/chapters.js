@@ -1,3 +1,4 @@
+import { FORTRESS_OF_DESIGN_CONTENT } from "../../content/chapters-content.js";
 import { ServiceType } from "../../types.js";
 
 /**
@@ -16,24 +17,8 @@ export const THE_CHROMATIC_LOOM_CHAPTERS = {
 		description:
 			"The object symbolizing the variety of external Design Systems. Interacting reveals the need for CSS Custom Properties (Design Tokens) to achieve visual consistency and thematic adaptation (Dark Mode).",
 		hasThemeZones: true,
-		codeSnippetStart: `/* ❌ Hardcoded Colors */
-.tunic {
-    background-color: #1e3a8a; /* Blue */
-}
-
-/* No easy way to change theme without overriding styles */`,
-		codeSnippetEnd: `/* ✅ Design Tokens (CSS Vars) */
-:host {
-    --tunic-color: #1e3a8a;
-}
-
-:host(.dark-theme) {
-    --tunic-color: #818cf8; /* Neon */
-}
-
-.tunic {
-    background: var(--tunic-color);
-}`,
+		codeSnippetStart: FORTRESS_OF_DESIGN_CONTENT.codeSnippetStart,
+		codeSnippetEnd: FORTRESS_OF_DESIGN_CONTENT.codeSnippetEnd,
 		stats: { maintainability: 25, portability: 35 },
 		serviceType: ServiceType.LEGACY,
 		startPos: { x: 50, y: 15 },
