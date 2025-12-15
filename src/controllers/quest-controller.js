@@ -29,10 +29,10 @@ export class QuestController {
 		this.options = {
 			progressService: null,
 			registry: DefaultRegistry,
-			onQuestStart: (_quest) => {},
-			onChapterChange: (_chapter, _index) => {},
-			onQuestComplete: (_quest) => {},
-			onReturnToHub: () => {},
+			onQuestStart: (_quest) => { },
+			onChapterChange: (_chapter, _index) => { },
+			onQuestComplete: (_quest) => { },
+			onReturnToHub: () => { },
 			...options,
 		};
 
@@ -123,6 +123,45 @@ export class QuestController {
 		}
 
 		this.host.requestUpdate();
+	}
+
+	/**
+	 * Load a quest without resetting progress (for deep linking/routes)
+	 * @param {string} questId
+	 */
+	async loadQuest(questId) {
+		const quest = this.registry.getQuest(questId);
+		if (!quest) {
+			logger.error(`Quest not found: ${questId}`);
+			return false;
+		}
+
+		// Check if quest is available (unlocked)
+		if (!this.progressService.isQuestAvailable(questId)) {
+			console.warn(`Quest not available: ${questId}`);
+			return false;
+		}
+
+		// Ensure content is loaded
+		await this._loadQuestContent(quest);
+
+		this.currentQuest = quest;
+		// Do not force chapter index to 0 here; let jumpToChapter handle it or default to 0
+		// But we should probably ensure it's not null if it was null
+		if (this.currentChapterIndex === null || this.currentChapterIndex === undefined) {
+			this.currentChapterIndex = 0;
+		}
+
+		this.currentChapter = this.getCurrentChapterData();
+
+		// Notify host
+		this.options.onQuestStart(quest); // Notify that quest has "started" (loaded)
+		if (this.currentChapter) {
+			this.options.onChapterChange(this.currentChapter, this.currentChapterIndex);
+		}
+
+		this.host.requestUpdate();
+		return true;
 	}
 
 	/**
@@ -244,8 +283,9 @@ export class QuestController {
 		this.progressService.setCurrentQuest(this.currentQuest.id, index);
 
 		// Notify host
+		this.options.onQuestStart(this.currentQuest); // Notify that quest has "started" (loaded)
 		if (this.currentChapter) {
-			this.options.onChapterChange(this.currentChapter, index);
+			this.options.onChapterChange(this.currentChapter, this.currentChapterIndex);
 		}
 		this.host.requestUpdate();
 		return true;

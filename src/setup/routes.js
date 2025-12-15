@@ -49,7 +49,8 @@ export function setupRoutes(router, app) {
 				return;
 			}
 
-			await app.questController.startQuest(questId);
+			// Use loadQuest instead of startQuest to avoid resetting progress
+			await app.questController.loadQuest(questId);
 
 			// Now try to jump to the requested chapter
 			const success = app.questController.jumpToChapter(chapterId);
