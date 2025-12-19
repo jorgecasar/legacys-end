@@ -7,9 +7,9 @@ import { InteractionController } from "../controllers/interaction-controller.js"
 import { KeyboardController } from "../controllers/keyboard-controller.js";
 import { QuestController } from "../controllers/quest-controller.js";
 import { ServiceController } from "../controllers/service-controller.js";
-import { GameSessionManager } from "../managers/game-session-manager.js";
 import { logger } from "../services/logger-service.js";
-import { ServiceType } from "../types.js";
+
+/** @typedef {import('../legacys-end-app.js').LegacysEndApp} LegacysEndApp */
 
 /**
  * Setup application controllers
@@ -28,11 +28,11 @@ export function setupControllers(app) {
 
 	// Initialize DebugController
 	app.debug = new DebugController(app, {
-		jumpToChapter: (levelId) => {
-			const data = app.getChapterData(levelId);
+		setLevel: (chapterId) => {
+			const data = app.getChapterData(chapterId);
 			if (data) {
-				// Use router for consistent state
-				app.router.navigate(ROUTES.CHAPTER(app.currentQuest?.id, levelId));
+				// Use manager for consistent state and navigation
+				app.sessionManager.loadChapter(app.currentQuest?.id, chapterId);
 			}
 		},
 		giveItem: () => {
@@ -62,24 +62,16 @@ export function setupControllers(app) {
 		},
 		// Quest commands
 		startQuest: (questId) => {
-			app.questController.startQuest(questId);
+			app.sessionManager.startQuest(questId);
 		},
 		completeQuest: () => {
-			if (app.questController.currentQuest) {
-				app.questController.completeQuest();
-			} else {
-				logger.warn("⚠️ No active quest to complete");
-			}
+			app.sessionManager.completeQuest();
 		},
 		completeChapter: () => {
-			if (app.questController.currentQuest) {
-				app.questController.completeChapter();
-			} else {
-				logger.warn("⚠️ No active quest");
-			}
+			app.sessionManager.completeChapter();
 		},
 		returnToHub: () => {
-			app.questController.returnToHub();
+			app.sessionManager.returnToHub();
 		},
 		listQuests: () => {
 			const available = app.questController.getAvailableQuests();
@@ -177,95 +169,34 @@ export function setupControllers(app) {
 		getNpcPosition: () => app.getChapterData(app.chapterId)?.npc?.position,
 	});
 
-	// Initialize QuestController
 	app.questController = new QuestController(app, {
 		progressService: app.progressService,
+		...app.sessionManager.getQuestControllerCallbacks(),
+		// Overlay specific UI reactions that manager hasn't fully migrated yet
 		onQuestStart: (quest) => {
-			app.isLoading = true;
-			app.currentQuest = quest;
-			app.isInHub = false;
+			app.sessionManager.getQuestControllerCallbacks().onQuestStart(quest);
 			app.showDialog = false;
-			logger.info(`🎮 Started quest: ${quest.name} `);
-
-			// Allow a brief moment for state to settle if needed, but primarily reliance on native async
-			app.isLoading = false;
-		},
-		onChapterChange: (chapter, index) => {
-			// Map chapter to level
-			app.chapterId = chapter.id;
-
-			// Update URL to reflect chapter (without reloading)
-			if (app.currentQuest) {
-				app.router.navigate(
-					ROUTES.CHAPTER(app.currentQuest.id, chapter.id),
-					false, // Push to history instead of replace
-				);
-			}
-
-			// Ensure we have fresh data
-			const chapterData = app.getChapterData(chapter.id);
-			if (chapterData?.startPos) {
-				app.gameState.setHeroPosition(
-					chapterData.startPos.x,
-					chapterData.startPos.y,
-				);
-
-				// Set initial hotSwitchState based on ServiceType
-				let initialHotSwitch = null;
-				if (chapterData.serviceType === ServiceType.LEGACY) {
-					initialHotSwitch = "legacy";
-				} else if (chapterData.serviceType === ServiceType.MOCK) {
-					initialHotSwitch = "test";
-				} else if (chapterData.serviceType === ServiceType.NEW) {
-					initialHotSwitch = "new";
-				}
-				app.gameState.setHotSwitchState(initialHotSwitch);
-
-				// If chapter has hot switch, check zones (might override to null if outside zones)
-				if (chapterData.hasHotSwitch) {
-					app.zones.checkZones(chapterData.startPos.x, chapterData.startPos.y);
-				}
-			}
-			app.gameState.resetChapterState();
-
-			// Restore state if available
-			const state = app.progressService.getChapterState(chapter.id);
-			if (state.collectedItem) {
-				app.gameState.setCollectedItem(true);
-				app.gameState.setRewardCollected(true); // Assume animation already happened if restoring state
-				logger.info(
-					`🔄 Restored collected item state for chapter ${chapter.id}`,
-				);
-			}
-
-			logger.info(
-				`📖 Chapter ${index + 1}/${chapter.total}: ${chapterData?.name || chapter.id}`,
-			);
 		},
 		onQuestComplete: (quest) => {
-			logger.info(`✅ Completed quest: ${quest.name}`);
-			logger.info(`🏆 Earned badge: ${quest.reward.badge}`);
-			app.showQuestCompleteDialog = true; // Show quest complete message
-		},
-		onReturnToHub: () => {
-			app.currentQuest = null;
-			logger.info(`🏛️ Returned to Hub`);
-			app.router.navigate(ROUTES.HUB);
+			app.sessionManager.getQuestControllerCallbacks().onQuestComplete(quest);
+			app.showQuestCompleteDialog = true;
 		},
 	});
 
-	// Initialize GameSessionManager (for future use)
-	// Currently not actively used, but available for gradual migration
-	app.sessionManager = new GameSessionManager({
-		gameState: app.gameState,
-		progressService: app.progressService,
-		questController: app.questController,
-		router: app.router,
-		controllers: {
-			keyboard: app.keyboard,
-			interaction: app.interaction,
-			collision: app.collision,
-			zones: app.zones,
-		},
-	});
+	// Initialize GameSessionManager with real values
+	app.sessionManager.options.questController = app.questController;
+	app.sessionManager.options.router = app.router;
+	app.sessionManager.options.controllers = {
+		keyboard: app.keyboard,
+		interaction: app.interaction,
+		collision: app.collision,
+		zones: app.zones,
+	};
+	// Update internal references
+	app.sessionManager.questController = app.questController;
+	app.sessionManager.router = app.router;
+	app.sessionManager.keyboard = app.keyboard;
+	app.sessionManager.interaction = app.interaction;
+	app.sessionManager.collision = app.collision;
+	app.sessionManager.zones = app.zones;
 }

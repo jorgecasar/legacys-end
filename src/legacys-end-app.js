@@ -3,7 +3,6 @@ import { ROUTES } from "./constants/routes.js";
 import { ContextMixin } from "./mixins/context-mixin.js";
 import { getComingSoonQuests } from "./quests/quest-registry.js";
 import { logger } from "./services/logger-service.js";
-import { container } from "./services/service-container.js";
 import { setupControllers } from "./setup/controllers.js";
 import { setupRoutes } from "./setup/routes.js";
 import { setupServices } from "./setup/services.js";
@@ -109,6 +108,13 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		this.applyTheme();
 		this.serviceController.loadUserData();
 
+		// Subscribe to session manager changes for UI updates
+		this.sessionManager.subscribe((event) => {
+			if (["state-change", "navigation", "loading", "chapter-change"].includes(event.type)) {
+				this.syncSessionState();
+			}
+		});
+
 		// Always show hub on start
 		this.isInHub = true;
 	}
@@ -152,7 +158,7 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 			changedProperties.has("themeMode") ||
 			changedProperties.has("hotSwitchState")
 		) {
-			this.updateContexts();
+			this.characterContexts.update();
 		}
 		// Reload user data when switching between services in Level 6
 		if (changedProperties.has("hotSwitchState")) {
@@ -172,46 +178,36 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		this.themeMode = state.themeMode;
 	}
 
-	updateContexts() {
-		if (!this.profileProvider) return; // Guard: providers not initialized yet
-
-		// Update all character contexts via controller
-		this.characterContexts.update();
+	syncSessionState() {
+		const sessionState = this.sessionManager.getGameState();
+		this.isLoading = sessionState.isLoading;
+		this.isInHub = sessionState.isInHub;
+		this.currentQuest = sessionState.currentQuest;
+		this.chapterId = sessionState.chapterId;
 	}
 
 	togglePause() {
-		if (this.isInHub) return;
-		this.gameState.setPaused(!this.isPaused);
+		this.sessionManager.togglePause();
 	}
 
 	handleResume() {
-		this.gameState.setPaused(false);
+		this.sessionManager.handleResume();
 	}
 
 	handleRestartQuest() {
-		if (this.questController.currentQuest) {
-			this.questController.startQuest(this.questController.currentQuest.id);
-			this.gameState.setPaused(false);
-		}
+		this.sessionManager.handleRestartQuest();
 	}
 
 	handleQuitToHub() {
-		this.questController.returnToHub();
-		this.gameState.setPaused(false);
+		this.sessionManager.handleQuitToHub();
 	}
 
 	/**
 	 * Get chapter data for current level from active quest
 	 */
 	getChapterData(levelId) {
-		// If in a quest, try to get chapter data from quest
-		if (this.questController?.currentQuest) {
-			const quest = this.questController.currentQuest;
-			if (quest.chapters?.[levelId]) {
-				return quest.chapters[levelId];
-			}
-		}
-		return null;
+		if (!this.currentQuest || !this.currentQuest.chapters) return null;
+		return this.currentQuest.chapters[levelId] || null;
 	}
 
 	/**
@@ -219,7 +215,7 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 	 * Called by KeyboardController
 	 */
 	handleInteract() {
-		this.interaction.handleInteract();
+		this.sessionManager.handleInteract();
 	}
 
 	/**
@@ -227,40 +223,11 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 	 * Called by KeyboardController
 	 */
 	handleMove(dx, dy) {
-		const currentConfig = this.getChapterData(this.chapterId);
-		if (!currentConfig) return;
-
-		let { x, y } = this.heroPos;
-		x += dx;
-		y += dy;
-
-		// Clamp
-		x = Math.max(2, Math.min(98, x));
-		y = Math.max(2, Math.min(98, y));
-
-		// Check Exit Collision using CollisionController
-		// Only check if not in last chapter of quest
-		if (this.questController?.hasExitZone()) {
-			this.collision.checkExitZone(
-				x,
-				y,
-				currentConfig.exitZone,
-				this.hasCollectedItem,
-			);
-		}
-
-		this.gameState.setHeroPosition(x, y);
-		this.zones.checkZones(x, y);
+		this.sessionManager.handleMove(dx, dy);
 	}
 
 	triggerLevelTransition() {
-		if (this.questController?.isInQuest()) {
-			this.gameState.setEvolving(true);
-			setTimeout(() => {
-				this.questController.completeChapter();
-				this.gameState.setEvolving(false);
-			}, 500);
-		}
+		this.sessionManager.triggerLevelTransition();
 	}
 
 	getActiveService() {
@@ -379,17 +346,11 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 	}
 
 	handleQuestSelect(questId) {
-		this.isLoading = true;
-		return this.questController.startQuest(questId).finally(() => {
-			this.isLoading = false;
-		});
+		return this.sessionManager.startQuest(questId);
 	}
 
 	handleContinueQuest(questId) {
-		this.isLoading = true;
-		return this.questController.continueQuest(questId).finally(() => {
-			this.isLoading = false;
-		});
+		return this.sessionManager.continueQuest(questId);
 	}
 
 	renderGame() {
