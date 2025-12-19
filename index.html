@@ -23,9 +23,8 @@
 			const query = window.location.search;
 			if (query.startsWith('?p=')) {
 				const path = decodeURIComponent(query.slice(3).split('&')[0]);
-				// Combine base path and route path, avoiding double slashes
-				const basePath = window.location.pathname.replace(/\/$/, ''); // Remove trailing slash
-				const fullPath = basePath + path;
+				// Restore with base path
+				const fullPath = '/legacys-end' + path;
 				window.history.replaceState(null, '', fullPath);
 			}
 		})();
