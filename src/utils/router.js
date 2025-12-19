@@ -6,6 +6,8 @@ export class Router {
 		this.routes = [];
 		this.currentPath = "";
 		this._onPopState = this._onPopState.bind(this);
+		// Get base path from Vite's import.meta.env.BASE_URL
+		this.basePath = import.meta.env.BASE_URL.replace(/\/$/, ''); // Remove trailing slash
 	}
 
 	/**
@@ -35,23 +37,31 @@ export class Router {
 
 	/**
 	 * Navigate to a path
-	 * @param {string} path - URL path to navigate to
+	 * @param {string} path - URL path to navigate to (without base path)
 	 * @param {boolean} [replace=false] - Replace current history entry
 	 */
 	navigate(path, replace = false) {
-		if (path === this.currentPath) return;
+		// Add base path to the path
+		const fullPath = this.basePath + path;
+
+		if (fullPath === window.location.pathname) return;
 
 		if (replace) {
-			window.history.replaceState(null, "", path);
+			window.history.replaceState(null, "", fullPath);
 		} else {
-			window.history.pushState(null, "", path);
+			window.history.pushState(null, "", fullPath);
 		}
 		this._onPopState();
 	}
 
 	_onPopState() {
-		this.currentPath = window.location.pathname;
-		this._matchRoute(this.currentPath);
+		// Remove base path from current pathname for routing
+		let path = window.location.pathname;
+		if (this.basePath && path.startsWith(this.basePath)) {
+			path = path.slice(this.basePath.length) || '/';
+		}
+		this.currentPath = path;
+		this._matchRoute(path);
 	}
 
 	_matchRoute(path) {

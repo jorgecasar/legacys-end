@@ -199,7 +199,7 @@ export function setupControllers(app) {
 			if (app.currentQuest) {
 				app.router.navigate(
 					`/quest/${app.currentQuest.id}/chapter/${chapter.id}`,
-					true,
+					false, // Push to history instead of replace
 				);
 			}
 
