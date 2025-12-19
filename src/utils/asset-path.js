@@ -7,10 +7,16 @@
  * @returns {string} The correct asset path for the current environment
  */
 export function getAssetPath(path) {
+	const baseUrl = import.meta.env.BASE_URL;
+
+	// If path already starts with the base URL, return it as-is
+	if (path.startsWith(baseUrl)) {
+		return path;
+	}
+
 	// Remove leading slash if present
 	const cleanPath = path.startsWith('/') ? path.slice(1) : path;
 
-	// In production, prepend the base URL
-	// import.meta.env.BASE_URL is set by Vite based on the `base` config
-	return `${import.meta.env.BASE_URL}${cleanPath}`;
+	// Prepend the base URL
+	return `${baseUrl}${cleanPath}`;
 }
