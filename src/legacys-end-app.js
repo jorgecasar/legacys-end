@@ -1,4 +1,5 @@
 import { css, html, LitElement } from "lit";
+import { ROUTES } from "./constants/routes.js";
 import { ContextMixin } from "./mixins/context-mixin.js";
 import { getComingSoonQuests } from "./quests/quest-registry.js";
 import { logger } from "./services/logger-service.js";
@@ -126,7 +127,7 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 
 		// Default redirect if root
 		if (window.location.pathname === "/" || window.location.pathname === "") {
-			this.router.navigate("/", true);
+			this.router.navigate(ROUTES.HUB, true);
 		}
 	}
 
@@ -420,7 +421,10 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 
 				// If we were showing the next chapter dialog (after reward collection),
 				// advance to the next chapter
-				if (this.isRewardCollected && this.questController?.hasNextChapter()) {
+				if (
+					this.isRewardCollected &&
+					this.questController?.hasNextChapter()
+				) {
 					console.log("📖 Advancing to next chapter after preview");
 					this.triggerLevelTransition();
 				} else {

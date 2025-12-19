@@ -154,7 +154,7 @@ export class GameSessionManager extends Observable {
 
 		this.notify({
 			type: "navigation",
-			location: "/",
+			location: "hub",
 		});
 	}
 
@@ -272,7 +272,7 @@ export class GameSessionManager extends Observable {
 				logger.info(`🏛️ Returned to Hub`);
 				this.notify({
 					type: "navigation",
-					location: "/",
+					location: "hub",
 				});
 			},
 		};

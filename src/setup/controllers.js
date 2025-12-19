@@ -1,3 +1,4 @@
+import { ROUTES } from "../constants/routes.js";
 import { CharacterContextController } from "../controllers/character-context-controller.js";
 import { CollisionController } from "../controllers/collision-controller.js";
 import { DebugController } from "../controllers/debug-controller.js";
@@ -31,9 +32,7 @@ export function setupControllers(app) {
 			const data = app.getChapterData(levelId);
 			if (data) {
 				// Use router for consistent state
-				app.router.navigate(
-					`/quest/${app.currentQuest?.id}/chapter/${levelId}`,
-				);
+				app.router.navigate(ROUTES.CHAPTER(app.currentQuest?.id, levelId));
 			}
 		},
 		giveItem: () => {
@@ -198,7 +197,7 @@ export function setupControllers(app) {
 			// Update URL to reflect chapter (without reloading)
 			if (app.currentQuest) {
 				app.router.navigate(
-					`/quest/${app.currentQuest.id}/chapter/${chapter.id}`,
+					ROUTES.CHAPTER(app.currentQuest.id, chapter.id),
 					false, // Push to history instead of replace
 				);
 			}
@@ -224,10 +223,7 @@ export function setupControllers(app) {
 
 				// If chapter has hot switch, check zones (might override to null if outside zones)
 				if (chapterData.hasHotSwitch) {
-					app.zones.checkZones(
-						chapterData.startPos.x,
-						chapterData.startPos.y,
-					);
+					app.zones.checkZones(chapterData.startPos.x, chapterData.startPos.y);
 				}
 			}
 			app.gameState.resetChapterState();
@@ -254,7 +250,7 @@ export function setupControllers(app) {
 		onReturnToHub: () => {
 			app.currentQuest = null;
 			logger.info(`🏛️ Returned to Hub`);
-			app.router.navigate("/");
+			app.router.navigate(ROUTES.HUB);
 		},
 	});
 

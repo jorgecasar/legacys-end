@@ -172,7 +172,7 @@ describe("GameSessionManager", () => {
 			expect(manager.currentQuest).toBeNull();
 			expect(manager.isInHub).toBe(true);
 			expect(notifySpy).toHaveBeenCalledWith(
-				expect.objectContaining({ type: "navigation", location: "/" }),
+				expect.objectContaining({ type: "navigation", location: "hub" }),
 			);
 		});
 	});

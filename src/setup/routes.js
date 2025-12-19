@@ -1,3 +1,4 @@
+import { ROUTES } from "../constants/routes.js";
 import { logger } from "../services/logger-service.js";
 
 /**
@@ -6,14 +7,14 @@ import { logger } from "../services/logger-service.js";
  * @param {LegacysEndApp} app
  */
 export function setupRoutes(router, app) {
-	router.addRoute("/", () => {
+	router.addRoute(ROUTES.HUB, () => {
 		app.isInHub = true;
 		app.currentQuest = null;
 		app.showDialog = false;
 		app.isLoading = false;
 	});
 
-	router.addRoute("/quest/:id", (params) => {
+	router.addRoute(ROUTES.QUEST(":id"), (params) => {
 		const questId = params.id;
 		app.isInHub = false;
 		// Start quest if not already active or inconsistent
@@ -22,7 +23,7 @@ export function setupRoutes(router, app) {
 		}
 	});
 
-	router.addRoute("/quest/:id/chapter/:chapterId", async (params) => {
+	router.addRoute(ROUTES.CHAPTER(":id", ":chapterId"), async (params) => {
 		const questId = params.id;
 		const chapterId = params.chapterId;
 		app.isInHub = false;
@@ -30,7 +31,7 @@ export function setupRoutes(router, app) {
 		// Helper to redirect to hub
 		const redirectToHub = () => {
 			logger.warn(`🚫 Quest ${questId} not available. Redirecting to hub.`);
-			router.navigate("/", true);
+			router.navigate(ROUTES.HUB, true);
 		};
 
 		// Helper to continue quest from last available chapter
