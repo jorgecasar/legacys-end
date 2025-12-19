@@ -1,33 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Redirecting...</title>
-	<script>
-		// GitHub Pages SPA redirect trick
-		// When a user navigates directly to a route (e.g., /legacys-end/quest/...),
-		// GitHub Pages serves this 404.html. We redirect to index.html with the path
-		// stored in the query string, which the app can then restore.
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redirecting...</title>
+<script>
+// GitHub Pages SPA redirect trick
+// When a user navigates directly to a route (e.g., /legacys-end/quest/...),
+// GitHub Pages serves this 404.html. We redirect to index.html with the path
+// stored in the query string, which the app can then restore.
 
-		const pathSegments = window.location.pathname.split('/').filter(Boolean);
+const pathSegments = window.location.pathname.split('/').filter(Boolean);
 
-		// Remove 'legacys-end' from the path if present
-		const baseIndex = pathSegments.indexOf('legacys-end');
-		if (baseIndex !== -1) {
-			pathSegments.splice(0, baseIndex + 1);
-		}
+// Remove 'legacys-end' from the path if present
+const baseIndex = pathSegments.indexOf('legacys-end');
+if (baseIndex !== -1) {
+pathSegments.splice(0, baseIndex + 1);
+}
 
-		const path = '/' + pathSegments.join('/');
-		const redirect = '/legacys-end/?p=' + encodeURIComponent(path) + window.location.search.slice(1);
+const path = '/' + pathSegments.join('/');
+// Construct redirect URL, ensuring no double slashes
+const redirect = '/legacys-end' + (window.location.search ? window.location.search + '&' : '?') + 'p=' + encodeURIComponent(path);
 
-		window.location.replace(redirect);
-	</script>
+window.location.replace(redirect);
+</script>
 </head>
-
 <body>
-	<p>Redirecting...</p>
+<p>Redirecting...</p>
 </body>
-
 </html>
