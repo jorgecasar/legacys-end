@@ -17,6 +17,16 @@
 		}
 	</style>
 	<link rel="stylesheet" href="/node_modules/@awesome.me/webawesome/dist/styles/webawesome.css">
+	<script>
+		// Restore SPA route from query parameter (GitHub Pages SPA trick)
+		(() => {
+			const query = window.location.search;
+			if (query.startsWith('?p=')) {
+				const path = decodeURIComponent(query.slice(3).split('&')[0]);
+				window.history.replaceState(null, '', window.location.pathname + path);
+			}
+		})();
+	</script>
 </head>
 
 <body class="">
