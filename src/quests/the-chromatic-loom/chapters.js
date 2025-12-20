@@ -1,5 +1,5 @@
 import { FORTRESS_OF_DESIGN_CONTENT } from "../../content/chapters-content.js";
-import { ServiceType } from "../../types.js";
+import { ServiceType } from "../../services/user-services.js";
 
 /**
  * The Token of Agnosticism Quest - Chapter Data

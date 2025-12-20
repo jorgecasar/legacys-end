@@ -1,6 +1,6 @@
 import { ROUTES } from "../constants/routes.js";
 import { logger } from "../services/logger-service.js";
-import { ServiceType } from "../types.js";
+import { ServiceType } from "../services/user-services.js";
 import { Observable } from "../utils/observable.js";
 
 /**
@@ -384,7 +384,7 @@ export class GameSessionManager extends Observable {
 						chapterData.startPos.y,
 					);
 
-					// Set initial hotSwitchState based on ServiceType
+					/** @type {'legacy'|'test'|'new'|null} */
 					let initialHotSwitch = null;
 					if (chapterData.serviceType === ServiceType.LEGACY) {
 						initialHotSwitch = "legacy";

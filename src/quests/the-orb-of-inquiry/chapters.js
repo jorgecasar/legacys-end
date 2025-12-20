@@ -1,4 +1,4 @@
-import { ServiceType } from "../../types.js";
+import { ServiceType } from "../../services/user-services.js";
 
 /**
  * The Orb of Inquiry Quest - Chapter Data
@@ -209,7 +209,7 @@ export class ProductProviderLegacy extends LitElement {
 import { productContext } from './contexts/product-context.js';
 
 export class ProductItem extends LitElement {
-    /** @type {IUserService | undefined} */
+    /** @type {import("../../services/user-services.js").IUserService | undefined} */
     service;
 
     connectedCallback() {
