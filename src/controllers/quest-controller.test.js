@@ -340,5 +340,140 @@ describe("QuestController", () => {
 			expect(result).toBe(false);
 		});
 	});
+
+	describe("Helper Methods and Getters", () => {
+		beforeEach(async () => {
+			await controller.startQuest("test-quest");
+		});
+
+		it("getAvailableQuests should return quests from registry", () => {
+			const mockAvailableQuests = [
+				{ id: "quest-1", name: "Quest 1" },
+				{ id: "quest-2", name: "Quest 2" },
+			];
+			vi.spyOn(controller.registry, "getAvailableQuests").mockReturnValue(
+				mockAvailableQuests,
+			);
+
+			const quests = controller.getAvailableQuests();
+
+			expect(quests).toEqual(mockAvailableQuests);
+			expect(controller.registry.getAvailableQuests).toHaveBeenCalled();
+		});
+
+		it("getQuestProgress should return progress from service", () => {
+			controller.progressService.getQuestProgress.mockReturnValue(75);
+
+			const progress = controller.getQuestProgress("test-quest");
+
+			expect(progress).toBe(75);
+			expect(controller.progressService.getQuestProgress).toHaveBeenCalledWith(
+				"test-quest",
+			);
+		});
+
+		it("isQuestCompleted should check completion status", () => {
+			controller.progressService.isQuestCompleted.mockReturnValue(true);
+
+			const isCompleted = controller.isQuestCompleted("test-quest");
+
+			expect(isCompleted).toBe(true);
+			expect(controller.progressService.isQuestCompleted).toHaveBeenCalledWith(
+				"test-quest",
+			);
+		});
+
+		it("getOverallProgress should return overall progress", () => {
+			controller.progressService.getOverallProgress.mockReturnValue(50);
+
+			const progress = controller.getOverallProgress();
+
+			expect(progress).toBe(50);
+		});
+
+		it("resetProgress should reset and return to hub", () => {
+			const onReturnToHub = vi.fn();
+			controller.options.onReturnToHub = onReturnToHub;
+
+			controller.resetProgress();
+
+			expect(controller.progressService.resetProgress).toHaveBeenCalled();
+			expect(controller.currentQuest).toBeNull();
+			expect(onReturnToHub).toHaveBeenCalled();
+		});
+
+		it("isInQuest should return true when in quest", () => {
+			expect(controller.isInQuest()).toBe(true);
+		});
+
+		it("isInHub should return false when in quest", () => {
+			expect(controller.isInHub()).toBe(false);
+		});
+
+		it("isInHub should return true when not in quest", () => {
+			controller.currentQuest = null;
+			expect(controller.isInHub()).toBe(true);
+		});
+
+		it("isLastChapter should return false for first chapter", () => {
+			expect(controller.isLastChapter()).toBe(false);
+		});
+
+		it("isLastChapter should return true for last chapter", () => {
+			controller.currentChapterIndex = 2; // Last chapter (0-indexed)
+			expect(controller.isLastChapter()).toBe(true);
+		});
+
+		it("hasExitZone should return true if chapter has exitZone", () => {
+			controller.currentChapter = { id: "chapter-1", exitZone: { x: 10, y: 10 } };
+			expect(controller.hasExitZone()).toBe(true);
+		});
+
+		it("hasExitZone should return false if no exitZone", () => {
+			controller.currentChapter = { id: "chapter-1" };
+			expect(controller.hasExitZone()).toBe(false);
+		});
+
+		it("getCurrentChapterNumber should return 1-indexed chapter number", () => {
+			expect(controller.getCurrentChapterNumber()).toBe(1);
+			controller.currentChapterIndex = 2;
+			expect(controller.getCurrentChapterNumber()).toBe(3);
+		});
+
+		it("getTotalChapters should return total chapter count", () => {
+			expect(controller.getTotalChapters()).toBe(3);
+		});
+
+		it("isCurrentChapter should check if chapter matches", () => {
+			expect(controller.isCurrentChapter("chapter-1")).toBe(true);
+			expect(controller.isCurrentChapter("chapter-2")).toBe(false);
+		});
+
+		it("getLastChapterId should return last chapter ID", () => {
+			expect(controller.getLastChapterId()).toBe("chapter-3");
+		});
+
+		it("getNextChapterData should return next chapter data", () => {
+			const nextChapter = controller.getNextChapterData();
+			expect(nextChapter).toBeDefined();
+			expect(nextChapter.id).toBe("chapter-2");
+		});
+
+		it("getNextChapterData should return null if on last chapter", () => {
+			controller.currentChapterIndex = 2;
+			const nextChapter = controller.getNextChapterData();
+			expect(nextChapter).toBeNull();
+		});
+
+		it("hasNextChapter should return true if not on last chapter", () => {
+			expect(controller.hasNextChapter()).toBe(true);
+		});
+
+		it("hasNextChapter should return false if on last chapter", () => {
+			controller.currentChapterIndex = 2;
+			expect(controller.hasNextChapter()).toBe(false);
+		});
+	});
 });
+
 
