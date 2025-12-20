@@ -1,3 +1,16 @@
+/** @typedef {import("../services/user-services.js").IUserService} IUserService */
+/** @typedef {import("../services/user-services.js").UserData} UserData */
+/** @typedef {import("../services/user-services.js").ServiceType} ServiceType */
+
+/**
+ * @typedef {Object} ServiceControllerOptions
+ * @property {Object} [services] - Map of service instances {legacy, mock, new}
+ * @property {Object} [profileProvider] - Profile context provider
+ * @property {() => IUserService|null} [getActiveService] - Function to get active service
+ * @property {(userData: UserData) => void} [onDataLoaded] - Callback when data loads
+ * @property {(error: string) => void} [onError] - Callback on error
+ */
+
 /**
  * ServiceController - Manages user service loading
  *
@@ -6,46 +19,39 @@
  * - User data loading and error handling
  * - Profile context updates
  *
- * Usage:
- * ```js
- * this.serviceController = new ServiceController(this, {
- *   services: { legacy, mock, new },
- *   profileProvider: this.profileProvider,
- *   getActiveService: () => this.getActiveService(),
- *   onDataLoaded: (userData) => { this.userData = userData; },
- *   onError: (error) => { this.userError = error; }
- * });
- *
- * // Load data
- * await this.serviceController.loadUserData();
- * ```
+ * @implements {import('lit').ReactiveController}
  */
 export class ServiceController {
+	/**
+	 * @param {import('lit').ReactiveControllerHost} host
+	 * @param {Partial<ServiceControllerOptions>} [options]
+	 */
 	constructor(host, options = {}) {
+		/** @type {import('lit').ReactiveControllerHost} */
 		this.host = host;
+		/** @type {ServiceControllerOptions} */
 		this.options = {
 			services: {},
 			profileProvider: null,
 			getActiveService: () => null,
-			onDataLoaded: () => {},
-			onError: () => {},
+			onDataLoaded: () => { },
+			onError: () => { },
 			...options,
 		};
 
+		/** @type {UserData|null} */
 		this.userData = null;
+		/** @type {boolean} */
 		this.userLoading = false;
+		/** @type {string|null} */
 		this.userError = null;
 
 		host.addController(this);
 	}
 
-	hostConnected() {
-		// No setup needed
-	}
+	hostConnected() { }
 
-	hostDisconnected() {
-		// No cleanup needed
-	}
+	hostDisconnected() { }
 
 	/**
 	 * Load user data from active service
@@ -87,6 +93,7 @@ export class ServiceController {
 
 	/**
 	 * Get current user data
+	 * @returns {UserData|null}
 	 */
 	getUserData() {
 		return this.userData;
@@ -94,6 +101,7 @@ export class ServiceController {
 
 	/**
 	 * Check if data is loading
+	 * @returns {boolean}
 	 */
 	isLoading() {
 		return this.userLoading;
@@ -101,6 +109,7 @@ export class ServiceController {
 
 	/**
 	 * Get current error
+	 * @returns {string|null}
 	 */
 	getError() {
 		return this.userError;
@@ -108,9 +117,9 @@ export class ServiceController {
 
 	/**
 	 * Get active service based on service type and hot switch state
-	 * @param {string} serviceType - ServiceType from chapter data
-	 * @param {string} hotSwitchState - Current zone state (for dynamic injection)
-	 * @returns {Object|null} Active service or null
+	 * @param {ServiceType} serviceType - ServiceType from chapter data
+	 * @param {import('../services/game-state-service.js').HotSwitchState} hotSwitchState - Current zone state (for dynamic injection)
+	 * @returns {IUserService|null} Active service or null
 	 */
 	getActiveService(serviceType, hotSwitchState) {
 		if (!serviceType) return null;
