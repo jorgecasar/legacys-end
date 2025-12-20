@@ -10,11 +10,14 @@ describe("CharacterContextController", () => {
 	beforeEach(() => {
 		host = {
 			addController: vi.fn(),
+			removeController: vi.fn(),
+			requestUpdate: vi.fn(),
+			updateComplete: Promise.resolve(true),
 		};
 		characterProvider = { setValue: vi.fn() };
 		getStateMock = vi.fn();
 
-		controller = new CharacterContextController(host, {
+		controller = new CharacterContextController(/** @type {any} */(host), {
 			characterProvider,
 			getState: getStateMock,
 		});
@@ -119,6 +122,15 @@ describe("CharacterContextController", () => {
 					},
 				}),
 			);
+		});
+		it("should not crash if characterProvider is missing", () => {
+			controller = new CharacterContextController(/** @type {any} */(host), {
+				getState: getStateMock,
+			});
+
+			getStateMock.mockReturnValue({ level: "1" });
+
+			expect(() => controller.update()).not.toThrow();
 		});
 	});
 });

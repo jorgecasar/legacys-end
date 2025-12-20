@@ -1,4 +1,30 @@
 /**
+ * @typedef {import("lit").ReactiveController} ReactiveController
+ * @typedef {import("lit").ReactiveControllerHost} ReactiveControllerHost
+ */
+
+/**
+ * @typedef {Object} CharacterContextState
+ * @property {string} level
+ * @property {import("../quests/quest-types.js").LevelConfig} [chapterData]
+ * @property {string} [themeMode]
+ * @property {string} [hotSwitchState]
+ * @property {boolean} [hasCollectedItem]
+ * @property {boolean} [isRewardCollected]
+ * @property {import("../services/user-services.js").UserData} [userData]
+ */
+
+/**
+ * @typedef {Object} CharacterContextOptions
+ * @property {Object} [suitProvider]
+ * @property {Object} [gearProvider]
+ * @property {Object} [powerProvider]
+ * @property {Object} [masteryProvider]
+ * @property {Object} [characterProvider] - Combined provider if used
+ * @property {function(): CharacterContextState} getState
+ */
+
+/**
  * CharacterContextController - Manages character appearance contexts
  *
  * Handles:
@@ -6,45 +32,21 @@
  * - Gear images based on level
  * - Power images based on level
  *
- * Usage:
- * ```js
- * this.characterContexts = new CharacterContextController(this, {
- *   suitProvider: this.suitProvider,
- *   gearProvider: this.gearProvider,
- *   powerProvider: this.powerProvider,
- *   masteryProvider: this.masteryProvider,
- *   getState: () => ({
- *     level: this.level,
- *     chapterData: this.getChapterData(this.level),
- *     themeMode: this.themeMode,
- *     hotSwitchState: this.hotSwitchState,
- *     hasCollectedItem: this.hasCollectedItem,
- *     userData: this.userData,
- *     activeService: this.getActiveService()
- *   })
- * });
- *
- * // Update contexts when state changes
- * this.characterContexts.update();
- * ```
+ * @implements {ReactiveController}
  */
-
-
 export class CharacterContextController {
-	constructor(host, options = {}) {
+	/**
+	 * @param {ReactiveControllerHost} host
+	 * @param {CharacterContextOptions} options
+	 */
+	constructor(host, options) {
 		this.host = host;
 		this.options = options;
 
 		host.addController(this);
 	}
 
-	hostConnected() {
-		// No setup needed
-	}
 
-	hostDisconnected() {
-		// No cleanup needed
-	}
 
 	/**
 	 * Update all character contexts based on current game state
