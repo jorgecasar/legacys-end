@@ -1,28 +1,38 @@
 /**
+ * @typedef {import("lit").ReactiveController} ReactiveController
+ * @typedef {import("lit").ReactiveControllerHost} ReactiveControllerHost
+ * @typedef {import("../services/game-state-service.js").ThemeMode} ThemeMode
+ * @typedef {import("../services/game-state-service.js").HotSwitchState} HotSwitchState
+ * @typedef {import("../quests/quest-types.js").LevelConfig} LevelConfig
+ */
+
+/**
+ * @typedef {Object} GameZoneOptions
+ * @property {function(ThemeMode): void} [onThemeChange] - Callback when theme changes
+ * @property {function(HotSwitchState): void} [onContextChange] - Callback when API context changes
+ * @property {function(): LevelConfig|null} [getChapterData] - Callback to get current chapter config
+ * @property {function(): boolean} [hasCollectedItem] - Callback to check if item is collected
+ */
+
+/**
  * GameZoneController - Lit Reactive Controller for zone detection
  *
  * Handles:
  * - Theme zones (dark/light based on Y position) - if chapter.hasThemeZones
  * - Context zones (legacy/new based on position) - if chapter.hasHotSwitch
  *
- * Usage:
- * ```js
- * this.zones = new GameZoneController(this, {
- *   onThemeChange: (theme) => { this.themeMode = theme; },
- *   onContextChange: (context) => { this.hotSwitchState = context; },
- *   getChapterData: () => currentConfig,
- *   hasCollectedItem: () => this.hasCollectedItem
- * });
- *
- * // Check zones when position changes
- * this.zones.checkZones(x, y);
- * ```
+ * @implements {ReactiveController}
  */
 import { GAME_CONFIG } from "../constants/game-config.js";
 
 export class GameZoneController {
+	/**
+	 * @param {ReactiveControllerHost} host
+	 * @param {GameZoneOptions} [options]
+	 */
 	constructor(host, options = {}) {
 		this.host = host;
+		/** @type {Required<GameZoneOptions>} */
 		this.options = {
 			onThemeChange: () => { },
 			onContextChange: () => { },
@@ -34,13 +44,7 @@ export class GameZoneController {
 		host.addController(this);
 	}
 
-	hostConnected() {
-		// No setup needed
-	}
 
-	hostDisconnected() {
-		// No cleanup needed
-	}
 
 	/**
 	 * Check if character is in a specific zone and trigger callbacks
@@ -68,9 +72,9 @@ export class GameZoneController {
 	 * Get theme mode based on position (Level 2)
 	 * @param {number} x - X position
 	 * @param {number} y - Y position
-	 * @returns {string} 'wa-dark' or 'wa-light'
+	 * @returns {ThemeMode} 'dark' or 'light'
 	 */
-	getThemeForPosition(_x, y) {
+	getThemeForPosition(x, y) {
 		if (y <= GAME_CONFIG.VIEWPORT.ZONES.THEME.DARK_HEIGHT) {
 			return "dark";
 		}
@@ -81,7 +85,7 @@ export class GameZoneController {
 	 * Get context zone based on position (Level 6)
 	 * @param {number} x - X position
 	 * @param {number} y - Y position
-	 * @returns {string|null} 'legacy', 'new', or null (neutral zone)
+	 * @returns {HotSwitchState} 'legacy', 'new', or null
 	 */
 	getContextForPosition(x, y) {
 		const legacyZone = { xMin: 50, xMax: 100, yMin: 40, yMax: 100 };
