@@ -25,4 +25,8 @@ dist-ssr
 __screenshots__
 
 # Localization
+# Localization
 src/generated/
+
+# Coverage
+coverage
