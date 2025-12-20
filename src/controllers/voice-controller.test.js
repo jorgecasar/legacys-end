@@ -1,42 +1,97 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+// Mock voiceSynthesisService BEFORE importing VoiceController
+vi.mock("../services/voice-synthesis-service.js", () => ({
+	voiceSynthesisService: {
+		speak: vi.fn(),
+		cancel: vi.fn(),
+		getBestVoice: vi.fn(),
+		getSpeakingStatus: vi.fn().mockReturnValue(false),
+	},
+}));
+
 import { VoiceController } from "./voice-controller.js";
 
 describe("VoiceController", () => {
+	/** @type {import("lit").ReactiveControllerHost} */
 	let host;
-	let options;
+	/** @type {VoiceController} */
 	let controller;
+	/** @type {import("vitest").Mock} */
+	let onMove;
+	/** @type {import("vitest").Mock} */
+	let onInteract;
+	/** @type {import("vitest").Mock} */
+	let onPause;
+	/** @type {import("vitest").Mock} */
+	let onNextSlide;
+	/** @type {import("vitest").Mock} */
+	let onPrevSlide;
+	/** @type {import("vitest").Mock} */
+	let onMoveToNpc;
+	/** @type {import("vitest").Mock} */
+	let onMoveToExit;
+	/** @type {import("vitest").Mock} */
+	let onGetDialogText;
+	/** @type {import("vitest").Mock} */
+	let onGetContext;
+	/** @type {import("vitest").Mock} */
+	let onDebugAction;
+	/** @type {import("vitest").Mock} */
+	let isEnabled;
+	let options;
 
 	beforeEach(() => {
 		host = {
 			addController: vi.fn(),
 		};
+		onMove = vi.fn();
+		onInteract = vi.fn();
+		onPause = vi.fn();
+		onNextSlide = vi.fn();
+		onPrevSlide = vi.fn();
+		onMoveToNpc = vi.fn();
+		onMoveToExit = vi.fn();
+		onGetDialogText = vi.fn().mockReturnValue("Test dialog text");
+		onGetContext = vi.fn().mockReturnValue({ isDialogOpen: false, isRewardCollected: false });
+		onDebugAction = vi.fn();
+		isEnabled = vi.fn().mockReturnValue(true);
+
 		options = {
-			onMove: vi.fn(),
-			onInteract: vi.fn(),
-			onPause: vi.fn(),
-			onNextSlide: vi.fn(),
-			onPrevSlide: vi.fn(),
-			onMoveToNpc: vi.fn(),
-			onMoveToExit: vi.fn(),
-			onGetDialogText: vi.fn().mockReturnValue("Test dialog text"),
-			onGetContext: vi.fn().mockReturnValue({ isDialogOpen: false, isRewardCollected: false }),
-			onDebugAction: vi.fn(),
-			isEnabled: vi.fn().mockReturnValue(true),
+			onMove,
+			onInteract,
+			onPause,
+			onNextSlide,
+			onPrevSlide,
+			onMoveToNpc,
+			onMoveToExit,
+			onGetDialogText,
+			onGetContext,
+			onDebugAction,
+			isEnabled,
 			language: "en-US",
 		};
 
 		// Mock SpeechRecognition
-		function SpeechRecognitionMock() {
-			this.start = vi.fn();
-			this.stop = vi.fn();
-			this.addEventListener = vi.fn();
-			this.removeEventListener = vi.fn();
-			this.lang = "en-US";
+		class SpeechRecognitionMock {
+			constructor() {
+				this.continuous = false;
+				this.interimResults = false;
+				this.onstart = null;
+				this.onresult = null;
+				this.onend = null;
+				this.onerror = null;
+				this.start = vi.fn();
+				this.stop = vi.fn();
+				this.addEventListener = vi.fn();
+				this.removeEventListener = vi.fn();
+				this.lang = "en-US";
+			}
 		}
 		vi.stubGlobal("SpeechRecognition", SpeechRecognitionMock);
 		vi.stubGlobal("webkitSpeechRecognition", SpeechRecognitionMock);
 
-		// Mock speechSynthesis
+		// Mock speechSynthesis (still needed for voice-controller internals)
 		const speechSynthesisMock = {
 			speak: vi.fn(),
 			cancel: vi.fn(),
@@ -93,18 +148,29 @@ describe("VoiceController", () => {
 			expect(options.onMoveToExit).toHaveBeenCalled();
 		});
 
-		it("should handle 'interact' and speak dialog text", () => {
+		it("should handle 'interact' and speak dialog text", async () => {
 			vi.useFakeTimers();
-			controller.executeAction("interact");
-			expect(options.onInteract).toHaveBeenCalled();
+			const { voiceSynthesisService } = await import(
+				"../services/voice-synthesis-service.js"
+			);
+
+			controller.executeAction("interact", null, "en-US");
 			vi.advanceTimersByTime(400); // 400ms delay in executeAction
 			expect(options.onGetDialogText).toHaveBeenCalled();
-			expect(window.speechSynthesis.speak).toHaveBeenCalled();
+			expect(voiceSynthesisService.speak).toHaveBeenCalled();
 			vi.useRealTimers();
 		});
 	});
 
 	describe("speak", () => {
+		beforeEach(async () => {
+			const { voiceSynthesisService } = await import(
+				"../services/voice-synthesis-service.js"
+			);
+			vi.clearAllMocks();
+			voiceSynthesisService.speak.mockClear();
+		});
+
 		it("should stop recognition before speaking", () => {
 			const stopSpy = vi.spyOn(controller, "stop");
 			controller.speak("Hello");
@@ -112,14 +178,28 @@ describe("VoiceController", () => {
 			expect(controller.isSpeaking).toBe(true);
 		});
 
-		it("should cancel synthesis if queue is false (default)", () => {
+		it("should cancel synthesis if queue is false (default)", async () => {
+			const { voiceSynthesisService } = await import(
+				"../services/voice-synthesis-service.js"
+			);
+
 			controller.speak("Hello");
-			expect(window.speechSynthesis.cancel).toHaveBeenCalled();
+			expect(voiceSynthesisService.speak).toHaveBeenCalled();
+			// Verify queue parameter is false (default)
+			const callArgs = voiceSynthesisService.speak.mock.calls[0];
+			expect(callArgs[1].queue).toBe(false);
 		});
 
-		it("should NOT cancel synthesis if queue is true", () => {
+		it("should NOT cancel synthesis if queue is true", async () => {
+			const { voiceSynthesisService } = await import(
+				"../services/voice-synthesis-service.js"
+			);
+
 			controller.speak("Hello", null, "hero", true);
-			expect(window.speechSynthesis.cancel).not.toHaveBeenCalled();
+			expect(voiceSynthesisService.speak).toHaveBeenCalled();
+			// Verify queue parameter is true
+			const callArgs = voiceSynthesisService.speak.mock.calls[0];
+			expect(callArgs[1].queue).toBe(true);
 		});
 	});
 
@@ -196,30 +276,6 @@ describe("VoiceController", () => {
 
 		it("should handle unknown commands gracefully", () => {
 			expect(() => controller.executeAction("unknown_action")).not.toThrow();
-		});
-	});
-
-	describe("Voice Selection", () => {
-		beforeEach(() => {
-			// Mock voices
-			const mockVoices = [
-				{ name: "Google US English", lang: "en-US" },
-				{ name: "Google español", lang: "es-ES" },
-				{ name: "Microsoft David", lang: "en-US" },
-			];
-			controller.voices = mockVoices;
-		});
-
-		it("should select appropriate voice for language", () => {
-			const voice = controller.getBestVoice("en-US");
-			expect(voice).toBeDefined();
-			expect(voice.lang).toBe("en-US");
-		});
-
-		it("should select Spanish voice when language is es-ES", () => {
-			const voice = controller.getBestVoice("es-ES");
-			expect(voice).toBeDefined();
-			expect(voice.lang).toBe("es-ES");
 		});
 	});
 
