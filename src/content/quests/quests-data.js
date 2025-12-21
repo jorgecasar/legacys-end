@@ -8,14 +8,15 @@ import { THE_ORB_OF_INQUIRY_QUEST } from "./the-orb-of-inquiry/index.js";
 import { THE_SCROLL_OF_TONGUES_QUEST } from "./the-scroll-of-tongues/index.js";
 import { GATE_OF_IDENTITY_QUEST } from "./the-watchers-bastion/index.js";
 
-// Re-export for backward compatibility
+// Re-export types for convenience
 export { QuestType, Difficulty };
 
 /**
- * Quest Registry - Central definition of all quests
+ * Quest Data Registry
  *
- * Each quest represents a learning path/adventure
- * Quests contain chapters (equivalent to current levels)
+ * Central definition of all quest data.
+ * This file contains ONLY data, no business logic.
+ * For quest-related logic, see quest-registry-service.js
  */
 
 /**
@@ -32,50 +33,3 @@ export const QUESTS = {
 	[THE_SCRYING_POOL_OF_CHAOS_QUEST.id]: THE_SCRYING_POOL_OF_CHAOS_QUEST,
 	[THE_SCROLL_OF_TONGUES_QUEST.id]: THE_SCROLL_OF_TONGUES_QUEST,
 };
-
-/**
- * Get quest by ID
- */
-export function getQuest(questId) {
-	return QUESTS[questId];
-}
-
-/**
- * Get all quests of a specific type
- */
-export function getQuestsByType(type) {
-	return Object.values(QUESTS).filter((q) => q.type === type);
-}
-
-/**
- * Get all available quests (excluding hub)
- */
-export function getAllQuests() {
-	return getQuestsByType(QuestType.QUEST);
-}
-
-/**
- * Check if a quest is locked based on prerequisites
- */
-export function isQuestLocked(questId, completedQuests = []) {
-	const quest = getQuest(questId);
-	if (!quest || quest.type === QuestType.HUB) return false;
-
-	return quest.prerequisites.some(
-		(prereq) => !completedQuests.includes(prereq),
-	);
-}
-
-/**
- * Get quests that are unlocked and available to play
- */
-export function getAvailableQuests(_completedQuests = []) {
-	return getAllQuests().filter((quest) => quest.status !== "coming-soon");
-}
-
-/**
- * Get quests that are coming soon
- */
-export function getComingSoonQuests() {
-	return getAllQuests().filter((quest) => quest.status === "coming-soon");
-}

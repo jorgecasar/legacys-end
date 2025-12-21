@@ -1,9 +1,7 @@
 import { ContextProvider } from "@lit/context";
-import {
-	characterContext,
-	profileContext,
-	themeContext,
-} from "../contexts/index.js";
+import { characterContext } from "../contexts/character-context.js";
+import { profileContext } from "../contexts/profile-context.js";
+import { themeContext } from "../contexts/theme-context.js";
 
 /**
  * ContextMixin - Validates and initializes all application context providers

@@ -1,4 +1,4 @@
-import * as DefaultRegistry from "../quests/quest-registry.js";
+import * as DefaultRegistry from "../services/quest-registry-service.js";
 import { logger } from "./logger-service.js";
 import { LocalStorageAdapter } from "./storage-service.js";
 

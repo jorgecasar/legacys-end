@@ -1,6 +1,6 @@
-import * as DefaultRegistry from "../quests/quest-registry.js";
 import { logger } from "../services/logger-service.js";
 import { ProgressService } from "../services/progress-service.js";
+import * as DefaultRegistry from "../services/quest-registry-service.js";
 
 /**
  * @typedef {Object} QuestControllerOptions
@@ -159,7 +159,10 @@ export class QuestController {
 		this.currentQuest = quest;
 		// Do not force chapter index to 0 here; let jumpToChapter handle it or default to 0
 		// But we should probably ensure it's not null if it was null
-		if (this.currentChapterIndex === null || this.currentChapterIndex === undefined) {
+		if (
+			this.currentChapterIndex === null ||
+			this.currentChapterIndex === undefined
+		) {
 			this.currentChapterIndex = 0;
 		}
 
@@ -168,7 +171,10 @@ export class QuestController {
 		// Notify host
 		this.options.onQuestStart(quest); // Notify that quest has "started" (loaded)
 		if (this.currentChapter) {
-			this.options.onChapterChange(this.currentChapter, this.currentChapterIndex);
+			this.options.onChapterChange(
+				this.currentChapter,
+				this.currentChapterIndex,
+			);
 		}
 
 		this.host.requestUpdate();
@@ -296,7 +302,10 @@ export class QuestController {
 		// Notify host
 		this.options.onQuestStart(this.currentQuest); // Notify that quest has "started" (loaded)
 		if (this.currentChapter) {
-			this.options.onChapterChange(this.currentChapter, this.currentChapterIndex);
+			this.options.onChapterChange(
+				this.currentChapter,
+				this.currentChapterIndex,
+			);
 		}
 		this.host.requestUpdate();
 		return true;

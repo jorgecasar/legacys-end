@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { QuestController } from "./quest-controller.js";
 
 // Mock dependencies
-vi.mock("../quests/quest-registry.js", () => ({
+vi.mock("../services/quest-registry-service.js", () => ({
 	getQuest: vi.fn(),
 	getAvailableQuests: vi.fn(),
 }));
@@ -26,7 +26,7 @@ vi.mock("../services/progress-service.js", () => {
 	};
 });
 
-import { getQuest } from "../quests/quest-registry.js";
+import { getQuest } from "../services/quest-registry-service.js";
 
 describe("QuestController", () => {
 	let host;

@@ -3,7 +3,7 @@
  * @typedef {import("lit").ReactiveControllerHost} ReactiveControllerHost
  * @typedef {import("../services/game-state-service.js").ThemeMode} ThemeMode
  * @typedef {import("../services/game-state-service.js").HotSwitchState} HotSwitchState
- * @typedef {import("../quests/quest-types.js").LevelConfig} LevelConfig
+ * @typedef {import("../content/quests/quest-types.js").LevelConfig} LevelConfig
  */
 
 /**

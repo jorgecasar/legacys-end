@@ -6,7 +6,7 @@
 /**
  * @typedef {Object} CharacterContextState
  * @property {string} level
- * @property {import("../quests/quest-types.js").LevelConfig} [chapterData]
+ * @property {import("../content/quests/quest-types.js").LevelConfig} [chapterData]
  * @property {string} [themeMode]
  * @property {string} [hotSwitchState]
  * @property {boolean} [hasCollectedItem]

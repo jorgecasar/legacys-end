@@ -1,8 +1,8 @@
 import { css, html, LitElement } from "lit";
 import { ROUTES } from "./constants/routes.js";
 import { ContextMixin } from "./mixins/context-mixin.js";
-import { getComingSoonQuests } from "./quests/quest-registry.js";
 import { logger } from "./services/logger-service.js";
+import { getComingSoonQuests } from "./services/quest-registry-service.js";
 import { setupControllers } from "./setup/controllers.js";
 import { setupRoutes } from "./setup/routes.js";
 import { setupServices } from "./setup/services.js";
@@ -110,7 +110,11 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 
 		// Subscribe to session manager changes for UI updates
 		this.sessionManager.subscribe((event) => {
-			if (["state-change", "navigation", "loading", "chapter-change"].includes(event.type)) {
+			if (
+				["state-change", "navigation", "loading", "chapter-change"].includes(
+					event.type,
+				)
+			) {
 				this.syncSessionState();
 			}
 		});
