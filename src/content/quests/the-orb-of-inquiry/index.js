@@ -1,4 +1,5 @@
 import { Difficulty } from "../quest-types.js";
+import { THE_ORB_OF_INQUIRY_CHAPTERS } from "./chapters.js";
 
 export const THE_ORB_OF_INQUIRY_QUEST = {
 	id: "the-orb-of-inquiry",
@@ -30,10 +31,7 @@ export const THE_ORB_OF_INQUIRY_QUEST = {
 		"liberated-battlefield",
 	],
 	// Chapter data
-	loadChapters: async () => {
-		const { THE_ORB_OF_INQUIRY_CHAPTERS } = await import("./chapters.js");
-		return THE_ORB_OF_INQUIRY_CHAPTERS;
-	},
+	chapters: THE_ORB_OF_INQUIRY_CHAPTERS,
 	reward: {
 		badge: "Backend Agnostic",
 		description: "100% backend-agnostic and testable component",

@@ -1,4 +1,5 @@
 import { Difficulty } from "../quest-types.js";
+import { THE_MIRROR_OF_VERACITY_CHAPTERS } from "./chapters.js";
 
 export const THE_MIRROR_OF_VERACITY_QUEST = {
 	id: "the-mirror-of-veracity",
@@ -22,10 +23,7 @@ export const THE_MIRROR_OF_VERACITY_QUEST = {
 	],
 	chapterIds: [],
 	// Chapter data
-	loadChapters: async () => {
-		const { THE_MIRROR_OF_VERACITY_CHAPTERS } = await import("./chapters.js");
-		return THE_MIRROR_OF_VERACITY_CHAPTERS;
-	},
+	chapters: THE_MIRROR_OF_VERACITY_CHAPTERS,
 	reward: {
 		badge: "Truth Seeker",
 		description: "A shielded component, verified and resistant to regressions",

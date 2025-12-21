@@ -64,28 +64,15 @@ export class QuestController {
 			const quest = this.registry.getQuest(progress.currentQuest);
 			if (quest) {
 				this.currentQuest = quest;
-				// Load content asynchronously
-				this._loadQuestContent(quest).then(() => {
-					if (progress.currentChapter !== null) {
-						this.currentChapterIndex = progress.currentChapter;
-						this.currentChapter = this.getCurrentChapterData();
-						this.host.requestUpdate();
-					}
-				});
+				if (progress.currentChapter !== null) {
+					this.currentChapterIndex = progress.currentChapter;
+					this.currentChapter = this.getCurrentChapterData();
+					this.host.requestUpdate();
+				}
 			}
 		}
 	}
 
-	async _loadQuestContent(quest) {
-		if (quest.chapters) return;
-		if (quest.loadChapters && typeof quest.loadChapters === "function") {
-			try {
-				quest.chapters = await quest.loadChapters();
-			} catch (e) {
-				logger.error(`Failed to load chapters for quest ${quest.id}:`, e);
-			}
-		}
-	}
 
 	hostDisconnected() {
 		// Save current state
@@ -114,8 +101,6 @@ export class QuestController {
 			return;
 		}
 
-		// Ensure content is loaded
-		await this._loadQuestContent(quest);
 
 		// Reset progress for this quest (handles restarts)
 		this.progressService.resetQuestProgress(questId);
@@ -154,7 +139,7 @@ export class QuestController {
 		}
 
 		// Ensure content is loaded
-		await this._loadQuestContent(quest);
+
 
 		this.currentQuest = quest;
 		// Do not force chapter index to 0 here; let jumpToChapter handle it or default to 0
@@ -200,7 +185,7 @@ export class QuestController {
 		}
 
 		// Ensure content is loaded (if currentQuest was set but content missing)
-		await this._loadQuestContent(this.currentQuest);
+
 
 		// Notify host
 		this.options.onQuestStart(this.currentQuest);
@@ -225,7 +210,7 @@ export class QuestController {
 			return;
 		}
 
-		await this._loadQuestContent(quest);
+
 
 		// Find the first uncompleted chapter
 		let nextChapterIndex = 0;

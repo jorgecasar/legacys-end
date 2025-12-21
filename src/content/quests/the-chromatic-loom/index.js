@@ -1,4 +1,5 @@
 import { Difficulty } from "../quest-types.js";
+import { THE_CHROMATIC_LOOM_CHAPTERS } from "./chapters.js";
 
 /**
  * The Token of Agnosticism Quest Metadata
@@ -23,11 +24,7 @@ export const TOKEN_OF_AGNOSTICISM_QUEST = {
 	chapterIds: ["fortress-of-design"],
 
 	// Chapter data
-	// Chapter data
-	loadChapters: async () => {
-		const { THE_CHROMATIC_LOOM_CHAPTERS } = await import("./chapters.js");
-		return THE_CHROMATIC_LOOM_CHAPTERS;
-	},
+	chapters: THE_CHROMATIC_LOOM_CHAPTERS,
 
 	reward: {
 		badge: "Visually Agnostic",

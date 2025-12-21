@@ -1,4 +1,4 @@
-import { ServiceType } from "../../services/user-services.js";
+import { ServiceType } from "../../../services/user-services.js";
 
 /**
  * The Token of Agnosticism Quest - Chapter Data
