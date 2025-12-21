@@ -32,6 +32,7 @@
 		"@commitlint/cli": "^20.2.0",
 		"@commitlint/config-conventional": "^20.2.0",
 		"@lit/localize-tools": "^0.7.2",
+		"@types/dom-speech-recognition": "^0.0.7",
 		"@types/node": "^25.0.2",
 		"@vitest/browser": "^4.0.15",
 		"@vitest/browser-playwright": "^4.0.15",
