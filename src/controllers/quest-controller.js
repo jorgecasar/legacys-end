@@ -1,3 +1,7 @@
+/**
+ * @typedef {import('lit').ReactiveController} ReactiveController
+ */
+
 import { logger } from "../services/logger-service.js";
 import { ProgressService } from "../services/progress-service.js";
 import * as DefaultRegistry from "../services/quest-registry-service.js";
@@ -21,7 +25,7 @@ import * as DefaultRegistry from "../services/quest-registry-service.js";
  * - Quest completion
  * - Navigation between hub and quests
  *
- * @implements {import('lit').ReactiveController}
+ * @implements {ReactiveController}
  */
 export class QuestController {
 	/**

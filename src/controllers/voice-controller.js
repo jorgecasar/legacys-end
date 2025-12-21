@@ -1,3 +1,7 @@
+/**
+ * @typedef {import('lit').ReactiveController} ReactiveController
+ */
+
 import { executeVoiceAction } from "../config/voice-command-actions.js";
 import {
 	ALARION_TRAINING_EXAMPLES,
@@ -32,7 +36,7 @@ import { voiceSynthesisService } from "../services/voice-synthesis-service.js";
  * Optionally uses Chrome's Built-in AI (Prompt API) for smarter command recognition.
  * Integration with SpeechSynthesis for voice feedback using Alarion's persona.
  *
- * @implements {import('lit').ReactiveController}
+ * @implements {ReactiveController}
  */
 export class VoiceController {
 	/**

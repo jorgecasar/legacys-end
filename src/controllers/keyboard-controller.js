@@ -1,4 +1,8 @@
 /**
+ * @typedef {import('lit').ReactiveController} ReactiveController
+ */
+
+/**
  * @typedef {Object} KeyboardOptions
  * @property {number} [speed] - Movement speed multiplier (default: 2.5)
  * @property {(dx: number, dy: number) => void} [onMove] - Callback for movement input
@@ -16,7 +20,7 @@
  * - Pause key (Escape)
  * - Prevents default browser behavior
  *
- * @implements {import('lit').ReactiveController}
+ * @implements {ReactiveController}
  */
 export class KeyboardController {
 	/**

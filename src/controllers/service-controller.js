@@ -1,3 +1,7 @@
+/**
+ * @typedef {import('lit').ReactiveController} ReactiveController
+ */
+
 /** @typedef {import("../services/user-services.js").IUserService} IUserService */
 /** @typedef {import("../services/user-services.js").UserData} UserData */
 /** @typedef {import("../services/user-services.js").ServiceType} ServiceType */
@@ -19,7 +23,7 @@
  * - User data loading and error handling
  * - Profile context updates
  *
- * @implements {import('lit').ReactiveController}
+ * @implements {ReactiveController}
  */
 export class ServiceController {
 	/**

@@ -1,3 +1,7 @@
+/**
+ * @typedef {import('lit').ReactiveController} ReactiveController
+ */
+
 const DEFAULT_INTERACTION_DISTANCE = 15;
 
 /**
@@ -32,7 +36,7 @@ const DEFAULT_INTERACTION_DISTANCE = 15;
  * - Interaction validation (Level 6 victory conditions)
  * - Dialog triggering
  *
- * @implements {import('lit').ReactiveController}
+ * @implements {ReactiveController}
  */
 export class InteractionController {
 	/**
