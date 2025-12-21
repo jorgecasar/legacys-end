@@ -28,6 +28,23 @@ export default defineConfig(({ mode }) => {
 				provider: 'v8',
 				reporter: ['text', 'json', 'html', 'json-summary'],
 				include: ['src/**/*.js'],
+				exclude: [
+					// Test files
+					'**/*.test.js',
+					'**/__tests__/**',
+					
+					// Generated files
+					'src/generated/**',
+					
+					// Data-only files (no logic to test)
+					'src/content/**',
+					'src/constants/**',
+					'src/contexts/**',
+					'src/styles/**',
+					
+					// Setup/initialization code (hard to test in isolation)
+					'src/setup/**',
+				],
 			},
 		},
 	};
