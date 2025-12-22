@@ -25,6 +25,7 @@ describe("LegacysEndApp Component", () => {
 		// Force hub state
 		el.isInHub = true;
 		el.hasSeenIntro = true;
+		el.isLoading = false; // Ensure app is not in loading state
 
 		document.body.appendChild(el);
 		await el.updateComplete;
@@ -40,6 +41,7 @@ describe("LegacysEndApp Component", () => {
 		// Initial State: Hub
 		el.isInHub = true;
 		el.hasSeenIntro = true;
+		el.isLoading = false; // Ensure app is not in loading state
 		document.body.appendChild(el);
 		await el.updateComplete;
 
@@ -104,18 +106,22 @@ describe("LegacysEndApp Component", () => {
 				document.createElement("legacys-end-app")
 			);
 			el.hasSeenIntro = true;
+			el.isLoading = false; // Ensure app is not in loading state
 			document.body.appendChild(el);
 			await el.updateComplete;
+
+			// Spy on router.navigate FIRST
+			const navigateSpy = vi.spyOn(el.router, "navigate");
 
 			// Mock isQuestAvailable to return false
 			const originalIsAvailable = el.progressService.isQuestAvailable;
 			el.progressService.isQuestAvailable = vi.fn().mockReturnValue(false);
 
-			// Spy on router.navigate
-			const navigateSpy = vi.spyOn(el.router, "navigate");
+			// Set current path to simulate being on a quest route
+			el.router.currentPath = "/quest/locked-quest/chapter/chapter-1";
 
 			// Trigger the route handler directly
-			await el.router._matchRoute("/quest/locked-quest/chapter/chapter-1");
+			await el.sessionManager.loadChapter("locked-quest", "chapter-1");
 			await el.updateComplete;
 
 			// Should redirect to hub
@@ -130,6 +136,7 @@ describe("LegacysEndApp Component", () => {
 				document.createElement("legacys-end-app")
 			);
 			el.hasSeenIntro = true;
+			el.isLoading = false; // Ensure app is not in loading state
 			document.body.appendChild(el);
 			await el.updateComplete;
 
@@ -159,6 +166,7 @@ describe("LegacysEndApp Component", () => {
 				document.createElement("legacys-end-app")
 			);
 			el.hasSeenIntro = true;
+			el.isLoading = false; // Ensure app is not in loading state
 			document.body.appendChild(el);
 			await el.updateComplete;
 

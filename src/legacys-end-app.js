@@ -169,7 +169,7 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 	constructor() {
 		super();
 		// UI State
-		this.isLoading = false;
+		this.isLoading = true;
 		this.showDialog = false;
 		this.hasSeenIntro = false;
 		this.showQuestCompleteDialog = false;
@@ -389,20 +389,17 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 	static styles = styles;
 
 	render() {
+		if (this.isLoading) {
+			return html`
+				<div class="loading-overlay">
+					<wa-spinner></wa-spinner>
+					<p>Loading Quest...</p>
+				</div>
+			`;
+		}
 		// Show hub if not in a quest
 		if (this.isInHub) {
-			if (this.isLoading) {
-				return html`
-					<div class="loading-overlay">
-						<wa-spinner></wa-spinner>
-						<p>Loading Quest...</p>
-					</div>
-					${this.renderHub()}
-				`;
-			}
-			return html`
-				${this.renderHub()}
-			`;
+			return this.renderHub();
 		}
 
 		// Show game if in a quest
@@ -454,9 +451,6 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		if (this.isRewardCollected && currentConfig.postDialogBackgroundStyle) {
 			effectiveConfig.backgroundStyle = currentConfig.postDialogBackgroundStyle;
 		}
-
-		// Dialog Config Logic
-		const _dialogConfig = currentConfig;
 
 		const gameState = GameStateMapper.map(this, effectiveConfig);
 
