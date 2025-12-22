@@ -5,6 +5,7 @@ import { sharedStyles } from "../../styles/shared.js";
  * @element game-context-zones
  * @summary Displays legacy and new context zones.
  * @property {Boolean} active - Whether context zones are active for this chapter.
+ * @attribute active
  * @property {String} state - Current hot switch state ('legacy' | 'new').
  */
 export class GameContextZones extends LitElement {

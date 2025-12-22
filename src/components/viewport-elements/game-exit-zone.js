@@ -8,6 +8,7 @@ import { sharedStyles } from "../../styles/shared.js";
  * @summary Displays the exit zone when available.
  * @property {Object} zoneConfig - The config object for the exit zone {x, y, width, height, label}.
  * @property {Boolean} active - Whether the exit zone is active (e.g. item collected).
+ * @attribute active
  */
 export class GameExitZone extends LitElement {
 	static properties = {
