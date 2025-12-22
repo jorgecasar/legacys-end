@@ -1,4 +1,4 @@
-import { css, html, LitElement } from "lit";
+import { html, LitElement } from "lit";
 import { ROUTES } from "./constants/routes.js";
 import { GameSessionManager } from "./managers/game-session-manager.js";
 import { ContextMixin } from "./mixins/context-mixin.js";
@@ -30,7 +30,7 @@ import "./components/game-view/game-view.js";
 import "@awesome.me/webawesome/dist/components/spinner/spinner.js";
 import "@awesome.me/webawesome/dist/styles/webawesome.css";
 import "./pixel.css";
-import { sharedStyles } from "./styles/shared.js";
+import { styles } from "./legacys-end-app.css.js";
 
 /**
  * @typedef {import("@awesome.me/webawesome/dist/components/dialog/dialog.js").default} DialogElement
@@ -386,41 +386,7 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		);
 	}
 
-	static styles = [
-		...sharedStyles,
-		css`
-    :host {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      width: 100vw;
-      background-color: var(--wa-color-neutral-fill-loud);
-      color: var(--wa-color-text-normal);
-      position: relative;
-      overflow: hidden;
-      font-family: var(--wa-font-family-body);
-      box-sizing: border-box;
-    }
-
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-    .loading-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      color: white;
-    }
-  `,
-	];
+	static styles = styles;
 
 	render() {
 		// Show hub if not in a quest
