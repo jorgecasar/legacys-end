@@ -13,16 +13,8 @@ import {
 	NewUserService,
 } from "./services/user-services.js";
 import { setupRoutes } from "./setup/routes.js";
-import { setupCharacterContexts } from "./setup/setup-character-contexts.js";
-import { setupCollision } from "./setup/setup-collision.js";
-import { setupGame } from "./setup/setup-game.js";
-import { setupInteraction } from "./setup/setup-interaction.js";
-import { setupKeyboard } from "./setup/setup-keyboard.js";
 import { setupQuest } from "./setup/setup-quest.js";
-import { setupService } from "./setup/setup-service.js";
 import { setupSessionManager } from "./setup/setup-session-manager.js";
-import { setupVoice } from "./setup/setup-voice.js";
-import { setupZones } from "./setup/setup-zones.js";
 import { GameStateMapper } from "./utils/game-state-mapper.js";
 import { Router } from "./utils/router.js";
 import "./components/quest-hub/quest-hub.js";
@@ -204,15 +196,22 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 	connectedCallback() {
 		super.connectedCallback();
 
-		// Update controller references to providers
-		this.serviceController.options.profileProvider = this.profileProvider;
-		this.characterContexts.options.suitProvider = this.suitProvider;
-		this.characterContexts.options.gearProvider = this.gearProvider;
-		this.characterContexts.options.powerProvider = this.powerProvider;
-		this.characterContexts.options.masteryProvider = this.masteryProvider;
+		// Update controller references to providers (if controllers exist)
+		// Note: Some controllers are now initialized in GameView
+		if (this.serviceController) {
+			this.serviceController.options.profileProvider = this.profileProvider;
+		}
+		if (this.characterContexts) {
+			this.characterContexts.options.suitProvider = this.suitProvider;
+			this.characterContexts.options.gearProvider = this.gearProvider;
+			this.characterContexts.options.powerProvider = this.powerProvider;
+			this.characterContexts.options.masteryProvider = this.masteryProvider;
+		}
 
 		this.applyTheme();
-		this.serviceController.loadUserData();
+		if (this.serviceController) {
+			this.serviceController.loadUserData();
+		}
 
 		// Subscribe to session manager changes for UI updates
 		this.sessionManager.subscribe((event) => {
@@ -278,25 +277,14 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 	}
 
 	#setupControllers() {
-		// Initialize basic input controllers
-		setupKeyboard(this);
-		setupGame(this);
-		setupVoice(this);
-
-		// Initialize game mechanics controllers
-		setupZones(this);
-		setupCollision(this);
-		setupService(this);
-
-		// Initialize context and interaction
-		setupCharacterContexts(this);
-		setupInteraction(this);
-
-		// Initialize quest controller
+		// Initialize quest controller (app-level navigation)
 		setupQuest(this);
 
-		// Integrate with session manager
+		// Integrate with session manager (app-level state)
 		setupSessionManager(this);
+
+		// Note: Game-specific controllers (keyboard, game, voice, zones, collision,
+		// service, character contexts, interaction) are now initialized in GameView
 	}
 
 	applyTheme() {
@@ -308,12 +296,16 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 	updated(changedProperties) {
 		if (changedProperties.has("chapterId")) {
 			// Reload user data when chapter changes (service might change)
-			this.serviceController.loadUserData();
+			if (this.serviceController) {
+				this.serviceController.loadUserData();
+			}
 		}
 		// Character context updates are handled automatically by the controller's hostUpdate() lifecycle
 		// Reload user data when switching between services in Level 6
 		if (changedProperties.has("hotSwitchState")) {
-			this.serviceController.loadUserData();
+			if (this.serviceController) {
+				this.serviceController.loadUserData();
+			}
 		}
 	}
 
@@ -545,6 +537,7 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		return html`
 			<game-view
 				.gameState="${gameState}"
+				.app="${this}"
 				@resume="${this.handleResume}"
 				@restart="${this.handleRestartQuest}"
 				@quit="${this.handleQuitToHub}"

@@ -1,24 +1,12 @@
 /**
- * Setup SessionManager integration with controllers
+ * Setup SessionManager integration
  * @param {import('../legacys-end-app.js').LegacysEndApp} app
  */
 export function setupSessionManager(app) {
-	// Initialize GameSessionManager with real values
-	app.sessionManager.options.questController = app.questController;
-	app.sessionManager.options.router = app.router;
-	app.sessionManager.options.controllers = {
-		keyboard: app.keyboard,
-		interaction: app.interaction,
-		collision: app.collision,
-		zones: app.zones,
-		voice: app.voice,
-	};
-
-	// Update internal references
+	// Initialize GameSessionManager with quest navigation dependencies
 	app.sessionManager.questController = app.questController;
 	app.sessionManager.router = app.router;
-	app.sessionManager.keyboard = app.keyboard;
-	app.sessionManager.interaction = app.interaction;
-	app.sessionManager.collision = app.collision;
-	app.sessionManager.zones = app.zones;
+
+	// Note: Controller references (keyboard, interaction, collision, zones, voice)
+	// are now managed in GameView and will be set when GameView initializes
 }
