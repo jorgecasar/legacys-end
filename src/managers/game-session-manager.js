@@ -1,4 +1,5 @@
 import { ROUTES } from "../constants/routes.js";
+import { eventBus, GameEvents } from "../core/event-bus.js";
 import { logger } from "../services/logger-service.js";
 import { Observable } from "../utils/observable.js";
 
@@ -97,11 +98,19 @@ export class GameSessionManager extends Observable {
 	async startQuest(/** @type {string} */ questId) {
 		this.isLoading = true;
 		this.notify({ type: "loading", isLoading: true });
+		eventBus.emit(GameEvents.LOADING_START, { source: "startQuest" });
 
 		try {
 			await this.questController.startQuest(questId);
 			this.currentQuest = this.questController.currentQuest;
 			this.isInHub = false;
+
+			// Emit events for decoupled communication
+			eventBus.emit(GameEvents.QUEST_START, {
+				questId,
+				quest: this.currentQuest,
+			});
+			eventBus.emit(GameEvents.NAVIGATE_QUEST, { questId });
 
 			this.notify({
 				type: "navigation",
@@ -110,9 +119,15 @@ export class GameSessionManager extends Observable {
 			});
 		} catch (error) {
 			logger.error("Failed to start quest:", error);
+			eventBus.emit(GameEvents.ERROR, {
+				message: "Failed to start quest",
+				error,
+				context: { questId },
+			});
 		} finally {
 			this.isLoading = false;
 			this.notify({ type: "loading", isLoading: false });
+			eventBus.emit(GameEvents.LOADING_END, { source: "startQuest" });
 		}
 	}
 
@@ -122,11 +137,14 @@ export class GameSessionManager extends Observable {
 	async continueQuest(/** @type {string} */ questId) {
 		this.isLoading = true;
 		this.notify({ type: "loading", isLoading: true });
+		eventBus.emit(GameEvents.LOADING_START, { source: "continueQuest" });
 
 		try {
 			await this.questController.continueQuest(questId);
 			this.currentQuest = this.questController.currentQuest;
 			this.isInHub = false;
+
+			eventBus.emit(GameEvents.NAVIGATE_QUEST, { questId });
 
 			this.notify({
 				type: "navigation",
@@ -135,9 +153,15 @@ export class GameSessionManager extends Observable {
 			});
 		} catch (error) {
 			logger.error("Failed to continue quest:", error);
+			eventBus.emit(GameEvents.ERROR, {
+				message: "Failed to continue quest",
+				error,
+				context: { questId },
+			});
 		} finally {
 			this.isLoading = false;
 			this.notify({ type: "loading", isLoading: false });
+			eventBus.emit(GameEvents.LOADING_END, { source: "continueQuest" });
 		}
 	}
 
