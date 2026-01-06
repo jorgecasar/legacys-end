@@ -189,7 +189,7 @@ describe("CompositeValidator", () => {
 		const schema = {
 			x: /** @param {any} v */ (v) => PositionValidator.validate(v, 0),
 			y: /** @param {any} v */ (v) => PositionValidator.validate(0, v),
-			theme: ThemeModeValidator.validate,
+			theme: ThemeModeValidator.validate.bind(ThemeModeValidator),
 		};
 
 		const result = CompositeValidator.validateObject(obj, schema);
@@ -200,11 +200,11 @@ describe("CompositeValidator", () => {
 		const obj = { x: -1, theme: "invalid" };
 		const schema = {
 			x: /** @param {any} v */ (v) => PositionValidator.validate(v, 0),
-			theme: ThemeModeValidator.validate,
+			theme: ThemeModeValidator.validate.bind(ThemeModeValidator),
 		};
 
 		const result = CompositeValidator.validateObject(obj, schema);
 		expect(result.isValid).toBe(false);
-		expect(result.errors.length).toBeGreaterThan(0);
+		expect(result.errors.length).toBe(2); // One for x, one for theme
 	});
 });

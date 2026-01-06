@@ -23,14 +23,14 @@ import { Result } from "./result.js";
 /**
  * Position Validator - Validates hero/NPC positions
  */
-export class PositionValidator {
+export const PositionValidator = {
 	/**
 	 * Validate a position coordinate
 	 * @param {number} x - X coordinate (0-100)
 	 * @param {number} y - Y coordinate (0-100)
 	 * @returns {ValidationResult}
 	 */
-	static validate(x, y) {
+	validate(x, y) {
 		const errors = [];
 
 		if (typeof x !== "number" || Number.isNaN(x)) {
@@ -65,7 +65,7 @@ export class PositionValidator {
 			isValid: errors.length === 0,
 			errors,
 		};
-	}
+	},
 
 	/**
 	 * Validate position and return Result
@@ -73,27 +73,27 @@ export class PositionValidator {
 	 * @param {number} y
 	 * @returns {Result}
 	 */
-	static validateResult(x, y) {
-		const validation = PositionValidator.validate(x, y);
+	validateResult(x, y) {
+		const validation = this.validate(x, y);
 		if (validation.isValid) {
 			return Result.Ok({ x, y });
 		}
 		return Result.Err(validation.errors);
-	}
-}
+	},
+};
 
 /**
  * Theme Mode Validator
  */
-export class ThemeModeValidator {
-	static VALID_MODES = ["light", "dark"];
+export const ThemeModeValidator = {
+	VALID_MODES: ["light", "dark"],
 
 	/**
 	 * Validate theme mode
 	 * @param {string} mode
 	 * @returns {ValidationResult}
 	 */
-	static validate(mode) {
+	validate(mode) {
 		const errors = [];
 
 		if (typeof mode !== "string") {
@@ -102,10 +102,10 @@ export class ThemeModeValidator {
 				message: "Theme mode must be a string",
 				value: mode,
 			});
-		} else if (!ThemeModeValidator.VALID_MODES.includes(mode)) {
+		} else if (!this.VALID_MODES.includes(mode)) {
 			errors.push({
 				field: "themeMode",
-				message: `Theme mode must be one of: ${ThemeModeValidator.VALID_MODES.join(", ")}`,
+				message: `Theme mode must be one of: ${this.VALID_MODES.join(", ")}`,
 				value: mode,
 			});
 		}
@@ -114,34 +114,34 @@ export class ThemeModeValidator {
 			isValid: errors.length === 0,
 			errors,
 		};
-	}
+	},
 
 	/**
 	 * Validate theme mode and return Result
 	 * @param {string} mode
 	 * @returns {Result}
 	 */
-	static validateResult(mode) {
-		const validation = ThemeModeValidator.validate(mode);
+	validateResult(mode) {
+		const validation = this.validate(mode);
 		if (validation.isValid) {
 			return Result.Ok(mode);
 		}
 		return Result.Err(validation.errors);
-	}
-}
+	},
+};
 
 /**
  * Hot Switch State Validator
  */
-export class HotSwitchStateValidator {
-	static VALID_STATES = ["legacy", "new", "test", null];
+export const HotSwitchStateValidator = {
+	VALID_STATES: ["legacy", "new", "test", null],
 
 	/**
 	 * Validate hot switch state
 	 * @param {string | null} state
 	 * @returns {ValidationResult}
 	 */
-	static validate(state) {
+	validate(state) {
 		const errors = [];
 
 		if (state !== null && typeof state !== "string") {
@@ -150,10 +150,10 @@ export class HotSwitchStateValidator {
 				message: "Hot switch state must be a string or null",
 				value: state,
 			});
-		} else if (!HotSwitchStateValidator.VALID_STATES.includes(state)) {
+		} else if (!this.VALID_STATES.includes(state)) {
 			errors.push({
 				field: "hotSwitchState",
-				message: `Hot switch state must be one of: ${HotSwitchStateValidator.VALID_STATES.filter((s) => s !== null).join(", ")} or null`,
+				message: `Hot switch state must be one of: ${this.VALID_STATES.filter((s) => s !== null).join(", ")} or null`,
 				value: state,
 			});
 		}
@@ -162,32 +162,32 @@ export class HotSwitchStateValidator {
 			isValid: errors.length === 0,
 			errors,
 		};
-	}
+	},
 
 	/**
 	 * Validate hot switch state and return Result
 	 * @param {string | null} state
 	 * @returns {Result}
 	 */
-	static validateResult(state) {
-		const validation = HotSwitchStateValidator.validate(state);
+	validateResult(state) {
+		const validation = this.validate(state);
 		if (validation.isValid) {
 			return Result.Ok(state);
 		}
 		return Result.Err(validation.errors);
-	}
-}
+	},
+};
 
 /**
  * Quest ID Validator
  */
-export class QuestIdValidator {
+export const QuestIdValidator = {
 	/**
 	 * Validate quest ID format
 	 * @param {string} questId
 	 * @returns {ValidationResult}
 	 */
-	static validate(questId) {
+	validate(questId) {
 		const errors = [];
 
 		if (typeof questId !== "string") {
@@ -215,38 +215,38 @@ export class QuestIdValidator {
 			isValid: errors.length === 0,
 			errors,
 		};
-	}
+	},
 
 	/**
 	 * Validate quest ID and return Result
 	 * @param {string} questId
 	 * @returns {Result}
 	 */
-	static validateResult(questId) {
-		const validation = QuestIdValidator.validate(questId);
+	validateResult(questId) {
+		const validation = this.validate(questId);
 		if (validation.isValid) {
 			return Result.Ok(questId);
 		}
 		return Result.Err(validation.errors);
-	}
-}
+	},
+};
 
 /**
  * Generic validator for combining multiple validations
  */
-export class CompositeValidator {
+export const CompositeValidator = {
 	/**
 	 * Combine multiple validation results
 	 * @param {...ValidationResult} validations
 	 * @returns {ValidationResult}
 	 */
-	static combine(...validations) {
+	combine(...validations) {
 		const allErrors = validations.flatMap((v) => v.errors);
 		return {
 			isValid: allErrors.length === 0,
 			errors: allErrors,
 		};
-	}
+	},
 
 	/**
 	 * Validate an object against a schema
@@ -254,7 +254,7 @@ export class CompositeValidator {
 	 * @param {Object<string, (value: any) => ValidationResult>} schema - Validation schema
 	 * @returns {ValidationResult}
 	 */
-	static validateObject(obj, schema) {
+	validateObject(obj, schema) {
 		const errors = [];
 
 		for (const [key, validator] of Object.entries(schema)) {
@@ -269,5 +269,5 @@ export class CompositeValidator {
 			isValid: errors.length === 0,
 			errors,
 		};
-	}
-}
+	},
+};
