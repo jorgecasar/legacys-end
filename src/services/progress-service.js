@@ -31,7 +31,7 @@ import { LocalStorageAdapter } from "./storage-service.js";
 export class ProgressService {
 	/**
 	 * @param {StorageAdapter} [storage] - Storage adapter for persistence
-	 * @param {Object} [registry] - Quest registry for looking up quest data
+	 * @param {typeof import('../services/quest-registry-service.js')} [registry] - Quest registry for looking up quest data
 	 */
 	constructor(storage = new LocalStorageAdapter(), registry = DefaultRegistry) {
 		this.storage = storage;

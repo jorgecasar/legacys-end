@@ -1,13 +1,15 @@
 import { ContextProvider } from "@lit/context";
+export { ContextProvider };
+
 import { characterContext } from "../contexts/character-context.js";
 import { profileContext } from "../contexts/profile-context.js";
 import { themeContext } from "../contexts/theme-context.js";
 
 /**
  * @typedef {Object} ContextMixinInterface
- * @property {ContextProvider} profileProvider - Provider for profile context
- * @property {ContextProvider} themeProvider - Provider for theme context
- * @property {ContextProvider} characterProvider - Provider for character context
+ * @property {ContextProvider<any>} profileProvider - Provider for profile context
+ * @property {ContextProvider<any>} themeProvider - Provider for theme context
+ * @property {ContextProvider<any>} characterProvider - Provider for character context
  */
 
 /**

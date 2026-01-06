@@ -29,8 +29,15 @@ vi.mock("../services/progress-service.js", () => {
 import { getQuest } from "../services/quest-registry-service.js";
 
 describe("QuestController", () => {
+	/** @type {any} */
 	let host;
+	/**
+	 * @type {QuestController}
+	 */
 	let controller;
+	/**
+	 * @type {import("../services/quest-registry-service.js").Quest}
+	 */
 	let mockQuest;
 
 	beforeEach(() => {
@@ -102,7 +109,9 @@ describe("QuestController", () => {
 		});
 
 		it("should not start a quest if it is not available", async () => {
-			controller.progressService.isQuestAvailable.mockReturnValue(false);
+			/** @type {any} */ (
+				controller.progressService.isQuestAvailable
+			).mockReturnValue(false);
 			const onQuestStart = vi.fn();
 			controller.options.onQuestStart = onQuestStart;
 
@@ -150,7 +159,7 @@ describe("QuestController", () => {
 
 			// Advance to last chapter (index 2 because mockQuest has 3 chapters)
 			controller.currentChapterIndex = 2;
-			controller.currentChapter = { id: "chapter-3" };
+			controller.currentChapter = /** @type {any} */ ({ id: "chapter-3" });
 
 			controller.completeChapter();
 
@@ -167,7 +176,9 @@ describe("QuestController", () => {
 	describe("resumeQuest", () => {
 		it("should resume quest from progress service if no current quest", async () => {
 			// Setup progress service to return a saved quest
-			controller.progressService.getProgress.mockReturnValue({
+			/** @type {any} */ (
+				controller.progressService.getProgress
+			).mockReturnValue({
 				currentQuest: "test-quest",
 			});
 			const onQuestStart = vi.fn();
@@ -181,7 +192,9 @@ describe("QuestController", () => {
 		});
 
 		it("should do nothing if no quest to resume", async () => {
-			controller.progressService.getProgress.mockReturnValue({}); // No current quest
+			/** @type {any} */ (
+				controller.progressService.getProgress
+			).mockReturnValue({}); // No current quest
 
 			await controller.resumeQuest();
 
@@ -192,9 +205,9 @@ describe("QuestController", () => {
 	describe("continueQuest", () => {
 		it("should continue from the first uncompleted chapter", async () => {
 			// Mock that chapter 1 is completed
-			controller.progressService.isChapterCompleted.mockImplementation(
-				(id) => id === "chapter-1",
-			);
+			/** @type {any} */ (
+				controller.progressService.isChapterCompleted
+			).mockImplementation((/** @type {any} */ id) => id === "chapter-1");
 			const onQuestStart = vi.fn();
 			controller.options.onQuestStart = onQuestStart;
 
@@ -219,9 +232,9 @@ describe("QuestController", () => {
 
 		it("should jump to valid chapter if accessible", () => {
 			// Mock previous chapters as completed
-			controller.progressService.isChapterCompleted.mockImplementation(
-				(id) => id === "chapter-1",
-			);
+			/** @type {any} */ (
+				controller.progressService.isChapterCompleted
+			).mockImplementation((/** @type {any} */ id) => id === "chapter-1");
 
 			const result = controller.jumpToChapter("chapter-2");
 
@@ -248,7 +261,9 @@ describe("QuestController", () => {
 
 		it("should fail to jump if previous chapters are not completed (sequential check)", () => {
 			// Chapter 1 is NOT completed
-			controller.progressService.isChapterCompleted.mockReturnValue(false);
+			/** @type {any} */ (
+				controller.progressService.isChapterCompleted
+			).mockReturnValue(false);
 
 			// Try to jump to Chapter 3
 			const result = controller.jumpToChapter("chapter-3");
@@ -298,10 +313,10 @@ describe("QuestController", () => {
 
 			expect(chapterData).toBeDefined();
 			expect(chapterData.id).toBe("chapter-1");
-			expect(chapterData.questId).toBe("test-quest");
-			expect(chapterData.index).toBe(0);
-			expect(chapterData.total).toBe(3);
-			expect(chapterData.isQuestComplete).toBe(false);
+			expect(/** @type {any} */ (chapterData).questId).toBe("test-quest");
+			expect(/** @type {any} */ (chapterData).index).toBe(0);
+			expect(/** @type {any} */ (chapterData).total).toBe(3);
+			expect(/** @type {any} */ (chapterData).isQuestComplete).toBe(false);
 		});
 
 		it("should return null if no current quest", () => {
@@ -313,7 +328,7 @@ describe("QuestController", () => {
 		it("should indicate when on last chapter", () => {
 			controller.currentChapterIndex = 2; // Last chapter
 			const chapterData = controller.getCurrentChapterData();
-			expect(chapterData.isQuestComplete).toBe(true);
+			expect(/** @type {any} */ (chapterData).isQuestComplete).toBe(true);
 		});
 	});
 
@@ -339,7 +354,9 @@ describe("QuestController", () => {
 		});
 
 		it("should return false if quest is not available", async () => {
-			controller.progressService.isQuestAvailable.mockReturnValue(false);
+			/** @type {any} */ (
+				controller.progressService.isQuestAvailable
+			).mockReturnValue(false);
 			const result = await controller.loadQuest("test-quest");
 			expect(result).toBe(false);
 		});
@@ -366,7 +383,9 @@ describe("QuestController", () => {
 		});
 
 		it("getQuestProgress should return progress from service", () => {
-			controller.progressService.getQuestProgress.mockReturnValue(75);
+			/** @type {any} */ (
+				controller.progressService.getQuestProgress
+			).mockReturnValue(75);
 
 			const progress = controller.getQuestProgress("test-quest");
 
@@ -377,7 +396,9 @@ describe("QuestController", () => {
 		});
 
 		it("isQuestCompleted should check completion status", () => {
-			controller.progressService.isQuestCompleted.mockReturnValue(true);
+			/** @type {any} */ (
+				controller.progressService.isQuestCompleted
+			).mockReturnValue(true);
 
 			const isCompleted = controller.isQuestCompleted("test-quest");
 
@@ -388,7 +409,9 @@ describe("QuestController", () => {
 		});
 
 		it("getOverallProgress should return overall progress", () => {
-			controller.progressService.getOverallProgress.mockReturnValue(50);
+			/** @type {any} */ (
+				controller.progressService.getOverallProgress
+			).mockReturnValue(50);
 
 			const progress = controller.getOverallProgress();
 
@@ -429,15 +452,15 @@ describe("QuestController", () => {
 		});
 
 		it("hasExitZone should return true if chapter has exitZone", () => {
-			controller.currentChapter = {
+			controller.currentChapter = /** @type {any} */ ({
 				id: "chapter-1",
-				exitZone: { x: 10, y: 10 },
-			};
+				exitZone: /** @type {any} */ ({ x: 10, y: 10 }),
+			});
 			expect(controller.hasExitZone()).toBe(true);
 		});
 
 		it("hasExitZone should return false if no exitZone", () => {
-			controller.currentChapter = { id: "chapter-1" };
+			controller.currentChapter = /** @type {any} */ ({ id: "chapter-1" });
 			expect(controller.hasExitZone()).toBe(false);
 		});
 
@@ -463,7 +486,7 @@ describe("QuestController", () => {
 		it("getNextChapterData should return next chapter data", () => {
 			const nextChapter = controller.getNextChapterData();
 			expect(nextChapter).toBeDefined();
-			expect(nextChapter.id).toBe("chapter-2");
+			expect(/** @type {any} */ (nextChapter).id).toBe("chapter-2");
 		});
 
 		it("getNextChapterData should return null if on last chapter", () => {

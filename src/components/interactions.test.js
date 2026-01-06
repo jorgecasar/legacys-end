@@ -10,6 +10,7 @@ vi.mock("./game-viewport.js", () => ({})); // Mock child component
 
 describe("LevelDialog Interactions", () => {
 	let element;
+	/** @type {any} */
 	let container;
 
 	beforeEach(async () => {
@@ -34,7 +35,7 @@ describe("LevelDialog Interactions", () => {
 		};
 
 		element = new LevelDialog();
-		element.config = config;
+		element.config = /** @type {any} */ (config);
 		container.appendChild(element);
 		await element.updateComplete;
 
@@ -61,7 +62,7 @@ describe("LevelDialog Interactions", () => {
 		};
 
 		element = new LevelDialog();
-		element.config = config;
+		element.config = /** @type {any} */ (config);
 		element.slideIndex = 1; // Start at second slide
 		container.appendChild(element);
 		await element.updateComplete;
@@ -87,7 +88,7 @@ describe("LevelDialog Interactions", () => {
 		};
 
 		element = new LevelDialog();
-		element.config = config;
+		element.config = /** @type {any} */ (config);
 		// Narrative is index 0. Confirmation is index 1 (last).
 		element.slideIndex = 1;
 		container.appendChild(element);
@@ -109,6 +110,7 @@ describe("LevelDialog Interactions", () => {
 
 describe("GameView Integration", () => {
 	let element;
+	/** @type {any} */
 	let container;
 
 	beforeEach(() => {
@@ -135,8 +137,7 @@ describe("GameView Integration", () => {
 				lockedMessage: "",
 			},
 			quest: {
-				title: "Test Quest",
-				data: {},
+				data: { name: "Test Quest" },
 				chapterNumber: 1,
 				totalChapters: 3,
 				isLastChapter: false,
@@ -185,8 +186,7 @@ describe("GameView Integration", () => {
 				lockedMessage: "",
 			},
 			quest: {
-				title: "Test Quest",
-				data: {},
+				data: { name: "Test Quest", id: "quest-1" },
 				chapterNumber: 1,
 				totalChapters: 3,
 				isLastChapter: false,

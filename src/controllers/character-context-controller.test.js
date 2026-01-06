@@ -2,9 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CharacterContextController } from "./character-context-controller.js";
 
 describe("CharacterContextController", () => {
+	/** @type {any} */
 	let host;
+	/** @type {CharacterContextController} */
 	let controller;
+	/** @type {any} */
 	let characterProvider;
+	/** @type {any} */
 	let getStateMock;
 
 	beforeEach(() => {

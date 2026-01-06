@@ -1,7 +1,12 @@
+import "@awesome.me/webawesome/dist/components/button/button.js";
 import { html, LitElement } from "lit";
 import { processImagePath } from "../../utils/process-assets.js";
-import "@awesome.me/webawesome/dist/components/button/button.js";
 import { styles } from "./victory-screen.css.js";
+
+/**
+ * @typedef {import("../../services/quest-registry-service.js").Quest} Quest
+ * @typedef {import("../../content/quests/quest-types.js").RewardConfig} RewardConfig
+ */
 
 export class VictoryScreen extends LitElement {
 	static properties = {
@@ -11,6 +16,7 @@ export class VictoryScreen extends LitElement {
 
 	constructor() {
 		super();
+		/** @type {Quest | null} */
 		this.quest = null;
 		this.onReturn = () => {};
 	}
@@ -21,6 +27,7 @@ export class VictoryScreen extends LitElement {
 		}
 
 		// Collect all rewards from chapters
+		/** @type {Array<RewardConfig>} */
 		const collectedRewards = [];
 		if (this.quest.chapterIds && this.quest.chapters) {
 			this.quest.chapterIds.forEach((chapterId) => {

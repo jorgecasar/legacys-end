@@ -8,8 +8,8 @@
 
 /**
  * @typedef {Object} ServiceControllerOptions
- * @property {Object} [services] - Map of service instances {legacy, mock, new}
- * @property {Object} [profileProvider] - Profile context provider
+ * @property {Record<string, IUserService>} [services] - Map of service instances {legacy, mock, new}
+ * @property {import('../mixins/context-mixin.js').ContextProvider<any>} [profileProvider] - Profile context provider
  * @property {() => IUserService|null} [getActiveService] - Function to get active service
  * @property {(userData: UserData) => void} [onDataLoaded] - Callback when data loads
  * @property {(error: string) => void} [onError] - Callback on error

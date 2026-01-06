@@ -6,9 +6,11 @@ import { ServiceType } from "../../../services/user-services.js";
  * This quest teaches Design Tokens and visual adaptation:
  * - Level 2: CSS Custom Properties, Design Tokens, Dark Mode
  *
- * Future chapters will expand on theming concepts
- */
+import { ActionType, InteractionType } from "../quest-types.js";
 
+/** @typedef {import("../quest-types.js").LevelConfig} LevelConfig */
+
+/** @type {Record<string, LevelConfig>} */
 export const THE_CHROMATIC_LOOM_CHAPTERS = {
 	"fortress-of-design": {
 		id: "fortress-of-design",
@@ -16,13 +18,22 @@ export const THE_CHROMATIC_LOOM_CHAPTERS = {
 		description:
 			"The object symbolizing the variety of external Design Systems. Interacting reveals the need for CSS Custom Properties (Design Tokens) to achieve visual consistency and thematic adaptation (Dark Mode).",
 		hasThemeZones: true,
-		codeSnippetStart: `/* ❌ Hardcoded Colors */
+		codeSnippets: {
+			start: [
+				{
+					title: "Hardcoded Colors",
+					code: `/* ❌ Hardcoded Colors */
 .tunic {
     background-color: #1e3a8a; /* Blue */
 }
 
 /* No easy way to change theme without overriding styles */`,
-		codeSnippetEnd: `/* ✅ Design Tokens (CSS Vars) */
+				},
+			],
+			end: [
+				{
+					title: "Design Tokens (CSS Vars)",
+					code: `/* ✅ Design Tokens (CSS Vars) */
 :host {
     --tunic-color: #1e3a8a;
 }
@@ -34,6 +45,9 @@ export const THE_CHROMATIC_LOOM_CHAPTERS = {
 .tunic {
     background: var(--tunic-color);
 }`,
+				},
+			],
+		},
 		stats: { maintainability: 25, portability: 35 },
 		serviceType: ServiceType.LEGACY,
 		startPos: { x: 50, y: 15 },

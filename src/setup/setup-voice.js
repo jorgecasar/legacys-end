@@ -61,7 +61,7 @@ export function setupVoice(host, app) {
 			}),
 			onMoveToNpc: () => {
 				const state = host.interaction.options.getState();
-				const npcPos = state.chapterData?.npc?.position;
+				const npcPos = /** @type {any} */ (state.chapterData)?.npc?.position;
 				if (!npcPos) return;
 
 				// Centralized move logic in GameView
@@ -80,11 +80,9 @@ export function setupVoice(host, app) {
 				if (
 					host.gameController.isEnabled &&
 					app.gameService &&
-					host.gameController.isEnabled &&
-					app.gameService &&
-					app.gameService[action]
+					/** @type {any} */ (app.gameService)[action]
 				) {
-					app.gameService[action](value);
+					/** @type {any} */ (app.gameService)[action](value);
 				}
 			},
 			isEnabled: () => host.gameController?.isEnabled,

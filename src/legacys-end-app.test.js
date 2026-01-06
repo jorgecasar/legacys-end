@@ -201,6 +201,7 @@ describe("LegacysEndApp Component", () => {
 	});
 
 	describe("Controller Initialization", () => {
+		/** @type {LegacysEndApp} */
 		let el;
 
 		beforeEach(async () => {

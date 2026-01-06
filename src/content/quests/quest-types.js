@@ -39,7 +39,7 @@ export const Difficulty = {
 /**
  * @typedef {Object} RewardConfig
  * @property {string} name
- * @property {string} icon
+ * @property {string} [icon]
  * @property {string} image
  * @property {Coordinate} position
  */
@@ -47,7 +47,7 @@ export const Difficulty = {
 /**
  * @typedef {Object} NpcConfig
  * @property {string} name
- * @property {string} icon
+ * @property {string} [icon]
  * @property {string} image
  * @property {Coordinate} position
  */
@@ -56,6 +56,7 @@ export const Difficulty = {
  * @typedef {Object} CodeSnippet
  * @property {string} title
  * @property {string} code
+ * @property {string} [language]
  */
 
 /**
@@ -77,12 +78,12 @@ export const Difficulty = {
  * @property {string} title
  * @property {string} description
  * @property {string} [problemTitle]
- * @property {string} [problemDesc]
+ * @property {any} [problemDesc]
  * @property {string} [solutionTitle]
  * @property {string} [solutionDesc]
  * @property {string[]} [architecturalChanges]
  * @property {CodeSnippetsConfig} [codeSnippets]
- * @property {GameStats} stats
+ * @property {GameStats} [stats]
  * @property {string} [serviceType]
  * @property {Coordinate} startPos
  * @property {Zone} [exitZone]
@@ -95,4 +96,35 @@ export const Difficulty = {
  * @property {boolean} [hasThemeZones]
  * @property {boolean} [hasHotSwitch]
  * @property {boolean} [isFinalBoss]
+ */
+
+/**
+ * @typedef {Object} Quest
+ * @property {string} id
+ * @property {string} name
+ * @property {string} [subtitle]
+ * @property {string} [description]
+ * @property {string} [icon]
+ * @property {string} [difficulty]
+ * @property {string} [estimatedTime]
+ * @property {string} [color]
+ * @property {string} [legacyProblem]
+ * @property {string} [levels]
+ * @property {string[]} [prerequisites]
+ * @property {string[]} [shortcuts]
+ * @property {string[]} [concepts]
+ * @property {string[]} [chapterIds]
+ * @property {Record<string, any>} [chapters]
+ * @property {string} [status]
+ * @property {{ badge: string; ability: string; description?: string; }} [reward]
+ */
+
+/**
+ * @typedef {Quest & {
+ *   isCompleted?: boolean;
+ *   isLocked?: boolean;
+ *   progress?: number;
+ *   inProgress?: boolean;
+ *   icon?: string;
+ * }} EnrichedQuest
  */

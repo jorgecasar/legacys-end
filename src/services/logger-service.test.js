@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LoggerService } from "./logger-service.js";
 
 describe("LoggerService", () => {
+	/** @type {LoggerService} */
 	let logger;
 	const consoleDebug = vi.spyOn(console, "debug").mockImplementation(() => {});
 	const consoleInfo = vi.spyOn(console, "info").mockImplementation(() => {});

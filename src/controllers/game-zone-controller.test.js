@@ -9,9 +9,13 @@ describe("GameZoneController", () => {
 	let controller;
 
 	// Mocks
+	/** @type {any} */
 	let onThemeChange;
+	/** @type {any} */
 	let onContextChange;
+	/** @type {any} */
 	let getChapterData;
+	/** @type {any} */
 	let hasCollectedItem;
 
 	beforeEach(() => {

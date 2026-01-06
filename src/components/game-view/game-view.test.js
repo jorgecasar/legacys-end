@@ -36,7 +36,6 @@ describe("GameView Component", () => {
 				lockedMessage: "",
 			},
 			quest: {
-				title: "Test Quest",
 				data: {},
 				chapterNumber: 1,
 				totalChapters: 3,
@@ -57,7 +56,9 @@ describe("GameView Component", () => {
 	});
 
 	describe("Keyboard Controller", () => {
+		/** @type {GameView} */
 		let el;
+		/** @type {any} */
 		let mockApp;
 
 		beforeEach(async () => {
@@ -116,7 +117,6 @@ describe("GameView Component", () => {
 				hero: { pos: { x: 0, y: 0 }, isEvolving: false, hotSwitchState: null },
 				config: { hasHotSwitch: false },
 				quest: {
-					title: "",
 					data: {},
 					chapterNumber: 0,
 					totalChapters: 0,

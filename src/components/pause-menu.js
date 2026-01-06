@@ -1,7 +1,7 @@
-import { html, LitElement } from "lit";
-import "@awesome.me/webawesome/dist/components/dialog/dialog.js";
 import "@awesome.me/webawesome/dist/components/button/button.js";
+import "@awesome.me/webawesome/dist/components/dialog/dialog.js";
 import "@awesome.me/webawesome/dist/components/icon/icon.js";
+import { html, LitElement } from "lit";
 import { styles } from "./pause-menu.css.js";
 
 export class PauseMenu extends LitElement {
@@ -39,6 +39,9 @@ export class PauseMenu extends LitElement {
 		`;
 	}
 
+	/**
+	 * @param {CustomEvent} event
+	 */
 	handleRequestClose(event) {
 		// Only allow closing via Resume button or external logic (which updates .open)
 		// If the user clicks overlay or escape, we treat it as "Resume"

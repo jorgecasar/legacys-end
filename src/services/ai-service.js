@@ -24,6 +24,14 @@ import { logger } from "./logger-service.js";
  * aiService.destroySession("alarion");
  * aiService.destroyAllSessions();
  */
+
+/**
+ * @typedef {Object} AIOptions
+ * @property {string} language
+ * @property {{role: string, content: string}[]} [initialPrompts]
+ * @property {function(any): void} [onDownloadProgress]
+ */
+
 export class AIService {
 	constructor() {
 		/** @type {string} */
@@ -84,10 +92,7 @@ export class AIService {
 	/**
 	 * Create a new AI session with a unique identifier
 	 * @param {string} sessionId - Unique identifier for this session
-	 * @param {Object} options - Session configuration
-	 * @param {string} options.language - Language code (e.g., "en", "es")
-	 * @param {Array<{role: string, content: string}>} options.initialPrompts - Initial conversation prompts
-	 * @param {Function} [options.onDownloadProgress] - Optional callback for download progress
+	 * @param {AIOptions} options - Session configuration
 	 * @returns {Promise<any>} Created AI session
 	 */
 	async createSession(sessionId, options) {
@@ -132,7 +137,7 @@ export class AIService {
 
 	/**
 	 * Download the AI model (for "downloadable" status)
-	 * @param {Object} options - Download options
+	 * @param {AIOptions} options - Download options
 	 * @returns {Promise<any>} AI session after download
 	 */
 	async downloadModel(options) {
@@ -145,8 +150,8 @@ export class AIService {
 			// @ts-expect-error
 			const session = await LanguageModel.create({
 				language: options.language,
-				monitor: (m) => {
-					m.addEventListener("downloadprogress", (e) => {
+				monitor: (/** @type {any} */ m) => {
+					m.addEventListener("downloadprogress", (/** @type {any} */ e) => {
 						const progress = Math.round((e.loaded / e.total) * 100);
 						logger.info(
 							`📥 Downloading AI model: ${e.loaded}/${e.total} bytes (${progress}%)`,

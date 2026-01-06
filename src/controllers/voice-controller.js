@@ -207,6 +207,12 @@ export class VoiceController {
 		}
 	}
 
+	/**
+	 * @param {string} text
+	 * @param {string|null} [lang]
+	 * @param {string} [role]
+	 * @param {boolean} [queue]
+	 */
 	speak(text, lang = null, role = "hero", queue = false) {
 		this.isSpeaking = true;
 		this.stop();
@@ -233,6 +239,10 @@ export class VoiceController {
 		});
 	}
 
+	/**
+	 * @param {string} text
+	 * @param {string|null} [lang]
+	 */
 	async narrateDialogue(text, lang = null) {
 		if (!text) return;
 
@@ -290,6 +300,9 @@ export class VoiceController {
 		}
 	}
 
+	/**
+	 * @param {any} event
+	 */
 	handleResult(event) {
 		const last = event.results.length - 1;
 		const transcript = event.results[last][0].transcript.toLowerCase().trim();
@@ -298,6 +311,9 @@ export class VoiceController {
 		this.processCommand(transcript);
 	}
 
+	/**
+	 * @param {string} command
+	 */
 	async processCommand(command) {
 		if (!this.aiSession) {
 			console.warn("⚠️ AI Session not available. Command ignored.");
@@ -333,6 +349,11 @@ export class VoiceController {
 		}
 	}
 
+	/**
+	 * @param {string} action
+	 * @param {any} value
+	 * @param {string|null} [lang]
+	 */
 	executeAction(action, value, lang = null) {
 		executeVoiceAction(action, value, this, lang);
 	}

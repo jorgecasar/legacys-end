@@ -10,7 +10,7 @@ export const THE_SCRYING_POOL_OF_CHAOS_QUEST = {
 	legacyProblem:
 		"Unhandled errors crash the app, silent failures, lack of visibility into issues.",
 	prerequisites: ["the-flowing-heartstone", "the-mirror-of-veracity"],
-	shortcuts: [],
+	shortcuts: /** @type {any[]} */ ([]),
 	difficulty: Difficulty.ADVANCED,
 	icon: "eye",
 	estimatedTime: "35-45 min",
@@ -20,7 +20,7 @@ export const THE_SCRYING_POOL_OF_CHAOS_QUEST = {
 		"Observability Patterns",
 		"Boundary Error Components",
 	],
-	chapterIds: [],
+	chapterIds: /** @type {any[]} */ ([]),
 	// Chapter data
 	chapters: THE_SCRYING_POOL_OF_CHAOS_CHAPTERS,
 	reward: {

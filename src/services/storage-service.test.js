@@ -15,6 +15,7 @@ vi.mock("./logger-service.js", () => ({
 }));
 
 describe("LocalStorageAdapter", () => {
+	/** @type {LocalStorageAdapter} */
 	let adapter;
 	let _originalLocalStorage;
 

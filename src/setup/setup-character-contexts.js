@@ -16,7 +16,9 @@ export function setupCharacterContexts(app) {
 			themeMode: app.themeMode,
 			hotSwitchState: app.hotSwitchState,
 			hasCollectedItem: app.hasCollectedItem,
-			userData: app.userData,
+			userData: /** @type {import("../services/user-services.js").UserData} */ (
+				app.userData
+			),
 			activeService: app.getActiveService(),
 		}),
 	});

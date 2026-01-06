@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProgressService } from "./progress-service.js";
 
-// Mock dependencies
+// Mock Storage
 const mockStorage = {
-	items: {},
+	items: /** @type {Record<string, any>} */ ({}),
 	getItem: vi.fn((key) => mockStorage.items[key]),
 	setItem: vi.fn((key, value) => {
 		mockStorage.items[key] = value;
@@ -17,13 +17,17 @@ const mockStorage = {
 };
 
 // Mock Registry
+/** @type {any} */
 const mockRegistry = {
 	getQuest: vi.fn(),
 	getAllQuests: vi.fn(),
 	isQuestLocked: vi.fn(),
+	getAvailableQuests: vi.fn(),
+	getComingSoonQuests: vi.fn(),
 };
 
 describe("ProgressService", () => {
+	/** @type {ProgressService} */
 	let service;
 
 	beforeEach(() => {
@@ -35,7 +39,10 @@ describe("ProgressService", () => {
 		mockRegistry.getQuest.mockReturnValue(null);
 		mockRegistry.isQuestLocked.mockReturnValue(false);
 
-		service = new ProgressService(mockStorage, mockRegistry);
+		service = new ProgressService(
+			mockStorage,
+			/** @type {any} */ (mockRegistry),
+		);
 	});
 
 	describe("Initialization", () => {
@@ -145,10 +152,12 @@ describe("ProgressService", () => {
 			mockRegistry.getAllQuests.mockReturnValue([{ id: "q1" }, { id: "q2" }]);
 			service.progress.completedQuests = ["q1"];
 			// q2 is locked unless q1 is done
-			mockRegistry.isQuestLocked.mockImplementation((id, completed) => {
-				if (id === "q2") return !completed.includes("q1");
-				return false;
-			});
+			mockRegistry.isQuestLocked.mockImplementation(
+				(/** @type {string} */ id, /** @type {string[]} */ completed) => {
+					if (id === "q2") return !completed.includes("q1");
+					return false;
+				},
+			);
 
 			service.unlockNewQuests();
 			expect(service.progress.unlockedQuests).toContain("q2");
@@ -244,9 +253,9 @@ describe("ProgressService", () => {
 		});
 
 		it("should return immutable copy of progress", () => {
-			const prog = service.getProgress();
+			const prog = /** @type {any} */ (service.getProgress());
 			prog.newField = "test";
-			expect(service.progress.newField).toBeUndefined();
+			expect(/** @type {any} */ (service.progress).newField).toBeUndefined();
 		});
 
 		it("should check quest completion logic (unused method)", () => {

@@ -1,18 +1,18 @@
+import "@awesome.me/webawesome/dist/components/card/card.js";
+import "@awesome.me/webawesome/dist/components/details/details.js";
 import { html, LitElement } from "lit";
+import { classMap } from "lit/directives/class-map.js";
+import { GAME_CONFIG } from "../constants/game-config.js";
 import { processBackgroundStyle } from "../utils/process-assets.js";
+import "./game-hud.js";
 import { styles } from "./game-viewport.css.js";
 import "./hero-profile.js";
 import "./npc-element.js";
 import "./reward-element.js";
-import "./game-hud.js";
-import "@awesome.me/webawesome/dist/components/card/card.js";
-import "@awesome.me/webawesome/dist/components/details/details.js";
-import "./viewport-elements/game-controls.js";
-import "./viewport-elements/game-theme-zones.js";
 import "./viewport-elements/game-context-zones.js";
+import "./viewport-elements/game-controls.js";
 import "./viewport-elements/game-exit-zone.js";
-import { classMap } from "lit/directives/class-map.js";
-import { GAME_CONFIG } from "../constants/game-config.js";
+import "./viewport-elements/game-theme-zones.js";
 
 /**
  * @element game-viewport
@@ -29,14 +29,43 @@ export class GameViewport extends LitElement {
 		isRewardCollected: { type: Boolean },
 	};
 
+	/**
+	 * @typedef {import('../content/quests/quest-types.js').LevelConfig} LevelConfig
+	 * @typedef {import('../services/quest-registry-service.js').Quest} Quest
+	 *
+	 * @typedef {Object} GameSessionState
+	 * @property {LevelConfig} [config]
+	 * @property {ViewQuest} [quest]
+	 * @property {Object} [levelState]
+	 * @property {boolean} [levelState.hasCollectedItem]
+	 * @property {boolean} [levelState.isCloseToTarget]
+	 * @property {boolean} [levelState.isRewardCollected]
+	 * @property {Object} [hero]
+	 * @property {{x: number, y: number}} [hero.pos]
+	 * @property {boolean} [hero.isEvolving]
+	 * @property {string} [hero.hotSwitchState]
+	 * @property {string} [hero.image]
+	 * @property {string} [hero.reward]
+	 * @property {Object} [ui]
+	 * @property {string} [ui.lockedMessage]
+	 */
+
+	/**
+	 * @typedef {{ data: Quest, chapterNumber?: number, totalChapters?: number }} ViewQuest
+	 */
+
 	constructor() {
 		super();
-		this.gameState = {};
+		/** @type {GameSessionState} */
+		this.gameState = /** @type {GameSessionState} */ ({});
 		this.isAnimatingReward = false;
 		this.rewardAnimState = "";
 		this.isRewardCollected = false;
 	}
 
+	/**
+	 * @param {import("lit").PropertyValues} changedProperties
+	 */
 	willUpdate(changedProperties) {
 		if (changedProperties.has("gameState")) {
 			// Check if hasCollectedItem changed from false to true
@@ -94,7 +123,7 @@ export class GameViewport extends LitElement {
 				.currentChapterNumber="${quest?.chapterNumber}" 
 				.totalChapters="${quest?.totalChapters}"
 				.levelTitle="${config.title}"
-				.questTitle="${quest?.title}"
+				.questTitle="${quest?.data?.name}"
 			></game-hud>
 
 			<div class="game-area" style="background: ${processBackgroundStyle(backgroundStyle)}">

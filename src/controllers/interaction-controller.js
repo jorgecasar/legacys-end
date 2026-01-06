@@ -6,13 +6,14 @@ const DEFAULT_INTERACTION_DISTANCE = 15;
 
 /**
  * @typedef {import('../services/game-state-service.js').HotSwitchState} HotSwitchState
+ * @typedef {import('../content/quests/quest-types.js').LevelConfig} LevelConfig
  */
 
 /**
  * @typedef {Object} InteractionState
  * @property {string} level - Current level ID
- * @property {Object} [chapterData] - Configuration for key game objects
- * @property {Object} heroPos - Current hero position {x,y}
+ * @property {LevelConfig} [chapterData] - Configuration for key game objects
+ * @property {{x: number, y: number}} heroPos - Current hero position {x,y}
  * @property {HotSwitchState} hotSwitchState - API context state
  * @property {boolean} hasCollectedItem - Whether reward is collected
  */
@@ -55,7 +56,7 @@ export class InteractionController {
 			getState: () => ({
 				level: "",
 				heroPos: { x: 0, y: 0 },
-				hotSwitchState: null,
+				hotSwitchState: /** @type {HotSwitchState} */ (null),
 				hasCollectedItem: false,
 			}),
 			getNpcPosition: () => null,

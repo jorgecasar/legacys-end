@@ -8,10 +8,14 @@ describe("InteractionController", () => {
 	let controller;
 
 	// Mock options
+	/** @type {any} */
 	let onShowDialog;
 	let _onVictory;
+	/** @type {any} */
 	let onLocked;
+	/** @type {any} */
 	let getState;
+	/** @type {any} */
 	let getNpcPosition;
 
 	beforeEach(() => {

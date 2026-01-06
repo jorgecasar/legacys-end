@@ -118,13 +118,13 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 
 	// Additional providers (referenced in connectedCallback)
 	// Note: These may not be properly initialized - potential bug
-	/** @type {import("@lit/context").ContextProvider} */
+	/** @type {import("@lit/context").ContextProvider<any, any>} */
 	suitProvider;
-	/** @type {import("@lit/context").ContextProvider} */
+	/** @type {import("@lit/context").ContextProvider<any, any>} */
 	gearProvider;
-	/** @type {import("@lit/context").ContextProvider} */
+	/** @type {import("@lit/context").ContextProvider<any, any>} */
 	powerProvider;
-	/** @type {import("@lit/context").ContextProvider} */
+	/** @type {import("@lit/context").ContextProvider<any, any>} */
 	masteryProvider;
 
 	static properties = {
@@ -200,7 +200,7 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		}
 
 		// Subscribe to session manager changes for UI updates
-		this.sessionManager.subscribe((event) => {
+		this.sessionManager.subscribe((/** @type {any} */ event) => {
 			if (
 				["state-change", "navigation", "loading", "chapter-change"].includes(
 					event.type,
@@ -285,7 +285,7 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		this.themeProvider.setValue({ themeMode: this.themeMode });
 	}
 
-	updated(changedProperties) {
+	updated(/** @type {any} */ changedProperties) {
 		if (changedProperties.has("chapterId")) {
 			// Reload user data when chapter changes (service might change)
 			if (this.serviceController) {
@@ -321,7 +321,7 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		this.chapterId = sessionState.chapterId;
 	}
 
-	getChapterData(levelId) {
+	getChapterData(/** @type {string} */ levelId) {
 		if (!this.currentQuest || !this.currentQuest.chapters) return null;
 		return this.currentQuest.chapters[levelId] || null;
 	}
@@ -439,18 +439,18 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 			<quest-hub
 				.quests="${this.getEnrichedQuests()}"
 				.comingSoonQuests="${getComingSoonQuests()}"
-				@quest-select="${(e) => this.handleQuestSelect(e.detail.questId)}"
-				@quest-continue="${(e) => this.handleContinueQuest(e.detail.questId)}"
+				@quest-select="${(/** @type {CustomEvent} */ e) => this.handleQuestSelect(e.detail.questId)}"
+				@quest-continue="${(/** @type {CustomEvent} */ e) => this.handleContinueQuest(e.detail.questId)}"
 				@reset-progress="${() => this.handleResetProgress()}"
 			></quest-hub>
 		`;
 	}
 
-	handleQuestSelect(questId) {
+	handleQuestSelect(/** @type {string} */ questId) {
 		return this.sessionManager.startQuest(questId);
 	}
 
-	handleContinueQuest(questId) {
+	handleContinueQuest(/** @type {string} */ questId) {
 		return this.sessionManager.continueQuest(questId);
 	}
 

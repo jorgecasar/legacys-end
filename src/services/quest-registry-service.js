@@ -1,4 +1,7 @@
 import { QUESTS } from "../content/quests/quests-data.js";
+/**
+ * @typedef {import("../content/quests/quest-types.js").Quest} Quest
+ */
 
 /**
  * Quest Registry Service
@@ -10,7 +13,7 @@ import { QUESTS } from "../content/quests/quests-data.js";
 /**
  * Get quest by ID
  * @param {string} questId - Quest identifier
- * @returns {Object|undefined} Quest object or undefined if not found
+ * @returns {Quest|undefined} Quest object or undefined if not found
  */
 export function getQuest(questId) {
 	return QUESTS[questId];
@@ -18,7 +21,7 @@ export function getQuest(questId) {
 
 /**
  * Get all quests
- * @returns {Array} Array of all quests
+ * @returns {Quest[]} Array of all quests
  */
 export function getAllQuests() {
 	return Object.values(QUESTS);
@@ -42,7 +45,7 @@ export function isQuestLocked(questId, completedQuests = []) {
 /**
  * Get quests that are unlocked and available to play
  * @param {Array<string>} _completedQuests - Array of completed quest IDs (currently unused)
- * @returns {Array} Array of available quests
+ * @returns {Quest[]} Array of available quests
  */
 export function getAvailableQuests(_completedQuests = []) {
 	return getAllQuests().filter((quest) => quest.status !== "coming-soon");
@@ -50,7 +53,7 @@ export function getAvailableQuests(_completedQuests = []) {
 
 /**
  * Get quests that are coming soon
- * @returns {Array} Array of coming soon quests
+ * @returns {Quest[]} Array of coming soon quests
  */
 export function getComingSoonQuests() {
 	return getAllQuests().filter((quest) => quest.status === "coming-soon");

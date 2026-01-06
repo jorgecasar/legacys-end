@@ -12,9 +12,9 @@ describe("LevelDialog Component", () => {
 		const el = /** @type {LevelDialog} */ (
 			document.createElement("level-dialog")
 		);
-		el.config = {
+		el.config = /** @type {any} */ ({
 			description: "Intro Narrative",
-		};
+		});
 		document.body.appendChild(el);
 		await el.updateComplete;
 
@@ -25,9 +25,9 @@ describe("LevelDialog Component", () => {
 		const el = /** @type {LevelDialog} */ (
 			document.createElement("level-dialog")
 		);
-		el.config = {
+		el.config = /** @type {any} */ ({
 			problemDesc: "Problem Description",
-		};
+		});
 		document.body.appendChild(el);
 		await el.updateComplete;
 

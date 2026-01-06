@@ -8,8 +8,11 @@ describe("KeyboardController", () => {
 	let controller;
 
 	// Mock options
+	/** @type {any} */
 	let onMove;
+	/** @type {any} */
 	let onInteract;
+	/** @type {any} */
 	let onPause;
 	let _isEnabled;
 

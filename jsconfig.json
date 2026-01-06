@@ -1,9 +1,0 @@
-{
-	"compilerOptions": {
-		"baseUrl": ".",
-		"module": "esnext",
-		"target": "esnext",
-		"moduleResolution": "bundler"
-	},
-	"exclude": ["node_modules", "dist"]
-}

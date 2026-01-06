@@ -1,5 +1,5 @@
-import { html, LitElement } from "lit";
 import "@awesome.me/webawesome/dist/components/tag/tag.js";
+import { html, LitElement } from "lit";
 import { GAME_CONFIG } from "../../constants/game-config.js";
 import { styles } from "./game-exit-zone.css.js";
 
@@ -10,6 +10,10 @@ import { styles } from "./game-exit-zone.css.js";
  * @property {Boolean} active - Whether the exit zone is active (e.g. item collected).
  * @attribute active
  */
+/**
+ * @typedef {import('../../content/quests/quest-types.js').Zone} Zone
+ */
+
 export class GameExitZone extends LitElement {
 	static properties = {
 		zoneConfig: { type: Object },
@@ -18,7 +22,8 @@ export class GameExitZone extends LitElement {
 
 	constructor() {
 		super();
-		this.zoneConfig = {};
+		/** @type {Zone} */
+		this.zoneConfig = /** @type {Zone} */ ({});
 		this.active = false;
 	}
 

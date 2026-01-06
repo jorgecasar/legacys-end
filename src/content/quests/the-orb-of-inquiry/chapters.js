@@ -11,6 +11,9 @@ import { ServiceType } from "../../../services/user-services.js";
  * - liberated-battlefield: Hot Switch (Dynamic injection, portability)
  */
 
+/** @typedef {import("../quest-types.js").LevelConfig} LevelConfig */
+
+/** @type {Record<string, LevelConfig>} */
 export const THE_ORB_OF_INQUIRY_CHAPTERS = {
 	"hall-of-definition": {
 		id: "hall-of-definition",
@@ -43,7 +46,7 @@ export const THE_ORB_OF_INQUIRY_CHAPTERS = {
 			],
 		},
 		stats: { maintainability: 45, portability: 50 },
-		serviceType: null,
+		serviceType: /** @type {any} */ (null),
 		startPos: { x: 5, y: 50 },
 		exitZone: {
 			x: 95,
@@ -135,7 +138,7 @@ export class ProductProviderLegacy extends LitElement {
 			],
 		},
 		stats: { maintainability: 80, portability: 80 },
-		serviceType: null,
+		serviceType: /** @type {any} */ (null),
 		startPos: { x: 50, y: 10 },
 		exitZone: {
 			x: 50,
@@ -229,7 +232,7 @@ export class ProductItem extends LitElement {
 			],
 		},
 		stats: { maintainability: 85, portability: 85 },
-		serviceType: null,
+		serviceType: /** @type {any} */ (null),
 		startPos: { x: 50, y: 10 },
 		exitZone: { x: 50, y: 95, width: 20, height: 10, label: "Training Room" },
 		backgroundStyle: `url('/assets/the-jewelers-workshop/background.png') center / cover no-repeat`,
@@ -380,7 +383,7 @@ export class ProductProviderMock extends LitElement {
 			],
 		},
 		stats: { maintainability: 100, portability: 100 },
-		serviceType: null,
+		serviceType: /** @type {any} */ (null),
 		startPos: { x: 95, y: 30 },
 		exitZone: { x: 50, y: 10, width: 20, height: 10, label: "Victory" },
 		postDialogBackgroundStyle: `url('/assets/liberated-battlefield/background_end.png') center / cover no-repeat`,

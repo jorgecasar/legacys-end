@@ -10,7 +10,7 @@ export const THE_MIRROR_OF_VERACITY_QUEST = {
 	legacyProblem:
 		"Code is fragile, prone to regression bugs, and lacks automated verification.",
 	prerequisites: ["the-orb-of-inquiry"],
-	shortcuts: [],
+	shortcuts: /** @type {any[]} */ ([]),
 	difficulty: Difficulty.ADVANCED,
 	icon: "search",
 	estimatedTime: "30-40 min",
@@ -21,7 +21,7 @@ export const THE_MIRROR_OF_VERACITY_QUEST = {
 		"Mocking",
 		"TDD",
 	],
-	chapterIds: [],
+	chapterIds: /** @type {any[]} */ ([]),
 	// Chapter data
 	chapters: THE_MIRROR_OF_VERACITY_CHAPTERS,
 	reward: {

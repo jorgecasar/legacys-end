@@ -2,8 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { VoiceSynthesisService } from "./voice-synthesis-service.js";
 
 describe("VoiceSynthesisService", () => {
+	/** @type {VoiceSynthesisService} */
 	let service;
+	/** @type {{ speak: import("vitest").Mock; cancel: import("vitest").Mock; getVoices: import("vitest").Mock; onvoiceschanged: null; }} */
 	let speechSynthesisMock;
+	/** @type {any} */
 	let SpeechSynthesisUtteranceMock;
 
 	beforeEach(() => {
@@ -102,6 +105,7 @@ describe("VoiceSynthesisService", () => {
 		it("should set hero voice profile", () => {
 			service.speak("Hello", { lang: "en-US", role: "hero" });
 
+			/** @type {any} */
 			const utterance = SpeechSynthesisUtteranceMock.mock.results[0].value;
 			expect(utterance.rate).toBe(1.1);
 			expect(utterance.pitch).toBeGreaterThan(1.0);

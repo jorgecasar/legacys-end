@@ -35,6 +35,7 @@ import { Observable } from "../utils/observable.js";
  * - Active context (hot switch state)
  * - UI state (paused, evolving, locked messages)
  * - Theme mode
+ * @extends {Observable<GameState>}
  */
 export class GameStateService extends Observable {
 	constructor() {

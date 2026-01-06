@@ -6,7 +6,10 @@ import { ServiceController } from "../controllers/service-controller.js";
  */
 export function setupService(app) {
 	app.serviceController = new ServiceController(app, {
-		services: app.services,
+		services:
+			/** @type {Record<string, import('../services/user-services.js').IUserService>} */ (
+				app.services
+			),
 		getActiveService: () => app.getActiveService(),
 		onDataLoaded: (userData) => {
 			app.userData = userData;

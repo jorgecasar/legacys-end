@@ -20,7 +20,7 @@
  * @property {Object} [gearProvider]
  * @property {Object} [powerProvider]
  * @property {Object} [masteryProvider]
- * @property {Object} [characterProvider] - Combined provider if used
+ * @property {import('../mixins/context-mixin.js').ContextProvider<any>} [characterProvider] - Combined provider if used
  * @property {function(): CharacterContextState} getState
  */
 

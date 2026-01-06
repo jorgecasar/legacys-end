@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GameService } from "./game-service.js";
 
 describe("GameService", () => {
+	/** @type {GameService} */
 	let gameService;
+	/** @type {any} */
 	let options;
 
 	beforeEach(() => {

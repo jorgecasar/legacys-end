@@ -6,6 +6,7 @@ import { THE_AURA_OF_SOVEREIGNTY_CHAPTERS } from "./chapters.js";
  *
  * Gain Encapsulation and Isolation from the global environment.
  */
+/** @type {import("../quest-types.js").Quest} */
 export const THE_AURA_OF_SOVEREIGNTY_QUEST = {
 	id: "the-aura-of-sovereignty",
 	name: "The Aura of Sovereignty",
@@ -13,8 +14,8 @@ export const THE_AURA_OF_SOVEREIGNTY_QUEST = {
 	description:
 		"Before Alarion can connect with others, he must learn to exist without being corrupted by them. In the Toxic Swamp of Global Scope, he must find an umbrella to protect his styles and DOM from the chaotic environment.",
 	legacyProblem: "Component is coupled to global DOM and external scripts.",
-	prerequisites: [],
-	shortcuts: [],
+	prerequisites: /** @type {any[]} */ ([]),
+	shortcuts: /** @type {any[]} */ ([]),
 	difficulty: Difficulty.BEGINNER,
 	icon: "shield",
 	estimatedTime: "5-10 min",

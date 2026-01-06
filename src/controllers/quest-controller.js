@@ -7,12 +7,15 @@ import { ProgressService } from "../services/progress-service.js";
 import * as DefaultRegistry from "../services/quest-registry-service.js";
 
 /**
+ * @typedef {import("../services/quest-registry-service.js").Quest} Quest
+ * @typedef {import("../content/quests/quest-types.js").LevelConfig} Chapter
+ *
  * @typedef {Object} QuestControllerOptions
  * @property {import('../services/progress-service.js').ProgressService} [progressService] - Progress tracking service
- * @property {Object} [registry] - Quest registry module
- * @property {(quest: Object) => void} [onQuestStart] - Callback when quest starts
- * @property {(chapter: Object, index: number) => void} [onChapterChange] - Callback when chapter changes
- * @property {(quest: Object) => void} [onQuestComplete] - Callback when quest completes
+ * @property {typeof DefaultRegistry} [registry] - Quest registry module
+ * @property {(quest: Quest) => void} [onQuestStart] - Callback when quest starts
+ * @property {(chapter: Chapter, index: number) => void} [onChapterChange] - Callback when chapter changes
+ * @property {(quest: Quest) => void} [onQuestComplete] - Callback when quest completes
  * @property {() => void} [onReturnToHub] - Callback when returning to hub
  */
 
@@ -56,11 +59,11 @@ export class QuestController {
 		/** @type {import('../services/progress-service.js').ProgressService} */
 		this.progressService =
 			this.options.progressService || new ProgressService();
-		/** @type {Object} */
+		/** @type {typeof DefaultRegistry} */
 		this.registry = this.options.registry;
-		/** @type {Object|null} */
+		/** @type {Quest|null} */
 		this.currentQuest = null;
-		/** @type {Object|null} */
+		/** @type {Chapter|null} */
 		this.currentChapter = null;
 		/** @type {number} */
 		this.currentChapterIndex = 0;
@@ -310,7 +313,7 @@ export class QuestController {
 
 	/**
 	 * Get current chapter data
-	 * @returns {Object|null} Full chapter data object
+	 * @returns {Chapter|null} Full chapter data object
 	 */
 	getCurrentChapterData() {
 		if (!this.currentQuest || !this.currentQuest.chapterIds) {
@@ -329,16 +332,17 @@ export class QuestController {
 
 		if (!restChapterData) {
 			console.warn(`Chapter data not found for ID: ${chapterId}`);
+			// @ts-expect-error
 			return { id: chapterId }; // Fallback
 		}
 
-		return {
+		return /** @type {Chapter} */ ({
 			...restChapterData,
 			questId: this.currentQuest.id,
 			index: this.currentChapterIndex,
 			total: this.currentQuest.chapterIds.length,
 			isQuestComplete: this.isLastChapter(),
-		};
+		});
 	}
 
 	/**
@@ -443,7 +447,7 @@ export class QuestController {
 
 	/**
 	 * Get available quests for selection
-	 * @returns {Array} Available quests
+	 * @returns {Quest[]} Available quests
 	 */
 	getAvailableQuests() {
 		const progress = this.progressService.getProgress();
@@ -541,7 +545,7 @@ export class QuestController {
 
 	/**
 	 * Check if current chapter matches a specific level ID
-	 * @param {number} levelId - Level ID to check
+	 * @param {string} levelId - Level ID to check
 	 * @returns {boolean}
 	 */
 	isCurrentChapter(levelId) {
@@ -553,7 +557,7 @@ export class QuestController {
 
 	/**
 	 * Get the last chapter ID in current quest
-	 * @returns {number|null}
+	 * @returns {string|null}
 	 */
 	getLastChapterId() {
 		if (!this.currentQuest || !this.currentQuest.chapterIds) {

@@ -10,7 +10,7 @@ export const THE_ORB_OF_INQUIRY_QUEST = {
 	legacyProblem:
 		"Direct dependency on fetch or global variables (window.service).",
 	prerequisites: ["the-aura-of-sovereignty"],
-	shortcuts: [],
+	shortcuts: /** @type {any[]} */ ([]),
 	difficulty: Difficulty.INTERMEDIATE,
 	icon: "plug",
 	estimatedTime: "20-25 min",

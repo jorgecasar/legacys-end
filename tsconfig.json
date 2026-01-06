@@ -7,7 +7,7 @@
 		"checkJs": true,
 		"noEmit": true,
 		"moduleResolution": "bundler",
-		"noImplicitAny": false,
+		"noImplicitAny": true,
 		"plugins": [
 			{
 				"name": "ts-lit-plugin",

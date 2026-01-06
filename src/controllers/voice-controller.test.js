@@ -39,6 +39,7 @@ describe("VoiceController", () => {
 	let onDebugAction;
 	/** @type {import("vitest").Mock} */
 	let isEnabled;
+	/** @type {any} */
 	let options;
 
 	beforeEach(() => {
@@ -101,11 +102,11 @@ describe("VoiceController", () => {
 			speak: vi.fn(),
 			cancel: vi.fn(),
 			getVoices: vi.fn().mockReturnValue([]),
-			onvoiceschanged: null,
+			onvoiceschanged: /** @type {any} */ (null),
 		};
 		vi.stubGlobal("speechSynthesis", speechSynthesisMock);
 
-		function SpeechSynthesisUtteranceMock(text) {
+		function SpeechSynthesisUtteranceMock(/** @type {string} */ text) {
 			this.text = text;
 			this.lang = "";
 			this.rate = 1;

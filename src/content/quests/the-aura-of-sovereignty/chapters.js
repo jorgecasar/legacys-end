@@ -7,6 +7,11 @@ import { html } from "lit";
  * - cb-1: Encapsulation (Shadow DOM, Custom Elements)
  */
 
+/**
+ * @typedef {import("../quest-types.js").LevelConfig} LevelConfig
+ */
+
+/** @type {Record<string, LevelConfig>} */
 export const THE_AURA_OF_SOVEREIGNTY_CHAPTERS = {
 	"swamp-of-scope": {
 		id: "swamp-of-scope",
@@ -165,7 +170,7 @@ customElements.define('product-item', ProductItem);`,
 			],
 		},
 		stats: { maintainability: 0, portability: 0 },
-		serviceType: null,
+		serviceType: /** @type {any} */ (null),
 		startPos: { x: 50, y: 15 },
 		exitZone: {
 			x: 95,

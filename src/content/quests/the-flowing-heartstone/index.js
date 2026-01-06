@@ -10,7 +10,7 @@ export const STATE_MANAGEMENT_RAID_QUEST = {
 	legacyProblem:
 		"Prop drilling, unpredictable global state mutation, non-reactive state.",
 	prerequisites: ["the-orb-of-inquiry"],
-	shortcuts: [],
+	shortcuts: /** @type {any[]} */ ([]),
 	difficulty: Difficulty.ADVANCED,
 	icon: "database",
 	estimatedTime: "30-40 min",
@@ -21,7 +21,7 @@ export const STATE_MANAGEMENT_RAID_QUEST = {
 		"Context API (for Stores)",
 		"Unidirectional Data Flow",
 	],
-	chapterIds: [],
+	chapterIds: /** @type {any[]} */ ([]),
 	// Chapter data
 	chapters: STATE_MANAGEMENT_RAID_CHAPTERS,
 	reward: {

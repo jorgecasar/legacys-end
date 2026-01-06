@@ -8,11 +8,17 @@ describe("ServiceController", () => {
 	let controller;
 
 	// Mock services
+	/** @type {any} */
 	let legacyService;
+	/** @type {any} */
 	let mockService;
+	/** @type {any} */
 	let newService;
+	/** @type {any} */
 	let profileProvider;
+	/** @type {any} */
 	let onDataLoaded;
+	/** @type {any} */
 	let onError;
 
 	beforeEach(() => {

@@ -1,18 +1,27 @@
+import "@awesome.me/webawesome/dist/components/button/button.js";
+import "@awesome.me/webawesome/dist/components/dialog/dialog.js";
+import "@awesome.me/webawesome/dist/components/icon/icon.js";
 import { html, LitElement } from "lit";
+import { map } from "lit/directives/map.js";
+import "syntax-highlight-element";
 import { processImagePath } from "../utils/process-assets.js";
 import { styles } from "./level-dialog.css.js";
-import "syntax-highlight-element";
-import "@awesome.me/webawesome/dist/components/dialog/dialog.js";
-import "@awesome.me/webawesome/dist/components/button/button.js";
-import "@awesome.me/webawesome/dist/components/icon/icon.js";
-import { map } from "lit/directives/map.js";
 
+/**
+ * Escapes HTML to prevent XSS attacks
+ * @param {string} html - The HTML to escape
+ * @returns {string} The escaped HTML
+ */
 function escapeHtml(html) {
 	const placeholderElement = document.createElement("div");
 	const textNode = document.createTextNode(html);
 	placeholderElement.appendChild(textNode);
 	return placeholderElement.innerHTML;
 }
+
+/**
+ * @typedef {import('../content/quests/quest-types.js').LevelConfig} LevelConfig
+ */
 
 export class LevelDialog extends LitElement {
 	static properties = {
@@ -24,7 +33,8 @@ export class LevelDialog extends LitElement {
 
 	constructor() {
 		super();
-		this.config = {};
+		/** @type {LevelConfig} */
+		this.config = /** @type {LevelConfig} */ ({});
 		this.level = "";
 		this.hotSwitchState = "legacy";
 		this.slideIndex = 0;
@@ -40,6 +50,10 @@ export class LevelDialog extends LitElement {
 		window.removeEventListener("keydown", this.handleKeyDown);
 	}
 
+	/**
+	 * Updates the component when properties change
+	 * @param {Map<string, any>} changedProperties - The properties that have changed
+	 */
 	updated(changedProperties) {
 		if (changedProperties.has("slideIndex")) {
 			const slides = this.getSlides();
@@ -56,6 +70,10 @@ export class LevelDialog extends LitElement {
 		}
 	}
 
+	/**
+	 * Handles keydown events
+	 * @param {KeyboardEvent} e - The keydown event
+	 */
 	handleKeyDown = (e) => {
 		if (e.key === "ArrowRight" || e.code === "Space") {
 			e.stopPropagation();
@@ -163,6 +181,16 @@ export class LevelDialog extends LitElement {
 
 	static styles = styles;
 
+	/**
+	 * @typedef {import('../content/quests/quest-types.js').CodeSnippet} CodeSnippet
+	 */
+
+	/**
+	 * Renders a code snippet
+	 * @param {CodeSnippet} snippet - The code snippet to render
+	 * @param {string} type - The type of the code snippet
+	 * @returns {import("lit").TemplateResult} The rendered code snippet
+	 */
 	renderCode({ title = "Identified Problem", code, language = "js" }, type) {
 		return html`
 			<h6 class="slide-title ${type}">${title}</h6>
@@ -170,15 +198,24 @@ export class LevelDialog extends LitElement {
 		`;
 	}
 
+	/**
+	 * Renders the content of a slide
+	 * @param {string} type - The type of the slide
+	 * @returns {import("lit").TemplateResult|Iterable<unknown>} The rendered slide content
+	 */
 	renderSlideContent(type) {
 		switch (type) {
 			case "code-start":
-				return map(this.config.codeSnippets.start, (snippet) =>
-					this.renderCode(snippet, type),
+				return map(
+					this.config.codeSnippets?.start,
+					(/** @type {CodeSnippet} */ snippet) =>
+						this.renderCode(snippet, type),
 				);
 			case "code-end":
-				return map(this.config.codeSnippets.end, (snippet) =>
-					this.renderCode(snippet, type),
+				return map(
+					this.config.codeSnippets?.end,
+					(/** @type {CodeSnippet} */ snippet) =>
+						this.renderCode(snippet, type),
 				);
 			case "problem":
 				return html`
@@ -268,7 +305,7 @@ export class LevelDialog extends LitElement {
         label="${this.config.title}" 
         open
         style="--width: 80ch; --body-spacing: 0;"
-        @wa-request-close="${(e) => e.preventDefault()}"
+        @wa-request-close="${(/** @type {Event} */ e) => e.preventDefault()}"
         @wa-after-hide="${this.dispatchClose}"
       >
         <div class="dialog-content">

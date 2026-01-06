@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AIService } from "./ai-service.js";
 
 describe("AIService", () => {
+	/** @type {AIService} */
 	let service;
+	/** @type {{ availability: import("vitest").Mock; create: import("vitest").Mock; }} */
 	let mockLanguageModel;
 
 	beforeEach(() => {
@@ -163,14 +165,17 @@ describe("AIService", () => {
 		it("should track download progress", async () => {
 			const mockSession = { prompt: vi.fn(), destroy: vi.fn() };
 			const progressCallback = vi.fn();
-			let downloadListener = (..._args) => {
+			let downloadListener = (/** @type {any[]} */ ..._args) => {
 				throw new Error("Download listener not set");
 			};
 
 			mockLanguageModel.create.mockImplementation(({ monitor }) => {
 				if (monitor) {
 					const mockMonitor = {
-						addEventListener: (_event, listener) => {
+						addEventListener: (
+							/** @type {any} */ _event,
+							/** @type {any} */ listener,
+						) => {
 							downloadListener = listener;
 						},
 					};

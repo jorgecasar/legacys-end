@@ -69,6 +69,9 @@ export class HeroProfile extends LitElement {
 		});
 	}
 
+	/**
+	 * @param {Map<string, any>} changedProperties
+	 */
 	updated(changedProperties) {
 		if (changedProperties.has("themeData") && this.themeData) {
 			if (this.themeData.themeMode === "dark") {

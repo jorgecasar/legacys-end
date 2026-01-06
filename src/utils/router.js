@@ -1,8 +1,21 @@
 /**
  * SimpleRouter - Lightweight client-side router
  */
+/**
+ * @callback RouteCallback
+ * @param {Record<string, string>} params
+ * @returns {void}
+ */
+
+/**
+ * @typedef {Object} RouteDefinition
+ * @property {string} pattern
+ * @property {RouteCallback} callback
+ */
+
 export class Router {
 	constructor() {
+		/** @type {RouteDefinition[]} */
 		this.routes = [];
 		this.currentPath = "";
 		this._onPopState = this._onPopState.bind(this);
@@ -29,7 +42,7 @@ export class Router {
 	/**
 	 * Add a route definition
 	 * @param {string} pattern - Route pattern (e.g. '/quest/:id' or '/hub')
-	 * @param {Function} callback - Callback function(params)
+	 * @param {RouteCallback} callback - Callback function(params)
 	 */
 	addRoute(pattern, callback) {
 		this.routes.push({ pattern, callback });
@@ -64,6 +77,9 @@ export class Router {
 		this._matchRoute(path);
 	}
 
+	/**
+	 * @param {string} path
+	 */
 	_matchRoute(path) {
 		for (const route of this.routes) {
 			const params = this._matchPattern(route.pattern, path);
@@ -75,12 +91,18 @@ export class Router {
 		console.warn(`No route matched for: ${path}`);
 	}
 
+	/**
+	 * @param {string} pattern
+	 * @param {string} path
+	 * @returns {Record<string, string>|null}
+	 */
 	_matchPattern(pattern, path) {
 		const patternParts = pattern.split("/");
 		const pathParts = path.split("/");
 
 		if (patternParts.length !== pathParts.length) return null;
 
+		/** @type {Record<string, string>} */
 		const params = {};
 		for (let i = 0; i < patternParts.length; i++) {
 			const patternPart = patternParts[i];

@@ -18,7 +18,6 @@
  * @property {boolean} ui.isQuestCompleted
  * @property {string} ui.lockedMessage
  * @property {Object} quest
- * @property {string} quest.title
  * @property {Object} quest.data
  * @property {number} quest.chapterNumber
  * @property {number} quest.totalChapters
@@ -71,7 +70,6 @@ export const GameStateMapper = {
 				lockedMessage: app.gameState.getState().lockedMessage,
 			},
 			quest: {
-				title: app.currentQuest?.name,
 				data: app.currentQuest,
 				chapterNumber: app.questController?.getCurrentChapterNumber() || 0,
 				totalChapters: app.questController?.getTotalChapters() || 0,

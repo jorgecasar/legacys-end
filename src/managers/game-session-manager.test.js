@@ -2,11 +2,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GameSessionManager } from "./game-session-manager.js";
 
 describe("GameSessionManager", () => {
+	/** @type {GameSessionManager} */
 	let manager;
+	/** @type {any} */
 	let mockGameState;
+	/** @type {any} */
 	let mockProgressService;
+	/** @type {any} */
 	let mockQuestController;
+	/** @type {any} */
 	let mockRouter;
+	/** @type {any} */
 	let mockControllers;
 
 	beforeEach(() => {
@@ -162,7 +168,7 @@ describe("GameSessionManager", () => {
 
 	describe("returnToHub", () => {
 		it("should return to hub and reset state", () => {
-			manager.currentQuest = { id: "test-quest" };
+			manager.currentQuest = /** @type {any} */ ({ id: "test-quest" });
 			manager.isInHub = false;
 			const notifySpy = vi.spyOn(manager, "notify");
 

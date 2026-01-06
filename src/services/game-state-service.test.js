@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GameStateService } from "./game-state-service.js";
 
 describe("GameStateService", () => {
+	/** @type {GameStateService} */
 	let service;
 
 	beforeEach(() => {

@@ -1,18 +1,20 @@
+import "@awesome.me/webawesome/dist/components/badge/badge.js";
+import "@awesome.me/webawesome/dist/components/button/button.js";
+import "@awesome.me/webawesome/dist/components/card/card.js";
+import "@awesome.me/webawesome/dist/components/icon/icon.js";
+import "@awesome.me/webawesome/dist/components/progress-bar/progress-bar.js";
+import "@awesome.me/webawesome/dist/components/tooltip/tooltip.js";
 import { css, html, LitElement, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
-import "@awesome.me/webawesome/dist/components/card/card.js";
-import "@awesome.me/webawesome/dist/components/button/button.js";
-import "@awesome.me/webawesome/dist/components/icon/icon.js";
-import "@awesome.me/webawesome/dist/components/tooltip/tooltip.js";
-import "@awesome.me/webawesome/dist/components/badge/badge.js";
-import "@awesome.me/webawesome/dist/components/progress-bar/progress-bar.js";
-import "./about-slides.js";
 import { sharedStyles } from "../../styles/shared.js";
+import "./about-slides.js";
 
 /**
  * QuestHub - Quest selection UI
  *
  * @typedef {import("./about-slides.js").AboutSlides} AboutSlides
+ * @typedef {import("../../content/quests/quest-types.js").Quest} Quest
+ * @typedef {import("../../content/quests/quest-types.js").EnrichedQuest} EnrichedQuest
  *
  * Displays available quests with:
  * - Progress indicators
@@ -21,8 +23,8 @@ import { sharedStyles } from "../../styles/shared.js";
  * - Continue button for in-progress quests
  *
  * @element quest-hub
- * @property {Array<Quest>} quests
- * @property {Array<Quest>} comingSoonQuests
+ * @property {Array<EnrichedQuest>} quests
+ * @property {Array<EnrichedQuest>} comingSoonQuests
  * @property {Boolean} showFullDescription
  * @property {Boolean} isFullscreen
  */
@@ -36,7 +38,9 @@ export class QuestHub extends LitElement {
 
 	constructor() {
 		super();
+		/** @type {EnrichedQuest[]} */
 		this.quests = [];
+		/** @type {EnrichedQuest[]} */
 		this.comingSoonQuests = [];
 		this.showFullDescription = false;
 		this.isFullscreen = false;
@@ -62,12 +66,18 @@ export class QuestHub extends LitElement {
 		this.isFullscreen = !!document.fullscreenElement;
 	}
 
+	/**
+	 * @param {EnrichedQuest} quest
+	 */
 	getQuestVariant(quest) {
 		if (quest.isCompleted) return "success";
 		if (quest.isLocked) return "neutral";
 		return "brand";
 	}
 
+	/**
+	 * @param {string} difficulty
+	 */
 	getDifficultyVariant(difficulty) {
 		switch (difficulty.toLowerCase()) {
 			case "beginner":
@@ -81,6 +91,10 @@ export class QuestHub extends LitElement {
 		}
 	}
 
+	/**
+	 * @param {EnrichedQuest} quest
+	 * @param {boolean} [isComingSoon]
+	 */
 	renderQuestCard(quest, isComingSoon = false) {
 		const progress = quest.progress || 0;
 		const completed = quest.isCompleted || false;

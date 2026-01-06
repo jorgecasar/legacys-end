@@ -10,6 +10,9 @@ describe("QuestHub Component", () => {
 
 	it("renders available quests", async () => {
 		const el = /** @type {QuestHub} */ (document.createElement("quest-hub"));
+		/**
+		 * @type {import("../../content/quests/quest-types.js").EnrichedQuest[]}
+		 */
 		el.quests = [
 			{
 				id: "q1",
@@ -43,6 +46,9 @@ describe("QuestHub Component", () => {
 
 	it("renders coming soon quests", async () => {
 		const el = /** @type {QuestHub} */ (document.createElement("quest-hub"));
+		/**
+		 * @type {import("../../content/quests/quest-types.js").Quest[]}
+		 */
 		el.comingSoonQuests = [
 			{
 				id: "q3",

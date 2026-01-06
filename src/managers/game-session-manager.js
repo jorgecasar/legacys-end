@@ -22,12 +22,31 @@ export class GameSessionManager extends Observable {
 	constructor(options = {}) {
 		super();
 
+		/**
+		 * @type {{
+		 *   gameState: import('../services/game-state-service').GameStateService;
+		 *   progressService: import('../services/progress-service').ProgressService;
+		 *   questController: import('../controllers/quest-controller').QuestController;
+		 *   router: any;
+		 *   controllers: {
+		 *     keyboard: any;
+		 *     interaction: any;
+		 *     collision: any;
+		 *     zones: any;
+		 *   };
+		 * }}
+		 */
 		this.options = {
 			gameState: null,
 			progressService: null,
 			questController: null,
 			router: null,
-			controllers: {},
+			controllers: {
+				keyboard: null,
+				interaction: null,
+				collision: null,
+				zones: null,
+			},
 			...options,
 		};
 
@@ -76,7 +95,7 @@ export class GameSessionManager extends Observable {
 	/**
 	 * Start a new quest
 	 */
-	async startQuest(questId) {
+	async startQuest(/** @type {string} */ questId) {
 		this.isLoading = true;
 		this.notify({ type: "loading", isLoading: true });
 
@@ -101,7 +120,7 @@ export class GameSessionManager extends Observable {
 	/**
 	 * Continue quest from last checkpoint
 	 */
-	async continueQuest(questId) {
+	async continueQuest(/** @type {string} */ questId) {
 		this.isLoading = true;
 		this.notify({ type: "loading", isLoading: true });
 
@@ -126,7 +145,7 @@ export class GameSessionManager extends Observable {
 	/**
 	 * Jump to specific chapter
 	 */
-	jumpToChapter(chapterId) {
+	jumpToChapter(/** @type {string} */ chapterId) {
 		try {
 			const success = this.questController.jumpToChapter(chapterId);
 			if (!success) {
@@ -142,7 +161,10 @@ export class GameSessionManager extends Observable {
 	/**
 	 * Load a specific chapter of a quest (handles quest loading if needed)
 	 */
-	async loadChapter(questId, chapterId) {
+	async loadChapter(
+		/** @type {string} */ questId,
+		/** @type {string} */ chapterId,
+	) {
 		this.isLoading = true;
 		this.notify({ type: "loading", isLoading: true });
 
@@ -229,7 +251,9 @@ export class GameSessionManager extends Observable {
 	 */
 	getQuestControllerCallbacks() {
 		return {
-			onQuestStart: (quest) => {
+			onQuestStart: (
+				/** @type {import('../services/quest-registry-service').Quest} */ quest,
+			) => {
 				this.isLoading = true;
 				this.currentQuest = quest;
 				this.isInHub = false;
@@ -238,7 +262,10 @@ export class GameSessionManager extends Observable {
 				this.isLoading = false;
 				this.notify({ type: "loading", isLoading: false });
 			},
-			onChapterChange: (chapter, index) => {
+			onChapterChange: (
+				/** @type {any} */ chapter,
+				/** @type {number} */ index,
+			) => {
 				// Update URL to reflect chapter (without reloading)
 				if (this.currentQuest && this.router) {
 					this.router.navigate(
@@ -277,8 +304,10 @@ export class GameSessionManager extends Observable {
 				this.gameState.resetChapterState();
 
 				// Restore state if available
-				const state = this.progressService.getChapterState(chapter.id);
-				if (state.collectedItem) {
+				const state = /** @type {any} */ (
+					this.progressService.getChapterState(chapter.id)
+				);
+				if (state.hasCollectedItem) {
 					this.gameState.setCollectedItem(true);
 					this.gameState.setRewardCollected(true);
 					logger.info(
@@ -296,7 +325,9 @@ export class GameSessionManager extends Observable {
 					index,
 				});
 			},
-			onQuestComplete: (quest) => {
+			onQuestComplete: (
+				/** @type {import('../services/quest-registry-service').Quest} */ quest,
+			) => {
 				logger.info(`✅ Completed quest: ${quest.name}`);
 				logger.info(`🏆 Earned badge: ${quest.reward.badge}`);
 				this.notify({

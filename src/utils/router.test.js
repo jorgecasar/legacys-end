@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Router } from "./router.js";
 
 describe("SimpleRouter", () => {
+	/** @type {Router} */
 	let router;
 
 	beforeEach(() => {
