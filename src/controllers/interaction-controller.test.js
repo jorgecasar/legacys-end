@@ -36,7 +36,7 @@ describe("InteractionController", () => {
 		getState.mockReturnValue({
 			level: "chapter-1",
 			heroPos: { x: 0, y: 0 },
-			hotSwitchState: "legacy",
+			hotSwitchState: null,
 			hasCollectedItem: false,
 		});
 		getNpcPosition.mockReturnValue({ x: 10, y: 0 }); // Distance 10
@@ -125,7 +125,7 @@ describe("InteractionController", () => {
 			it("should BLOCK interaction if API is LEGACY", () => {
 				getState.mockReturnValue({
 					heroPos: { x: 0, y: 0 },
-					hotSwitchState: "legacy",
+					hotSwitchState: null,
 					chapterData: { isFinalBoss: true }, // Important flag
 				});
 

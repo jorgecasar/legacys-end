@@ -56,7 +56,7 @@ export class InteractionController {
 			getState: () => ({
 				level: "",
 				heroPos: { x: 0, y: 0 },
-				hotSwitchState: /** @type {HotSwitchState} */ (null),
+				hotSwitchState: null,
 				hasCollectedItem: false,
 			}),
 			getNpcPosition: () => null,

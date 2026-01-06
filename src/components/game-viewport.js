@@ -226,7 +226,7 @@ export class GameViewport extends LitElement {
 					transition: ${transition};
 				"
 				.imageSrc="${imageSrc || ""}"
-				.hotSwitchState="${hero.hotSwitchState || "legacy"}"
+				.hotSwitchState="${hero.hotSwitchState || ""}"
 			></hero-profile>
 		`;
 	}

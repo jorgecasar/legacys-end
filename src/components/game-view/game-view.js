@@ -267,16 +267,11 @@ export class GameView extends LitElement {
 	}
 
 	render() {
-		const { config, ui, quest, hero } = this.gameState || {};
+		const { config, ui, quest } = this.gameState || {};
 
 		if (!config) {
 			return html`<div>Loading level data...</div>`;
 		}
-
-		// Replaced hardcoded levels with flags
-		const _canToggleTheme = config.canToggleTheme;
-		const _hasHotSwitch = config.hasHotSwitch;
-		const _isFinalBoss = config.isFinalBoss;
 
 		// Dialog Config Logic
 		const dialogConfig = config;
@@ -322,7 +317,6 @@ export class GameView extends LitElement {
 				<level-dialog
 					.config="${dialogConfig}"
 					.level="${quest?.levelId}"
-					.hotSwitchState="${hero?.hotSwitchState || ""}"
 					@complete="${() => this.handleLevelComplete()}"
 					@close="${() => this.dispatchEvent(new CustomEvent("close-dialog"))}"
 				></level-dialog>

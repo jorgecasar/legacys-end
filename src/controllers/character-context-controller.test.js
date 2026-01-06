@@ -112,7 +112,7 @@ describe("CharacterContextController", () => {
 
 		it("should update power context based on hot switch state", () => {
 			getStateMock.mockReturnValue({
-				hotSwitchState: "legacy",
+				hotSwitchState: null,
 				themeMode: "dark",
 			});
 

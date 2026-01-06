@@ -1,6 +1,5 @@
 import { ROUTES } from "../constants/routes.js";
 import { logger } from "../services/logger-service.js";
-import { ServiceType } from "../services/user-services.js";
 import { Observable } from "../utils/observable.js";
 
 /**
@@ -282,16 +281,8 @@ export class GameSessionManager extends Observable {
 						chapterData.startPos.y,
 					);
 
-					/** @type {'legacy'|'test'|'new'|null} */
-					let initialHotSwitch = null;
-					if (chapterData.serviceType === ServiceType.LEGACY) {
-						initialHotSwitch = "legacy";
-					} else if (chapterData.serviceType === ServiceType.MOCK) {
-						initialHotSwitch = "test";
-					} else if (chapterData.serviceType === ServiceType.NEW) {
-						initialHotSwitch = "new";
-					}
-					this.gameState.setHotSwitchState(initialHotSwitch);
+					// Don't automatically set hotSwitchState based on serviceType
+					// Let it remain null unless explicitly set by zones or user interaction
 
 					// If chapter has hot switch, check zones (might override to null if outside zones)
 					if (chapterData.hasHotSwitch && this.zones) {

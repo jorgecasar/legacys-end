@@ -27,7 +27,6 @@ export class LevelDialog extends LitElement {
 	static properties = {
 		config: { type: Object },
 		level: { type: String },
-		hotSwitchState: { type: String },
 		slideIndex: { state: true },
 	};
 
@@ -36,7 +35,6 @@ export class LevelDialog extends LitElement {
 		/** @type {LevelConfig} */
 		this.config = /** @type {LevelConfig} */ ({});
 		this.level = "";
-		this.hotSwitchState = "legacy";
 		this.slideIndex = 0;
 	}
 
@@ -128,9 +126,6 @@ export class LevelDialog extends LitElement {
 					(this.config.architecturalChanges?.join(". ") || "")
 				);
 			case "confirmation":
-				if (this.config.isFinalBoss) {
-					return "Level complete! We are ready for the next challenge.";
-				}
 				return `Level complete! You have obtained ${this.config.reward?.name || "a new object"}.`;
 			default:
 				return "";
@@ -164,12 +159,6 @@ export class LevelDialog extends LitElement {
 	dispatchComplete() {
 		this.dispatchEvent(
 			new CustomEvent("complete", { bubbles: true, composed: true }),
-		);
-	}
-
-	dispatchToggleHotSwitch() {
-		this.dispatchEvent(
-			new CustomEvent("toggle-hot-switch", { bubbles: true, composed: true }),
 		);
 	}
 
@@ -254,22 +243,6 @@ export class LevelDialog extends LitElement {
 				return html`
           <div class="slide-content-between">
             <div></div>
-            ${
-							this.config.isFinalBoss
-								? html`
-                  <div class="console">
-                    <h6 class="console-title">CONTROL CONSOLE</h6>
-                    <div class="console-controls">
-                      <div class="status-dot legacy ${this.hotSwitchState === "legacy" ? "pulse" : ""}"></div>
-                      <wa-button class="switch-btn" @click="${this.dispatchToggleHotSwitch}">SWITCH CONTEXT</wa-button>
-                      <div class="status-dot new ${this.hotSwitchState === "new" ? "pulse" : ""}"></div>
-                    </div>
-                    <div class="console-status-text">
-                      Active: ${this.hotSwitchState === "legacy" ? "LEGACY API" : "NEW V2 API"}
-                    </div>
-                  </div>
-                `
-								: html`
                     <div class="quest-complete-container">
                       <h2 class="quest-complete-title">Level Complete!</h2>
                       ${
@@ -286,8 +259,6 @@ export class LevelDialog extends LitElement {
 													: ""
 											}
                     </div>
-                  `
-						}
 
             <div class="spacer-top"></div>
           </div>
@@ -344,7 +315,7 @@ export class LevelDialog extends LitElement {
                 @click="${this.dispatchComplete}"
                 style="--border-radius: 0; animation: bounce 1s infinite;"
             >
-                ${this.config.isFinalBoss ? "COMPLETE" : "EVOLVE"}
+                EVOLVE
                 <wa-icon slot="end" name="arrow-right"></wa-icon>
             </wa-button>
           `

@@ -134,7 +134,7 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		hasCollectedItem: { type: Boolean },
 		themeMode: { type: String },
 		heroPos: { type: Object },
-		hotSwitchState: { type: String },
+		hotSwitchState: { type: String, attribute: "hot-switch-state" },
 		isEvolving: { type: Boolean },
 		lockedMessage: { type: String },
 		isPaused: { type: Boolean },
