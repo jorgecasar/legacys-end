@@ -94,6 +94,41 @@ describe("GameStateService", () => {
 			expect(service.getState().hotSwitchState).toBe("legacy");
 		});
 
+		it("should throw on invalid hot switch state", () => {
+			expect(() => {
+				service.setHotSwitchState(/** @type {any} */ ("invalid"));
+			}).toThrow("Invalid hot switch state");
+		});
+
+		it("should update theme mode", () => {
+			service.setThemeMode("dark");
+			expect(service.getState().themeMode).toBe("dark");
+		});
+
+		it("should throw on invalid theme mode", () => {
+			expect(() => {
+				service.setThemeMode(/** @type {any} */ ("invalid"));
+			}).toThrow("Invalid theme mode");
+		});
+
+		it("should throw on invalid hero position - negative x", () => {
+			expect(() => {
+				service.setHeroPosition(-1, 50);
+			}).toThrow("Invalid hero position");
+		});
+
+		it("should throw on invalid hero position - x > 100", () => {
+			expect(() => {
+				service.setHeroPosition(101, 50);
+			}).toThrow("Invalid hero position");
+		});
+
+		it("should throw on invalid hero position - non-number", () => {
+			expect(() => {
+				service.setHeroPosition(/** @type {any} */ ("50"), 50);
+			}).toThrow("Invalid hero position");
+		});
+
 		it("should update paused status", () => {
 			service.setPaused(true);
 			expect(service.getState().isPaused).toBe(true);

@@ -1,4 +1,9 @@
 import { Observable } from "../utils/observable.js";
+import {
+	HotSwitchStateValidator,
+	PositionValidator,
+	ThemeModeValidator,
+} from "../utils/validators.js";
 
 /**
  * @typedef {Object} HeroPosition
@@ -81,8 +86,14 @@ export class GameStateService extends Observable {
 	 * Update the hero's position on the game board.
 	 * @param {number} x - X coordinate percentage (0-100)
 	 * @param {number} y - Y coordinate percentage (0-100)
+	 * @throws {Error} If position is invalid
 	 */
 	setHeroPosition(x, y) {
+		const validation = PositionValidator.validate(x, y);
+		if (!validation.isValid) {
+			const errors = validation.errors.map((e) => e.message).join(", ");
+			throw new Error(`Invalid hero position: ${errors}`);
+		}
 		this.setState({ heroPos: { x, y } });
 	}
 
@@ -106,8 +117,14 @@ export class GameStateService extends Observable {
 	 * Change the active Service Context (Demonstrated in Level 6).
 	 * This simulates switching between different backend API implementations.
 	 * @param {HotSwitchState} state - The context identifier
+	 * @throws {Error} If state is invalid
 	 */
 	setHotSwitchState(state) {
+		const validation = HotSwitchStateValidator.validate(state);
+		if (!validation.isValid) {
+			const errors = validation.errors.map((e) => e.message).join(", ");
+			throw new Error(`Invalid hot switch state: ${errors}`);
+		}
 		this.setState({ hotSwitchState: state });
 	}
 
@@ -136,10 +153,16 @@ export class GameStateService extends Observable {
 	}
 
 	/**
-	 * Toggle the visual theme of the game zone (Level 2).
-	 * @param {ThemeMode} mode - The theme mode
+	 * Set the visual theme mode.
+	 * @param {ThemeMode} mode - Theme mode ('light' or 'dark')
+	 * @throws {Error} If mode is invalid
 	 */
 	setThemeMode(mode) {
+		const validation = ThemeModeValidator.validate(mode);
+		if (!validation.isValid) {
+			const errors = validation.errors.map((e) => e.message).join(", ");
+			throw new Error(`Invalid theme mode: ${errors}`);
+		}
 		this.setState({ themeMode: mode });
 	}
 
