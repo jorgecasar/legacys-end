@@ -18,7 +18,7 @@
 		"test:ui": "vitest --ui",
 		"localize:extract": "lit-localize extract",
 		"localize:build": "lit-localize build",
-		"prepare": "husky"
+		"prepare": "husky || true"
 	},
 	"dependencies": {
 		"@awesome.me/webawesome": "^3.0.0",
@@ -39,6 +39,7 @@
 		"@vitest/browser-playwright": "^4.0.15",
 		"@vitest/coverage-v8": "^4.0.15",
 		"husky": "^9.1.7",
+		"lint-staged": "^16.2.7",
 		"lit-analyzer": "^2.0.3",
 		"playwright": "^1.57.0",
 		"typescript": "^5.9.3",
