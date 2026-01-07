@@ -10,6 +10,7 @@ import { InteractionController } from "../controllers/interaction-controller.js"
  * @property {import('../services/game-state-service.js').GameStateService} gameState
  * @property {import('../controllers/quest-controller.js').QuestController} questController
  * @property {import('../services/progress-service.js').ProgressService} progressService
+ * @property {import('../managers/game-session-manager.js').GameSessionManager} sessionManager
  * @property {(id: string) => any} getChapterData
  * @typedef {import('lit').LitElement & InteractionAppHost} InteractionApp
  */
@@ -49,5 +50,8 @@ export function setupInteraction(host, app) {
 			hasCollectedItem: app.hasCollectedItem,
 		}),
 		getNpcPosition: () => app.getChapterData(app.chapterId)?.npc?.position,
+		...(app.sessionManager?._interactWithNpcUseCase
+			? { interactWithNpcUseCase: app.sessionManager._interactWithNpcUseCase }
+			: {}),
 	});
 }

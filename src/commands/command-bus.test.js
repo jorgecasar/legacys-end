@@ -319,4 +319,35 @@ describe("CommandBus", () => {
 			expect(commandBus.canRedo()).toBe(true);
 		});
 	});
+
+	describe("Recording", () => {
+		it("should record commands when active", async () => {
+			const command = { name: "TestCommand", execute: vi.fn() };
+			commandBus.startRecording();
+			await commandBus.execute(command);
+			const recorded = commandBus.stopRecording();
+
+			expect(recorded).toHaveLength(1);
+			expect(recorded[0]).toBe(command);
+			expect(commandBus.isRecording()).toBe(false);
+		});
+
+		it("should not record commands when inactive", async () => {
+			const command = { name: "TestCommand", execute: vi.fn() };
+			await commandBus.execute(command);
+			const recorded = commandBus.stopRecording();
+
+			expect(recorded).toHaveLength(0);
+		});
+
+		it("should clear recorded commands on startRecording", async () => {
+			const command = { name: "TestCommand", execute: vi.fn() };
+			commandBus.startRecording();
+			await commandBus.execute(command);
+			commandBus.startRecording(); // Should clear
+			const recorded = commandBus.stopRecording();
+
+			expect(recorded).toHaveLength(0);
+		});
+	});
 });

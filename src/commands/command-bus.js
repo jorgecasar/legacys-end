@@ -26,6 +26,9 @@ export class CommandBus {
 		this.middleware = [];
 
 		this.maxHistorySize = options.maxHistorySize || 100;
+		this._isRecording = false;
+		/** @type {Array<import('./i-command.js').ICommand>} */
+		this._recordedCommands = [];
 	}
 
 	/**
@@ -87,6 +90,11 @@ export class CommandBus {
 
 				// Clear undo stack (new action invalidates redo)
 				this.undoStack = [];
+			}
+
+			// Add to recording if active
+			if (this._isRecording) {
+				this._recordedCommands.push(command);
 			}
 
 			logger.debug(
@@ -209,5 +217,36 @@ export class CommandBus {
 	 */
 	canRedo() {
 		return this.undoStack.length > 0;
+	}
+
+	/**
+	 * Start recording commands
+	 */
+	startRecording() {
+		this._isRecording = true;
+		this._recordedCommands = [];
+		logger.debug("[CommandBus] recording started");
+	}
+
+	/**
+	 * Stop recording and return recorded commands
+	 * @returns {Array<import('./i-command.js').ICommand>}
+	 */
+	stopRecording() {
+		this._isRecording = false;
+		const commands = [...this._recordedCommands];
+		this._recordedCommands = [];
+		logger.debug(
+			`[CommandBus] recording stopped (${commands.length} commands)`,
+		);
+		return commands;
+	}
+
+	/**
+	 * Check if currently recording
+	 * @returns {boolean}
+	 */
+	isRecording() {
+		return this._isRecording;
 	}
 }

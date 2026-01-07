@@ -2,6 +2,7 @@ import { ROUTES } from "../constants/routes.js";
 import { logger } from "../services/logger-service.js";
 import { CompleteQuestUseCase } from "../use-cases/complete-quest.js";
 import { ContinueQuestUseCase } from "../use-cases/continue-quest.js";
+import { InteractWithNpcUseCase } from "../use-cases/interact-with-npc.js";
 import { ReturnToHubUseCase } from "../use-cases/return-to-hub.js";
 import { StartQuestUseCase } from "../use-cases/start-quest.js";
 import { Observable } from "../utils/observable.js";
@@ -118,6 +119,17 @@ export class GameSessionManager extends Observable {
 			});
 		}
 		return this.__returnToHubUseCase;
+	}
+
+	/**
+	 * Lazy-initialize InteractWithNpcUseCase
+	 * @returns {InteractWithNpcUseCase}
+	 */
+	get _interactWithNpcUseCase() {
+		if (!this.__interactWithNpcUseCase) {
+			this.__interactWithNpcUseCase = new InteractWithNpcUseCase();
+		}
+		return this.__interactWithNpcUseCase;
 	}
 
 	/**

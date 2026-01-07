@@ -8,6 +8,7 @@ import { styles } from "./legacys-end-app.css.js";
 import { GameSessionManager } from "./managers/game-session-manager.js";
 import { ContextMixin } from "./mixins/context-mixin.js";
 import "./pixel.css";
+import { CollectRewardCommand } from "./commands/collect-reward-command.js";
 import { CommandBus } from "./commands/command-bus.js";
 import { ContinueQuestCommand } from "./commands/continue-quest-command.js";
 import {
@@ -17,6 +18,7 @@ import {
 } from "./commands/middleware.js";
 import { ReturnToHubCommand } from "./commands/return-to-hub-command.js";
 import { StartQuestCommand } from "./commands/start-quest-command.js";
+import { ToggleHotSwitchCommand } from "./commands/toggle-hot-switch-command.js";
 import { GameStateService } from "./services/game-state-service.js";
 import { logger } from "./services/logger-service.js";
 import { ProgressService } from "./services/progress-service.js";
@@ -391,9 +393,15 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 	 * Handle hot switch toggle
 	 */
 	handleToggleHotSwitch() {
-		const newState = this.hotSwitchState === "legacy" ? "new" : "legacy";
-		this.gameState.setHotSwitchState(newState);
-		logger.info("🔄 Hot Switch toggled to:", newState);
+		if (this.commandBus) {
+			this.commandBus.execute(
+				new ToggleHotSwitchCommand({ gameState: this.gameState }),
+			);
+		} else {
+			const newState = this.hotSwitchState === "legacy" ? "new" : "legacy";
+			this.gameState.setHotSwitchState(newState);
+			logger.info("🔄 Hot Switch toggled to:", newState);
+		}
 	}
 
 	/**
@@ -401,7 +409,13 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 	 */
 	handleRewardCollected() {
 		logger.info("🎉 LegacysEndApp received reward-collected event");
-		this.gameState.setRewardCollected(true);
+		if (this.commandBus) {
+			this.commandBus.execute(
+				new CollectRewardCommand({ gameState: this.gameState }),
+			);
+		} else {
+			this.gameState.setRewardCollected(true);
+		}
 		this.requestUpdate(); // Force update just in case
 	}
 

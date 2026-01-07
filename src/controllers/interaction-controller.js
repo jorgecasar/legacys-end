@@ -3,6 +3,7 @@
  */
 
 import { gameConfig } from "../config/game-configuration.js";
+import { InteractWithNpcUseCase } from "../use-cases/interact-with-npc.js";
 
 /**
  * @typedef {import('../services/game-state-service.js').HotSwitchState} HotSwitchState
@@ -26,6 +27,7 @@ import { gameConfig } from "../config/game-configuration.js";
  * @property {(msg: string|null) => void} [onLocked] - Callback for locked features
  * @property {() => InteractionState} [getState] - Accessor for game state
  * @property {() => ({x: number, y: number}|null|undefined)} [getNpcPosition] - Accessor for NPC coordinates
+ * @property {import('../use-cases/interact-with-npc.js').InteractWithNpcUseCase} interactWithNpcUseCase
  */
 
 /**
@@ -52,7 +54,7 @@ export class InteractionController {
 			interactionDistance: gameConfig.gameplay.interactionDistance,
 			onShowDialog: () => {},
 			onVictory: () => {},
-			onLocked: () => {},
+			onLocked: (/** @type {string|null} */ _msg) => {},
 			getState: () => ({
 				level: "",
 				heroPos: { x: 0, y: 0 },
@@ -60,6 +62,7 @@ export class InteractionController {
 				hasCollectedItem: false,
 			}),
 			getNpcPosition: () => null,
+			interactWithNpcUseCase: new InteractWithNpcUseCase(),
 			...options,
 		};
 
@@ -114,21 +117,18 @@ export class InteractionController {
 		const isClose = this.isCloseToNpc();
 		const { chapterData, hotSwitchState, hasCollectedItem } = state;
 
-		// Final Boss Victory condition check
-		if (chapterData?.isFinalBoss && isClose) {
-			if (hotSwitchState === "new") {
-				// Allow dialog to open for final victory sequence
-				this.options.onShowDialog?.();
-			} else {
-				this.options.onLocked?.("REQ: NEW API");
-				setTimeout(() => this.options.onLocked?.(null), 1000);
-			}
-			return;
-		}
+		const result = this.options.interactWithNpcUseCase.execute({
+			isClose,
+			chapterData,
+			hotSwitchState: hotSwitchState || "legacy",
+			hasCollectedItem,
+		});
 
-		// Regular interaction
-		if (isClose && !hasCollectedItem) {
+		if (result.action === "showDialog") {
 			this.options.onShowDialog?.();
+		} else if (result.action === "showLocked") {
+			this.options.onLocked?.(result.message || null);
+			setTimeout(() => this.options.onLocked?.(null), 1000);
 		}
 	}
 }
