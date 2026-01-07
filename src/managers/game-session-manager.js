@@ -159,6 +159,7 @@ export class GameSessionManager extends Observable {
 
 		// Ensure we have fresh data and setup the world
 		const chapterData = chapter; // Full data passed from QuestController.getCurrentChapterData()
+
 		if (chapterData?.startPos) {
 			this.gameState.setHeroPosition(
 				chapterData.startPos.x,
@@ -174,20 +175,25 @@ export class GameSessionManager extends Observable {
 			}
 
 			// Mapping ServiceType to HotSwitchState
-
-			switch (chapterData.serviceType) {
-				case ServiceType.LEGACY:
-					this.gameState.setHotSwitchState("legacy");
-					break;
-				case ServiceType.NEW:
-					this.gameState.setHotSwitchState("new");
-					break;
-				case ServiceType.MOCK:
-					this.gameState.setHotSwitchState("mock");
-					break;
-				default:
+			if (chapterData.serviceType !== undefined) {
+				if (chapterData.serviceType === null) {
 					this.gameState.setHotSwitchState(null);
-					break;
+				} else {
+					switch (chapterData.serviceType) {
+						case ServiceType.LEGACY:
+							this.gameState.setHotSwitchState("legacy");
+							break;
+						case ServiceType.NEW:
+							this.gameState.setHotSwitchState("new");
+							break;
+						case ServiceType.MOCK:
+							this.gameState.setHotSwitchState("mock");
+							break;
+						default:
+							// Do not reset if unknown, keep current or null
+							break;
+					}
+				}
 			}
 		}
 		this.gameState.resetChapterState();

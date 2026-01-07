@@ -105,7 +105,7 @@ export const styles = [
     :host(.injection-legacy-api) .character-img {
        filter: drop-shadow(0 0 10px var(--wa-color-danger-fill-loud));
     }
-	:host(.injection-test-api) .character-img {
+	:host(.injection-mock-api) .character-img {
        filter: drop-shadow(0 0 10px var(--wa-color-warning-fill-loud));
     }
     :host(.injection-new-api) .character-img {

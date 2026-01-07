@@ -83,7 +83,7 @@ export class HeroProfile extends LitElement {
 
 		if (changedProperties.has("hotSwitchState")) {
 			this.classList.remove(
-				"injection-test-api",
+				"injection-mock-api",
 				"injection-legacy-api",
 				"injection-new-api",
 			);
