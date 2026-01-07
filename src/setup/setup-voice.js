@@ -1,3 +1,5 @@
+import { NextDialogSlideCommand } from "../commands/next-dialog-slide-command.js";
+import { PrevDialogSlideCommand } from "../commands/prev-dialog-slide-command.js";
 import { gameConfig } from "../config/game-configuration.js";
 import { VoiceController } from "../controllers/voice-controller.js";
 import { logger } from "../services/logger-service.js";
@@ -33,16 +35,18 @@ export function setupVoice(host, context) {
 			onInteract: () => host.handleInteract(),
 			onPause: () => host.togglePause(),
 			onNextSlide: () => {
-				const dialog = /** @type {LevelDialog} */ (
-					host.shadowRoot.querySelector("level-dialog")
-				);
-				if (dialog) dialog.nextSlide();
+				if (context.commandBus && context.eventBus) {
+					context.commandBus.execute(
+						new NextDialogSlideCommand(context.eventBus),
+					);
+				}
 			},
 			onPrevSlide: () => {
-				const dialog = /** @type {LevelDialog} */ (
-					host.shadowRoot.querySelector("level-dialog")
-				);
-				if (dialog) dialog.prevSlide();
+				if (context.commandBus && context.eventBus) {
+					context.commandBus.execute(
+						new PrevDialogSlideCommand(context.eventBus),
+					);
+				}
 			},
 			onGetDialogText: () => {
 				const dialog = /** @type {LevelDialog} */ (

@@ -7,6 +7,7 @@ import { CheckZonesCommand } from "../../commands/check-zones-command.js";
 import { InteractCommand } from "../../commands/interact-command.js";
 import { MoveHeroCommand } from "../../commands/move-hero-command.js";
 import { PauseGameCommand } from "../../commands/pause-game-command.js";
+import { EVENTS } from "../../constants/events.js";
 import { KeyboardController } from "../../controllers/keyboard-controller.js";
 import { setupCharacterContexts } from "../../setup/setup-character-contexts.js";
 import { setupCollision } from "../../setup/setup-collision.js";
@@ -76,6 +77,20 @@ export class GameView extends LitElement {
 		if (this.app && !this._controllersInitialized) {
 			this.#setupControllers();
 			this._controllersInitialized = true;
+		}
+
+		// Subscribe to dialog events
+		if (this.app?.eventBus) {
+			this.app.eventBus.on(EVENTS.UI.DIALOG_NEXT, this.handleDialogNext);
+			this.app.eventBus.on(EVENTS.UI.DIALOG_PREV, this.handleDialogPrev);
+		}
+	}
+
+	disconnectedCallback() {
+		super.disconnectedCallback();
+		if (this.app?.eventBus) {
+			this.app.eventBus.off(EVENTS.UI.DIALOG_NEXT, this.handleDialogNext);
+			this.app.eventBus.off(EVENTS.UI.DIALOG_PREV, this.handleDialogPrev);
 		}
 	}
 
@@ -370,6 +385,20 @@ export class GameView extends LitElement {
 			}
 		}
 	}
+
+	handleDialogNext = () => {
+		const dialog = /** @type {import('../level-dialog.js').LevelDialog} */ (
+			this.shadowRoot?.querySelector("level-dialog")
+		);
+		if (dialog) dialog.nextSlide();
+	};
+
+	handleDialogPrev = () => {
+		const dialog = /** @type {import('../level-dialog.js').LevelDialog} */ (
+			this.shadowRoot?.querySelector("level-dialog")
+		);
+		if (dialog) dialog.prevSlide();
+	};
 
 	render() {
 		const { config, ui, quest } = this.gameState || {};

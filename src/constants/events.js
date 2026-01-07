@@ -18,6 +18,10 @@ export const EVENTS = {
 		INTERACTION_LOCKED: "interaction-locked",
 		/** @type {'context-changed'} */
 		CONTEXT_CHANGED: "context-changed",
+		/** @type {'dialog-next'} */
+		DIALOG_NEXT: "dialog-next",
+		/** @type {'dialog-prev'} */
+		DIALOG_PREV: "dialog-prev",
 	},
 	SYSTEM: {
 		/** @type {'data-loaded'} */
