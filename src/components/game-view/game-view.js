@@ -120,28 +120,33 @@ export class GameView extends LitElement {
 	#setupControllers() {
 		const context = this.#getGameContext();
 
-		// Initialize keyboard controller (now internal to GameView)
-		this.#setupKeyboard(context);
-
-		// Initialize remaining controllers using context
-		setupGameService(context);
-		setupGameController(this, context);
-		setupVoice(/** @type {any} */ (this), context);
-
-		// Initialize game mechanics controllers
+		// Initialize game mechanics controllers first
 		setupZones(this, context);
 		setupCollision(this, context);
 		setupService(this, context);
-
-		// Initialize context and interaction
 		setupCharacterContexts(this, context);
+
+		// Setup Interaction - CRITICAL: Must be before Voice/Keyboard execution context usage
 		setupInteraction(this, context);
 
-		// Sync core controllers back to app for state mapping and provider updates
+		// Update app refs immediately so updated context has them
 		this.app.interaction = this.interaction;
 		this.app.collision = this.collision;
 		this.app.zones = this.zones;
 		this.app.serviceController = context.serviceController;
+		this.app.characterContexts = context.characterContexts;
+
+		// Re-create context with valid references if needed, or mutate it
+		// Since context is passed by reference, we can mutate it here to ensure downstream consumers get it
+		context.interaction = this.app.interaction;
+
+		// Initialize input controllers (Voice/Keyboard) that depend on Interaction
+		this.#setupKeyboard(context);
+		setupVoice(/** @type {any} */ (this), context);
+
+		// Initialize remaining controllers using context
+		setupGameService(context);
+		setupGameController(this, context);
 		this.app.characterContexts = context.characterContexts;
 
 		// After controllers are initialized, assign providers and load data
