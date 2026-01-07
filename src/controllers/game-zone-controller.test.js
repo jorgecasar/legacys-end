@@ -10,9 +10,7 @@ describe("GameZoneController", () => {
 
 	// Mocks
 	/** @type {any} */
-	let onThemeChange;
-	/** @type {any} */
-	let onContextChange;
+	let eventBus;
 	/** @type {any} */
 	let getChapterData;
 	/** @type {any} */
@@ -25,8 +23,9 @@ describe("GameZoneController", () => {
 			requestUpdate: vi.fn(),
 			updateComplete: Promise.resolve(true),
 		};
-		onThemeChange = vi.fn();
-		onContextChange = vi.fn();
+		eventBus = {
+			emit: vi.fn(),
+		};
 		getChapterData = vi.fn();
 		hasCollectedItem = vi.fn();
 	});
@@ -44,7 +43,7 @@ describe("GameZoneController", () => {
 			controller = new GameZoneController(host, {
 				getChapterData,
 				hasCollectedItem,
-				onThemeChange,
+				eventBus,
 			});
 
 			// Above limit -> Light
@@ -52,14 +51,19 @@ describe("GameZoneController", () => {
 				50,
 				GAME_CONFIG.VIEWPORT.ZONES.THEME.DARK_HEIGHT + 10,
 			);
-			expect(onThemeChange).toHaveBeenCalledWith("light");
+			expect(eventBus.emit).toHaveBeenCalledWith("theme-changed", {
+				theme: "light",
+			});
+			eventBus.emit.mockClear();
 
 			// Below limit -> Dark
 			controller.checkZones(
 				50,
 				GAME_CONFIG.VIEWPORT.ZONES.THEME.DARK_HEIGHT - 10,
 			);
-			expect(onThemeChange).toHaveBeenCalledWith("dark");
+			expect(eventBus.emit).toHaveBeenCalledWith("theme-changed", {
+				theme: "dark",
+			});
 		});
 
 		it("should NOT trigger theme change if item is NOT collected", () => {
@@ -69,11 +73,11 @@ describe("GameZoneController", () => {
 			controller = new GameZoneController(host, {
 				getChapterData,
 				hasCollectedItem,
-				onThemeChange,
+				eventBus,
 			});
 
 			controller.checkZones(50, 10); // Should be dark
-			expect(onThemeChange).not.toHaveBeenCalled();
+			expect(eventBus.emit).not.toHaveBeenCalled();
 		});
 
 		it("should NOT trigger theme change if chapter has no zones", () => {
@@ -83,11 +87,11 @@ describe("GameZoneController", () => {
 			controller = new GameZoneController(host, {
 				getChapterData,
 				hasCollectedItem,
-				onThemeChange,
+				eventBus,
 			});
 
 			controller.checkZones(50, 10);
-			expect(onThemeChange).not.toHaveBeenCalled();
+			expect(eventBus.emit).not.toHaveBeenCalled();
 		});
 	});
 
@@ -96,26 +100,32 @@ describe("GameZoneController", () => {
 			getChapterData.mockReturnValue({ hasHotSwitch: true });
 			controller = new GameZoneController(host, {
 				getChapterData,
-				onContextChange,
+				eventBus,
 			});
 		});
 
 		it("should detect legacy zone", () => {
 			// Legacy Zone: x[50-100], y[40-100]
 			controller.checkZones(75, 75);
-			expect(onContextChange).toHaveBeenCalledWith("legacy");
+			expect(eventBus.emit).toHaveBeenCalledWith("context-changed", {
+				context: "legacy",
+			});
 		});
 
 		it("should detect new zone", () => {
 			// New Zone: x[0-50), y[40-100]
 			controller.checkZones(25, 75);
-			expect(onContextChange).toHaveBeenCalledWith("new");
+			expect(eventBus.emit).toHaveBeenCalledWith("context-changed", {
+				context: "new",
+			});
 		});
 
 		it("should detect neutral zone", () => {
 			// Neutral: y < 40
 			controller.checkZones(50, 10);
-			expect(onContextChange).toHaveBeenCalledWith(null);
+			expect(eventBus.emit).toHaveBeenCalledWith("context-changed", {
+				context: null,
+			});
 		});
 	});
 });

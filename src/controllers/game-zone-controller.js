@@ -1,3 +1,4 @@
+import { EVENTS } from "../constants/events.js";
 import { ProcessGameZoneInteractionUseCase } from "../use-cases/process-game-zone-interaction.js";
 /**
  * @typedef {import("lit").ReactiveController} ReactiveController
@@ -5,13 +6,12 @@ import { ProcessGameZoneInteractionUseCase } from "../use-cases/process-game-zon
  * @typedef {import("../services/game-state-service.js").ThemeMode} ThemeMode
  * @typedef {import("../services/game-state-service.js").HotSwitchState} HotSwitchState
  * @typedef {import("../content/quests/quest-types.js").LevelConfig} LevelConfig
+ * @typedef {import("../core/event-bus.js").EventBus} EventBus
  */
 
 /**
  * @typedef {Object} GameZoneOptions
- * @property {function(ThemeMode): void} [onThemeChange] - Callback when theme changes
- * @property {function(HotSwitchState): void} [onContextChange] - Callback when API context changes
- * @property {function(): LevelConfig|null} [getChapterData] - Callback to get current chapter config
+ * @property {EventBus} [eventBus] - Event bus for emitting events
  * @property {function(): LevelConfig|null} [getChapterData] - Callback to get current chapter config
  * @property {function(): boolean} [hasCollectedItem] - Callback to check if item is collected
  * @property {ProcessGameZoneInteractionUseCase} [processGameZoneInteraction] - Use case
@@ -35,8 +35,7 @@ export class GameZoneController {
 		this.host = host;
 		/** @type {Required<GameZoneOptions>} */
 		this.options = {
-			onThemeChange: () => {},
-			onContextChange: () => {},
+			eventBus: /** @type {any} */ (null),
 			getChapterData: () => null,
 			hasCollectedItem: () => false,
 			processGameZoneInteraction: new ProcessGameZoneInteractionUseCase(),
@@ -77,10 +76,14 @@ export class GameZoneController {
 		});
 
 		results.forEach((result) => {
-			if (result.type === "THEME_CHANGE") {
-				this.options.onThemeChange(result.payload);
-			} else if (result.type === "CONTEXT_CHANGE") {
-				this.options.onContextChange(result.payload);
+			if (result.type === "THEME_CHANGE" && this.options.eventBus) {
+				this.options.eventBus.emit(EVENTS.UI.THEME_CHANGED, {
+					theme: result.payload,
+				});
+			} else if (result.type === "CONTEXT_CHANGE" && this.options.eventBus) {
+				this.options.eventBus.emit(EVENTS.UI.CONTEXT_CHANGED, {
+					context: result.payload,
+				});
 			}
 		});
 	}

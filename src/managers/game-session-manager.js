@@ -104,6 +104,18 @@ export class GameSessionManager extends Observable {
 			EVENTS.QUEST.RETURN_TO_HUB,
 			this._handleReturnToHub.bind(this),
 		);
+		this.eventBus.on(
+			EVENTS.QUEST.RETURN_TO_HUB,
+			this._handleReturnToHub.bind(this),
+		);
+		this.eventBus.on(
+			EVENTS.UI.THEME_CHANGED,
+			this._handleThemeChange.bind(this),
+		);
+		this.eventBus.on(
+			EVENTS.UI.CONTEXT_CHANGED,
+			this._handleContextChange.bind(this),
+		);
 	}
 
 	/**
@@ -196,6 +208,26 @@ export class GameSessionManager extends Observable {
 	_handleReturnToHub() {
 		this.gameState.setState({ isQuestCompleted: false, isPaused: false });
 		this.returnToHub();
+	}
+
+	/**
+	 * Handle theme change event
+	 * @param {Object} payload
+	 * @param {import('../services/game-state-service').ThemeMode} payload.theme
+	 */
+	_handleThemeChange({ theme }) {
+		this.gameState.setThemeMode(theme);
+	}
+
+	/**
+	 * Handle context change event
+	 * @param {Object} payload
+	 * @param {import('../services/game-state-service').HotSwitchState} payload.context
+	 */
+	_handleContextChange({ context }) {
+		if (this.gameState.getState().hotSwitchState !== context) {
+			this.gameState.setHotSwitchState(context);
+		}
 	}
 
 	/**

@@ -32,6 +32,8 @@ describe("GameSessionManager", () => {
 			setEvolving: vi.fn(),
 			setState: vi.fn(),
 			resetChapterState: vi.fn(),
+			setThemeMode: vi.fn(),
+			setHotSwitchState: vi.fn(),
 		};
 
 		// Mock ProgressService
@@ -180,6 +182,31 @@ describe("GameSessionManager", () => {
 				isQuestCompleted: false,
 				isPaused: false,
 			});
+		});
+
+		it("should handle theme-changed event (Refactor: Event-driven zones)", () => {
+			manager.setupEventListeners();
+			const themeCallback = mockEventBus.on.mock.calls.find(
+				(/** @type {any} */ call) => call[0] === "theme-changed",
+			)[1];
+
+			themeCallback({ theme: "dark" });
+
+			expect(mockGameState.setThemeMode).toHaveBeenCalledWith("dark");
+		});
+
+		it("should handle context-changed event (Refactor: Event-driven zones)", () => {
+			manager.setupEventListeners();
+			// Mock initial state to be different
+			mockGameState.getState.mockReturnValue({ hotSwitchState: "legacy" });
+
+			const contextCallback = mockEventBus.on.mock.calls.find(
+				(/** @type {any} */ call) => call[0] === "context-changed",
+			)[1];
+
+			contextCallback({ context: "new" });
+
+			expect(mockGameState.setHotSwitchState).toHaveBeenCalledWith("new");
 		});
 	});
 
