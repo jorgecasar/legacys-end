@@ -75,16 +75,16 @@ export class VoiceController {
 		/** @type {VoiceControllerOptions} */
 
 		this.options = {
-			onMove: (_dx, _dy) => { },
-			onInteract: () => { },
-			onPause: () => { },
-			onNextSlide: () => { },
-			onPrevSlide: () => { },
-			onMoveToNpc: () => { },
-			onMoveToExit: () => { },
+			onMove: (_dx, _dy) => {},
+			onInteract: () => {},
+			onPause: () => {},
+			onNextSlide: () => {},
+			onPrevSlide: () => {},
+			onMoveToNpc: () => {},
+			onMoveToExit: () => {},
 			onGetDialogText: () => "",
 			onGetContext: () => ({ isDialogOpen: false, isRewardCollected: false }),
-			onDebugAction: (_action, _value) => { },
+			onDebugAction: (_action, _value) => {},
 			isEnabled: () => false,
 			language: document.documentElement.lang.startsWith("es")
 				? "es-ES"
@@ -380,7 +380,7 @@ export class VoiceController {
 	 */
 	executeAction(action, value, lang = null) {
 		const language = lang || this.options.language || "en-US";
-		executeVoiceAction(action, value, /** @type {any} */(this), language);
+		executeVoiceAction(action, value, /** @type {any} */ (this), language);
 	}
 
 	celebrateChapter() {
@@ -389,15 +389,15 @@ export class VoiceController {
 
 		const phrases = isEn
 			? [
-				"Chapter complete! The Monolith weakens. Onward!",
-				"System update successful! Let's keep going!",
-				"Victory! We've reclaimed another sector of the Sovereignty!",
-			]
+					"Chapter complete! The Monolith weakens. Onward!",
+					"System update successful! Let's keep going!",
+					"Victory! We've reclaimed another sector of the Sovereignty!",
+				]
 			: [
-				"¡Capítulo completado! ¡El Monolito se debilita! ¡Sigamos!",
-				"¡Actualización del sistema completada! ¡Hacia el siguiente sector!",
-				"¡Victoria! ¡Hemos recuperado otro sector de la Soberanía!",
-			];
+					"¡Capítulo completado! ¡El Monolito se debilita! ¡Sigamos!",
+					"¡Actualización del sistema completada! ¡Hacia el siguiente sector!",
+					"¡Victoria! ¡Hemos recuperado otro sector de la Soberanía!",
+				];
 
 		const phrase = phrases[Math.floor(Math.random() * phrases.length)];
 		this.speak(phrase, lang);
