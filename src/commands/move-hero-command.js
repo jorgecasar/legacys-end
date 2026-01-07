@@ -10,11 +10,13 @@ export class MoveHeroCommand {
 	 * @param {import('../services/game-state-service.js').GameStateService} params.gameState
 	 * @param {number} params.dx - Delta X (change in X position)
 	 * @param {number} params.dy - Delta Y (change in Y position)
+	 * @param {() => void} [params.onMove] - Optional callback after move
 	 */
-	constructor({ gameState, dx, dy }) {
+	constructor({ gameState, dx, dy, onMove }) {
 		this.gameState = gameState;
 		this.dx = dx;
 		this.dy = dy;
+		this.onMove = onMove;
 		/** @type {{x: number, y: number} | null} */
 		this.previousPos = null;
 		this.name = "MoveHero";
@@ -42,6 +44,9 @@ export class MoveHeroCommand {
 
 		// Execute move
 		this.gameState.setHeroPosition(current.x + this.dx, current.y + this.dy);
+
+		// Trigger callback if provided
+		this.onMove?.();
 	}
 
 	/**
@@ -50,6 +55,9 @@ export class MoveHeroCommand {
 	undo() {
 		if (this.previousPos) {
 			this.gameState.setHeroPosition(this.previousPos.x, this.previousPos.y);
+
+			// Trigger callback if provided
+			this.onMove?.();
 		}
 	}
 }

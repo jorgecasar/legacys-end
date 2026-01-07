@@ -21,7 +21,7 @@ export class ReturnToHubUseCase {
 	/**
 	 * Execute the use case
 	 * @param {boolean} replace - Whether to replace history entry
-	 * @returns {{success: boolean}}
+	 * @returns {{success: boolean, error?: Error}}
 	 */
 	execute(replace = false) {
 		try {
@@ -40,7 +40,10 @@ export class ReturnToHubUseCase {
 			return { success: true };
 		} catch (error) {
 			logger.error("Failed to return to hub:", error);
-			return { success: false };
+			return {
+				success: false,
+				error: error instanceof Error ? error : new Error(String(error)),
+			};
 		}
 	}
 }

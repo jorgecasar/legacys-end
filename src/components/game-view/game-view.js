@@ -1,6 +1,9 @@
 import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/card/card.js";
 import { html, LitElement } from "lit";
+import { InteractCommand } from "../../commands/interact-command.js";
+import { MoveHeroCommand } from "../../commands/move-hero-command.js";
+import { PauseGameCommand } from "../../commands/pause-game-command.js";
 import { KeyboardController } from "../../controllers/keyboard-controller.js";
 import { setupCharacterContexts } from "../../setup/setup-character-contexts.js";
 import { setupCollision } from "../../setup/setup-collision.js";
@@ -127,6 +130,7 @@ export class GameView extends LitElement {
 	#setupKeyboard() {
 		this.keyboard = new KeyboardController(this, {
 			speed: 2.5,
+			commandBus: this.app?.commandBus,
 			onMove: (dx, dy) => this.handleMove(dx, dy),
 			onInteract: () => this.handleInteract(),
 			onPause: () => this.togglePause(),
@@ -144,38 +148,74 @@ export class GameView extends LitElement {
 			this.stopAutoMove();
 		}
 
-		const currentConfig = this.app.questController?.currentChapter;
-		if (!currentConfig) return;
+		if (this.app?.commandBus) {
+			this.app.commandBus.execute(
+				new MoveHeroCommand({
+					gameState: this.app.gameState,
+					dx,
+					dy,
+					onMove: () => {
+						// Post-move logic (zones, collision)
+						const state = this.app.gameState.getState();
+						const { x, y } = state.heroPos;
+						const currentConfig = this.app.questController?.currentChapter;
 
-		const state = this.app.gameState.getState();
-		let { x, y } = state.heroPos;
+						if (this.app.questController?.hasExitZone() && this.collision) {
+							this.collision.checkExitZone(
+								x,
+								y,
+								currentConfig?.exitZone,
+								state.hasCollectedItem,
+							);
+						}
 
-		x += dx;
-		y += dy;
-
-		// Clamp to boundaries
-		x = Math.max(2, Math.min(98, x));
-		y = Math.max(2, Math.min(98, y));
-
-		// Check Exit Collision
-		if (this.app.questController?.hasExitZone() && this.collision) {
-			this.collision.checkExitZone(
-				x,
-				y,
-				currentConfig.exitZone,
-				state.hasCollectedItem,
+						this.zones?.checkZones(x, y);
+					},
+				}),
 			);
-		}
+		} else {
+			// Fallback for when command bus is not available
+			const currentConfig = this.app.questController?.currentChapter;
+			if (!currentConfig) return;
 
-		this.app.gameState.setHeroPosition(x, y);
-		this.zones?.checkZones(x, y);
+			const state = this.app.gameState.getState();
+			let { x, y } = state.heroPos;
+
+			x += dx;
+			y += dy;
+
+			// Clamp to boundaries
+			x = Math.max(2, Math.min(98, x));
+			y = Math.max(2, Math.min(98, y));
+
+			// Check Exit Collision
+			if (this.app.questController?.hasExitZone() && this.collision) {
+				this.collision.checkExitZone(
+					x,
+					y,
+					currentConfig.exitZone,
+					state.hasCollectedItem,
+				);
+			}
+
+			this.app.gameState.setHeroPosition(x, y);
+			this.zones?.checkZones(x, y);
+		}
 	}
 
 	/**
 	 * Handle interaction (talk to NPC, etc.)
 	 */
 	handleInteract() {
-		this.interaction?.handleInteract();
+		if (this.app?.commandBus && this.interaction) {
+			this.app.commandBus.execute(
+				new InteractCommand({
+					interactionController: this.interaction,
+				}),
+			);
+		} else {
+			this.interaction?.handleInteract();
+		}
 	}
 
 	/**
@@ -259,10 +299,18 @@ export class GameView extends LitElement {
 	 * Toggle pause state
 	 */
 	togglePause() {
-		// Toggle pause state directly in gameState
-		const currentState = this.gameState?.ui?.isPaused ?? false;
-		if (this.app?.gameState) {
-			this.app.gameState.setPaused(!currentState);
+		if (this.app?.commandBus) {
+			this.app.commandBus.execute(
+				new PauseGameCommand({
+					gameState: this.app.gameState,
+				}),
+			);
+		} else {
+			// Toggle pause state directly in gameState
+			const currentState = this.gameState?.ui?.isPaused ?? false;
+			if (this.app?.gameState) {
+				this.app.gameState.setPaused(!currentState);
+			}
 		}
 	}
 

@@ -8,6 +8,15 @@ import { styles } from "./legacys-end-app.css.js";
 import { GameSessionManager } from "./managers/game-session-manager.js";
 import { ContextMixin } from "./mixins/context-mixin.js";
 import "./pixel.css";
+import { CommandBus } from "./commands/command-bus.js";
+import { ContinueQuestCommand } from "./commands/continue-quest-command.js";
+import {
+	loggingMiddleware,
+	performanceMiddleware,
+	validationMiddleware,
+} from "./commands/middleware.js";
+import { ReturnToHubCommand } from "./commands/return-to-hub-command.js";
+import { StartQuestCommand } from "./commands/start-quest-command.js";
 import { GameStateService } from "./services/game-state-service.js";
 import { logger } from "./services/logger-service.js";
 import { ProgressService } from "./services/progress-service.js";
@@ -95,6 +104,8 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 	services = {};
 	/** @type {import("./managers/game-session-manager.js").GameSessionManager} */
 	sessionManager = /** @type {any} */ (null);
+	/** @type {import("./commands/command-bus.js").CommandBus} */
+	commandBus = /** @type {any} */ (null);
 
 	// Router
 	/** @type {import("./utils/router.js").Router} */
@@ -255,10 +266,17 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 			new: new NewUserService(),
 		};
 
+		// Initialize Command Bus
+		this.commandBus = new CommandBus();
+		this.commandBus.use(validationMiddleware);
+		this.commandBus.use(loggingMiddleware);
+		this.commandBus.use(performanceMiddleware);
+
 		// Initialize Session Manager (after other services are ready)
 		this.sessionManager = new GameSessionManager({
 			gameState: this.gameState,
 			progressService: this.progressService,
+			commandBus: this.commandBus,
 			// Router and questController will be set later in setupControllers/app
 			router: null,
 			questController: null,
@@ -350,7 +368,15 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 	}
 
 	handleQuitToHub() {
-		this.sessionManager.returnToHub();
+		if (this.commandBus) {
+			this.commandBus.execute(
+				new ReturnToHubCommand({
+					returnToHubUseCase: this.sessionManager._returnToHubUseCase,
+				}),
+			);
+		} else {
+			this.sessionManager.returnToHub();
+		}
 	}
 
 	/**
@@ -384,7 +410,15 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 	 */
 	handleReturnToHub() {
 		this.showQuestCompleteDialog = false;
-		this.questController.returnToHub();
+		if (this.commandBus) {
+			this.commandBus.execute(
+				new ReturnToHubCommand({
+					returnToHubUseCase: this.sessionManager._returnToHubUseCase,
+				}),
+			);
+		} else {
+			this.questController.returnToHub();
+		}
 	}
 
 	/**
@@ -448,10 +482,26 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 	}
 
 	handleQuestSelect(/** @type {string} */ questId) {
+		if (this.commandBus) {
+			return this.commandBus.execute(
+				new StartQuestCommand({
+					startQuestUseCase: this.sessionManager._startQuestUseCase,
+					questId,
+				}),
+			);
+		}
 		return this.sessionManager.startQuest(questId);
 	}
 
 	handleContinueQuest(/** @type {string} */ questId) {
+		if (this.commandBus) {
+			return this.commandBus.execute(
+				new ContinueQuestCommand({
+					continueQuestUseCase: this.sessionManager._continueQuestUseCase,
+					questId,
+				}),
+			);
+		}
 		return this.sessionManager.continueQuest(questId);
 	}
 

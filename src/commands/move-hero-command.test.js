@@ -121,4 +121,35 @@ describe("MoveHeroCommand", () => {
 
 		expect(mockGameState.setHeroPosition).toHaveBeenCalledWith(45, 47);
 	});
+
+	it("should trigger onMove callback during execute", () => {
+		const onMove = vi.fn();
+		command = new MoveHeroCommand({
+			gameState: mockGameState,
+			dx: 5,
+			dy: 0,
+			onMove,
+		});
+
+		command.execute();
+
+		expect(onMove).toHaveBeenCalled();
+	});
+
+	it("should trigger onMove callback during undo", () => {
+		const onMove = vi.fn();
+		command = new MoveHeroCommand({
+			gameState: mockGameState,
+			dx: 5,
+			dy: 0,
+			onMove,
+		});
+
+		command.execute();
+		onMove.mockClear();
+
+		command.undo();
+
+		expect(onMove).toHaveBeenCalled();
+	});
 });

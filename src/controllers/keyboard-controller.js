@@ -1,10 +1,12 @@
 /**
  * @typedef {import('lit').ReactiveController} ReactiveController
+ * @typedef {import('../commands/command-bus.js').CommandBus} CommandBus
  */
 
 /**
  * @typedef {Object} KeyboardOptions
  * @property {number} [speed] - Movement speed multiplier (default: 2.5)
+ * @property {CommandBus} [commandBus] - Unified command execution
  * @property {(dx: number, dy: number) => void} [onMove] - Callback for movement input
  * @property {() => void} [onInteract] - Callback for interaction (Space key)
  * @property {() => void} [onPause] - Callback for pause (Escape key)
@@ -32,6 +34,7 @@ export class KeyboardController {
 		/** @type {KeyboardOptions} */
 		this.options = {
 			speed: 2.5,
+			commandBus: undefined,
 			onMove: () => {},
 			onInteract: () => {},
 			onPause: () => {},
@@ -55,6 +58,23 @@ export class KeyboardController {
 	 * @param {KeyboardEvent} e
 	 */
 	handleKeyDown(e) {
+		// Handle Undo/Redo (Ctrl+Z / Ctrl+Y or Shift+Ctrl+Z)
+		if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+			e.preventDefault();
+			if (e.shiftKey) {
+				this.options.commandBus?.redo();
+			} else {
+				this.options.commandBus?.undo();
+			}
+			return;
+		}
+
+		if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
+			e.preventDefault();
+			this.options.commandBus?.redo();
+			return;
+		}
+
 		// Handle Pause (Escape) - Always allowed
 		if (e.code === "Escape") {
 			e.preventDefault();

@@ -7,7 +7,7 @@
 
 /**
  * @typedef {Object} ICommand
- * @property {() => void | Promise<void>} execute - Execute the command
+ * @property {() => any} execute - Execute the command
  * @property {() => void | Promise<void>} [undo] - Undo the command (optional)
  * @property {() => boolean} [canExecute] - Check if command can execute (optional)
  * @property {string} name - Command name for debugging and logging
