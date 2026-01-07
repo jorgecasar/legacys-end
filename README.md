@@ -12,6 +12,7 @@ The project has recently undergone major architectural refactoring (Phase 7) to 
 
 ### Key Concepts
 
+*   **Event-Driven Architecture**: Controllers (`Quest`, `Interaction`, `GameZone`) are fully decoupled from consumers, emitting events via a global `EventBus` instead of direct callbacks.
 *   **Dependency Injection**: Core services and controllers are injected via `IGameContext`, decoupling them from the main application shell.
 *   **Command Pattern**: Game actions (Move, Interact, Pause) are encapsulated as Commands in a Command Bus, enabling replayability and macro recording.
 *   **Use Cases**: Complex domain logic (e.g., `EvaluateChapterTransition`, `ProcessGameZoneInteraction`) is extracted into pure, testable Use Cases.
@@ -26,6 +27,7 @@ The project has recently undergone major architectural refactoring (Phase 7) to 
 *   `src/services/`: Core infrastructure (Progress, Storage, Audio).
 *   `src/components/`: Lit components (Game View, HUD, Dialogs).
 *   `src/setup/`: Dependency injection wiring and initialization.
+*   `src/constants/`: Shared constants, including `EVENTS`.
 
 ## 🚀 Run Locally
 
@@ -43,13 +45,14 @@ The project has recently undergone major architectural refactoring (Phase 7) to 
 
 ## 🧪 Testing
 
-The project maintains a high standard of code quality with **548+ tests** passing.
+The project maintains a high standard of code quality with **550+ tests** passing.
 
 *   **Run all tests:** `npm run test`
 *   **Lint code:** `npm run lint`
 
-## 🛠 Recent Refactors (Phases 6 & 7)
+## 🛠 Recent Refactors (Phases 6 - 8)
 
+*   **Event-Driven**: Complete migration to event-driven controllers for Quest, Zones, and Interaction.
 *   **Decoupled Architecture**: `GameView` no longer depends on `LegacysEndApp`.
 *   **Logic Extraction**: Zone detection and quest progression logic moved to Use Cases.
 *   **Bug Fixes**: Resolved Hero Name display and Dialog interaction issues.
