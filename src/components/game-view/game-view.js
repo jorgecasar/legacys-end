@@ -183,12 +183,8 @@ export class GameView extends LitElement {
 	 * @param {import('../../core/game-context.js').IGameContext} context
 	 */
 	#setupKeyboard(context) {
-		this.keyboard = new KeyboardController(this, {
+		this.keyboard = new KeyboardController(this, context, {
 			speed: 2.5,
-			commandBus: context.commandBus,
-			onMove: (dx, dy) => this.handleMove(dx, dy),
-			onInteract: () => this.handleInteract(),
-			onPause: () => this.togglePause(),
 		});
 	}
 

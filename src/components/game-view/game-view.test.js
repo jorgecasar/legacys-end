@@ -138,25 +138,17 @@ describe("GameView Component", () => {
 			expect(el.keyboard?.options.speed).toBe(2.5);
 		});
 
-		it("should update hero position when keyboard moves", () => {
-			el.keyboard?.options.onMove?.(1, 0);
-			// handleMove logic in GameView calculates new position
-			// With start (0,0) + (1,0) = (1,0). Clamped to min 2 => (2, 0)?
-			// Actually boundaries are 2 to 98.
-			// 0 + 1 = 1. Clamped to 2. y=0 clamped to 2.
+		it("should handle HERO_MOVE_INPUT event", () => {
+			// Directly call the handler as we are testing GameView's reaction
+			el.handleMoveInput({ dx: 1, dy: 0 });
+
+			// Same boundaries logic: min 2. start 0,0 -> 2,2
 			expect(mockApp.gameState.setHeroPosition).toHaveBeenCalledWith(2, 2);
 		});
 
-		it("should call interaction controller when keyboard interacts", () => {
-			if (!el.interaction || !el.keyboard) return; // Guard for null
-			const spy = vi.spyOn(el.interaction, "handleInteract");
-			el.keyboard.options.onInteract?.();
-			expect(spy).toHaveBeenCalled();
-		});
-
-		it("should toggle pause when keyboard pauses", () => {
-			el.keyboard?.options.onPause?.();
-			expect(mockApp.gameState.setPaused).toHaveBeenCalledWith(true);
+		it("should initialize keyboard with correct speed", () => {
+			expect(el.keyboard).toBeDefined();
+			expect(el.keyboard?.options.speed).toBe(2.5);
 		});
 	});
 });

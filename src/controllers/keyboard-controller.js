@@ -3,41 +3,39 @@
  * @typedef {import('../commands/command-bus.js').CommandBus} CommandBus
  */
 
+import { InteractCommand } from "../commands/interact-command.js";
+import { PauseGameCommand } from "../commands/pause-game-command.js";
+import { EVENTS } from "../constants/events.js";
+
 /**
  * @typedef {Object} KeyboardOptions
  * @property {number} [speed] - Movement speed multiplier (default: 2.5)
- * @property {CommandBus} [commandBus] - Unified command execution
- * @property {(dx: number, dy: number) => void} [onMove] - Callback for movement input
- * @property {() => void} [onInteract] - Callback for interaction (Space key)
- * @property {() => void} [onPause] - Callback for pause (Escape key)
  */
 
 /**
  * KeyboardController - Lit Reactive Controller for keyboard input
  *
  * Handles:
- * - Movement keys (WASD, Arrow keys)
- * - Interaction key (Space)
- * - Pause key (Escape)
- * - Prevents default browser behavior
+ * - Movement keys (WASD, Arrow keys) -> HERO_MOVE_INPUT
+ * - Interaction key (Space) -> InteractCommand
+ * - Pause key (Escape) -> PauseGameCommand
+ * - Undo/Redo (Ctrl+Z/Y) -> CommandBus
  *
  * @implements {ReactiveController}
  */
 export class KeyboardController {
 	/**
 	 * @param {import('lit').ReactiveControllerHost} host
+	 * @param {import('../core/game-context.js').IGameContext} context
 	 * @param {Partial<KeyboardOptions>} [options]
 	 */
-	constructor(host, options = {}) {
+	constructor(host, context, options = {}) {
 		/** @type {import('lit').ReactiveControllerHost} */
 		this.host = host;
+		this.context = context;
 		/** @type {KeyboardOptions} */
 		this.options = {
 			speed: 2.5,
-			commandBus: undefined,
-			onMove: () => {},
-			onInteract: () => {},
-			onPause: () => {},
 			...options,
 		};
 
@@ -58,34 +56,42 @@ export class KeyboardController {
 	 * @param {KeyboardEvent} e
 	 */
 	handleKeyDown(e) {
+		const { commandBus, eventBus, interaction, gameState } = this.context;
+
 		// Handle Undo/Redo (Ctrl+Z / Ctrl+Y or Shift+Ctrl+Z)
 		if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
 			e.preventDefault();
 			if (e.shiftKey) {
-				this.options.commandBus?.redo();
+				commandBus?.redo();
 			} else {
-				this.options.commandBus?.undo();
+				commandBus?.undo();
 			}
 			return;
 		}
 
 		if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
 			e.preventDefault();
-			this.options.commandBus?.redo();
+			commandBus?.redo();
 			return;
 		}
 
 		// Handle Pause (Escape) - Always allowed
 		if (e.code === "Escape") {
 			e.preventDefault();
-			this.options.onPause?.();
+			if (commandBus && gameState) {
+				commandBus.execute(new PauseGameCommand({ gameState }));
+			}
 			return;
 		}
 
 		// Handle interaction (Space)
 		if (e.code === "Space") {
 			e.preventDefault();
-			this.options.onInteract?.();
+			if (commandBus && interaction) {
+				commandBus.execute(
+					new InteractCommand({ interactionController: interaction }),
+				);
+			}
 			return;
 		}
 
@@ -112,7 +118,9 @@ export class KeyboardController {
 		}
 
 		if (moveX !== 0 || moveY !== 0) {
-			this.options.onMove?.(moveX, moveY);
+			if (eventBus) {
+				eventBus.emit(EVENTS.UI.HERO_MOVE_INPUT, { dx: moveX, dy: moveY });
+			}
 		}
 	}
 }

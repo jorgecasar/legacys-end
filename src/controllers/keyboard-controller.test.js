@@ -1,128 +1,123 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { InteractCommand } from "../commands/interact-command.js";
+import { PauseGameCommand } from "../commands/pause-game-command.js";
+import { EVENTS } from "../constants/events.js";
 import { KeyboardController } from "./keyboard-controller.js";
 
+// Mock commands
+vi.mock("../commands/interact-command.js");
+vi.mock("../commands/pause-game-command.js");
+
 describe("KeyboardController", () => {
-	/** @type {import("lit").ReactiveControllerHost} */
+	/** @type {any} */
 	let host;
+	/** @type {any} */
+	let context;
 	/** @type {KeyboardController} */
 	let controller;
-
-	// Mock options
-	/** @type {any} */
-	let onMove;
-	/** @type {any} */
-	let onInteract;
-	/** @type {any} */
-	let onPause;
-	let _isEnabled;
+	/** @type {Record<string, Function>} */
+	let eventMap = {};
 
 	beforeEach(() => {
+		// Mock host
 		host = {
 			addController: vi.fn(),
-			removeController: vi.fn(),
 			requestUpdate: vi.fn(),
-			updateComplete: Promise.resolve(true),
 		};
 
-		onMove = vi.fn();
-		onInteract = vi.fn();
-		onPause = vi.fn();
-		_isEnabled = vi.fn().mockReturnValue(true);
+		// Mock context
+		context = {
+			eventBus: {
+				emit: vi.fn(),
+			},
+			commandBus: {
+				execute: vi.fn(),
+				undo: vi.fn(),
+				redo: vi.fn(),
+			},
+			interaction: {},
+			gameState: {},
+		};
+
+		// Mock window event listeners
+		window.addEventListener = vi.fn((event, callback) => {
+			eventMap[event] = callback;
+		});
+		window.removeEventListener = vi.fn((event) => {
+			delete eventMap[event];
+		});
+
+		// Initialize controller
+		// Passing context as 2nd argument (matching implementation)
+		controller = new KeyboardController(host, context, {});
+		controller.hostConnected();
 	});
 
-	it("should initialize correctly", () => {
-		controller = new KeyboardController(host, { speed: 3 });
-		expect(host.addController).toHaveBeenCalledWith(controller);
-		expect(controller.options.speed).toBe(3);
+	afterEach(() => {
+		controller.hostDisconnected();
+		eventMap = {};
+		vi.clearAllMocks();
 	});
 
-	describe("Event Listeners", () => {
-		it("should add event listener on hostConnected", () => {
-			const addEventListenerSpy = vi.spyOn(window, "addEventListener");
-			controller = new KeyboardController(host);
-			controller.hostConnected();
-			expect(addEventListenerSpy).toHaveBeenCalledWith(
-				"keydown",
-				expect.any(Function),
-			);
-			addEventListenerSpy.mockRestore();
-		});
-
-		it("should remove event listener on hostDisconnected", () => {
-			const removeEventListenerSpy = vi.spyOn(window, "removeEventListener");
-			controller = new KeyboardController(host);
-			controller.hostConnected();
-			controller.hostDisconnected();
-			expect(removeEventListenerSpy).toHaveBeenCalledWith(
-				"keydown",
-				expect.any(Function),
-			);
-			removeEventListenerSpy.mockRestore();
-		});
+	it("should register keydown listener on connection", () => {
+		expect(window.addEventListener).toHaveBeenCalledWith(
+			"keydown",
+			expect.any(Function),
+		);
 	});
 
-	describe("Pause Key (Escape)", () => {
-		it("should trigger onPause when Escape is pressed", () => {
-			controller = new KeyboardController(host, { onPause });
-			const event = new KeyboardEvent("keydown", { code: "Escape" });
-			const preventDefaultSpy = vi.spyOn(event, "preventDefault");
+	it("should emit HERO_MOVE_INPUT for arrow keys", () => {
+		const event = { key: "ArrowUp", preventDefault: vi.fn() };
+		eventMap.keydown(event);
 
-			controller.handleKeyDown(event);
-
-			expect(onPause).toHaveBeenCalled();
-			expect(preventDefaultSpy).toHaveBeenCalled();
-		});
+		expect(event.preventDefault).toHaveBeenCalled();
+		expect(context.eventBus.emit).toHaveBeenCalledWith(
+			EVENTS.UI.HERO_MOVE_INPUT,
+			{ dx: 0, dy: -2.5 },
+		);
 	});
 
-	describe("Interaction Key (Space)", () => {
-		it("should trigger onInteract when Space is pressed", () => {
-			controller = new KeyboardController(host, { onInteract });
-			const event = new KeyboardEvent("keydown", { code: "Space" });
-			const preventDefaultSpy = vi.spyOn(event, "preventDefault");
+	it("should emit HERO_MOVE_INPUT for WASD keys", () => {
+		const event = { key: "d", preventDefault: vi.fn() };
+		eventMap.keydown(event);
 
-			controller.handleKeyDown(event);
-
-			expect(onInteract).toHaveBeenCalled();
-			expect(preventDefaultSpy).toHaveBeenCalled();
-		});
+		expect(event.preventDefault).toHaveBeenCalled();
+		expect(context.eventBus.emit).toHaveBeenCalledWith(
+			EVENTS.UI.HERO_MOVE_INPUT,
+			{ dx: 2.5, dy: 0 },
+		);
 	});
 
-	describe("Movement Keys", () => {
-		beforeEach(() => {
-			controller = new KeyboardController(host, {
-				onMove,
-				speed: 2.5,
-			});
-		});
+	it("should execute InteractCommand on Space", () => {
+		const event = { code: "Space", preventDefault: vi.fn() };
+		eventMap.keydown(event);
 
-		it("should move up with ArrowUp", () => {
-			const event = new KeyboardEvent("keydown", { key: "ArrowUp" });
-			controller.handleKeyDown(event);
-			expect(onMove).toHaveBeenCalledWith(0, -2.5);
-		});
+		expect(event.preventDefault).toHaveBeenCalled();
+		expect(context.commandBus.execute).toHaveBeenCalled();
+		expect(InteractCommand).toHaveBeenCalled();
+	});
 
-		it("should move down with ArrowDown", () => {
-			const event = new KeyboardEvent("keydown", { key: "ArrowDown" });
-			controller.handleKeyDown(event);
-			expect(onMove).toHaveBeenCalledWith(0, 2.5);
-		});
+	it("should execute PauseGameCommand on Escape", () => {
+		const event = { code: "Escape", preventDefault: vi.fn() };
+		eventMap.keydown(event);
 
-		it("should move left with ArrowLeft", () => {
-			const event = new KeyboardEvent("keydown", { key: "ArrowLeft" });
-			controller.handleKeyDown(event);
-			expect(onMove).toHaveBeenCalledWith(-2.5, 0);
-		});
+		expect(event.preventDefault).toHaveBeenCalled();
+		expect(context.commandBus.execute).toHaveBeenCalled();
+		expect(PauseGameCommand).toHaveBeenCalled();
+	});
 
-		it("should move right with ArrowRight", () => {
-			const event = new KeyboardEvent("keydown", { key: "ArrowRight" });
-			controller.handleKeyDown(event);
-			expect(onMove).toHaveBeenCalledWith(2.5, 0);
-		});
+	it("should handle undo with Ctrl+Z", () => {
+		// Need to ensure platform independence or assume 'ctrlKey' for test
+		// e.key is 'z', ctrlKey is true.
+		const event = {
+			key: "z",
+			ctrlKey: true,
+			toLowerCase: () => "z",
+			preventDefault: vi.fn(),
+		};
+		eventMap.keydown(event);
 
-		it("should move up with W key", () => {
-			const event = new KeyboardEvent("keydown", { key: "w" });
-			controller.handleKeyDown(event);
-			expect(onMove).toHaveBeenCalledWith(0, -2.5);
-		});
+		expect(event.preventDefault).toHaveBeenCalled();
+		expect(context.commandBus.undo).toHaveBeenCalled();
 	});
 });
