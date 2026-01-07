@@ -26,6 +26,8 @@ export const EVENTS = {
 		SLIDE_CHANGED: "slide-changed",
 		/** @type {'hero-auto-move'} */
 		HERO_AUTO_MOVE: "hero-auto-move",
+		/** @type {'hero-move-input'} */
+		HERO_MOVE_INPUT: "hero-move-input",
 	},
 	SYSTEM: {
 		/** @type {'data-loaded'} */

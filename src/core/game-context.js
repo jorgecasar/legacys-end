@@ -8,6 +8,7 @@
  * @property {import('../services/progress-service.js').ProgressService} progressService
  * @property {import('../services/game-service.js').GameService} [gameService]
  * @property {import("../utils/router.js").Router} [router]
+ * @property {import('../controllers/interaction-controller.js').InteractionController} [interaction]
  * @property {any} [serviceController]
  * @property {any} [characterContexts]
  * @property {Record<string, any>} [services]

@@ -1,7 +1,10 @@
 import { AutoMoveCommand } from "../commands/auto-move-command.js";
+import { InteractCommand } from "../commands/interact-command.js";
 import { NextDialogSlideCommand } from "../commands/next-dialog-slide-command.js";
+import { PauseGameCommand } from "../commands/pause-game-command.js";
 import { PrevDialogSlideCommand } from "../commands/prev-dialog-slide-command.js";
 import { gameConfig } from "../config/game-configuration.js";
+import { EVENTS } from "../constants/events.js";
 import { VoiceController } from "../controllers/voice-controller.js";
 import { logger } from "../services/logger-service.js";
 
@@ -10,11 +13,9 @@ import { logger } from "../services/logger-service.js";
  * @typedef {Object} VoiceHost
  * @property {import('../controllers/game-controller.js').GameController} gameController
  * @property {import('../controllers/interaction-controller.js').InteractionController} interaction
- * @property {(dx: number, dy: number) => void} handleMove
- * @property {() => void} handleInteract
- * @property {() => void} togglePause
  * @property {ShadowRoot} shadowRoot
- /**
+ */
+/**
  * @typedef {LitElement & VoiceHost} VoiceElement
  * @typedef {import('../core/game-context.js').IGameContext} IGameContext
  */
@@ -27,9 +28,25 @@ import { logger } from "../services/logger-service.js";
 export function setupVoice(host, context) {
 	/** @type {VoiceElement & { voice: VoiceController }} */ (host).voice =
 		new VoiceController(host, {
-			onMove: (dx, dy) => host.handleMove(dx, dy),
-			onInteract: () => host.handleInteract(),
-			onPause: () => host.togglePause(),
+			onMove: (dx, dy) => {
+				if (context.eventBus) {
+					context.eventBus.emit(EVENTS.UI.HERO_MOVE_INPUT, { dx, dy });
+				}
+			},
+			onInteract: () => {
+				if (context.commandBus && context.interaction) {
+					context.commandBus.execute(
+						new InteractCommand({ interactionController: context.interaction }),
+					);
+				}
+			},
+			onPause: () => {
+				if (context.commandBus && context.gameState) {
+					context.commandBus.execute(
+						new PauseGameCommand({ gameState: context.gameState }),
+					);
+				}
+			},
 			onNextSlide: () => {
 				if (context.commandBus && context.eventBus) {
 					context.commandBus.execute(
