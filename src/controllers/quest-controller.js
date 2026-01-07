@@ -5,6 +5,7 @@
 import { logger } from "../services/logger-service.js";
 import { ProgressService } from "../services/progress-service.js";
 import * as DefaultRegistry from "../services/quest-registry-service.js";
+import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-transition.js";
 
 /**
  * @typedef {import("../services/quest-registry-service.js").Quest} Quest
@@ -16,7 +17,9 @@ import * as DefaultRegistry from "../services/quest-registry-service.js";
  * @property {(quest: Quest) => void} [onQuestStart] - Callback when quest starts
  * @property {(chapter: Chapter, index: number) => void} [onChapterChange] - Callback when chapter changes
  * @property {(quest: Quest) => void} [onQuestComplete] - Callback when quest completes
+ * @property {(quest: Quest) => void} [onQuestComplete] - Callback when quest completes
  * @property {() => void} [onReturnToHub] - Callback when returning to hub
+ * @property {EvaluateChapterTransitionUseCase} [evaluateChapterTransition] - Use case
  */
 
 /**
@@ -53,6 +56,7 @@ export class QuestController {
 			onChapterChange: (_chapter, _index) => {},
 			onQuestComplete: (_quest) => {},
 			onReturnToHub: () => {},
+			evaluateChapterTransition: new EvaluateChapterTransitionUseCase(),
 			...options,
 		};
 
@@ -380,10 +384,17 @@ export class QuestController {
 		// Mark chapter as completed
 		this.progressService.completeChapter(this.currentChapter.id);
 
-		// Check if there are more chapters
-		if (this.hasNextChapter()) {
+		// Determine next step
+		const result = this.options.evaluateChapterTransition?.execute({
+			quest: this.currentQuest,
+			currentIndex: this.currentChapterIndex,
+		});
+
+		if (!result) return;
+
+		if (result.action === "ADVANCE") {
 			this.nextChapter();
-		} else {
+		} else if (result.action === "COMPLETE") {
 			this.completeQuest();
 		}
 	}

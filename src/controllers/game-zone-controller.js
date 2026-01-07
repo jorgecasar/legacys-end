@@ -1,4 +1,4 @@
-import { GAME_CONFIG } from "../constants/game-config.js";
+import { ProcessGameZoneInteractionUseCase } from "../use-cases/process-game-zone-interaction.js";
 /**
  * @typedef {import("lit").ReactiveController} ReactiveController
  * @typedef {import("lit").ReactiveControllerHost} ReactiveControllerHost
@@ -12,7 +12,9 @@ import { GAME_CONFIG } from "../constants/game-config.js";
  * @property {function(ThemeMode): void} [onThemeChange] - Callback when theme changes
  * @property {function(HotSwitchState): void} [onContextChange] - Callback when API context changes
  * @property {function(): LevelConfig|null} [getChapterData] - Callback to get current chapter config
+ * @property {function(): LevelConfig|null} [getChapterData] - Callback to get current chapter config
  * @property {function(): boolean} [hasCollectedItem] - Callback to check if item is collected
+ * @property {ProcessGameZoneInteractionUseCase} [processGameZoneInteraction] - Use case
  */
 
 /**
@@ -37,6 +39,7 @@ export class GameZoneController {
 			onContextChange: () => {},
 			getChapterData: () => null,
 			hasCollectedItem: () => false,
+			processGameZoneInteraction: new ProcessGameZoneInteractionUseCase(),
 			...options,
 		};
 
@@ -66,58 +69,19 @@ export class GameZoneController {
 		const chapter = this.options.getChapterData();
 		if (!chapter) return;
 
-		// Theme Zones (Dark/Light based on Y position)
-		if (chapter.hasThemeZones && this.options.hasCollectedItem()) {
-			const theme = this.getThemeForPosition(x, y);
-			this.options.onThemeChange(theme);
-		}
+		const results = this.options.processGameZoneInteraction.execute({
+			x,
+			y,
+			chapter,
+			hasCollectedItem: this.options.hasCollectedItem(),
+		});
 
-		// Context Zones (Legacy/New API)
-		if (chapter.hasHotSwitch) {
-			const context = this.getContextForPosition(x, y);
-			this.options.onContextChange(context);
-		}
-	}
-
-	/**
-	 * Get theme mode based on position (Level 2)
-	 * @param {number} _x - X position
-	 * @param {number} y - Y position
-	 * @returns {ThemeMode} 'dark' or 'light'
-	 */
-	getThemeForPosition(_x, y) {
-		if (y <= GAME_CONFIG.VIEWPORT.ZONES.THEME.DARK_HEIGHT) {
-			return "dark";
-		}
-		return "light";
-	}
-
-	/**
-	 * Get context zone based on position (Level 6)
-	 * @param {number} x - X position
-	 * @param {number} y - Y position
-	 * @returns {HotSwitchState} 'legacy', 'new', or null
-	 */
-	getContextForPosition(x, y) {
-		const legacyZone = { xMin: 50, xMax: 100, yMin: 40, yMax: 100 };
-		const newZone = { xMin: 0, xMax: 50, yMin: 40, yMax: 100 };
-
-		if (
-			x >= legacyZone.xMin &&
-			x <= legacyZone.xMax &&
-			y >= legacyZone.yMin &&
-			y <= legacyZone.yMax
-		) {
-			return "legacy";
-		} else if (
-			x >= newZone.xMin &&
-			x < newZone.xMax &&
-			y >= newZone.yMin &&
-			y <= newZone.yMax
-		) {
-			return "new";
-		}
-
-		return null; // Neutral zone
+		results.forEach((result) => {
+			if (result.type === "THEME_CHANGE") {
+				this.options.onThemeChange(result.payload);
+			} else if (result.type === "CONTEXT_CHANGE") {
+				this.options.onContextChange(result.payload);
+			}
+		});
 	}
 }
