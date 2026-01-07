@@ -116,6 +116,14 @@ export class GameSessionManager extends Observable {
 			EVENTS.UI.CONTEXT_CHANGED,
 			this._handleContextChange.bind(this),
 		);
+		this.eventBus.on(
+			EVENTS.UI.DIALOG_OPENED,
+			this._handleShowDialog.bind(this),
+		);
+		this.eventBus.on(
+			EVENTS.UI.INTERACTION_LOCKED,
+			this._handleInteractionLocked.bind(this),
+		);
 	}
 
 	/**
@@ -228,6 +236,22 @@ export class GameSessionManager extends Observable {
 		if (this.gameState.getState().hotSwitchState !== context) {
 			this.gameState.setHotSwitchState(context);
 		}
+	}
+
+	/**
+	 * Handle show dialog event
+	 */
+	_handleShowDialog() {
+		this.gameState.setShowDialog(true);
+	}
+
+	/**
+	 * Handle interaction locked event
+	 * @param {Object} payload
+	 * @param {string|null} payload.message
+	 */
+	_handleInteractionLocked({ message }) {
+		this.gameState.setLockedMessage(message);
 	}
 
 	/**

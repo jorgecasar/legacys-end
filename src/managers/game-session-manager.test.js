@@ -34,6 +34,8 @@ describe("GameSessionManager", () => {
 			resetChapterState: vi.fn(),
 			setThemeMode: vi.fn(),
 			setHotSwitchState: vi.fn(),
+			setShowDialog: vi.fn(),
+			setLockedMessage: vi.fn(),
 		};
 
 		// Mock ProgressService
@@ -207,6 +209,28 @@ describe("GameSessionManager", () => {
 			contextCallback({ context: "new" });
 
 			expect(mockGameState.setHotSwitchState).toHaveBeenCalledWith("new");
+		});
+
+		it("should handle dialog-opened event (Refactor: Event-driven interaction)", () => {
+			manager.setupEventListeners();
+			const dialogCallback = mockEventBus.on.mock.calls.find(
+				(/** @type {any} */ call) => call[0] === "dialog-opened",
+			)[1];
+
+			dialogCallback();
+
+			expect(mockGameState.setShowDialog).toHaveBeenCalledWith(true);
+		});
+
+		it("should handle interaction-locked event (Refactor: Event-driven interaction)", () => {
+			manager.setupEventListeners();
+			const lockedCallback = mockEventBus.on.mock.calls.find(
+				(/** @type {any} */ call) => call[0] === "interaction-locked",
+			)[1];
+
+			lockedCallback({ message: "Locked!" });
+
+			expect(mockGameState.setLockedMessage).toHaveBeenCalledWith("Locked!");
 		});
 	});
 

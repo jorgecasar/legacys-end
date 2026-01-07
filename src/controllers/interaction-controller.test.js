@@ -9,10 +9,7 @@ describe("InteractionController", () => {
 
 	// Mock options
 	/** @type {any} */
-	let onShowDialog;
-	let _onVictory;
-	/** @type {any} */
-	let onLocked;
+	let eventBus;
 	/** @type {any} */
 	let getState;
 	/** @type {any} */
@@ -26,9 +23,9 @@ describe("InteractionController", () => {
 			updateComplete: Promise.resolve(true),
 		};
 
-		onShowDialog = vi.fn();
-		_onVictory = vi.fn();
-		onLocked = vi.fn();
+		eventBus = {
+			emit: vi.fn(),
+		};
 		getState = vi.fn();
 		getNpcPosition = vi.fn();
 
@@ -90,11 +87,11 @@ describe("InteractionController", () => {
 			controller = new InteractionController(host, {
 				getState,
 				getNpcPosition,
-				onShowDialog,
+				eventBus,
 			});
 
 			controller.handleInteract();
-			expect(onShowDialog).toHaveBeenCalled();
+			expect(eventBus.emit).toHaveBeenCalledWith("dialog-opened");
 		});
 
 		it("should NOT show dialog if item already collected", () => {
@@ -105,11 +102,11 @@ describe("InteractionController", () => {
 			controller = new InteractionController(host, {
 				getState,
 				getNpcPosition,
-				onShowDialog,
+				eventBus,
 			});
 
 			controller.handleInteract();
-			expect(onShowDialog).not.toHaveBeenCalled();
+			expect(eventBus.emit).not.toHaveBeenCalled();
 		});
 
 		describe("Final Boss Logic", () => {
@@ -117,8 +114,7 @@ describe("InteractionController", () => {
 				controller = new InteractionController(host, {
 					getState,
 					getNpcPosition,
-					onShowDialog,
-					onLocked,
+					eventBus,
 				});
 			});
 
@@ -131,8 +127,9 @@ describe("InteractionController", () => {
 
 				controller.handleInteract();
 
-				expect(onShowDialog).not.toHaveBeenCalled();
-				expect(onLocked).toHaveBeenCalledWith("REQ: NEW API");
+				expect(eventBus.emit).toHaveBeenCalledWith("interaction-locked", {
+					message: "REQ: NEW API",
+				});
 			});
 
 			it("should ALLOW interaction if API is NEW", () => {
@@ -144,8 +141,7 @@ describe("InteractionController", () => {
 
 				controller.handleInteract();
 
-				expect(onShowDialog).toHaveBeenCalled();
-				expect(onLocked).not.toHaveBeenCalled();
+				expect(eventBus.emit).toHaveBeenCalledWith("dialog-opened");
 			});
 		});
 	});

@@ -3,11 +3,13 @@
  */
 
 import { gameConfig } from "../config/game-configuration.js";
+import { EVENTS } from "../constants/events.js";
 import { InteractWithNpcUseCase } from "../use-cases/interact-with-npc.js";
 
 /**
  * @typedef {import('../services/game-state-service.js').HotSwitchState} HotSwitchState
  * @typedef {import('../content/quests/quest-types.js').LevelConfig} LevelConfig
+ * @typedef {import('../core/event-bus.js').EventBus} EventBus
  */
 
 /**
@@ -21,10 +23,8 @@ import { InteractWithNpcUseCase } from "../use-cases/interact-with-npc.js";
 
 /**
  * @typedef {Object} InteractionOptions
+ * @property {EventBus} [eventBus] - Event bus for emitting events
  * @property {number} [interactionDistance] - Max distance to interact (default: from config)
- * @property {() => void} [onShowDialog] - Callback to open dialog
- * @property {() => void} [onVictory] - Verification callback
- * @property {(msg: string|null) => void} [onLocked] - Callback for locked features
  * @property {() => InteractionState} [getState] - Accessor for game state
  * @property {() => ({x: number, y: number}|null|undefined)} [getNpcPosition] - Accessor for NPC coordinates
  * @property {import('../use-cases/interact-with-npc.js').InteractWithNpcUseCase} interactWithNpcUseCase
@@ -51,10 +51,8 @@ export class InteractionController {
 		this.host = host;
 		/** @type {InteractionOptions} */
 		this.options = {
+			eventBus: /** @type {any} */ (null),
 			interactionDistance: gameConfig.gameplay.interactionDistance,
-			onShowDialog: () => {},
-			onVictory: () => {},
-			onLocked: (/** @type {string|null} */ _msg) => {},
 			getState: () => ({
 				level: "",
 				heroPos: { x: 0, y: 0 },
@@ -124,11 +122,18 @@ export class InteractionController {
 			hasCollectedItem,
 		});
 
-		if (result.action === "showDialog") {
-			this.options.onShowDialog?.();
-		} else if (result.action === "showLocked") {
-			this.options.onLocked?.(result.message || null);
-			setTimeout(() => this.options.onLocked?.(null), 1000);
+		if (result.action === "showDialog" && this.options.eventBus) {
+			this.options.eventBus.emit(EVENTS.UI.DIALOG_OPENED);
+		} else if (result.action === "showLocked" && this.options.eventBus) {
+			this.options.eventBus.emit(EVENTS.UI.INTERACTION_LOCKED, {
+				message: result.message || null,
+			});
+			// Auto clear message after delay (could be moved to UI component or managed differently)
+			setTimeout(() => {
+				this.options.eventBus?.emit(EVENTS.UI.INTERACTION_LOCKED, {
+					message: null,
+				});
+			}, 1000);
 		}
 	}
 }

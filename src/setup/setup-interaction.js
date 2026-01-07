@@ -14,22 +14,7 @@ export function setupInteraction(host, context) {
 	/** @type {InteractionHost & { interaction: InteractionController }} */ (
 		host
 	).interaction = new InteractionController(host, {
-		onShowDialog: () => {
-			// Trigger dialog via event bus or global state
-			context.gameState.setShowDialog(true);
-		},
-		onVictory: () => {
-			context.gameState.setCollectedItem(true);
-			const currentChapter = context.questController.currentChapter;
-			if (currentChapter) {
-				context.progressService.updateChapterState(currentChapter.id, {
-					collectedItem: true,
-				});
-			}
-		},
-		onLocked: (message) => {
-			context.gameState.setLockedMessage(message);
-		},
+		eventBus: context.eventBus,
 		getState: () => {
 			const state = context.gameState.getState();
 			const currentChapter = context.questController.currentChapter;
