@@ -7,6 +7,7 @@ import { gameContextZonesStyles } from "./GameContextZones.styles.js";
  * @property {Boolean} active - Whether context zones are active for this chapter.
  * @property {String} state - Current hot switch state ('legacy' | 'new').
  * @attribute active
+ * @attribute state
  */
 export class GameContextZones extends LitElement {
 	static styles = gameContextZonesStyles;

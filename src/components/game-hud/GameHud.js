@@ -10,8 +10,13 @@ import { gameHudStyles } from "./GameHud.styles.js";
  * @property {number} totalChapters - Total number of chapters
  * @property {string} levelTitle - Title of the level/chapter
  * @property {string} questTitle - Title of the quest
+ * @attribute currentChapterNumber
+ * @attribute totalChapters
+ * @attribute levelTitle
+ * @attribute questTitle
  */
 export class GameHud extends LitElement {
+	/** @type {import('lit').PropertyDeclarations} */
 	static properties = {
 		currentChapterNumber: { type: Number },
 		totalChapters: { type: Number },

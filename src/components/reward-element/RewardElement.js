@@ -11,6 +11,7 @@ import { rewardElementStyles } from "./RewardElement.styles.js";
  * @property {string} image
  * @property {number} x
  * @property {number} y
+ * @attribute image
  */
 export class RewardElement extends LitElement {
 	static properties = {

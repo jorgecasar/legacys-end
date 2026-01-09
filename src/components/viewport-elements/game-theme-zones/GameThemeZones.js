@@ -5,6 +5,7 @@ import { gameThemeZonesStyles } from "./GameThemeZones.styles.js";
  * @element game-theme-zones
  * @summary Displays light and dark theme zones.
  * @property {Boolean} active - Whether theme zones are active for this chapter.
+ * @attribute active
  */
 export class GameThemeZones extends LitElement {
 	static styles = gameThemeZonesStyles;

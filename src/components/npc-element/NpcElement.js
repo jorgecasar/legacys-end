@@ -20,6 +20,9 @@ import { npcElementStyles } from "./NpcElement.styles.js";
  * @property {string} action
  * @property {boolean} hasCollectedItem
  * @property {boolean} isRewardCollected
+ * @attribute name
+ * @attribute icon
+ * @attribute action
  */
 export class NpcElement extends LitElement {
 	static properties = {
