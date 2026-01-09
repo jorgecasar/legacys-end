@@ -1,5 +1,24 @@
 # Changelog - Recent Updates
 
+## 2026-01-09 - State Management Refactor (Lit Signals)
+
+### Core Refactoring
+- **Lit Signals Integration**: Migrated `GameStateService` from a custom `Observable` pattern to `@lit-labs/signals`.
+- **Fine-Grained Reactivity**: State properties (e.g., `heroPos`, `isPaused`) are now individual `Signal.State` instances, enabling more efficient UI updates.
+- **Removed Observable Pattern**: Deleted `src/utils/observable.js` and removed `Observable` inheritance across the service layer.
+- **Removed GameStateMapper**: Eliminated the need for intermediate state mapping as components now consume signals directly.
+
+### Component Updates
+- **SignalWatcher Adoption**: Refactored `LegacysEndApp` and other reactive components to use the `SignalWatcher` mixin.
+- **Manual Subscription Removal**: Removed all `gameState.subscribe()` and `syncState()` boilerplate, as reactivity is now tracked automatically in `render()` methods.
+- **Enforced Setters**: Replaced generic `setState()` with specific, validated setter methods (e.g., `setHeroPosition`, `setPaused`) to improve type safety and debugging.
+
+### Testing and Quality
+- **Test Mock Updates**: Refactored all unit tests in `PauseGameCommand` and `GameSessionManager` to use signal-based mocks.
+- **TypeScript Compliance**: Refined JSDoc typedefs in `GameView` to fix visibility and access errors during final build.
+- **Linting**: Achieved 100% compliance across Biome, Lit-Analyzer, and TSC.
+
+
 ## 2026-01-06 - Type System and HotSwitchState Refactoring
 
 ### Type System Improvements

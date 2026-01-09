@@ -1,9 +1,25 @@
-import { Observable } from "../utils/observable.js";
+import { Signal } from "@lit-labs/signals";
 import {
 	HotSwitchStateValidator,
 	PositionValidator,
 	ThemeModeValidator,
 } from "../utils/validators.js";
+
+/**
+ * @typedef {{
+ * 	heroPos: {x: number, y: number},
+ * 	hasCollectedItem: boolean,
+ * 	isRewardCollected: boolean,
+ * 	hotSwitchState: HotSwitchState,
+ * 	isPaused: boolean,
+ * 	isEvolving: boolean,
+ * 	showDialog: boolean,
+ * 	isQuestCompleted: boolean,
+ * 	lockedMessage: string|null,
+ * 	themeMode: ThemeMode,
+ * 	currentDialogText: string
+ * }} GameState
+ */
 
 /** @typedef {import('./interfaces.js').IGameStateService} IGameStateService */
 
@@ -22,22 +38,7 @@ import {
  */
 
 /**
- * @typedef {Object} GameState
- * @property {HeroPosition} heroPos - The x, y coordinates of the hero (0-100%)
- * @property {boolean} hasCollectedItem - Whether the chapter's objective item has been collected
- * @property {boolean} isRewardCollected - Whether the reward animation sequence has completed
- * @property {HotSwitchState} hotSwitchState - The active API context
- * @property {boolean} isPaused - Global pause state of the game
- * @property {boolean} isEvolving - Whether the level transition animation is playing
- * @property {boolean} showDialog - Whether the level dialog is open
- * @property {boolean} isQuestCompleted - Whether the quest completion dialog is shown
- * @property {string|null} lockedMessage - Message to display when trying to perform a locked action
- * @property {ThemeMode} themeMode - Current visual theme
- * @property {string} currentDialogText - The text of the currently active dialog slide
- */
-
-/**
- * GameStateService - Manages ephemeral game state
+ * GameStateService - Manages ephemeral game state using Lit Signals
  *
  * Tracks:
  * - Hero position
@@ -48,48 +49,47 @@ import {
  *
  * Implements IGameStateService interface (see interfaces.js)
  * @implements {IGameStateService}
- * @extends {Observable<GameState>}
  */
-export class GameStateService extends Observable {
+export class GameStateService {
 	constructor() {
-		super();
-		/**
-		 * @type {GameState}
-		 */
-		this.state = {
-			heroPos: { x: 50, y: 15 },
-			hasCollectedItem: false,
-			isRewardCollected: false,
-			hotSwitchState: null,
-			isPaused: false,
-			isEvolving: false,
-			showDialog: false,
-			isQuestCompleted: false,
-			lockedMessage: null,
-			themeMode: "light",
-			currentDialogText: "",
-		};
+		// Define signals for reactive state
+		this.heroPos = new Signal.State({ x: 50, y: 15 });
+		this.hasCollectedItem = new Signal.State(false);
+		this.isRewardCollected = new Signal.State(false);
+		this.hotSwitchState = new Signal.State(
+			/** @type {HotSwitchState} */ (null),
+		);
+		this.isPaused = new Signal.State(false);
+		this.isEvolving = new Signal.State(false);
+		this.showDialog = new Signal.State(false);
+		this.isQuestCompleted = new Signal.State(false);
+		this.lockedMessage = new Signal.State(/** @type {string|null} */ (null));
+		this.themeMode = new Signal.State(/** @type {ThemeMode} */ ("light"));
+		this.currentDialogText = new Signal.State("");
 	}
 
 	/**
-	 * Get a snapshot of the current state.
-	 * Returns a shallow copy to prevent direct mutation.
+	 * Get a snapshot of the current state for legacy consumers.
 	 * @returns {GameState} The current state object
 	 */
 	getState() {
-		return { ...this.state };
+		return {
+			heroPos: this.heroPos.get(),
+			hasCollectedItem: this.hasCollectedItem.get(),
+			isRewardCollected: this.isRewardCollected.get(),
+			hotSwitchState: this.hotSwitchState.get(),
+			isPaused: this.isPaused.get(),
+			isEvolving: this.isEvolving.get(),
+			showDialog: this.showDialog.get(),
+			isQuestCompleted: this.isQuestCompleted.get(),
+			lockedMessage: this.lockedMessage.get(),
+			themeMode: this.themeMode.get(),
+			currentDialogText: this.currentDialogText.get(),
+		};
 	}
 
-	/**
-	 * Update the state and notify all subscribers.
-	 * Performs a shallow merge of partialState into the current state.
-	 * @param {Partial<GameState>} partialState - The subset of state properties to update
-	 */
-	setState(partialState) {
-		const oldState = { ...this.state };
-		this.state = { ...this.state, ...partialState };
-		this.notify(this.state, oldState);
-	}
+	// Wrapper for backward compatibility if needed, though we prefer direct setting
+	// Note: setState is removed in favor of specific methods to enforce strictness
 
 	// --- Convenience Methods ---
 
@@ -105,7 +105,7 @@ export class GameStateService extends Observable {
 			const errors = validation.errors.map((e) => e.message).join(", ");
 			throw new Error(`Invalid hero position: ${errors}`);
 		}
-		this.setState({ heroPos: { x, y } });
+		this.heroPos.set({ x, y });
 	}
 
 	/**
@@ -113,7 +113,7 @@ export class GameStateService extends Observable {
 	 * @param {boolean} collected - True if collected
 	 */
 	setCollectedItem(collected) {
-		this.setState({ hasCollectedItem: collected });
+		this.hasCollectedItem.set(collected);
 	}
 
 	/**
@@ -121,7 +121,7 @@ export class GameStateService extends Observable {
 	 * @param {boolean} collected - True if the reward animation is finished
 	 */
 	setRewardCollected(collected) {
-		this.setState({ isRewardCollected: collected });
+		this.isRewardCollected.set(collected);
 	}
 
 	/**
@@ -136,7 +136,7 @@ export class GameStateService extends Observable {
 			const errors = validation.errors.map((e) => e.message).join(", ");
 			throw new Error(`Invalid hot switch state: ${errors}`);
 		}
-		this.setState({ hotSwitchState: state });
+		this.hotSwitchState.set(state);
 	}
 
 	/**
@@ -144,7 +144,7 @@ export class GameStateService extends Observable {
 	 * @param {boolean} paused - True to pause
 	 */
 	setPaused(paused) {
-		this.setState({ isPaused: paused });
+		this.isPaused.set(paused);
 	}
 
 	/**
@@ -152,7 +152,7 @@ export class GameStateService extends Observable {
 	 * @param {boolean} evolving
 	 */
 	setEvolving(evolving) {
-		this.setState({ isEvolving: evolving });
+		this.isEvolving.set(evolving);
 	}
 
 	/**
@@ -160,7 +160,7 @@ export class GameStateService extends Observable {
 	 * @param {boolean} show
 	 */
 	setShowDialog(show) {
-		this.setState({ showDialog: show });
+		this.showDialog.set(show);
 	}
 
 	/**
@@ -168,7 +168,7 @@ export class GameStateService extends Observable {
 	 * @param {boolean} completed
 	 */
 	setQuestCompleted(completed) {
-		this.setState({ isQuestCompleted: completed });
+		this.isQuestCompleted.set(completed);
 	}
 
 	/**
@@ -176,7 +176,7 @@ export class GameStateService extends Observable {
 	 * @param {string|null} message - The message to display, or null to clear
 	 */
 	setLockedMessage(message) {
-		this.setState({ lockedMessage: message });
+		this.lockedMessage.set(message);
 	}
 
 	/**
@@ -190,7 +190,7 @@ export class GameStateService extends Observable {
 			const errors = validation.errors.map((e) => e.message).join(", ");
 			throw new Error(`Invalid theme mode: ${errors}`);
 		}
-		this.setState({ themeMode: mode });
+		this.themeMode.set(mode);
 	}
 
 	/**
@@ -199,13 +199,11 @@ export class GameStateService extends Observable {
 	 * Does NOT reset hero position or persistent progress.
 	 */
 	resetChapterState() {
-		this.setState({
-			hasCollectedItem: false,
-			isRewardCollected: false,
-			lockedMessage: null,
-			isEvolving: false,
-			currentDialogText: "",
-		});
+		this.hasCollectedItem.set(false);
+		this.isRewardCollected.set(false);
+		this.lockedMessage.set(null);
+		this.isEvolving.set(false);
+		this.currentDialogText.set("");
 	}
 
 	/**
@@ -213,6 +211,21 @@ export class GameStateService extends Observable {
 	 * @param {string} text - The dialog text
 	 */
 	setCurrentDialogText(text) {
-		this.setState({ currentDialogText: text || "" });
+		this.currentDialogText.set(text || "");
+	}
+
+	// Deprecated methods that we might need to keep temporarily for external callers (if any exist beyond those we fix)
+	/**
+	 * @deprecated Use signals directly.
+	 * @param {(state: any, oldState: any) => void} _callback
+	 * @returns {Function} Unsubscribe function (no-op)
+	 */
+	subscribe(_callback) {
+		// Warning: This is a hacky compatibility shim.
+		// We will maintain it for now until consumers are updated
+		console.warn(
+			"GameStateService.subscribe is deprecated. Use signals directly.",
+		);
+		return () => {};
 	}
 }

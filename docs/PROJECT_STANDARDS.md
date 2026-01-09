@@ -47,7 +47,7 @@ This document outlines the mandatory architectural and coding standards for "Leg
 ### Services vs. Controllers
 *   **Services**: Are **Singletons**. They manage data and business logic independent of the UI.
     *   *Example*: `GameStateService`, `LoggerService`.
-    *   *Pattern*: Extend `Observable` (currently) or `Signal` (future).
+    *   *Pattern*: Use **Lit Signals** (`@lit-labs/signals`).
 *   **Controllers**: Are **UI Helpers**. They interact with the DOM/Lit Lifecycle.
     *   *Example*: `KeyboardController`.
     *   *Rule*: Do not put global state in a Controller.
@@ -83,6 +83,13 @@ Every component must follow this strict structure in its own directory:
 2.  **Styles** (`MyComponent.styles.js`): CSS exports.
 3.  **Definition** (`my-component.js`): `customElements.define` and re-exports.
 4.  **Test** (`MyComponent.spec.js`): Vitest browser tests + A11y.
+
+### Reactivity
+*   **Signals**: Components consuming signals must use the `SignalWatcher` mixin.
+    ```javascript
+    import { SignalWatcher } from "@lit-labs/signals";
+    class MyComponent extends SignalWatcher(LitElement) { ... }
+    ```
 
 ### Implementation Rules
 

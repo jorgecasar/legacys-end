@@ -8,6 +8,7 @@
 
 // Import types from their source files
 /** @typedef {import('./game-state-service.js').GameState} GameState */
+
 /** @typedef {import('./game-state-service.js').HotSwitchState} HotSwitchState */
 /** @typedef {import('./game-state-service.js').ThemeMode} ThemeMode */
 /** @typedef {import('./progress-service.js').ProgressState} ProgressState */
@@ -22,7 +23,7 @@
 /**
  * @typedef {Object} IGameStateService
  * @property {() => GameState} getState - Get current game state
- * @property {(state: Partial<GameState>) => void} setState - Update game state
+
  * @property {(x: number, y: number) => void} setHeroPosition - Update hero position
  * @property {(collected: boolean) => void} setCollectedItem - Set item collection status
  * @property {(collected: boolean) => void} setRewardCollected - Set reward collection status

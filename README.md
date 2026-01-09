@@ -16,7 +16,7 @@ The project has recently undergone major architectural refactoring (Phase 7) to 
 *   **Dependency Injection**: Core services and controllers are injected via `IGameContext`, decoupling them from the main application shell.
 *   **Command Pattern**: Game actions (Move, Interact, Pause) are encapsulated as Commands in a Command Bus, enabling replayability and macro recording.
 *   **Use Cases**: Complex domain logic (e.g., `EvaluateChapterTransition`, `ProcessGameZoneInteraction`) is extracted into pure, testable Use Cases.
-*   **State Management**: A reactive `GameStateService` serves as the single source of truth, synchronizing UI across components.
+*   **State Management**: Uses **Lit Signals** (`@lit-labs/signals`) for fine-grained, reactive state management. `GameStateService` acts as the single source of truth, and components react only to the specific signals they consume.
 *   **Web Components**: UI is built with Lit (lightweight, standard-based web components).
 
 ### Directory Structure
@@ -55,4 +55,5 @@ The project maintains a high standard of code quality with **550+ tests** passin
 *   **Event-Driven**: Complete migration to event-driven controllers for Quest, Zones, and Interaction.
 *   **Decoupled Architecture**: `GameView` no longer depends on `LegacysEndApp`.
 *   **Logic Extraction**: Zone detection and quest progression logic moved to Use Cases.
+*   **Signal Migration (Phase 9)**: Refactored `GameStateService` from an Observable pattern to `@lit-labs/signals` for improved performance and reduced boilerplate.
 *   **Bug Fixes**: Resolved Hero Name display and Dialog interaction issues.

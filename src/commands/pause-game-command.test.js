@@ -12,7 +12,7 @@ describe("PauseGameCommand", () => {
 			getState: vi.fn().mockReturnValue({
 				isPaused: false,
 			}),
-			setState: vi.fn(),
+			setPaused: vi.fn(),
 		};
 
 		command = new PauseGameCommand({ gameState: mockGameState });
@@ -21,7 +21,7 @@ describe("PauseGameCommand", () => {
 	it("should toggle pause state from false to true", () => {
 		command.execute();
 
-		expect(mockGameState.setState).toHaveBeenCalledWith({ isPaused: true });
+		expect(mockGameState.setPaused).toHaveBeenCalledWith(true);
 	});
 
 	it("should toggle pause state from true to false", () => {
@@ -30,7 +30,7 @@ describe("PauseGameCommand", () => {
 
 		command.execute();
 
-		expect(mockGameState.setState).toHaveBeenCalledWith({ isPaused: false });
+		expect(mockGameState.setPaused).toHaveBeenCalledWith(false);
 	});
 
 	it("should save previous pause state", () => {
@@ -41,11 +41,10 @@ describe("PauseGameCommand", () => {
 
 	it("should undo to previous pause state", () => {
 		command.execute();
-		mockGameState.setState.mockClear();
 
 		command.undo();
 
-		expect(mockGameState.setState).toHaveBeenCalledWith({ isPaused: false });
+		expect(mockGameState.setPaused).toHaveBeenCalledWith(false);
 	});
 
 	it("should update metadata with new state", () => {

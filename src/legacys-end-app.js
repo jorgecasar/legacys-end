@@ -1,3 +1,4 @@
+import { SignalWatcher } from "@lit-labs/signals";
 import "@awesome.me/webawesome/dist/components/spinner/spinner.js";
 import "@awesome.me/webawesome/dist/styles/webawesome.css";
 import { html, LitElement } from "lit";
@@ -34,7 +35,6 @@ import { setupRoutes } from "./setup/routes.js";
 import { setupGameService } from "./setup/setup-game.js";
 import { setupQuest } from "./setup/setup-quest.js";
 import { setupSessionManager } from "./setup/setup-session-manager.js";
-import { GameStateMapper } from "./utils/game-state-mapper.js";
 import { Router } from "./utils/router.js";
 
 /**
@@ -45,14 +45,6 @@ import { Router } from "./utils/router.js";
  * @element legacys-end-app
  * @property {String} chapterId
  * @property {Boolean} showDialog
- * @property {Boolean} hasCollectedItem
- * @property {String} themeMode
- * @property {Object} heroPos
- * @property {String} hotSwitchState
- * @property {Boolean} isEvolving
- * @property {String} lockedMessage
- * @property {Boolean} isPaused
- * @property {Boolean} isRewardCollected
  * @property {Object} currentQuest
  * @property {Boolean} isInHub
  * @property {Boolean} hasSeenIntro
@@ -93,7 +85,7 @@ import { Router } from "./utils/router.js";
  * @property {Boolean} userLoading
  * @property {string|null} userError
  */
-export class LegacysEndApp extends ContextMixin(LitElement) {
+export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 	// Services (added by setupServices)
 	/** @type {import("./services/progress-service.js").ProgressService} */
 	progressService = /** @type {any} */ (null);
@@ -123,6 +115,18 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 	serviceController = /** @type {any} */ (null);
 	/** @type {import("./controllers/character-context-controller.js").CharacterContextController} */
 	characterContexts = /** @type {any} */ (null);
+	/** @type {import("./controllers/interaction-controller.js").InteractionController} */
+	interaction = /** @type {any} */ (null);
+	/** @type {import("./controllers/keyboard-controller.js").KeyboardController} */
+	keyboard = /** @type {any} */ (null);
+	/** @type {import("./controllers/game-controller.js").GameController} */
+	gameController = /** @type {any} */ (null);
+	/** @type {import("./controllers/voice-controller.js").VoiceController} */
+	voice = /** @type {any} */ (null);
+	/** @type {import("./controllers/game-zone-controller.js").GameZoneController} */
+	zones = /** @type {any} */ (null);
+	/** @type {import("./controllers/collision-controller.js").CollisionController} */
+	collision = /** @type {any} */ (null);
 
 	// User Data
 	/** @type {Object} */
@@ -145,16 +149,7 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 
 	static properties = {
 		chapterId: { type: String },
-		showDialog: { type: Boolean },
-		// State managed by GameStateService, but reflected here for rendering
-		hasCollectedItem: { type: Boolean },
-		themeMode: { type: String },
-		heroPos: { type: Object },
-		hotSwitchState: { type: String, attribute: "hot-switch-state" },
-		isEvolving: { type: Boolean },
-		lockedMessage: { type: String },
-		isPaused: { type: Boolean },
-		isRewardCollected: { type: Boolean },
+		// Removed duplicated properties, relying on gameState
 
 		// Quest system properties
 		currentQuest: { type: Object },
@@ -167,17 +162,14 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		super();
 		// UI State
 		this.isLoading = true;
-		this.showDialog = false;
 		this.hasSeenIntro = false;
-		this.isPaused = false;
 		this.showQuestCompleteDialog = false;
 
 		// Initialize Services
 		this.#setupServices();
 
 		// Sync local properties with GameStateService (Observable pattern)
-		this.syncState();
-		this.gameState.subscribe(() => this.syncState());
+		// Removed syncState, SignalWatcher handles reactivity
 
 		// Initialize user data state
 		this.userData = {};
@@ -214,6 +206,7 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 			this.characterContexts.options.masteryProvider = this.masteryProvider;
 		}
 
+		// Initial theme application
 		this.applyTheme();
 		if (this.serviceController) {
 			this.serviceController.loadUserData();
@@ -227,7 +220,8 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 				)
 			) {
 				this.syncSessionState();
-				this.syncState();
+				// this.syncState(); // Removed state sync
+				this.requestUpdate(); // Request update to trigger render with new signal values
 			}
 		});
 
@@ -341,9 +335,12 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 	}
 
 	applyTheme() {
+		const mode = this.gameState.themeMode.get();
 		this.classList.add("wa-theme-pixel");
-		this.classList.add(this.themeMode === "dark" ? "wa-dark" : "wa-light");
-		this.themeProvider.setValue({ themeMode: this.themeMode });
+		// Remove old theme classes first
+		this.classList.remove("wa-dark", "wa-light");
+		this.classList.add(mode === "dark" ? "wa-dark" : "wa-light");
+		this.themeProvider.setValue({ themeMode: mode });
 	}
 
 	updated(/** @type {any} */ changedProperties) {
@@ -353,27 +350,40 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 				this.serviceController.loadUserData();
 			}
 		}
-		// Character context updates are handled automatically by the controller's hostUpdate() lifecycle
-		// Reload user data when switching between services in Level 6
-		if (changedProperties.has("hotSwitchState")) {
+
+		// Access signal to detect change for side effect (theme)
+		// Ideally theme application should be in an effect or render, but side-effects in updated are okay
+		// However, SignalWatcher triggers update() when accessed signals change.
+		// We need to ensure we READ the signal here or rely on render reading it.
+		// But applyTheme is a side effect on classList.
+		// We should call applyTheme() in updated() or render().
+		// Since applyTheme reads the signal, it registers dependency if called during reactive cycle?
+		// No, SignalWatcher wraps `performUpdate` or `update`.
+
+		// Let's call applyTheme every update to be safe and ensure it syncs.
+		this.applyTheme();
+
+		// Hot switch detection is handled in willUpdate
+	}
+
+	// Helper to handle hot switch side effect logic
+	// We might need to store lastHotSwitchState to detect change.
+	/** @type {string|null} */
+	_lastHotSwitchState = null;
+
+	/**
+	 * @param {import('lit').PropertyValues} changedProperties
+	 */
+	willUpdate(changedProperties) {
+		super.willUpdate(changedProperties);
+
+		const newHotSwitchState = this.gameState.hotSwitchState.get();
+		if (this._lastHotSwitchState !== newHotSwitchState) {
 			if (this.serviceController) {
 				this.serviceController.loadUserData();
 			}
+			this._lastHotSwitchState = newHotSwitchState;
 		}
-	}
-
-	syncState() {
-		const state = this.gameState.getState();
-		this.heroPos = state.heroPos;
-		this.hasCollectedItem = state.hasCollectedItem;
-		this.isRewardCollected = state.isRewardCollected;
-		this.hotSwitchState = state.hotSwitchState;
-		this.isPaused = state.isPaused;
-		this.isEvolving = state.isEvolving;
-		this.lockedMessage = state.lockedMessage;
-		this.themeMode = state.themeMode;
-		this.showDialog = state.showDialog;
-		this.showQuestCompleteDialog = state.isQuestCompleted;
 	}
 
 	syncSessionState() {
@@ -394,8 +404,8 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 	 */
 	togglePause() {
 		if (this.isInHub) return;
-		const state = this.gameState.getState();
-		this.gameState.setPaused(!state.isPaused);
+		const isPaused = this.gameState.isPaused.get();
+		this.gameState.setPaused(!isPaused);
 	}
 
 	/**
@@ -440,7 +450,8 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 				new ToggleHotSwitchCommand({ gameState: this.gameState }),
 			);
 		} else {
-			const newState = this.hotSwitchState === "legacy" ? "new" : "legacy";
+			const currentState = this.gameState.hotSwitchState.get();
+			const newState = currentState === "legacy" ? "new" : "legacy";
 			this.gameState.setHotSwitchState(newState);
 			logger.info("🔄 Hot Switch toggled to:", newState);
 		}
@@ -488,7 +499,7 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		const chapterData = this.getChapterData(this.chapterId || "");
 		return this.serviceController.getActiveService(
 			chapterData?.serviceType,
-			this.hotSwitchState || null,
+			this.gameState.hotSwitchState.get() || null,
 		);
 	}
 
@@ -570,14 +581,43 @@ export class LegacysEndApp extends ContextMixin(LitElement) {
 		// Handle dynamic background
 		const effectiveConfig = { ...currentConfig };
 		// Only change background after reward animation is complete
-		if (this.isRewardCollected && currentConfig.postDialogBackgroundStyle) {
+		const isRewardCollected = this.gameState.isRewardCollected.get();
+		if (isRewardCollected && currentConfig.postDialogBackgroundStyle) {
 			effectiveConfig.backgroundStyle = currentConfig.postDialogBackgroundStyle;
 		}
 
-		const gameState = GameStateMapper.map(
-			/** @type {any} */ (this),
-			effectiveConfig || {},
-		);
+		// Construct nested state object for GameView matches expected GameState typedef
+		const isCloseToTarget = this.interaction?.isCloseToNpc() || false;
+		const isLastChapter = this.questController?.isLastChapter() || false;
+
+		const stateSnapshot = this.gameState.getState();
+
+		const gameState = {
+			config: effectiveConfig,
+			ui: {
+				isPaused: stateSnapshot.isPaused,
+				showDialog: stateSnapshot.showDialog,
+				isQuestCompleted: stateSnapshot.isQuestCompleted,
+				lockedMessage: stateSnapshot.lockedMessage || "",
+			},
+			quest: {
+				data: this.currentQuest,
+				chapterNumber: this.questController?.getCurrentChapterNumber() || 0,
+				totalChapters: this.questController?.getTotalChapters() || 0,
+				isLastChapter: isLastChapter,
+				levelId: this.chapterId,
+			},
+			hero: {
+				pos: stateSnapshot.heroPos,
+				isEvolving: stateSnapshot.isEvolving,
+				hotSwitchState: stateSnapshot.hotSwitchState,
+			},
+			levelState: {
+				hasCollectedItem: stateSnapshot.hasCollectedItem,
+				isRewardCollected: stateSnapshot.isRewardCollected,
+				isCloseToTarget: isCloseToTarget,
+			},
+		};
 
 		return html`
 			<game-view

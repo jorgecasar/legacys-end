@@ -58,7 +58,9 @@ describe("GameSessionManager", () => {
 			setHeroPosition: vi.fn(),
 			setPaused: vi.fn(),
 			setEvolving: vi.fn(),
-			setState: vi.fn(),
+			setCollectedItem: vi.fn(),
+			setRewardCollected: vi.fn(),
+			setQuestCompleted: vi.fn(),
 			resetChapterState: vi.fn(),
 			setThemeMode: vi.fn(),
 			setHotSwitchState: vi.fn(),
@@ -128,10 +130,6 @@ describe("GameSessionManager", () => {
 			expect(manager.isInHub).toBe(true);
 			expect(manager.currentQuest).toBeNull();
 		});
-
-		it("should subscribe to game state changes", () => {
-			expect(mockGameState.subscribe).toHaveBeenCalled();
-		});
 	});
 
 	describe("Regression Tests", () => {
@@ -163,9 +161,7 @@ describe("GameSessionManager", () => {
 
 			completeCallback({ quest: { name: "Test Quest", reward: {} } });
 
-			expect(mockGameState.setState).toHaveBeenCalledWith({
-				isQuestCompleted: true,
-			});
+			expect(mockGameState.setQuestCompleted).toHaveBeenCalledWith(true);
 		});
 
 		it("should reset hero position on chapter change (Fix: Hero stuck at previous position)", () => {
@@ -193,10 +189,8 @@ describe("GameSessionManager", () => {
 			await manager.startQuest("test-quest");
 
 			// Verify state reset was called
-			expect(mockGameState.setState).toHaveBeenCalledWith({
-				isQuestCompleted: false,
-				isPaused: false,
-			});
+			expect(mockGameState.setQuestCompleted).toHaveBeenCalledWith(false);
+			expect(mockGameState.setPaused).toHaveBeenCalledWith(false);
 		});
 
 		it("should clear completion state when returning to hub (Fix: Completion UI showing on re-entry)", () => {
@@ -208,10 +202,8 @@ describe("GameSessionManager", () => {
 
 			returnCallback();
 
-			expect(mockGameState.setState).toHaveBeenCalledWith({
-				isQuestCompleted: false,
-				isPaused: false,
-			});
+			expect(mockGameState.setQuestCompleted).toHaveBeenCalledWith(false);
+			expect(mockGameState.setPaused).toHaveBeenCalledWith(false);
 		});
 
 		it("should handle theme-changed event (Refactor: Event-driven zones)", () => {

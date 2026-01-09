@@ -27,7 +27,28 @@ import { styles } from "./game-view.css.js";
 import "../victory-screen/victory-screen.js";
 
 /**
- * @typedef {import('../../utils/game-state-mapper.js').GameState} GameState
+ * @typedef {Object} GameState
+ * @property {import('../../services/game-state-service.js').ThemeMode} [themeMode]
+ * @property {import('../../config/game-configuration.js').GameplayConfig} config
+ * @property {Object} ui
+ * @property {boolean} ui.isPaused
+ * @property {boolean} ui.showDialog
+ * @property {boolean} ui.isQuestCompleted
+ * @property {string} ui.lockedMessage
+ * @property {Object} quest
+ * @property {import('../../services/quest-registry-service.js').Quest|null} quest.data
+ * @property {number} quest.chapterNumber
+ * @property {number} quest.totalChapters
+ * @property {boolean} quest.isLastChapter
+ * @property {string} [quest.levelId]
+ * @property {Object} hero
+ * @property {import('../../services/game-state-service.js').HeroPosition} hero.pos
+ * @property {boolean} hero.isEvolving
+ * @property {import('../../services/game-state-service.js').HotSwitchState} hero.hotSwitchState
+ * @property {Object} levelState
+ * @property {boolean} levelState.hasCollectedItem
+ * @property {boolean} levelState.isRewardCollected
+ * @property {boolean} levelState.isCloseToTarget
  */
 
 /**
@@ -404,7 +425,7 @@ export class GameView extends LitElement {
 					? html`
 				<level-dialog
 					.config="${dialogConfig}"
-					.level="${quest?.levelId}"
+					.level="${quest?.levelId || ""}"
 					@complete="${() => this.handleLevelComplete()}"
 					@close="${() => this.dispatchEvent(new CustomEvent("close-dialog"))}"
 					@slide-changed="${this.handleSlideChanged}"

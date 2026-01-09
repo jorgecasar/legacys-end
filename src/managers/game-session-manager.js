@@ -78,12 +78,7 @@ export class GameSessionManager extends Observable {
 		this.currentQuest = null;
 		this._isReturningToHub = false;
 
-		// Subscribe to game state changes
-		if (this.gameState) {
-			this.gameState.subscribe(() => {
-				this.notify({ type: "state-change", state: this.getGameState() });
-			});
-		}
+		// Subscription to game state changes removed in favor of direct Signal usage in components
 	}
 
 	/**
@@ -227,7 +222,7 @@ export class GameSessionManager extends Observable {
 	_handleQuestComplete({ quest }) {
 		logger.info(`✅ Completed quest: ${quest.name}`);
 		logger.info(`🏆 Earned badge: ${quest.reward?.badge}`);
-		this.gameState.setState({ isQuestCompleted: true });
+		this.gameState.setQuestCompleted(true);
 		this.notify({
 			type: "quest-complete",
 			quest,
@@ -238,7 +233,8 @@ export class GameSessionManager extends Observable {
 	 * Handle return to hub event
 	 */
 	_handleReturnToHub() {
-		this.gameState.setState({ isQuestCompleted: false, isPaused: false });
+		this.gameState.setQuestCompleted(false);
+		this.gameState.setPaused(false);
 		this.returnToHub();
 	}
 
@@ -362,7 +358,8 @@ export class GameSessionManager extends Observable {
 	 */
 	async startQuest(/** @type {string} */ questId) {
 		this.isLoading = true;
-		this.gameState.setState({ isQuestCompleted: false, isPaused: false });
+		this.gameState.setQuestCompleted(false);
+		this.gameState.setPaused(false);
 		this.notify({ type: "loading", isLoading: true });
 
 		const result = await this._startQuestUseCase.execute(questId);
@@ -386,7 +383,8 @@ export class GameSessionManager extends Observable {
 	 */
 	async continueQuest(/** @type {string} */ questId) {
 		this.isLoading = true;
-		this.gameState.setState({ isQuestCompleted: false, isPaused: false });
+		this.gameState.setQuestCompleted(false);
+		this.gameState.setPaused(false);
 		this.notify({ type: "loading", isLoading: true });
 
 		const result = await this._continueQuestUseCase.execute(questId);

@@ -23,7 +23,7 @@ export class PauseGameCommand {
 	execute() {
 		const state = this.gameState.getState();
 		this.previousPauseState = state.isPaused;
-		this.gameState.setState({ isPaused: !state.isPaused });
+		this.gameState.setPaused(!state.isPaused);
 		this.metadata = { newState: !state.isPaused };
 	}
 
@@ -32,7 +32,7 @@ export class PauseGameCommand {
 	 */
 	undo() {
 		if (this.previousPauseState !== null) {
-			this.gameState.setState({ isPaused: this.previousPauseState });
+			this.gameState.setPaused(this.previousPauseState);
 		}
 	}
 }

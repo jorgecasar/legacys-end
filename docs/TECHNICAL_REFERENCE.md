@@ -6,15 +6,16 @@ This document provides a detailed reference for the core modules of the project:
 
 ## 🧠 Architectural Decisions & Patterns
 
-### 1. Observable Services Pattern
-**Question**: Why does `GameStateService` (and others) extend `Observable`?
+### 1. Reactive Signals Pattern
+**Question**: Why does `GameStateService` (and others) use Lit Signals?
 
 **Reasoning**:
 In standard Lit applications, state is usually managed within components using reactive properties. However, in a game engine, state often needs to be accessed and modified by purely logical entities (Managers, Controllers) that are *not* UI components.
 
 *   **Decoupling Logic from UI**: `GameStateService` can run game logic, update coordinates, or handle inventory without needing a DOM element.
-*   **Reactivity Bridge**: By extending `Observable`, the service becomes a reactive data source. UI components (like `LegacysEndApp`) subscribe to the service. When the service calls `notify()`, the component requests a re-render.
-*   **Multiple Consumers**: A single state change (e.g., "Item Collected") can simultaneously update the HUD, trigger a sound effect manager, and notify the Quest Controller, without these systems knowing about each other.
+*   **Fine-Grained Reactivity**: By using `@lit-labs/signals`, the service becomes a pinpoint reactive data source. UI components only re-render when the specific signals they use are updated.
+*   **Automatic Dependency Tracking**: Components using the `SignalWatcher` mixin automatically tracking which signals they access in `render()`, removing the need for manual `subscribe()` and `unsubscribe()` boilerplate.
+*   **Multiple Consumers**: A single signal update (e.g., `hasCollectedItem.set(true)`) can simultaneously update the HUD, trigger a sound effect manager, and notify the Quest Controller, without these systems knowing about each other.
 
 ### 2. Dependency Injection (DI) via Context
 **Pattern**: Usage of `@lit/context` and a simple Services Object.
@@ -39,22 +40,15 @@ Lit Controllers are powerful but are designed to be **bound to a specific host c
 *   **Non-UI Logic**: Our architecture has `Managers` (like `GameSessionManager`) that need to manipulate state but are **pure JavaScript classes**, not Lit Components. They cannot "host" a Lit Controller.
 *   **Architecture Choice**: We use **Services** for *singletons* that exist independently of the UI (Data Layer), and **Controllers** for logic that *must* interact with the Component Lifecycle (Inputs, Timers, View Bindings).
 
-### 5. Future Considerations: Signals Implementation
-**Question**: Could we use [Signals](https://lit.dev/docs/data/signals/) instead of `Observable`?
+### 5. Historical Context: Migration from the Observable Pattern
+**Question**: Why was the custom `Observable` implementation replaced with Signals?
 
-**Viability / Recommendation**:
-**YES.** Migrating to Signals is a highly recommended path for future refactoring.
+**Reasoning**:
+The project originally used a custom `Observable` implementation for coarse-grained reactivity. In Phase 9, this was migrated to native Lit Signals for several benefits:
 
-*   **Comparison**:
-    *   **Current (`Observable`)**: "Coarse-grained" reactivity. When `notify()` is called, the *entire* subscribing component re-renders. Requires manual subscription cleanup.
-    *   **Signals**: "Fine-grained" reactivity. Only the specific parts of the DOM that depend on a signal will update. Dependencies are tracked automatically (no manual `subscribe`).
-
-*   **Migration Strategy**:
-    1.  **Dependencies**: Install `@lit-labs/signals` (or use the standard `Signal` polyfill).
-    2.  **Service Layer**: Replace `Observable` base class. Properties like `heroPos` become `signal({x:0, y:0})`.
-    3.  **UI Layer**: Use the `SignalWatcher` mixin on `LegacysEndApp`. Accessing `this.gameState.heroPos.value` would automatically trigger updates.
-
-*   **Verdict**: Signals would simplify the codebase by removing the custom `Observable` boilerplate and improving rendering performance, but the current `Observable` pattern is robust enough for the current scale.
+*   **Performance**: Signals offer true fine-grained reactivity, reducing unnecessary re-renders in complex views like `GameView`.
+*   **Maintainability**: Removed manual subscription management. Components now use the `SignalWatcher` mixin.
+*   **Boilerplate Reduction**: Eliminated the need for `GameStateMapper` and manual `syncState` methods in the root component.
 
 ---
 
@@ -64,7 +58,7 @@ Services are pure logic classes that manage specific domains of the application 
 
 ### `GameStateService`
 **Purpose**: Manages the ephemeral state of the active gameplay session (hero position, UI flags, etc.).
-**Type**: Observable (extends `Observable` utils).
+**Type**: Signal Provider (uses `@lit-labs/signals`).
 
 *   **State Properties**:
     *   `heroPos`: `{x, y}` coordinates of the player.
@@ -388,14 +382,18 @@ export const gameContext = createContext('game-state');
 @provide({ context: gameContext })
 gameStateService = new GameStateService();
 
-// 3. Consume & Subscribe (Any Component)
-@consume({ context: gameContext })
-gameStateService;
+// 3. Consume & Watch (Any Component)
+import { SignalWatcher } from "@lit-labs/signals";
 
-connectedCallback() {
-  super.connectedCallback();
-  // Services extend Observable, so we can subscribe to changes
-  this.gameStateService.subscribe(this.onStateChange);
+class MyNewComponent extends SignalWatcher(LitElement) {
+  @consume({ context: gameContext })
+  gameStateService;
+
+  render() {
+    // Simply access signals; the mixin tracks dependencies automatically
+    const pos = this.gameStateService.heroPos.get();
+    return html`Hero is at: ${pos.x}, ${pos.y}`;
+  }
 }
 ```
 
@@ -414,20 +412,21 @@ To use an existing service (e.g., `GameStateService`) in a new component:
     ```javascript
     import { gameContext } from "../mixins/context-mixin.js";
     ```
-2.  **Add the Consumer**:
+2.  **Add the Consumer and Watcher**:
     ```javascript
     import { consume } from "@lit/context";
+    import { SignalWatcher } from "@lit-labs/signals";
 
-    class MyNewComponent extends LitElement {
-      @consume({ context: gameContext, subscribe: true })
+    class MyNewComponent extends SignalWatcher(LitElement) {
+      @consume({ context: gameContext })
       gameStateService;
 
       render() {
-        return html`Hero is at: ${this.gameStateService.state.heroPos.x}`;
+        return html`Hero is at: ${this.gameStateService.heroPos.get().x}`;
       }
     }
     ```
-    *Note: If `subscribe: true` is not sufficient (because we use a custom Observable pattern), you may need to manually subscribe in `connectedCallback` and trigger `this.requestUpdate()`.*
+    *Note: No manual subscription management is required when using `SignalWatcher`.*
 
 ---
 
