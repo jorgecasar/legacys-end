@@ -4,7 +4,7 @@ import "@awesome.me/webawesome/dist/components/dialog/dialog.js";
 import "@awesome.me/webawesome/dist/components/carousel/carousel.js";
 import "@awesome.me/webawesome/dist/components/carousel-item/carousel-item.js";
 import "@awesome.me/webawesome/dist/components/button/button.js";
-import { styles } from "./about-slides.css.js";
+import { aboutSlidesStyles } from "./AboutSlides.styles.js";
 
 /**
  * AboutSlides - Displays information about the game in a carousel dialog
@@ -12,7 +12,7 @@ import { styles } from "./about-slides.css.js";
  * @element about-slides
  */
 export class AboutSlides extends LitElement {
-	static styles = styles;
+	static styles = aboutSlidesStyles;
 
 	render() {
 		return html`
@@ -57,5 +57,3 @@ export class AboutSlides extends LitElement {
 		}
 	}
 }
-
-customElements.define("about-slides", AboutSlides);

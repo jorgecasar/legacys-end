@@ -1,7 +1,7 @@
-import "@awesome.me/webawesome/dist/components/tag/tag.js";
 import { html, LitElement } from "lit";
-import { GAME_CONFIG } from "../../constants/game-config.js";
-import { styles } from "./game-exit-zone.css.js";
+import { GAME_CONFIG } from "../../../constants/game-config.js";
+import { gameExitZoneStyles } from "./GameExitZone.styles.js";
+import "@awesome.me/webawesome/dist/components/tag/tag.js";
 
 /**
  * @element game-exit-zone
@@ -11,10 +11,12 @@ import { styles } from "./game-exit-zone.css.js";
  * @attribute active
  */
 /**
- * @typedef {import('../../content/quests/quest-types.js').Zone} Zone
+ * @typedef {import('../../../content/quests/quest-types.js').Zone} Zone
  */
 
 export class GameExitZone extends LitElement {
+	static styles = gameExitZoneStyles;
+
 	static properties = {
 		zoneConfig: { type: Object },
 		active: { type: Boolean },
@@ -51,8 +53,4 @@ export class GameExitZone extends LitElement {
 			<wa-tag size="small" variant="neutral" class="exit-text">${label || "EXIT"}</wa-tag>
 		`;
 	}
-
-	static styles = styles;
 }
-
-customElements.define("game-exit-zone", GameExitZone);

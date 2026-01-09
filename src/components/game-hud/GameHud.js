@@ -1,6 +1,16 @@
 import { html, LitElement } from "lit";
-import { styles } from "./game-hud.css.js";
+import { gameHudStyles } from "./GameHud.styles.js";
 
+/**
+ * GameHud Component
+ * Displays current level info and progress.
+ *
+ * @element game-hud
+ * @property {number} currentChapterNumber - Current chapter number (1-index based)
+ * @property {number} totalChapters - Total number of chapters
+ * @property {string} levelTitle - Title of the level/chapter
+ * @property {string} questTitle - Title of the quest
+ */
 export class GameHud extends LitElement {
 	static properties = {
 		currentChapterNumber: { type: Number },
@@ -17,7 +27,7 @@ export class GameHud extends LitElement {
 		this.questTitle = "";
 	}
 
-	static styles = styles;
+	static styles = gameHudStyles;
 
 	render() {
 		return html`
@@ -32,5 +42,3 @@ export class GameHud extends LitElement {
     `;
 	}
 }
-
-customElements.define("game-hud", GameHud);

@@ -9,15 +9,15 @@ import {
 	processImagePath,
 	processImageSrcset,
 } from "../../utils/process-assets.js";
-import "../game-hud.js";
+import "../game-hud/game-hud.js";
 import { gameViewportStyles } from "./GameViewport.styles.js";
 import "../hero-profile/hero-profile.js";
 import "../npc-element/npc-element.js";
 import "../reward-element/reward-element.js";
-import "../viewport-elements/game-context-zones.js";
-import "../viewport-elements/game-controls.js";
-import "../viewport-elements/game-exit-zone.js";
-import "../viewport-elements/game-theme-zones.js";
+import "../viewport-elements/game-context-zones/game-context-zones.js";
+import "../viewport-elements/game-controls/game-controls.js";
+import "../viewport-elements/game-exit-zone/game-exit-zone.js";
+import "../viewport-elements/game-theme-zones/game-theme-zones.js";
 
 /**
  * @element game-viewport

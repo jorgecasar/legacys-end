@@ -1,14 +1,16 @@
+import { html, LitElement } from "lit";
+import { gameControlsStyles } from "./GameControls.styles.js";
 import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/details/details.js";
 import "@awesome.me/webawesome/dist/components/icon/icon.js";
-import { html, LitElement } from "lit";
-import { styles } from "./game-controls.css.js";
 
 /**
  * @element game-controls
  * @summary Displays game controls instructions.
  */
 export class GameControls extends LitElement {
+	static styles = gameControlsStyles;
+
 	static properties = {
 		isVoiceActive: { type: Boolean },
 	};
@@ -49,8 +51,4 @@ export class GameControls extends LitElement {
 			}),
 		);
 	}
-
-	static styles = styles;
 }
-
-customElements.define("game-controls", GameControls);

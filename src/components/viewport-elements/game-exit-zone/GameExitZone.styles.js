@@ -1,7 +1,7 @@
 import { css } from "lit";
-import { sharedStyles } from "../../styles/shared.js";
+import { sharedStyles } from "../../../styles/shared.js";
 
-export const styles = [
+export const gameExitZoneStyles = [
 	sharedStyles,
 	css`
 		:host {

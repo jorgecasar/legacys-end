@@ -1,7 +1,7 @@
 import { css } from "lit";
-import { sharedStyles } from "../../styles/shared.js";
+import { sharedStyles } from "../../../styles/shared.js";
 
-export const styles = [
+export const gameControlsStyles = [
 	sharedStyles,
 	css`
 		:host {
@@ -15,7 +15,7 @@ export const styles = [
 			display: flex;
 			flex-direction: column;
 			align-items: flex-end;
-			gap: 0.5rem;
+			gap: var(--wa-space-2xs);
 		}
 
 		.voice-toggle {
@@ -35,6 +35,19 @@ export const styles = [
 
 		.voice-toggle.active wa-icon {
 			animation: pulse 2s infinite;
+		}
+
+		.controls-details {
+			--spacing: var(--wa-space-xs);
+		}
+
+		.controls-details::part(summary) {
+			font-size: var(--wa-font-size-xs);
+		}
+
+		.controls-details p {
+			margin: 0;
+			font-size: var(--wa-font-size-xs);
 		}
 
 		@keyframes pulse {
