@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock voiceSynthesisService BEFORE importing VoiceController
 vi.mock("../services/voice-synthesis-service.js", () => ({
@@ -10,6 +10,7 @@ vi.mock("../services/voice-synthesis-service.js", () => ({
 	},
 }));
 
+import { aiService } from "../services/ai-service.js";
 import { VoiceController } from "./voice-controller.js";
 
 describe("VoiceController", () => {
@@ -307,6 +308,272 @@ describe("VoiceController", () => {
 			const errorEvent = /** @type {any} */ ({ error: "not-allowed" });
 			controller.recognition?.onerror?.(errorEvent);
 			expect(controller.isListening).toBe(false);
+		});
+	});
+
+	describe("AI Initialization", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("should initialize AI when available", async () => {
+			vi.spyOn(aiService, "checkAvailability").mockResolvedValue("readily");
+			vi.spyOn(aiService, "createSession").mockResolvedValue(true);
+			vi.spyOn(aiService, "getSession").mockReturnValue({
+				prompt: vi.fn(),
+				destroy: vi.fn(),
+			});
+
+			const newController = new VoiceController(host, options);
+			await newController.initAI();
+
+			// Verify AI sessions were created
+			expect(newController.aiSession).toBeTruthy();
+			expect(newController.npcSession).toBeTruthy();
+		});
+
+		it("should handle AI unavailable gracefully", async () => {
+			vi.spyOn(aiService, "checkAvailability").mockResolvedValue("no");
+			const createSpy = vi.spyOn(aiService, "createSession");
+
+			const newController = new VoiceController(host, options);
+			await newController.initAI();
+
+			// Should not throw and sessions should remain null
+			expect(newController.aiSession).toBeNull();
+			expect(newController.npcSession).toBeNull();
+			expect(createSpy).not.toHaveBeenCalled();
+		});
+
+		it("should handle AI initialization errors", async () => {
+			vi.spyOn(aiService, "checkAvailability").mockRejectedValue(
+				new Error("AI Error"),
+			);
+
+			const newController = new VoiceController(host, options);
+
+			// Should not throw
+			await expect(newController.initAI()).resolves.not.toThrow();
+			expect(newController.aiSession).toBeNull();
+		});
+	});
+
+	describe("handleResult", () => {
+		it("should extract transcript from recognition event", () => {
+			const processSpy = vi.spyOn(controller, "processCommand");
+			const mockEvent = {
+				results: [[{ transcript: "  MOVE UP  " }]],
+			};
+
+			controller.handleResult(mockEvent);
+
+			expect(processSpy).toHaveBeenCalledWith("move up");
+		});
+
+		it("should handle multiple results and use the last one", () => {
+			const processSpy = vi.spyOn(controller, "processCommand");
+			const mockEvent = {
+				results: [
+					[{ transcript: "first" }],
+					[{ transcript: "second" }],
+					[{ transcript: "FINAL COMMAND" }],
+				],
+			};
+
+			controller.handleResult(mockEvent);
+
+			expect(processSpy).toHaveBeenCalledWith("final command");
+		});
+
+		it("should lowercase and trim transcript", () => {
+			const processSpy = vi.spyOn(controller, "processCommand");
+			const mockEvent = {
+				results: [[{ transcript: "   INTERACT   " }]],
+			};
+
+			controller.handleResult(mockEvent);
+
+			expect(processSpy).toHaveBeenCalledWith("interact");
+		});
+	});
+
+	describe("toggle", () => {
+		it("should start listening when currently disabled", () => {
+			controller.enabled = false;
+			controller.isListening = false;
+			const startSpy = vi.spyOn(controller, "start");
+
+			controller.toggle();
+
+			expect(controller.enabled).toBe(true);
+			expect(startSpy).toHaveBeenCalled();
+			expect(host.requestUpdate).toHaveBeenCalled();
+		});
+
+		it("should stop listening when currently enabled", () => {
+			controller.enabled = true;
+			controller.isListening = true;
+			const stopSpy = vi.spyOn(controller, "stop");
+
+			controller.toggle();
+
+			expect(controller.enabled).toBe(false);
+			expect(stopSpy).toHaveBeenCalled();
+			expect(host.requestUpdate).toHaveBeenCalled();
+		});
+
+		it("should toggle state multiple times", () => {
+			controller.enabled = false;
+
+			controller.toggle();
+			expect(controller.enabled).toBe(true);
+
+			controller.toggle();
+			expect(controller.enabled).toBe(false);
+
+			controller.toggle();
+			expect(controller.enabled).toBe(true);
+		});
+	});
+
+	describe("celebrateChapter", () => {
+		it("should speak celebration phrase in English", async () => {
+			const { voiceSynthesisService } = await import(
+				"../services/voice-synthesis-service.js"
+			);
+			vi.clearAllMocks();
+
+			controller.options.language = "en-US";
+			controller.celebrateChapter();
+
+			expect(voiceSynthesisService.speak).toHaveBeenCalled();
+			const callArgs = /** @type {import("vitest").Mock} */ (
+				voiceSynthesisService.speak
+			).mock.calls[0];
+			const spokenText = callArgs[0];
+
+			// Should be one of the English phrases
+			expect(spokenText).toMatch(/Chapter complete|System update|Victory/);
+		});
+
+		it("should speak celebration phrase in Spanish", async () => {
+			const { voiceSynthesisService } = await import(
+				"../services/voice-synthesis-service.js"
+			);
+			vi.clearAllMocks();
+
+			controller.options.language = "es-ES";
+			controller.celebrateChapter();
+
+			expect(voiceSynthesisService.speak).toHaveBeenCalled();
+			const callArgs = /** @type {import("vitest").Mock} */ (
+				voiceSynthesisService.speak
+			).mock.calls[0];
+			const spokenText = callArgs[0];
+
+			// Should be one of the Spanish phrases
+			expect(spokenText).toMatch(
+				/Capítulo completado|Actualización del sistema|Victoria/,
+			);
+		});
+
+		it("should use correct language parameter", async () => {
+			const { voiceSynthesisService } = await import(
+				"../services/voice-synthesis-service.js"
+			);
+			vi.clearAllMocks();
+
+			controller.options.language = "es-ES";
+			controller.celebrateChapter();
+
+			const callArgs = /** @type {import("vitest").Mock} */ (
+				voiceSynthesisService.speak
+			).mock.calls[0];
+			const options = callArgs[1];
+
+			expect(options.lang).toBe("es-ES");
+		});
+	});
+
+	describe("showHelp", () => {
+		it("should log help information to console", () => {
+			const consoleSpy = vi.spyOn(console, "log");
+
+			controller.showHelp();
+
+			expect(consoleSpy).toHaveBeenCalled();
+			const loggedText = consoleSpy.mock.calls[0][0];
+
+			expect(loggedText).toContain("VOICE COMMANDS");
+			expect(loggedText).toContain("MOVE");
+			expect(loggedText).toContain("APPROACH");
+			expect(loggedText).toContain("DIALOGUE");
+			expect(loggedText).toContain("ACTIONS");
+
+			consoleSpy.mockRestore();
+		});
+
+		it("should include multilingual commands", () => {
+			const consoleSpy = vi.spyOn(console, "log");
+
+			controller.showHelp();
+
+			const loggedText = consoleSpy.mock.calls[0][0];
+
+			// Should include both English and Spanish
+			expect(loggedText).toContain("Up/Arriba");
+			expect(loggedText).toContain("Next/Siguiente");
+			expect(loggedText).toContain("Interact/Interactúa");
+
+			consoleSpy.mockRestore();
+		});
+	});
+
+	describe("Regression Prevention", () => {
+		it("should not auto-restart when disabled", () => {
+			controller.enabled = false;
+			controller.isListening = true;
+
+			// Simulate onend
+			controller.recognition?.onend?.(/** @type {any} */ ({}));
+
+			expect(controller.isListening).toBe(false);
+			// Should not attempt to restart
+			expect(controller.restartAttempts).toBe(0);
+		});
+
+		it("should not auto-restart when speaking", () => {
+			controller.enabled = true;
+			controller.isSpeaking = true;
+			controller.isListening = true;
+
+			// Simulate onend
+			controller.recognition?.onend?.(/** @type {any} */ ({}));
+
+			expect(controller.isListening).toBe(false);
+			// Should not attempt to restart while speaking
+			expect(controller.restartAttempts).toBe(0);
+		});
+
+		it("should handle rapid toggle calls", () => {
+			controller.enabled = false;
+
+			controller.toggle();
+			controller.toggle();
+			controller.toggle();
+
+			// Should end in enabled state
+			expect(controller.enabled).toBe(true);
+		});
+
+		it("should cleanup on disconnect", () => {
+			const stopSpy = vi.spyOn(controller, "stop");
+
+			controller.hostDisconnected();
+
+			expect(stopSpy).toHaveBeenCalled();
+			expect(controller.aiSession).toBeNull();
+			expect(controller.npcSession).toBeNull();
 		});
 	});
 });
