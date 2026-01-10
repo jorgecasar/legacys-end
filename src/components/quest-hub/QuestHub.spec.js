@@ -1,7 +1,7 @@
+import axe from "axe-core";
 import { html, render } from "lit";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import "./quest-hub.js";
-import axe from "axe-core";
 
 /** @typedef {import("./QuestHub.js").QuestHub} QuestHub */
 
@@ -25,6 +25,7 @@ describe("QuestHub Component", () => {
 				name: "Quest 1",
 				description: "Desc 1",
 				difficulty: "Beginner",
+				estimatedTime: "30 min",
 				icon: "quest-icon",
 				progress: 0,
 				isCompleted: false,
@@ -36,6 +37,7 @@ describe("QuestHub Component", () => {
 				name: "Quest 2",
 				description: "Desc 2",
 				difficulty: "Advanced",
+				estimatedTime: "30 min",
 				icon: "quest-icon",
 				progress: 50,
 				isCompleted: false,
@@ -48,10 +50,15 @@ describe("QuestHub Component", () => {
 		const el = /** @type {QuestHub} */ (container.querySelector("quest-hub"));
 		await el.updateComplete;
 
-		const cards = el.shadowRoot?.querySelectorAll("wa-card");
+		// Verify quest-card components are rendered
+		const cards = el.shadowRoot?.querySelectorAll("quest-card");
 		expect(cards?.length).toBe(2);
-		expect(el.shadowRoot?.textContent).toContain("Quest 1");
-		expect(el.shadowRoot?.textContent).toContain("Quest 2");
+
+		// Verify quest data is passed to cards
+		const firstCard = /** @type {any} */ (cards?.[0]);
+		const secondCard = /** @type {any} */ (cards?.[1]);
+		expect(firstCard?.quest?.id).toBe("q1");
+		expect(secondCard?.quest?.id).toBe("q2");
 	});
 
 	it("renders coming soon quests", async () => {
@@ -61,6 +68,7 @@ describe("QuestHub Component", () => {
 				name: "Future Quest",
 				description: "Coming Soon",
 				difficulty: "Beginner",
+				estimatedTime: "30 min",
 				icon: "quest-icon",
 			},
 		];
@@ -72,7 +80,16 @@ describe("QuestHub Component", () => {
 		const el = /** @type {QuestHub} */ (container.querySelector("quest-hub"));
 		await el.updateComplete;
 
-		expect(el.shadowRoot?.textContent).toContain("Future Quest");
+		// Verify coming soon section is rendered
+		const section = el.shadowRoot?.querySelector(".coming-soon-section");
+		expect(section).toBeTruthy();
+
+		// Verify quest-card component is rendered with isComingSoon
+		const cards = el.shadowRoot?.querySelectorAll("quest-card");
+		expect(cards?.length).toBe(1);
+		const card = /** @type {any} */ (cards?.[0]);
+		expect(card?.quest?.id).toBe("q3");
+		expect(card?.isComingSoon).toBe(true);
 	});
 
 	it("should have no accessibility violations", async () => {
@@ -82,6 +99,7 @@ describe("QuestHub Component", () => {
 				name: "Quest 1",
 				description: "Desc 1",
 				difficulty: "Beginner",
+				estimatedTime: "30 min",
 				icon: "quest-icon",
 				progress: 0,
 				isCompleted: false,
