@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { InteractionController } from "./interaction-controller.js";
 
 describe("InteractionController", () => {
@@ -142,6 +142,61 @@ describe("InteractionController", () => {
 				controller.handleInteract();
 
 				expect(eventBus.emit).toHaveBeenCalledWith("dialog-opened");
+			});
+		});
+	});
+
+	describe("Lifecycle & Robustness", () => {
+		it("should handle lifecycle methods without error", () => {
+			// Even if empty, ensure they exist and don't throw
+			expect(() => controller.hostConnected()).not.toThrow();
+			expect(() => controller.hostDisconnected()).not.toThrow();
+		});
+
+		it("should gracefully handle missing state during interaction", () => {
+			// Mock getState returning null/undefined
+			controller = new InteractionController(host, {
+				getState: () => /** @type {any} */ (null),
+			});
+			expect(() => controller.handleInteract()).not.toThrow();
+		});
+	});
+
+	describe("Message Timeout Logic", () => {
+		beforeEach(() => {
+			vi.useFakeTimers();
+			controller = new InteractionController(host, {
+				getState,
+				getNpcPosition,
+				eventBus,
+			});
+		});
+
+		afterEach(() => {
+			vi.useRealTimers();
+		});
+
+		it("should clear locked message after delay", () => {
+			// Setup for locked state
+			getState.mockReturnValue({
+				heroPos: { x: 0, y: 0 },
+				hotSwitchState: null,
+				chapterData: { isFinalBoss: true },
+			});
+
+			controller.handleInteract();
+
+			// Verify initial locked message
+			expect(eventBus.emit).toHaveBeenCalledWith("interaction-locked", {
+				message: "REQ: NEW API",
+			});
+
+			// Fast-forward time
+			vi.advanceTimersByTime(1000);
+
+			// Verify message clear
+			expect(eventBus.emit).toHaveBeenCalledWith("interaction-locked", {
+				message: null,
 			});
 		});
 	});
