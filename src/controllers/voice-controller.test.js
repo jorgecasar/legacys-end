@@ -11,6 +11,7 @@ vi.mock("../services/voice-synthesis-service.js", () => ({
 }));
 
 import { aiService } from "../services/ai-service.js";
+import { voiceSynthesisService } from "../services/voice-synthesis-service.js";
 import { VoiceController } from "./voice-controller.js";
 
 describe("VoiceController", () => {
@@ -311,6 +312,147 @@ describe("VoiceController", () => {
 		});
 	});
 
+	describe("AI Interactions", () => {
+		describe("narrateDialogue", () => {
+			it("should do nothing if text is empty", async () => {
+				await controller.narrateDialogue("");
+				expect(controller.isSpeaking).toBe(false);
+			});
+
+			it("should speak text directly if NPC session is missing", async () => {
+				controller.npcSession = null;
+				vi.spyOn(controller, "speak");
+
+				await controller.narrateDialogue("Hello");
+
+				expect(controller.speak).toHaveBeenCalledWith(
+					"Hello",
+					null,
+					"npc",
+					true,
+				);
+			});
+
+			it("should use AI to rephrase text if NPC session exists", async () => {
+				const mockResponse = '{"narration": "Rephrased Hello"}';
+				controller.npcSession = {
+					prompt: vi.fn().mockResolvedValue(mockResponse),
+					destroy: vi.fn(),
+				};
+				vi.spyOn(controller, "speak");
+
+				await controller.narrateDialogue("Hello");
+
+				expect(controller.npcSession.prompt).toHaveBeenCalled();
+				expect(controller.speak).toHaveBeenCalledWith(
+					expect.stringContaining("Rephrased"),
+					null,
+					"npc",
+					true,
+				);
+			});
+
+			it("should handle AI errors and fallback to original text", async () => {
+				controller.npcSession = {
+					prompt: vi.fn().mockRejectedValue(new Error("AI Error")),
+					destroy: vi.fn(),
+				};
+				vi.spyOn(controller, "speak");
+				const consoleSpy = vi
+					.spyOn(console, "error")
+					.mockImplementation(() => {});
+
+				await controller.narrateDialogue("Hello");
+
+				expect(consoleSpy).toHaveBeenCalledWith(
+					expect.stringContaining("AI Narration error"),
+					expect.any(Error),
+				);
+				// Fallback to original text
+				expect(controller.speak).toHaveBeenCalledWith(
+					"Hello",
+					null,
+					"npc",
+					true,
+				);
+				consoleSpy.mockRestore();
+			});
+		});
+
+		describe("processCommand", () => {
+			it("should warn if AI session is missing", async () => {
+				controller.aiSession = null;
+				const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+				await controller.processCommand("command");
+
+				expect(warnSpy).toHaveBeenCalledWith(
+					expect.stringContaining("AI Session not available"),
+				);
+				warnSpy.mockRestore();
+			});
+
+			it("should parse successful AI response and execute action", async () => {
+				controller.aiSession = {
+					prompt: vi.fn().mockResolvedValue(
+						JSON.stringify({
+							action: "move",
+							value: "up",
+							feedback: "Moving up",
+							lang: "en-US",
+						}),
+					),
+					destroy: vi.fn(),
+				};
+				vi.spyOn(controller, "speak");
+				vi.spyOn(controller, "executeAction");
+
+				await controller.processCommand("move up");
+
+				expect(controller.speak).toHaveBeenCalledWith("Moving up", "en-US");
+				expect(controller.executeAction).toHaveBeenCalledWith(
+					"move",
+					"up",
+					"en-US",
+				);
+			});
+
+			it("should handle JSON parse errors", async () => {
+				controller.aiSession = {
+					prompt: vi.fn().mockResolvedValue("Invalid JSON"),
+					destroy: vi.fn(),
+				};
+				const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+				await controller.processCommand("test");
+
+				expect(warnSpy).toHaveBeenCalledWith(
+					expect.stringContaining("Failed to parse"),
+					expect.any(String),
+				);
+				warnSpy.mockRestore();
+			});
+
+			it("should handle AI interaction errors", async () => {
+				controller.aiSession = {
+					prompt: vi.fn().mockRejectedValue(new Error("Network Error")),
+					destroy: vi.fn(),
+				};
+				const errorSpy = vi
+					.spyOn(console, "error")
+					.mockImplementation(() => {});
+
+				await controller.processCommand("test");
+
+				expect(errorSpy).toHaveBeenCalledWith(
+					expect.stringContaining("AI processing error"),
+					expect.any(Error),
+				);
+				errorSpy.mockRestore();
+			});
+		});
+	});
+
 	describe("AI Initialization", () => {
 		afterEach(() => {
 			vi.restoreAllMocks();
@@ -526,6 +668,115 @@ describe("VoiceController", () => {
 			expect(loggedText).toContain("Interact/Interactúa");
 
 			consoleSpy.mockRestore();
+		});
+	});
+
+	describe("Internal Logic & Callbacks", () => {
+		it("should execute default callbacks cleanly", () => {
+			// Create controller without overrides to test defaults
+			const defaultController = new VoiceController(host);
+			expect(() => defaultController.options.onMove?.(0, 0)).not.toThrow();
+			expect(() => defaultController.options.onInteract?.()).not.toThrow();
+			expect(() => defaultController.options.onPause?.()).not.toThrow();
+			expect(() => defaultController.options.onNextSlide?.()).not.toThrow();
+			expect(() => defaultController.options.onPrevSlide?.()).not.toThrow();
+			expect(() => defaultController.options.onMoveToNpc?.()).not.toThrow();
+			expect(() => defaultController.options.onMoveToExit?.()).not.toThrow();
+			expect(defaultController.options.onGetDialogText?.()).toBe("");
+			expect(defaultController.options.onGetContext?.()).toEqual({
+				isDialogOpen: false,
+				isRewardCollected: false,
+			});
+			expect(() =>
+				defaultController.options.onDebugAction?.("test", "val"),
+			).not.toThrow();
+			expect(defaultController.options.isEnabled?.()).toBe(false);
+		});
+
+		it("should handle speech synthesis callbacks", () => {
+			vi.useFakeTimers();
+			const speakSpy = vi.spyOn(voiceSynthesisService, "speak");
+
+			// Mock implementation to trigger callbacks
+			speakSpy.mockImplementation((_text, opts) => {
+				if (opts) {
+					opts.onStart?.();
+					opts.onEnd?.();
+					opts.onError?.(/** @type {any} */ ({ error: "test-error" }));
+				}
+			});
+
+			controller.enabled = true;
+			controller.speak("test");
+
+			// onStart sets isSpeaking = true
+			// onEnd sets isSpeaking = false and tries to restart if enabled
+
+			expect(speakSpy).toHaveBeenCalled();
+
+			// Advance timers to trigger the restart timeout in onEnd
+			vi.advanceTimersByTime(500);
+			vi.useRealTimers();
+		});
+
+		it("should handle unstable session restarts (short duration)", () => {
+			vi.useFakeTimers();
+			controller.enabled = true;
+			controller.isListening = true;
+
+			// Simulate immediate end (unstable)
+			controller.lastStartTime = Date.now();
+			if (controller.recognition) {
+				// @ts-expect-error
+				controller.recognition.onend?.();
+			}
+
+			expect(controller.restartAttempts).toBeGreaterThan(0);
+
+			vi.advanceTimersByTime(200); // Wait for backoff
+			vi.useRealTimers();
+		});
+
+		it("should reset restart attempts on stable session", () => {
+			vi.useFakeTimers();
+			controller.enabled = true;
+			controller.isListening = true;
+
+			// Simulate stable session (>2s)
+			controller.lastStartTime = Date.now() - 3000;
+			if (controller.recognition) {
+				// @ts-expect-error
+				controller.recognition.onend?.();
+			}
+
+			expect(controller.restartAttempts).toBe(0);
+			vi.useRealTimers();
+		});
+
+		it("should trigger onstart handler", () => {
+			if (controller.recognition) {
+				controller.recognition.onstart?.(new Event("start"));
+				expect(controller.isListening).toBe(true);
+			}
+		});
+
+		it("should log restart warning after multiple attempts", () => {
+			vi.useFakeTimers();
+			controller.enabled = true;
+			controller.isListening = true;
+			// Start with high attempts to trigger the > 2 branch
+			controller.restartAttempts = 3;
+
+			// Unstable session to trigger restart increment
+			controller.lastStartTime = Date.now();
+
+			if (controller.recognition) {
+				// @ts-expect-error
+				controller.recognition.onend?.();
+			}
+
+			expect(controller.restartAttempts).toBe(4);
+			vi.useRealTimers();
 		});
 	});
 
