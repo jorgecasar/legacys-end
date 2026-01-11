@@ -16,6 +16,9 @@
 - **Improved Isolation**: Unit tests now spy on the injected logger instance instead of the global `console` object, ensuring more reliable verification of logging behavior.
 - **Coverage**: Maintained 100% test passing rate with updated mocks.
 
+### Documentation
+- **Quest Design**: Added "The Machine's Voice" (AI), "The Hot Switch" (API Patterns), and "The Time Dilator" (Performance) quests to `QUEST_DESIGN.md`.
+
 ## 2026-01-09 - State Management Refactor (Lit Signals)
 
 ### Core Refactoring
