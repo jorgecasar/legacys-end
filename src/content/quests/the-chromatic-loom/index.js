@@ -10,10 +10,11 @@ import { THE_CHROMATIC_LOOM_CHAPTERS } from "./chapters.js";
 export const TOKEN_OF_AGNOSTICISM_QUEST = {
 	id: "the-chromatic-loom",
 	name: "The Chromatic Loom",
-	subtitle: "Dress Your App in Any Brand and Theme",
+	subtitle: "Weaving the Fabric of Universal Design",
 	description:
-		"Achieve Visual Adaptation to any theme or brand. Grant your component aesthetic flexibility without breaking encapsulation.",
-	legacyProblem: "Hardcoded styles or components that cannot change themes.",
+		"A true master is not bound to a single color. In the Chromatic Loom, you will learn to weave interfaces that mutate at will, adapting to light, darkness, and the whims of any realm without changing a single line of logic.",
+	legacyProblem:
+		"Hardcoded styles, inability to adapt to Dark Mode or different branding requirements.",
 	prerequisites: ["tunic-of-isolation"],
 	shortcuts: /** @type {string[]} */ ([]),
 	difficulty: Difficulty.INTERMEDIATE,

@@ -4,11 +4,11 @@ import { GATE_OF_IDENTITY_CHAPTERS } from "./chapters.js";
 export const GATE_OF_IDENTITY_QUEST = {
 	id: "the-watchers-bastion",
 	name: "The Watcher's Bastion",
-	subtitle: "Centralize Security: The Route Guardian",
+	subtitle: "Architecting the Fortress of Identity",
 	description:
-		"Alarion's mission to centralize fragmented security logic, establish robust Auth Guards, and achieve a reactive, perimeter-wide user identity. Eliminate scattered `isLoggedIn()` checks and prevent redirect vulnerabilities through a unified security protocol.",
+		"The enemy tries to slip through the cracks of navigation. It is not enough to ask 'who goes there?' at every door. You must erect an intelligent perimeter wall that reacts to intruders before they take a single step. Centralize your security logic.",
 	legacyProblem:
-		"Scattered authentication logic, repetitive `isLoggedIn()` checks across components, and vulnerable redirection flows.",
+		"Scattered authentication logic, repetitive `isLoggedIn()` checks, and vulnerable redirection flows.",
 	prerequisites: ["the-orb-of-inquiry"],
 	shortcuts: /** @type {string[]} */ ([]),
 	difficulty: Difficulty.ADVANCED,

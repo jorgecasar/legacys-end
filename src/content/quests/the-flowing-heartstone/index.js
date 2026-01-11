@@ -4,11 +4,11 @@ import { STATE_MANAGEMENT_RAID_CHAPTERS } from "./chapters.js";
 export const STATE_MANAGEMENT_RAID_QUEST = {
 	id: "the-flowing-heartstone",
 	name: "The Flowing Heartstone",
-	subtitle: "Establish a Single Reactive Source of Truth",
+	subtitle: "Harnessing the Power of Fine-Grained Reactivity",
 	description:
-		"Conquer Global State Chaos and achieve data predictability. Eliminate prop drilling and unpredictable state mutation with reactive patterns (Signals, Observable Stores).",
+		"The state of the world is volatile; a change in the north causes storms in the south. You must synchronize the world's heartbeat with **The Flowing Heartstone**, a single source of truth that pulses instantly across the realm without disturbing the sleepers.",
 	legacyProblem:
-		"Prop drilling, unpredictable global state mutation, non-reactive state.",
+		"Prop drilling, unpredictable global state mutation, and excessive re-renders due to poor reactivity.",
 	prerequisites: ["the-orb-of-inquiry"],
 	shortcuts: /** @type {string[]} */ ([]),
 	difficulty: Difficulty.ADVANCED,

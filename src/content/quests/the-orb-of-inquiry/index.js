@@ -4,11 +4,11 @@ import { THE_ORB_OF_INQUIRY_CHAPTERS } from "./chapters.js";
 export const THE_ORB_OF_INQUIRY_QUEST = {
 	id: "the-orb-of-inquiry",
 	name: "The Orb of Inquiry",
-	subtitle: "Decouple Services for Testable Code",
+	subtitle: "Mastering the Art of Dependency Injection",
 	description:
-		"Break service coupling and achieve logical independence. Master Dependency Inversion Principle (DIP), Inversion of Control (IoC), and Context API. Culminates with a Hot Switch (live service swap).",
+		"Alarion discovers that a hero bound to their tools is a prisoner. To free your potential, you must cut the hard ties with the outside world and learn to summon services through the Ether of Context. Master Inversion of Control.",
 	legacyProblem:
-		"Direct dependency on fetch or global variables (window.service).",
+		"Tight coupling to concrete implementations, making testing and flexibility impossible.",
 	prerequisites: ["the-aura-of-sovereignty"],
 	shortcuts: /** @type {string[]} */ ([]),
 	difficulty: Difficulty.INTERMEDIATE,

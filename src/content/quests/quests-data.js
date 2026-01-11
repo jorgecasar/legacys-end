@@ -1,4 +1,5 @@
 import { Difficulty } from "./quest-types.js";
+import { THE_ACCESSIBILITY_ECHOES_QUEST } from "./the-accessibility-echoes/index.js";
 import { THE_AURA_OF_SOVEREIGNTY_QUEST } from "./the-aura-of-sovereignty/index.js";
 import { TOKEN_OF_AGNOSTICISM_QUEST } from "./the-chromatic-loom/index.js";
 import { THE_SCRYING_POOL_OF_CHAOS_QUEST } from "./the-crimson-altar/index.js";
@@ -32,4 +33,5 @@ export const QUESTS = {
 	[THE_MIRROR_OF_VERACITY_QUEST.id]: THE_MIRROR_OF_VERACITY_QUEST,
 	[THE_SCRYING_POOL_OF_CHAOS_QUEST.id]: THE_SCRYING_POOL_OF_CHAOS_QUEST,
 	[THE_SCROLL_OF_TONGUES_QUEST.id]: THE_SCROLL_OF_TONGUES_QUEST,
+	[THE_ACCESSIBILITY_ECHOES_QUEST.id]: THE_ACCESSIBILITY_ECHOES_QUEST,
 };
