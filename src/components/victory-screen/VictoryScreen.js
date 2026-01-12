@@ -55,16 +55,16 @@ export class VictoryScreen extends LitElement {
 					<span style="color: ${this.quest.color || "black"};">${this.quest.name}</span>.
 				</small></p>
 
-				<div class="rewards-container">
+				<ul class="rewards-list" role="list">
 					${collectedRewards.map(
-						(reward) => html`
-						<div class="reward-item">
+						(reward, index) => html`
+						<li class="reward-item" style="--index: ${index}">
 							<img src="${ifDefined(processImagePath(reward.image))}" alt="${reward.name}" class="reward-img" />
 							<span class="reward-name">${reward.name}</span>
-						</div>
+						</li>
 					`,
 					)}
-				</div>
+				</ul>
 
 				<p class="victory-text"><small>
 					You earned the badge: <b>"${this.quest?.reward?.badge}"</b>

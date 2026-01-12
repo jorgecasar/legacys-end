@@ -46,9 +46,11 @@ export const victoryScreenStyles = [
 			line-height: 1.6;
 		}
 
-		.rewards-container {
-			display: flex;
-			flex-wrap: wrap;
+		.rewards-list {
+			list-style: none;
+			padding: 0;
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
 			justify-content: center;
 			gap: 2rem;
 			margin: 2rem 0;
@@ -60,11 +62,8 @@ export const victoryScreenStyles = [
 			align-items: center;
 			gap: 0.5rem;
 			animation: pop-in 0.5s ease-out backwards;
+			animation-delay: calc(var(--index, 0) * 0.2s + 0.5s);
 		}
-
-		.reward-item:nth-child(1) { animation-delay: 0.5s; }
-		.reward-item:nth-child(2) { animation-delay: 0.7s; }
-		.reward-item:nth-child(3) { animation-delay: 0.9s; }
 
 		.reward-img {
 			width: 64px;
