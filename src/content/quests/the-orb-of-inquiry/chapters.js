@@ -77,7 +77,7 @@ export const THE_ORB_OF_INQUIRY_CHAPTERS = {
 		id: "temple-of-inversion",
 		title: "Temple of Inversion",
 		description:
-			"The Purveyor, master of the supply chain, demonstrates the power of Context Provision. By installing the Red Focus Crystal (Legacy Service) into the Altar, they establish a data source that flows downwards, available to any component that requests it.",
+			"The Purveyor installs the Red Focus Crystal (Legacy Service) into the Altar. This demonstrates Context Provision: establishing a data source that flows downwards, available to any component that requests it.",
 		problemTitle: "Before: Component Coupling",
 		problemDesc:
 			"The service is tightly coupled to the component, making it impossible to share the instance or swap the implementation.",
@@ -165,7 +165,7 @@ export class ProductProviderLegacy extends LitElement {
 		id: "the-jewelers-workshop",
 		title: "The Jeweler's Workshop",
 		description:
-			"Alarion enters the quiet precision of the Jeweler's Workshop. Here, the Master Jeweler teaches the art of setting the raw Crystal (the Provider's Context) into the golden frame of the Necklace (the Component). This delicate process represents the ContextConsumer: just as the setting holds the gem, the Consumer controller links the component to the data provided from above, transforming separate parts into a unified, functional masterpiece.",
+			"The Master Jeweler teaches Alarion to set the raw Crystal (Context) into the Necklace (Component). This represents the ContextConsumer: linking the component to data provided from above, transforming separate parts into a unified masterpiece.",
 		problemTitle: "Before: Hardcoded Dependency",
 		problemDesc:
 			"The component creates its own service instance, ignoring the provider.",
@@ -255,7 +255,7 @@ export class ProductItem extends LitElement {
 		id: "assay-chamber",
 		title: "The Assay Chamber",
 		description:
-			"Alarion presents the newly assembled necklace to The Grand Appraiser. To prove the craftsmanship is sound without risking the real gem, the Appraiser uses a Lantern of Emulation (Mock Provider). Under this specific light, the crystal glows a safe, warm Yellow. This teaches the value of Mocking: testing the component's reaction in a controlled, isolated environment.",
+			"The Grand Appraiser uses a Lantern of Emulation (Mock Provider) to test the necklace without risking the real gem. This teaches the value of Mocking: validating the component in a controlled, isolated environment.",
 		problemTitle: "Before: Hard Dependency",
 		problemDesc:
 			"Testing with the real legacy service is slow, flaky, and requires a network connection.",
