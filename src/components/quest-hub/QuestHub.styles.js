@@ -17,12 +17,35 @@ export const questHubStyles = [
 		.hub-container {
 			max-width: 1400px;
 			margin: 0 auto;
-			padding: var(--wa-space-xl);
+			padding: var(--wa-space-m);
+		}
+
+		@media (min-width: 768px) {
+			.hub-container {
+				padding: var(--wa-space-xl);
+			}
 		}
 
 		.hub-header {
-			text-align: center;
 			margin-bottom: var(--wa-space-xl);
+		}
+
+		.hub-navbar {
+			display: flex;
+			justify-content: flex-end;
+			padding: var(--wa-space-xs) 0;
+			margin-bottom: var(--wa-space-s);
+		}
+
+		.navbar-actions {
+			display: flex;
+			gap: var(--wa-space-s);
+			flex-wrap: wrap;
+			justify-content: center;
+		}
+
+		.header-content {
+			text-align: center;
 		}
 
 		.hub-title {
@@ -39,14 +62,7 @@ export const questHubStyles = [
 			opacity: 0.9;
 		}
 
-		.top-actions {
-			position: absolute;
-			top: var(--wa-space-m);
-			right: var(--wa-space-m);
-			z-index: 10;
-			display: flex;
-			gap: var(--wa-space-s);
-		}
+
 
 		.quests-section {
 			margin-bottom: var(--wa-space-4xl);

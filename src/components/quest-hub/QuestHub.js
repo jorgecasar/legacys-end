@@ -82,6 +82,19 @@ export class QuestHub extends LitElement {
 		return html`
 			<div class="hub-container">
 				<header class="hub-header">
+					<nav class="hub-navbar">
+						<div class="navbar-actions">
+							<wa-button variant="brand" @click="${this.#dispatchOpenAbout}">
+								<wa-icon slot="start" name="user"></wa-icon>
+								About
+							</wa-button>
+							<wa-button @click="${this.#toggleFullscreen}">
+								<wa-icon slot="start" name="${this.isFullscreen ? "compress" : "expand"}"></wa-icon>
+								${this.isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+							</wa-button>
+						</div>
+					</nav>
+
 					<div class="header-content">
 						<h1 class="hub-title">LEGACY'S END</h1>
 						<p class="hub-subtitle">Tired of legacy code? It's time for transformation!</p>
@@ -108,17 +121,6 @@ export class QuestHub extends LitElement {
 								</wa-button>
 							`
 							}
-						</div>
-
-						<div class="top-actions">
-							<wa-button variant="brand" @click="${this.#dispatchOpenAbout}">
-								<wa-icon slot="start" name="user"></wa-icon>
-								About
-							</wa-button>
-							<wa-button @click="${this.#toggleFullscreen}">
-								<wa-icon slot="start" name="${this.isFullscreen ? "compress" : "expand"}"></wa-icon>
-								${this.isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-							</wa-button>
 						</div>
 					</div>
 				</header>

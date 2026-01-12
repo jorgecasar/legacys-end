@@ -8,6 +8,20 @@ export const questCardStyles = css`
 	.quest-card {
 		height: 100%;
 		--spacing: var(--wa-space-m);
+		display: flex;
+		flex-direction: column;
+	}
+
+	.quest-card::part(base) {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+	}
+
+	.quest-card::part(body) {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
 	}
 
 	.quest-card.locked {
@@ -59,6 +73,8 @@ export const questCardStyles = css`
 		justify-content: space-between;
 		align-items: center;
 		width: 100%;
+		gap: var(--wa-space-s);
+		flex-wrap: wrap;
 	}
 
 	.quest-time {
@@ -74,5 +90,19 @@ export const questCardStyles = css`
 		justify-content: flex-end;
 		gap: var(--wa-space-s);
 		width: 100%;
+		flex-wrap: wrap;
 	}
+
+	.card-footer-actions wa-button {
+		flex: 1 1 auto;
+		min-width: 0;
+		max-width: 100%;
+	}
+	
+	@media (min-width: 400px) {
+		.card-footer-actions wa-button {
+			flex: 0 1 auto;
+		}
+	}
+
 `;
