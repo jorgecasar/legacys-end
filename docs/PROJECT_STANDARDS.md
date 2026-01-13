@@ -4,6 +4,19 @@ This document outlines the mandatory architectural and coding standards for "Leg
 
 ---
 
+## 0. Philosophy & Core Principles
+
+*   **Goal**: Performant, maintainable, secure, and accessible code adhering to **Web Baseline**.
+*   **Principle**: YAGNI (You Ain't Gonna Need It). Clarity > Cleverness.
+*   **Language**: English variables. No Spanglish.
+*   **Tech Stack**:
+    *   **Target**: **ESNext**. Use `const`, Arrow Functions, Template Literals, Logical Assignment (`??=`).
+    *   **Baseline**: Prefer native APIs (`Intl`, `fetch`, `toSorted`) over libraries.
+    *   **Async**: `async/await` with `try/catch`.
+    *   **Defensive**: Optional Chaining (`?.`) & Nullish Coalescing (`??`).
+
+---
+
 ## 1. Documentation Standards
 
 ### JSDoc & Typing
@@ -29,6 +42,7 @@ This document outlines the mandatory architectural and coding standards for "Leg
     *   **Patch Coverage**: New code must have at least **80% coverage**.
     *   **Project Coverage**: Must not drop by more than **1%**.
 *   **Tooling**: Use `vitest` for unit tests. Run `npm run test:coverage` to verify locally.
+*   **Linting**: Code must pass `npm run lint:biome`, `npm run lint:tsc`, and `npm run lint:lit`.
 *   **Environment**: Tests must not rely on global side-effects. Use dependency injection (e.g., passing `env` or `options` in constructors) to test different configurations.
 *   **Component Testing**:
     *   Must use **Vitest Browser Mode** (Chromium).
@@ -47,11 +61,25 @@ This document outlines the mandatory architectural and coding standards for "Leg
 
 ### Services vs. Controllers
 *   **Services**: Are **Singletons**. They manage data and business logic independent of the UI.
-    *   *Example*: `GameStateService`, `LoggerService`.
-    *   *Pattern*: Use **Lit Signals** (`@lit-labs/signals`).
 *   **Controllers**: Are **UI Helpers**. They interact with the DOM/Lit Lifecycle.
-    *   *Example*: `KeyboardController`.
-    *   *Rule*: Do not put global state in a Controller.
+
+#### 🧠 Logic Placement Decision Tree
+```mermaid
+flowchart TD
+    Start([New Logic Needed]) --> Global{Is it Global State?}
+    Global -- Yes --> Service[Service (Singleton)]
+    Global -- No --> UI{Is it UI Logic?}
+    
+    UI -- Yes --> Reusable{Reusable?}
+    Reusable -- Yes --> Controller[Controller (Class)]
+    Reusable -- No --> Component[Component (Internal)]
+    
+    UI -- No --> Domain{Complex Domain Rule?}
+    Domain -- Yes --> UseCase[Use Case (Pure Function)]
+    Domain -- No --> Service
+```
+
+*   **Rule**: Do not put global state in a Controller.
 
 ### Reactive State Derivation
 *   **Principle**: "Reactive State derivations over Imperative Synchronization".
@@ -64,7 +92,14 @@ This document outlines the mandatory architectural and coding standards for "Leg
     *   *Example*: `EvaluateChapterTransitionUseCase`.
     *   *Rule*: Must be stateless and independent of UI/Lit. Delegate complex rules here.
 
-### Dependency Injection
+### Component Testing Strategy (Playwright)
+*   **Env**: **REAL BROWSERS** (No JSDOM).
+*   **Pattern**: AAA (Arrange, Act, Assert).
+*   **Scope**:
+    1.  **Mount**: Renders in browser.
+    2.  **Props/Events**: Reactivity and dispatch check.
+    3.  **A11y**: `axe-core` injection (0 violations).
+    4.  **Interaction**: `page.locator(...)`.
 *   Use **Lit Context** (`@lit/context`) to provide Services to Components.
 *   Use **Constructor Injection** for plain classes, Managers, and Controllers.
     *   Pass dependencies in an `options` object.
@@ -94,7 +129,16 @@ This document outlines the mandatory architectural and coding standards for "Leg
 
 ---
 
-## 5. Components
+---
+
+## 5. Components & UI
+
+### UI Toolkit & Design Tokens
+*   **Toolkit**: **MANDATORY**. Use **Web Awesome** components (detect prefix, e.g., `<wa-*>` or `<sl-*`) for generic UI.
+    *   *Rule*: Do NOT build inputs, buttons, or complex controls from scratch.
+*   **Design Tokens**: **MANDATORY**. Use Web Awesome CSS Tokens for colors, spacing, typography, and radius.
+    *   **Forbidden**: Hardcoded HEX values (`#f00`), explicit pixels for spacing (`10px`).
+    *   **Allowed**: `var(--wa-color-primary-500)`, `var(--wa-spacing-m)`, `var(--wa-font-sans)`.
 
 ### File Architecture (4-File Pattern)
 Every component must follow this strict structure in its own directory:

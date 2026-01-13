@@ -6,7 +6,31 @@ This document provides a detailed reference for the core modules of the project:
 
 ## 🧠 Architectural Decisions & Patterns
 
-### 1. Reactive Signals Pattern
+### 1. High-Level Architecture
+
+```mermaid
+graph TD
+    User((User)) -->|Interacts| View[Game View / UI]
+    View -->|Action| Controller[Controller]
+    
+    subgraph "Logic Layer"
+        Controller -->|Invokes| UseCase[Use Case]
+        Controller -->|Calls| Service[Service]
+        UseCase -->|Orchestrates| Service
+    end
+    
+    subgraph "State Layer"
+        Service -->|Updates| Signal[Reactive Signal]
+    end
+    
+    Signal -.->|Auto-Update| View
+    
+    style Service fill:#f9f,stroke:#333,stroke-width:2px
+    style Controller fill:#bbf,stroke:#333,stroke-width:2px
+    style Signal fill:#bfb,stroke:#333,stroke-width:2px
+```
+
+### 2. Reactive Signals Pattern
 **Question**: Why does `GameStateService` (and others) use Lit Signals?
 
 **Reasoning**:

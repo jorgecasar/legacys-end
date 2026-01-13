@@ -1,0 +1,9 @@
+{
+	"recommendations": [
+		"biomejs.biome",
+		"runem.lit-plugin",
+		"vitest.explorer",
+		"bierner.markdown-mermaid",
+		"streetides.code-spell-checker"
+	]
+}
