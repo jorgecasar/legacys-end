@@ -188,8 +188,6 @@ export class GameSessionManager {
 	 * Handle return to hub event
 	 */
 	#handleReturnToHub() {
-		this.gameState.setQuestCompleted(false);
-		this.gameState.setPaused(false);
 		this.returnToHub();
 	}
 
@@ -427,6 +425,11 @@ export class GameSessionManager {
 	}
 
 	returnToHub(replace = false) {
+		// Ensure clean state even if called directly
+		// (Do this before guard, as we might want to clear UI state even if already in hub logic)
+		this.gameState.setQuestCompleted(false);
+		this.gameState.setPaused(false);
+
 		if (this.isInHub.get() && !this.currentQuest.get()) return;
 
 		// Guard against infinite recursion
