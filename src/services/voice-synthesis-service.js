@@ -169,6 +169,12 @@ export class VoiceSynthesisService {
 		};
 
 		utterance.onerror = (event) => {
+			// Ignore interruption errors as they are often intentional (flow control)
+			if (event.error === "interrupted" || event.error === "canceled") {
+				this.isSpeaking = false;
+				logger.debug("Speech synthesis interrupted (intentional).");
+				return;
+			}
 			logger.error("Speech synthesis error:", event);
 			this.isSpeaking = false;
 			if (onError) onError(event);
