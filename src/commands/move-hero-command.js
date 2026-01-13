@@ -33,8 +33,8 @@ export class MoveHeroCommand {
 	 */
 	canExecute() {
 		const state = this.gameState.getState();
-		// Can't move if paused or evolving
-		return !state.isPaused && !state.isEvolving;
+		const canMove = !state.isPaused && !state.isEvolving;
+		return canMove;
 	}
 
 	/**

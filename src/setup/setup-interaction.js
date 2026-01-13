@@ -1,4 +1,5 @@
 import { InteractionController } from "../controllers/interaction-controller.js";
+import { InteractWithNpcUseCase } from "../use-cases/interact-with-npc.js";
 
 /**
  * @typedef {import('lit').LitElement} InteractionHost
@@ -27,11 +28,8 @@ export function setupInteraction(host, context) {
 			};
 		},
 		getNpcPosition: () => context.questController.currentChapter?.npc?.position,
-		...(context.sessionManager?._interactWithNpcUseCase
-			? {
-					interactWithNpcUseCase:
-						context.sessionManager._interactWithNpcUseCase,
-				}
-			: {}),
+		interactWithNpcUseCase:
+			context.sessionManager?._interactWithNpcUseCase ||
+			new InteractWithNpcUseCase(),
 	});
 }

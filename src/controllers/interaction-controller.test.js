@@ -40,20 +40,27 @@ describe("InteractionController", () => {
 	});
 
 	it("should initialize correctly", () => {
-		controller = new InteractionController(host, { interactionDistance: 20 });
+		controller = new InteractionController(host, {
+			interactionDistance: 20,
+			interactWithNpcUseCase: /** @type {any} */ ({ execute: vi.fn() }),
+		});
 		expect(host.addController).toHaveBeenCalledWith(controller);
 		expect(controller.options.interactionDistance).toBe(20);
 	});
 
 	describe("Distance Calculation", () => {
 		it("should calculate distance correctly", () => {
-			controller = new InteractionController(host);
+			controller = new InteractionController(host, {
+				interactWithNpcUseCase: /** @type {any} */ ({ execute: vi.fn() }),
+			});
 			const dist = controller.calculateDistance({ x: 0, y: 0 }, { x: 3, y: 4 });
 			expect(dist).toBe(5); // 3-4-5 triangle
 		});
 
 		it("should return Infinity if target is missing", () => {
-			controller = new InteractionController(host);
+			controller = new InteractionController(host, {
+				interactWithNpcUseCase: /** @type {any} */ ({ execute: vi.fn() }),
+			});
 			expect(
 				controller.calculateDistance({ x: 0, y: 0 }, /** @type {any} */ (null)),
 			).toBe(Infinity);
@@ -66,6 +73,7 @@ describe("InteractionController", () => {
 				getState,
 				getNpcPosition,
 				interactionDistance: 15,
+				interactWithNpcUseCase: /** @type {any} */ ({ execute: vi.fn() }),
 			});
 			// Distance is 10 (setup), limit is 15 -> True
 			expect(controller.isCloseToNpc()).toBe(true);
@@ -77,6 +85,7 @@ describe("InteractionController", () => {
 				getState,
 				getNpcPosition,
 				interactionDistance: 15,
+				interactWithNpcUseCase: /** @type {any} */ ({ execute: vi.fn() }),
 			});
 			expect(controller.isCloseToNpc()).toBe(false);
 		});
@@ -88,6 +97,9 @@ describe("InteractionController", () => {
 				getState,
 				getNpcPosition,
 				eventBus,
+				interactWithNpcUseCase: /** @type {any} */ ({
+					execute: vi.fn().mockReturnValue({ action: "showDialog" }),
+				}),
 			});
 
 			controller.handleInteract();
@@ -103,6 +115,9 @@ describe("InteractionController", () => {
 				getState,
 				getNpcPosition,
 				eventBus,
+				interactWithNpcUseCase: /** @type {any} */ ({
+					execute: vi.fn().mockReturnValue({ action: "none" }),
+				}),
 			});
 
 			controller.handleInteract();
@@ -115,6 +130,7 @@ describe("InteractionController", () => {
 					getState,
 					getNpcPosition,
 					eventBus,
+					interactWithNpcUseCase: /** @type {any} */ ({ execute: vi.fn() }),
 				});
 			});
 
@@ -129,6 +145,18 @@ describe("InteractionController", () => {
 							},
 						},
 					}, // Important flag
+				});
+
+				controller = new InteractionController(host, {
+					getState,
+					getNpcPosition,
+					eventBus,
+					interactWithNpcUseCase: /** @type {any} */ ({
+						execute: vi.fn().mockReturnValue({
+							action: "showLocked",
+							message: "REQ: NEW API",
+						}),
+					}),
 				});
 
 				controller.handleInteract();
@@ -151,6 +179,15 @@ describe("InteractionController", () => {
 					},
 				});
 
+				controller = new InteractionController(host, {
+					getState,
+					getNpcPosition,
+					eventBus,
+					interactWithNpcUseCase: /** @type {any} */ ({
+						execute: vi.fn().mockReturnValue({ action: "showDialog" }),
+					}),
+				});
+
 				controller.handleInteract();
 
 				expect(eventBus.emit).toHaveBeenCalledWith("dialog-opened");
@@ -169,6 +206,7 @@ describe("InteractionController", () => {
 			// Mock getState returning null/undefined
 			controller = new InteractionController(host, {
 				getState: () => /** @type {any} */ (null),
+				interactWithNpcUseCase: /** @type {any} */ ({ execute: vi.fn() }),
 			});
 			expect(() => controller.handleInteract()).not.toThrow();
 		});
@@ -177,11 +215,6 @@ describe("InteractionController", () => {
 	describe("Message Timeout Logic", () => {
 		beforeEach(() => {
 			vi.useFakeTimers();
-			controller = new InteractionController(host, {
-				getState,
-				getNpcPosition,
-				eventBus,
-			});
 		});
 
 		afterEach(() => {
@@ -200,6 +233,17 @@ describe("InteractionController", () => {
 						},
 					},
 				},
+			});
+
+			controller = new InteractionController(host, {
+				getState,
+				getNpcPosition,
+				eventBus,
+				interactWithNpcUseCase: /** @type {any} */ ({
+					execute: vi
+						.fn()
+						.mockReturnValue({ action: "showLocked", message: "REQ: NEW API" }),
+				}),
 			});
 
 			controller.handleInteract();

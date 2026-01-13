@@ -19,12 +19,15 @@ import "../../pixel.css";
 
 /**
  * @typedef {import("@awesome.me/webawesome/dist/components/dialog/dialog.js").default} DialogElement
+ * @property {import('../../services/ai-service.js').AIService} [aiService]
+ * @property {import('../../services/voice-synthesis-service.js').VoiceSynthesisService} [voiceSynthesisService]
  */
 
 /**
  * @element legacys-end-app
  */
 export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
+	// Services (added by setupServices)
 	// Services (added by setupServices)
 	/** @type {import("../../services/progress-service.js").ProgressService} */
 	progressService = /** @type {any} */ (null);
@@ -44,6 +47,10 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 	eventBus = centralEventBus;
 	/** @type {import("../../services/logger-service.js").LoggerService} */
 	logger = /** @type {any} */ (null);
+	/** @type {import("../../services/ai-service.js").AIService} */
+	aiService = /** @type {any} */ (null);
+	/** @type {import("../../services/voice-synthesis-service.js").VoiceSynthesisService} */
+	voiceSynthesisService = /** @type {any} */ (null);
 
 	// Router
 	/** @type {import("../../utils/router.js").Router} */
@@ -136,6 +143,8 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 		this.services = context.services;
 		this.sessionManager = context.sessionManager;
 		this.commandBus = context.commandBus;
+		this.aiService = context.aiService;
+		this.voiceSynthesisService = context.voiceSynthesisService;
 		this.router = /** @type {import("../../utils/router.js").Router} */ (
 			context.router
 		);
@@ -187,10 +196,14 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 			}
 		} else if (notification.type === "chapter-change") {
 			if (notification.questId && notification.chapter?.id) {
-				this.router.navigate(
-					ROUTES.CHAPTER(notification.questId, notification.chapter.id),
-					false, // Push
+				const targetPath = ROUTES.CHAPTER(
+					notification.questId,
+					notification.chapter.id,
 				);
+				// Avoid redundant navigation if we are already at the target chapter (e.g. detailed route load)
+				if (window.location.pathname !== targetPath) {
+					this.router.navigate(targetPath, false); // Push
+				}
 			}
 		}
 	}

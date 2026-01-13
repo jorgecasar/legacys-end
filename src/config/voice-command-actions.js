@@ -58,7 +58,8 @@ export function executeVoiceAction(action, value, controller, lang = null) {
 	};
 
 	// Execute the action if it exists
-	const handler = actionHandlers[action];
+	const normalizedAction = action.replace(/\s+/g, "_").replace(/_+/g, "_");
+	const handler = actionHandlers[normalizedAction] || actionHandlers[action];
 	if (handler) {
 		handler();
 	} else {

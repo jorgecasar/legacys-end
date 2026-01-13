@@ -94,7 +94,22 @@ export class GameView extends SignalWatcher(LitElement) {
 		this.voice = null;
 		/** @type {import('../../controllers/game-controller.js').GameController | null} */
 		this.gameController = null;
+
+		// Bind handlers
+		this.#boundHandleDialogNext = this.#handleDialogNext.bind(this);
+		this.#boundHandleDialogPrev = this.#handleDialogPrev.bind(this);
+		this.#boundHandleAutoMove = this.#handleAutoMove.bind(this);
+		this.#boundHandleMoveInput = this.#handleMoveInput.bind(this);
 	}
+
+	/** @type {() => void} */
+	#boundHandleDialogNext;
+	/** @type {() => void} */
+	#boundHandleDialogPrev;
+	/** @type {(data: any) => void} */
+	#boundHandleAutoMove;
+	/** @type {(data: any) => void} */
+	#boundHandleMoveInput;
 
 	connectedCallback() {
 		super.connectedCallback();
@@ -106,19 +121,12 @@ export class GameView extends SignalWatcher(LitElement) {
 
 		// Subscribe to global events via eventBus
 		if (this.app?.eventBus) {
-			this.app.eventBus.on(EVENTS.UI.DIALOG_NEXT, () =>
-				this.#handleDialogNext(),
-			);
-			this.app.eventBus.on(EVENTS.UI.DIALOG_PREV, () =>
-				this.#handleDialogPrev(),
-			);
-			this.app.eventBus.on(
-				EVENTS.UI.HERO_AUTO_MOVE,
-				(/** @type {any} */ data) => this.#handleAutoMove(data),
-			);
+			this.app.eventBus.on(EVENTS.UI.DIALOG_NEXT, this.#boundHandleDialogNext);
+			this.app.eventBus.on(EVENTS.UI.DIALOG_PREV, this.#boundHandleDialogPrev);
+			this.app.eventBus.on(EVENTS.UI.HERO_AUTO_MOVE, this.#boundHandleAutoMove);
 			this.app.eventBus.on(
 				EVENTS.UI.HERO_MOVE_INPUT,
-				(/** @type {any} */ data) => this.#handleMoveInput(data),
+				this.#boundHandleMoveInput,
 			);
 		}
 	}
@@ -126,10 +134,16 @@ export class GameView extends SignalWatcher(LitElement) {
 	disconnectedCallback() {
 		super.disconnectedCallback();
 		if (this.app?.eventBus) {
-			this.app.eventBus.off(EVENTS.UI.DIALOG_NEXT, this.#handleDialogNext);
-			this.app.eventBus.off(EVENTS.UI.DIALOG_PREV, this.#handleDialogPrev);
-			this.app.eventBus.off(EVENTS.UI.HERO_AUTO_MOVE, this.#handleAutoMove);
-			this.app.eventBus.off(EVENTS.UI.HERO_MOVE_INPUT, this.#handleMoveInput);
+			this.app.eventBus.off(EVENTS.UI.DIALOG_NEXT, this.#boundHandleDialogNext);
+			this.app.eventBus.off(EVENTS.UI.DIALOG_PREV, this.#boundHandleDialogPrev);
+			this.app.eventBus.off(
+				EVENTS.UI.HERO_AUTO_MOVE,
+				this.#boundHandleAutoMove,
+			);
+			this.app.eventBus.off(
+				EVENTS.UI.HERO_MOVE_INPUT,
+				this.#boundHandleMoveInput,
+			);
 		}
 		this.stopAutoMove();
 	}
@@ -249,6 +263,8 @@ export class GameView extends SignalWatcher(LitElement) {
 			serviceController: this.app.serviceController,
 			characterContexts: this.app.characterContexts,
 			interaction: this.app.interaction,
+			aiService: this.app.aiService,
+			voiceSynthesisService: this.app.voiceSynthesisService,
 		};
 	}
 

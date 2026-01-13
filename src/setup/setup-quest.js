@@ -19,5 +19,10 @@ export async function setupQuest(host, context) {
 		eventBus: /** @type {any} */ (context).eventBus,
 		logger: /** @type {any} */ (context).logger,
 		registry: await import("../services/quest-registry-service.js"),
+		preloaderService: context.preloaderService,
+		evaluateChapterTransition:
+			/** @type {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} */ (
+				context.evaluateChapterTransition
+			),
 	});
 }

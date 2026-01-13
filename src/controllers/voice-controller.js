@@ -8,7 +8,11 @@ import {
 	getAlarionSystemPrompt,
 	NPC_SYSTEM_PROMPT,
 } from "../config/voice-training-prompts.js";
-import { aiService } from "../services/ai-service.js";
+
+/**
+ * @typedef {import('../services/ai-service.js').AIService} AIService
+ * @typedef {import('../services/voice-synthesis-service.js').VoiceSynthesisService} VoiceSynthesisService
+ */
 
 /**
  * @typedef {Object} SpeechRecognition
@@ -35,11 +39,12 @@ import { aiService } from "../services/ai-service.js";
  * @property {string} error
  * @property {string} message
  */
-import { voiceSynthesisService } from "../services/voice-synthesis-service.js";
 
 /**
  * @typedef {Object} VoiceControllerOptions
  * @property {import('../services/logger-service.js').LoggerService} logger - Logger service
+ * @property {AIService} aiService - AI Service
+ * @property {VoiceSynthesisService} voiceSynthesisService - Voice Synthesis Service
  * @property {(dx: number, dy: number) => void} [onMove] - Movement callback
  * @property {() => void} [onInteract] - Interaction callback
  * @property {() => void} [onPause] - Pause callback
@@ -52,6 +57,7 @@ import { voiceSynthesisService } from "../services/voice-synthesis-service.js";
  * @property {(action: string, value: unknown) => void} [onDebugAction] - Debug action callback
  * @property {() => boolean} [isEnabled] - Check if voice control is enabled
  * @property {string} [language] - Language code (e.g., 'en-US', 'es-ES')
+ * @property {() => void} [onCompleteLevel] - Complete level callback
  */
 
 /**
@@ -74,23 +80,15 @@ export class VoiceController {
 		this.host = host;
 
 		/** @type {VoiceControllerOptions} */
-		this.options = {
-			onMove: (_dx, _dy) => {},
-			onInteract: () => {},
-			onPause: () => {},
-			onNextSlide: () => {},
-			onPrevSlide: () => {},
-			onMoveToNpc: () => {},
-			onMoveToExit: () => {},
-			onGetDialogText: () => "",
-			onGetContext: () => ({ isDialogOpen: false, isRewardCollected: false }),
-			onDebugAction: (_action, _value) => {},
-			isEnabled: () => false,
-			language: document.documentElement.lang.startsWith("es")
-				? "es-ES"
-				: "en-US",
-			...options,
-		};
+		this.options = options;
+
+		if (!this.options.aiService)
+			throw new Error("VoiceController requires aiService");
+		if (!this.options.voiceSynthesisService)
+			throw new Error("VoiceController requires voiceSynthesisService");
+
+		this.aiService = this.options.aiService;
+		this.voiceSynthesisService = this.options.voiceSynthesisService;
 
 		/** @type {import('../services/logger-service.js').LoggerService} */
 		this.logger = this.options.logger;
@@ -182,11 +180,11 @@ export class VoiceController {
 
 	async initAI() {
 		try {
-			const status = await aiService.checkAvailability();
+			const status = await this.aiService.checkAvailability();
 
 			if (status === "readily" || status === "available") {
 				// Create Alarion's command processing session
-				await aiService.createSession("alarion", {
+				await this.aiService.createSession("alarion", {
 					language: this.options.language || "en-US",
 					initialPrompts: [
 						{
@@ -198,7 +196,7 @@ export class VoiceController {
 				});
 
 				// Create NPC narration session
-				await aiService.createSession("npc", {
+				await this.aiService.createSession("npc", {
 					language: this.options.language || "en-US",
 					initialPrompts: [
 						{
@@ -209,8 +207,8 @@ export class VoiceController {
 				});
 
 				// Get session references
-				this.aiSession = aiService.getSession("alarion");
-				this.npcSession = aiService.getSession("npc");
+				this.aiSession = this.aiService.getSession("alarion");
+				this.npcSession = this.aiService.getSession("npc");
 
 				this.logger.info(
 					"🤖 Chrome Built-in AI initialized with Alarion's persona & NPC Persona.",
@@ -233,7 +231,7 @@ export class VoiceController {
 
 		const targetLang = lang || this.recognition?.lang || this.options.language;
 
-		voiceSynthesisService.speak(text, {
+		this.voiceSynthesisService.speak(text, {
 			lang: targetLang,
 			role,
 			queue: queue || false, // Ensure it's explicitly false if undefined
@@ -286,11 +284,11 @@ export class VoiceController {
 
 	hostDisconnected() {
 		this.stop();
-		voiceSynthesisService.cancel();
+		this.voiceSynthesisService.cancel();
 
 		// Cleanup AI sessions via AIService
-		aiService.destroySession("alarion");
-		aiService.destroySession("npc");
+		this.aiService.destroySession("alarion");
+		this.aiService.destroySession("npc");
 
 		this.aiSession = null;
 		this.npcSession = null;
@@ -332,7 +330,7 @@ export class VoiceController {
 		const last = event.results.length - 1;
 		const transcript = event.results[last][0].transcript.toLowerCase().trim();
 
-		this.logger.debug(
+		this.logger.info(
 			`🗣️ Voice command [${this.recognition?.lang}]: "${transcript}"`,
 		);
 		this.processCommand(transcript);
@@ -353,7 +351,7 @@ export class VoiceController {
 				isDialogOpen: false,
 				isRewardCollected: false,
 			};
-			const targetLang = this.options.language;
+			const targetLang = this.options.language || "en-US";
 			const contextStr = `[Context: Dialog=${context.isDialogOpen ? "Open" : "Closed"}, Reward=${context.isRewardCollected ? "Collected" : "Not Collected"}]`;
 			const promptWithContext = `${contextStr} User command: "${command}". IMPORTANT: The 'lang' field in JSON MUST be '${targetLang}' and 'feedback' text MUST be in '${targetLang}'.`;
 
@@ -369,7 +367,8 @@ export class VoiceController {
 				}
 
 				if (result.action && result.action !== "unknown") {
-					this.executeAction(result.action, result.value, result.lang);
+					const actionLang = result.lang === "undefined" ? null : result.lang;
+					this.executeAction(result.action, result.value, actionLang);
 				}
 			} catch (_e) {
 				this.logger.warn(`⚠️ Failed to parse AI response as JSON: ${response}`);
@@ -385,7 +384,8 @@ export class VoiceController {
 	 * @param {string|null} [lang]
 	 */
 	executeAction(action, value, lang = null) {
-		const language = lang || this.options.language || "en-US";
+		const safeLang = lang && lang !== "undefined" ? lang : null;
+		const language = safeLang || this.options.language || "en-US";
 		executeVoiceAction(action, value, /** @type {any} */ (this), language);
 	}
 
@@ -406,7 +406,11 @@ export class VoiceController {
 				];
 
 		const phrase = phrases[Math.floor(Math.random() * phrases.length)];
-		this.speak(phrase, lang);
+		// Queue the celebration phrase so it doesn't interrupt the AI feedback
+		this.speak(phrase, lang, "hero", true);
+
+		// Trigger the actual level completion logic
+		this.options.onCompleteLevel?.();
 	}
 
 	showHelp() {

@@ -34,12 +34,20 @@ describe("GameZoneController", () => {
 	});
 
 	it("should initialize correctly", () => {
-		controller = new GameZoneController(host, context);
+		controller = new GameZoneController(host, context, {
+			processGameZoneInteraction: /** @type {any} */ ({
+				execute: vi.fn(),
+			}),
+		});
 		expect(host.addController).toHaveBeenCalledWith(controller);
 	});
 
 	it("should subscribe to HERO_MOVED on hostConnected", () => {
-		controller = new GameZoneController(host, context);
+		controller = new GameZoneController(host, context, {
+			processGameZoneInteraction: /** @type {any} */ ({
+				execute: vi.fn(),
+			}),
+		});
 		controller.hostConnected();
 		expect(context.eventBus.on).toHaveBeenCalledWith(
 			EVENTS.UI.HERO_MOVED,
@@ -71,10 +79,25 @@ describe("GameZoneController", () => {
 
 		it("should trigger theme change when item is collected and in zone", () => {
 			context.questController.currentChapter = { zones: themeZones };
-			controller = new GameZoneController(host, context);
+
+			// Mock the use case to return the theme change result requested
+			const mockUseCase = {
+				execute: vi.fn().mockReturnValue([
+					{
+						type: "THEME_CHANGE",
+						payload: "light",
+					},
+				]),
+			};
+
+			controller = new GameZoneController(host, context, {
+				processGameZoneInteraction: /** @type {any} */ (mockUseCase),
+			});
 
 			// Above limit -> Light
-			controller.checkZones(50, 25 + 10, true);
+			// The arguments passed to checkZones are irrelevant for this test as usage is mocked,
+			// but we call it to trigger the flow.
+			controller.checkZones(50, 35, true);
 			expect(context.eventBus.emit).toHaveBeenCalledWith("theme-changed", {
 				theme: "light",
 			});

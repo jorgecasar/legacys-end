@@ -359,6 +359,9 @@ export class ProgressService {
 	 * @param {Object} state
 	 */
 	updateChapterState(chapterId, state) {
+		if (!this.progress.chapterStates) {
+			this.progress.chapterStates = {};
+		}
 		if (!this.progress.chapterStates[chapterId]) {
 			this.progress.chapterStates[chapterId] = {};
 		}
@@ -375,6 +378,6 @@ export class ProgressService {
 	 * @returns {Object}
 	 */
 	getChapterState(chapterId) {
-		return this.progress.chapterStates[chapterId] || {};
+		return this.progress.chapterStates?.[chapterId] || {};
 	}
 }

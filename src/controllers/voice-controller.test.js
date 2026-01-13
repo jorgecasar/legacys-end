@@ -78,6 +78,8 @@ describe("VoiceController", () => {
 			onDebugAction,
 			isEnabled,
 			language: "en-US",
+			aiService: /** @type {any} */ (aiService),
+			voiceSynthesisService: /** @type {any} */ (voiceSynthesisService),
 			logger: /** @type {any} */ ({
 				info: vi.fn(),
 				warn: vi.fn(),
@@ -660,6 +662,8 @@ describe("VoiceController", () => {
 		it("should execute default callbacks cleanly", () => {
 			// Create controller without overrides to test defaults
 			const defaultController = new VoiceController(host, {
+				aiService: /** @type {any} */ (aiService),
+				voiceSynthesisService: /** @type {any} */ (voiceSynthesisService),
 				logger: /** @type {any} */ ({
 					info: vi.fn(),
 					warn: vi.fn(),
@@ -674,15 +678,12 @@ describe("VoiceController", () => {
 			expect(() => defaultController.options.onPrevSlide?.()).not.toThrow();
 			expect(() => defaultController.options.onMoveToNpc?.()).not.toThrow();
 			expect(() => defaultController.options.onMoveToExit?.()).not.toThrow();
-			expect(defaultController.options.onGetDialogText?.()).toBe("");
-			expect(defaultController.options.onGetContext?.()).toEqual({
-				isDialogOpen: false,
-				isRewardCollected: false,
-			});
+			expect(defaultController.options.onGetDialogText?.()).toBeUndefined();
+			expect(defaultController.options.onGetContext?.()).toBeUndefined();
 			expect(() =>
 				defaultController.options.onDebugAction?.("test", "val"),
 			).not.toThrow();
-			expect(defaultController.options.isEnabled?.()).toBe(false);
+			expect(defaultController.options.isEnabled?.()).toBeUndefined();
 		});
 
 		it("should handle speech synthesis callbacks", () => {

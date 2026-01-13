@@ -1,5 +1,4 @@
 import { EVENTS } from "../constants/events.js";
-import { ProcessGameZoneInteractionUseCase } from "../use-cases/process-game-zone-interaction.js";
 
 /**
  * @typedef {import("lit").ReactiveController} ReactiveController
@@ -13,7 +12,7 @@ import { ProcessGameZoneInteractionUseCase } from "../use-cases/process-game-zon
 
 /**
  * @typedef {Object} GameZoneOptions
- * @property {ProcessGameZoneInteractionUseCase} [processGameZoneInteraction] - Use case
+ * @property {import('../use-cases/process-game-zone-interaction.js').ProcessGameZoneInteractionUseCase} processGameZoneInteraction - Use case
  */
 
 /**
@@ -31,14 +30,24 @@ export class GameZoneController {
 	 * @param {IGameContext} context
 	 * @param {GameZoneOptions} [options]
 	 */
-	constructor(host, context, options = {}) {
+	/**
+	 * @param {ReactiveControllerHost} host
+	 * @param {IGameContext} context
+	 * @param {GameZoneOptions} options
+	 */
+	constructor(host, context, options) {
 		this.host = host;
 		this.context = context;
+		this.host = host;
+		this.context = context;
+		if (!options || !options.processGameZoneInteraction) {
+			throw new Error(
+				"GameZoneController requires processGameZoneInteraction option",
+			);
+		}
+
 		/** @type {Required<GameZoneOptions>} */
-		this.options = {
-			processGameZoneInteraction: new ProcessGameZoneInteractionUseCase(),
-			...options,
-		};
+		this.options = /** @type {Required<GameZoneOptions>} */ (options);
 
 		host.addController(this);
 	}

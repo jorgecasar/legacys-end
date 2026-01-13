@@ -9,12 +9,16 @@ export class PreloaderService {
 	 */
 	preloadImage(url) {
 		return new Promise((resolve, _reject) => {
+			const start = performance.now();
 			const img = new Image();
 			img.src = url;
-			img.onload = () => resolve();
+			img.onload = () => {
+				const duration = Math.round(performance.now() - start);
+				console.log(`[Perf] 🖼️ Loaded image: ${url} (${duration}ms)`);
+				resolve();
+			};
 			img.onerror = () => {
-				console.warn(`Failed to preload image: ${url}`);
-				// Resolve anyway to not block the chain
+				console.warn(`[Perf] ❌ Failed to preload: ${url}`);
 				resolve();
 			};
 		});

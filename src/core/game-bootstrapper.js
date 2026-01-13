@@ -5,6 +5,7 @@ import {
 	validationMiddleware,
 } from "../commands/middleware.js";
 import { GameSessionManager } from "../managers/game-session-manager.js";
+import { aiService } from "../services/ai-service.js";
 import { GameStateService } from "../services/game-state-service.js";
 import { logger } from "../services/logger-service.js";
 import { preloader } from "../services/preloader-service.js";
@@ -15,11 +16,12 @@ import {
 	MockUserService,
 	NewUserService,
 } from "../services/user-services.js";
-
+import { voiceSynthesisService } from "../services/voice-synthesis-service.js";
 import { setupRoutes } from "../setup/routes.js";
 import { setupGameService } from "../setup/setup-game.js";
 import { setupQuest } from "../setup/setup-quest.js";
 import { setupSessionManager } from "../setup/setup-session-manager.js";
+import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-transition.js";
 import { Router } from "../utils/router.js";
 import { eventBus as centralEventBus } from "./event-bus.js";
 
@@ -32,6 +34,9 @@ import { eventBus as centralEventBus } from "./event-bus.js";
  * @property {import('../commands/command-bus.js').CommandBus} commandBus
  * @property {import('../managers/game-session-manager.js').GameSessionManager} sessionManager
  * @property {import('../services/preloader-service.js').PreloaderService} preloader
+ * @property {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} evaluateChapterTransition
+ * @property {import('../services/ai-service.js').AIService} aiService
+ * @property {import('../services/voice-synthesis-service.js').VoiceSynthesisService} voiceSynthesisService
  */
 
 /**
@@ -50,6 +55,9 @@ import { eventBus as centralEventBus } from "./event-bus.js";
  * @property {import('../controllers/character-context-controller.js').CharacterContextController} [characterContexts]
  * @property {Object} services
  * @property {import('../services/preloader-service.js').PreloaderService} [preloaderService]
+ * @property {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} [evaluateChapterTransition]
+ * @property {import('../services/ai-service.js').AIService} aiService
+ * @property {import('../services/voice-synthesis-service.js').VoiceSynthesisService} voiceSynthesisService
  */
 
 /**
@@ -139,6 +147,9 @@ export class GameBootstrapper {
 			commandBus,
 			sessionManager,
 			preloader,
+			evaluateChapterTransition: new EvaluateChapterTransitionUseCase(),
+			aiService,
+			voiceSynthesisService,
 		};
 	}
 
@@ -166,6 +177,9 @@ export class GameBootstrapper {
 			characterContexts: undefined,
 			services: servicesContext.services,
 			preloaderService: servicesContext.preloader, // Add to context
+			evaluateChapterTransition: servicesContext.evaluateChapterTransition,
+			aiService: servicesContext.aiService,
+			voiceSynthesisService: servicesContext.voiceSynthesisService,
 		};
 
 		// Run existing setup helpers

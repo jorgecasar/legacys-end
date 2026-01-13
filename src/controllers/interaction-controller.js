@@ -4,7 +4,6 @@
 
 import { gameConfig } from "../config/game-configuration.js";
 import { EVENTS } from "../constants/events.js";
-import { InteractWithNpcUseCase } from "../use-cases/interact-with-npc.js";
 
 /**
  * @typedef {import('../services/game-state-service.js').HotSwitchState} HotSwitchState
@@ -60,9 +59,15 @@ export class InteractionController {
 				hasCollectedItem: false,
 			}),
 			getNpcPosition: () => null,
-			interactWithNpcUseCase: new InteractWithNpcUseCase(),
+			interactWithNpcUseCase: /** @type {any} */ (null),
 			...options,
 		};
+
+		if (!this.options.interactWithNpcUseCase) {
+			throw new Error(
+				"InteractionController requires interactWithNpcUseCase option",
+			);
+		}
 
 		host.addController(this);
 	}

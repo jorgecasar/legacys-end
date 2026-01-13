@@ -4,20 +4,18 @@
 
 import { EVENTS } from "../constants/events.js";
 import { eventBus } from "../core/event-bus.js";
-import { ProgressService } from "../services/progress-service.js";
-import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-transition.js";
 
 /**
  * @typedef {import("../services/quest-registry-service.js").Quest} Quest
  * @typedef {import("../content/quests/quest-types.js").LevelConfig} Chapter
  *
  * @typedef {Object} QuestControllerOptions
- * @property {import('../services/progress-service.js').ProgressService} [progressService] - Progress tracking service
- * @property {typeof import('../services/quest-registry-service.js')} [registry] - Quest registry module
+ * @property {import('../services/progress-service.js').ProgressService} progressService - Progress tracking service
+ * @property {typeof import('../services/quest-registry-service.js')} registry - Quest registry module
  * @property {import('../commands/command-bus.js').CommandBus} [commandBus] - Command bus
  * @property {import('../core/event-bus.js').EventBus} [eventBus] - Event bus
- * @property {import('../services/logger-service.js').LoggerService} [logger] - Logger
- * @property {EvaluateChapterTransitionUseCase} [evaluateChapterTransition] - Use case
+ * @property {import('../services/logger-service.js').LoggerService} logger - Logger
+ * @property {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} evaluateChapterTransition - Use case
  * @property {import('../services/preloader-service.js').PreloaderService} [preloaderService] - Preloader
  */
 
@@ -42,37 +40,30 @@ import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-
 export class QuestController {
 	/**
 	 * @param {import('lit').ReactiveControllerHost} host
-	 * @param {Partial<QuestControllerOptions>} [options]
+	 * @param {QuestControllerOptions} options
 	 */
-	constructor(host, options = {}) {
+	constructor(host, options) {
 		/** @type {import('lit').ReactiveControllerHost} */
 		this.host = host;
 		/** @type {QuestControllerOptions} */
-		this.options = {
-			progressService: undefined,
-			registry: undefined,
-			evaluateChapterTransition: new EvaluateChapterTransitionUseCase(),
-			preloaderService: undefined,
-			...options,
-		};
+		this.options = options;
 
+		// Validation of required dependencies
+		if (!this.options.logger) throw new Error("Logger is required");
+		if (!this.options.registry) throw new Error("Registry is required");
+		if (!this.options.progressService)
+			throw new Error("ProgressService is required");
+		if (!this.options.evaluateChapterTransition)
+			throw new Error("EvaluateChapterTransitionUseCase is required");
+
+		// Assign dependencies
+		this.logger = this.options.logger;
+		this.registry = this.options.registry;
+		this.progressService = this.options.progressService;
+		this.evaluateChapterTransition = this.options.evaluateChapterTransition;
 		this.preloaderService = this.options.preloaderService;
+		this.eventBus = this.options.eventBus || eventBus;
 
-		this.progressService =
-			this.options.progressService ||
-			new ProgressService(
-				undefined,
-				/** @type {any} */ (this.options.registry),
-			);
-		/** @type {import('../core/event-bus.js').EventBus} */
-		this.eventBus = /** @type {any} */ (options).eventBus || eventBus;
-		/** @type {import('../services/logger-service.js').LoggerService} */
-		this.logger = /** @type {any} */ (options).logger;
-		/** @type {typeof import('../services/quest-registry-service.js')} */
-		this.registry = /** @type {any} */ (this.options.registry);
-
-		if (!this.logger) throw new Error("Logger is required");
-		if (!this.registry) throw new Error("Registry is required");
 		/** @type {Quest|null} */
 		this.currentQuest = null;
 		/** @type {Chapter|null} */
@@ -118,7 +109,13 @@ export class QuestController {
 	 * @param {string} questId - Quest ID to start
 	 */
 	async startQuest(questId) {
+		const start = performance.now();
 		const quest = await this.registry.loadQuestData(questId);
+		const loadTime = Math.round(performance.now() - start);
+		this.logger.debug(
+			`[Perf] 📚 Loaded quest data for ${questId} in ${loadTime}ms`,
+		);
+
 		if (!quest) {
 			this.logger.error(`Quest not found: ${questId}`);
 			return;
@@ -144,6 +141,14 @@ export class QuestController {
 		// Emit global event
 		this.#emitQuestEvents({ started: true });
 
+		// Log memory usage if available
+		if (window.performance && /** @type {any} */ (window.performance).memory) {
+			const mem = /** @type {any} */ (window.performance).memory;
+			this.logger.debug(
+				`[Perf] 🧠 Heap used: ${Math.round(mem.usedJSHeapSize / 1024 / 1024)}MB`,
+			);
+		}
+
 		this.host.requestUpdate();
 	}
 
@@ -164,11 +169,8 @@ export class QuestController {
 			return false;
 		}
 
-		// Ensure content is loaded
-
 		this.currentQuest = quest;
 		// Do not force chapter index to 0 here; let jumpToChapter handle it or default to 0
-		// But we should probably ensure it's not null if it was null
 		if (
 			this.currentChapterIndex === null ||
 			this.currentChapterIndex === undefined
@@ -178,8 +180,8 @@ export class QuestController {
 
 		this.currentChapter = this.getCurrentChapterData();
 
-		// Emit global event
-		this.#emitQuestEvents({ loaded: true });
+		// IMPORTANT: Do NOT emit 'started' here as this might be part of specific chapter load
+		this.#emitQuestEvents({ loaded: true }, false);
 
 		this.host.requestUpdate();
 		return true;
@@ -202,8 +204,6 @@ export class QuestController {
 			this.logger.warn("No quest to resume");
 			return;
 		}
-
-		// Ensure content is loaded (if currentQuest was set but content missing)
 
 		// Emit global event
 		this.#emitQuestEvents({ resumed: true });
@@ -283,8 +283,8 @@ export class QuestController {
 		const targetChapterId = this.currentQuest.chapterIds?.[index] ?? null;
 		this.progressService.setCurrentQuest(this.currentQuest.id, targetChapterId);
 
-		// Emit global event
-		this.#emitQuestEvents({ jumped: true });
+		// Emit global event - NO START EMISSION, ONLY CHAPTER CHANGE
+		this.#emitQuestEvents({ jumped: true }, false);
 		this.host.requestUpdate();
 		return true;
 	}
@@ -408,6 +408,9 @@ export class QuestController {
 		if (this.preloaderService) {
 			const nextChapterData = this.getNextChapterData();
 			if (nextChapterData) {
+				this.logger.debug(
+					`[Perf] 🚀 Triggering preload for next chapter: ${nextChapterData.id}`,
+				);
 				this.preloaderService.preloadChapter(nextChapterData);
 			}
 		}
@@ -583,10 +586,11 @@ export class QuestController {
 
 	/**
 	 * Emits quest and chapter events
-	 * @param {Object} additionalData - Additional data to include in QUEST.STARTED event
+	 * @param {Object} additionalData - Additional data to include in events
+	 * @param {boolean} [emitStart=true] - Whether to emit the 'quest-started' event
 	 */
-	#emitQuestEvents(additionalData = {}) {
-		if (this.currentQuest) {
+	#emitQuestEvents(additionalData = {}, emitStart = true) {
+		if (this.currentQuest && emitStart) {
 			this.eventBus.emit(EVENTS.QUEST.STARTED, {
 				quest: this.currentQuest,
 				...additionalData,
@@ -595,7 +599,7 @@ export class QuestController {
 
 		if (this.currentChapter) {
 			this.eventBus.emit(EVENTS.QUEST.CHAPTER_CHANGED, {
-				chapter: this.currentChapter,
+				chapter: /** @type {Chapter} */ (this.currentChapter),
 				index: this.currentChapterIndex,
 			});
 		}

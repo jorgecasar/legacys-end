@@ -13,6 +13,7 @@ import { VoiceController } from "../controllers/voice-controller.js";
  * @property {import('../controllers/game-controller.js').GameController} gameController
  * @property {import('../controllers/interaction-controller.js').InteractionController} interaction
  * @property {ShadowRoot} shadowRoot
+ * @property {() => void} [handleLevelComplete]
  */
 /**
  * @typedef {LitElement & VoiceHost} VoiceElement
@@ -28,6 +29,10 @@ export function setupVoice(host, context) {
 	/** @type {VoiceElement & { voice: VoiceController }} */ (host).voice =
 		new VoiceController(host, {
 			logger: context.logger,
+			// @ts-expect-error - context.aiService is optional in type but guaranteed by bootstrapper
+			aiService: context.aiService,
+			// @ts-expect-error
+			voiceSynthesisService: context.voiceSynthesisService,
 			onMove: (dx, dy) => {
 				if (context.eventBus) {
 					context.eventBus.emit(EVENTS.UI.HERO_MOVE_INPUT, { dx, dy });
@@ -98,6 +103,12 @@ export function setupVoice(host, context) {
 					context.commandBus.execute(
 						new AutoMoveCommand(context.eventBus, exitZone.x, exitZone.y),
 					);
+				}
+			},
+			onCompleteLevel: () => {
+				// The host (GameView) handles the level completion logic (dialog closing, event emission)
+				if (typeof host.handleLevelComplete === "function") {
+					host.handleLevelComplete();
 				}
 			},
 			onDebugAction: (action, value) => {

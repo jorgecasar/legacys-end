@@ -14,6 +14,10 @@
  * @property {any} [serviceController]
  * @property {any} [characterContexts]
  * @property {Record<string, any>} [services]
+ * @property {import('../services/preloader-service.js').PreloaderService} [preloaderService]
+ * @property {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} [evaluateChapterTransition]
+ * @property {import('../services/ai-service.js').AIService} [aiService]
+ * @property {import('../services/voice-synthesis-service.js').VoiceSynthesisService} [voiceSynthesisService]
  */
 
 // This file only serves as a type definition hub for now.

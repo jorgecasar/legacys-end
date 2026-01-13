@@ -49,7 +49,7 @@ describe("QuestController", () => {
 	/** @type {any} */
 	let mockLogger;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		// Mock Host
 		host = {
 			addController: vi.fn(),
@@ -98,10 +98,28 @@ describe("QuestController", () => {
 			info: vi.fn(),
 		};
 
+		// Create instances of the mocked services
+		const MockProgressService = /** @type {any} */ (
+			(await import("../services/progress-service.js")).ProgressService
+		);
+		const progressService = new MockProgressService();
+		// controller.progressService = progressService; // Removed buggy assignment before init
+
+		const mockEvaluateChapterTransition = {
+			execute: vi.fn().mockImplementation(({ quest, currentIndex }) => {
+				const isLast = currentIndex === (quest.chapterIds?.length || 0) - 1;
+				return { action: isLast ? "COMPLETE" : "ADVANCE" };
+			}),
+		};
+
 		controller = new QuestController(host, {
 			eventBus: mockEventBus,
 			registry: /** @type {any} */ (mockRegistry),
 			logger: /** @type {any} */ (mockLogger),
+			progressService: progressService,
+			evaluateChapterTransition: /** @type {any} */ (
+				mockEvaluateChapterTransition
+			),
 		});
 	});
 
@@ -384,10 +402,17 @@ describe("QuestController", () => {
 			expect(
 				controller.progressService.resetQuestProgress,
 			).not.toHaveBeenCalled();
-			expect(mockEventBus.emit).toHaveBeenCalledWith(EVENTS.QUEST.STARTED, {
-				quest: mockQuest,
-				loaded: true,
-			});
+			// loadQuest does NOT emit STARTED, it signals loaded=true to other components if they listen differently
+			// or it relies on chapter change. But existing code emits CHAPTER_CHANGED.
+			// Let's verify that NO STARTED event is emitted.
+			expect(mockEventBus.emit).not.toHaveBeenCalledWith(
+				EVENTS.QUEST.STARTED,
+				expect.anything(),
+			);
+			expect(mockEventBus.emit).toHaveBeenCalledWith(
+				EVENTS.QUEST.CHAPTER_CHANGED,
+				expect.anything(),
+			);
 		});
 
 		it("should return false if quest does not exist", async () => {

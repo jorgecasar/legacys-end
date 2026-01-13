@@ -107,6 +107,17 @@ function getMockApp(overrides = {}) {
 				isInHub: false,
 			})),
 		},
+		// Mock services required by VoiceController
+		aiService: {
+			checkAvailability: vi.fn().mockResolvedValue("no"),
+			createSession: vi.fn(),
+			getSession: vi.fn(),
+			destroySession: vi.fn(),
+		},
+		voiceSynthesisService: {
+			speak: vi.fn(),
+			cancel: vi.fn(),
+		},
 		...overrides,
 	};
 }

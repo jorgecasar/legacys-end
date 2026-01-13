@@ -120,8 +120,11 @@ export class KeyboardController {
 		}
 
 		if (moveX !== 0 || moveY !== 0) {
-			if (eventBus) {
-				eventBus.emit(EVENTS.UI.HERO_MOVE_INPUT, { dx: moveX, dy: moveY });
+			if (this.options.eventBus) {
+				this.options.eventBus.emit(EVENTS.UI.HERO_MOVE_INPUT, {
+					dx: moveX,
+					dy: moveY,
+				});
 			}
 		}
 	}
