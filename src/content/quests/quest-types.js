@@ -95,6 +95,7 @@ export const Difficulty = {
  * @property {Zone} [exitZone]
  * @property {string} [backgroundStyle]
  * @property {string} [postDialogBackgroundStyle]
+ * @property {string} [background]
  * @property {NpcConfig} [npc]
  * @property {RewardConfig} [reward]
  * @property {HeroConfig} [hero]
@@ -132,6 +133,10 @@ export const Difficulty = {
 
 /**
  * @typedef {QuestData & QuestProgress} Quest
+ */
+
+/**
+ * @typedef {LevelConfig} Chapter
  */
 
 /**

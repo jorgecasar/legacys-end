@@ -18,6 +18,7 @@ import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-
  * @property {import('../core/event-bus.js').EventBus} [eventBus] - Event bus
  * @property {import('../services/logger-service.js').LoggerService} [logger] - Logger
  * @property {EvaluateChapterTransitionUseCase} [evaluateChapterTransition] - Use case
+ * @property {import('../services/preloader-service.js').PreloaderService} [preloaderService] - Preloader
  */
 
 /**
@@ -51,8 +52,11 @@ export class QuestController {
 			progressService: undefined,
 			registry: undefined,
 			evaluateChapterTransition: new EvaluateChapterTransitionUseCase(),
+			preloaderService: undefined,
 			...options,
 		};
+
+		this.preloaderService = this.options.preloaderService;
 
 		this.progressService =
 			this.options.progressService ||
@@ -321,7 +325,7 @@ export class QuestController {
 
 	/**
 	 * Get next chapter data without advancing
-	 * @returns {Object|null} Next chapter data or null
+	 * @returns {Chapter|null} Next chapter data or null
 	 */
 	getNextChapterData() {
 		if (!this.hasNextChapter()) {
@@ -399,6 +403,15 @@ export class QuestController {
 			chapter: /** @type {Chapter} */ (this.currentChapter),
 			index: this.currentChapterIndex,
 		});
+
+		// Preload next chapter assets
+		if (this.preloaderService) {
+			const nextChapterData = this.getNextChapterData();
+			if (nextChapterData) {
+				this.preloaderService.preloadChapter(nextChapterData);
+			}
+		}
+
 		this.host.requestUpdate();
 	}
 

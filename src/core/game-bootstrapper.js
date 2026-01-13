@@ -7,6 +7,7 @@ import {
 import { GameSessionManager } from "../managers/game-session-manager.js";
 import { GameStateService } from "../services/game-state-service.js";
 import { logger } from "../services/logger-service.js";
+import { preloader } from "../services/preloader-service.js";
 import { ProgressService } from "../services/progress-service.js";
 import { LocalStorageAdapter } from "../services/storage-service.js";
 import {
@@ -14,6 +15,7 @@ import {
 	MockUserService,
 	NewUserService,
 } from "../services/user-services.js";
+
 import { setupRoutes } from "../setup/routes.js";
 import { setupGameService } from "../setup/setup-game.js";
 import { setupQuest } from "../setup/setup-quest.js";
@@ -29,6 +31,7 @@ import { eventBus as centralEventBus } from "./event-bus.js";
  * @property {Object} services
  * @property {import('../commands/command-bus.js').CommandBus} commandBus
  * @property {import('../managers/game-session-manager.js').GameSessionManager} sessionManager
+ * @property {import('../services/preloader-service.js').PreloaderService} preloader
  */
 
 /**
@@ -46,6 +49,7 @@ import { eventBus as centralEventBus } from "./event-bus.js";
  * @property {import('../controllers/service-controller.js').ServiceController} [serviceController]
  * @property {import('../controllers/character-context-controller.js').CharacterContextController} [characterContexts]
  * @property {Object} services
+ * @property {import('../services/preloader-service.js').PreloaderService} [preloaderService]
  */
 
 /**
@@ -134,6 +138,7 @@ export class GameBootstrapper {
 			services,
 			commandBus,
 			sessionManager,
+			preloader,
 		};
 	}
 
@@ -160,6 +165,7 @@ export class GameBootstrapper {
 			serviceController: undefined,
 			characterContexts: undefined,
 			services: servicesContext.services,
+			preloaderService: servicesContext.preloader, // Add to context
 		};
 
 		// Run existing setup helpers
