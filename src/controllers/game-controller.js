@@ -34,6 +34,8 @@ export class GameController {
 		this.options = options;
 		this.logger = options.logger;
 		this.isEnabled = new URLSearchParams(window.location.search).has("debug");
+		/** @type {boolean} */
+		this.isTransitioning = false;
 
 		if (!options.gameService) {
 			throw new Error("GameController requires a gameService option");
@@ -71,14 +73,26 @@ export class GameController {
 	}
 
 	handleExitZoneReached = () => {
+		// Prevent multiple triggers
+		if (this.isTransitioning) return;
+
 		const { gameState, questController, commandBus } = this.options;
 		if (commandBus && gameState && questController) {
-			commandBus.execute(
-				new AdvanceChapterCommand({
-					gameState,
-					questController,
-				}),
-			);
+			this.isTransitioning = true;
+			commandBus
+				.execute(
+					new AdvanceChapterCommand({
+						gameState,
+						questController,
+					}),
+				)
+				.finally(() => {
+					// Reset flag after a delay or let the next chapter load reset it naturally
+					// For now, we keep it true until the next chapter or reset happens externally
+					setTimeout(() => {
+						this.isTransitioning = false;
+					}, 2000);
+				});
 		}
 	};
 

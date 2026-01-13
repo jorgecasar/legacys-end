@@ -38,7 +38,7 @@ describe("GameController", () => {
 				getState: vi.fn(() => ({ isRewardCollected: false })),
 			},
 			commandBus: {
-				execute: vi.fn(),
+				execute: vi.fn().mockResolvedValue(undefined),
 			},
 			questController: {
 				hasNextChapter: vi.fn(),
