@@ -79,11 +79,11 @@ export class QuestController {
 		host.addController(this);
 	}
 
-	hostConnected() {
+	async hostConnected() {
 		// Restore current quest/chapter from progress
 		const progress = this.progressService.getProgress();
 		if (progress.currentQuest) {
-			const quest = this.registry.getQuest(progress.currentQuest);
+			const quest = await this.registry.loadQuestData(progress.currentQuest);
 			if (quest) {
 				this.currentQuest = quest;
 				if (progress.currentChapter !== null) {
@@ -114,7 +114,7 @@ export class QuestController {
 	 * @param {string} questId - Quest ID to start
 	 */
 	async startQuest(questId) {
-		const quest = this.registry.getQuest(questId);
+		const quest = await this.registry.loadQuestData(questId);
 		if (!quest) {
 			this.logger.error(`Quest not found: ${questId}`);
 			return;
@@ -148,7 +148,7 @@ export class QuestController {
 	 * @param {string} questId
 	 */
 	async loadQuest(questId) {
-		const quest = this.registry.getQuest(questId);
+		const quest = await this.registry.loadQuestData(questId);
 		if (!quest) {
 			this.logger.error(`Quest not found: ${questId}`);
 			return false;
@@ -212,7 +212,7 @@ export class QuestController {
 	 * @param {string} questId
 	 */
 	async continueQuest(questId) {
-		const quest = this.registry.getQuest(questId);
+		const quest = await this.registry.loadQuestData(questId);
 		if (!quest) {
 			this.logger.error(`Quest not found: ${questId}`);
 			return;

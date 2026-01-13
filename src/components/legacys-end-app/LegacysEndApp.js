@@ -1,7 +1,6 @@
 import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement } from "lit";
 import { CollectRewardCommand } from "../../commands/collect-reward-command.js";
-import { CommandBus } from "../../commands/command-bus.js";
 import { ContinueQuestCommand } from "../../commands/continue-quest-command.js";
 import { ReturnToHubCommand } from "../../commands/return-to-hub-command.js";
 import { StartQuestCommand } from "../../commands/start-quest-command.js";
@@ -11,11 +10,9 @@ import { eventBus as centralEventBus } from "../../core/event-bus.js";
 import { GameBootstrapper } from "../../core/game-bootstrapper.js";
 import { ContextMixin } from "../../mixins/context-mixin.js";
 import { logger } from "../../services/logger-service.js";
-// import { getComingSoonQuests } from "../../services/quest-registry-service.js"; // Removed dynamic import conflict
 import { legacysEndAppStyles } from "./LegacysEndApp.styles.js";
-
 import "@awesome.me/webawesome/dist/components/spinner/spinner.js";
-import "@awesome.me/webawesome/dist/styles/webawesome.css";
+import "@awesome.me/webawesome/dist/styles/webawesome.css"; // Keeping this as the instruction's snippet was malformed and didn't clearly replace it.
 import "../game-view/game-view.js";
 import "../quest-hub/quest-hub.js";
 import "../../pixel.css";

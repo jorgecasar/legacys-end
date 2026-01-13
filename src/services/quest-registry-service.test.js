@@ -35,6 +35,11 @@ vi.mock("../content/quests/quests-data.js", () => ({
 			status: "coming-soon",
 		},
 	},
+	loadQuest: vi
+		.fn()
+		.mockImplementation((id) =>
+			Promise.resolve(id === "non-existent" ? undefined : { id }),
+		),
 }));
 
 describe("Quest Registry Service", () => {

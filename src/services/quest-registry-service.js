@@ -1,4 +1,4 @@
-import { QUESTS } from "../content/quests/quests-data.js";
+import { loadQuest, QUESTS } from "../content/quests/quests-data.js";
 /**
  * @typedef {import("../content/quests/quest-types.js").Quest} Quest
  */
@@ -11,16 +11,25 @@ import { QUESTS } from "../content/quests/quests-data.js";
  */
 
 /**
- * Get quest by ID
+ * Get quest metadata by ID
  * @param {string} questId - Quest identifier
- * @returns {Quest|undefined} Quest object or undefined if not found
+ * @returns {Quest|undefined} Quest object (metadata only) or undefined if not found
  */
 export function getQuest(questId) {
 	return QUESTS[questId];
 }
 
 /**
- * Get all quests
+ * Load full quest data including chapters
+ * @param {string} questId
+ * @returns {Promise<Quest|undefined>}
+ */
+export async function loadQuestData(questId) {
+	return loadQuest(questId);
+}
+
+/**
+ * Get all quests (metadata)
  * @returns {Quest[]} Array of all quests
  */
 export function getAllQuests() {

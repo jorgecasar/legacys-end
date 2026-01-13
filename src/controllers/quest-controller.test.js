@@ -79,6 +79,7 @@ describe("QuestController", () => {
 		// Mock Registry
 		mockRegistry = {
 			getQuest: vi.fn().mockReturnValue(mockQuest),
+			loadQuestData: vi.fn().mockResolvedValue(mockQuest),
 			getAvailableQuests: vi.fn(),
 		};
 
@@ -112,7 +113,7 @@ describe("QuestController", () => {
 		it("should start a quest successfully", async () => {
 			await controller.startQuest("test-quest");
 
-			expect(mockRegistry.getQuest).toHaveBeenCalledWith("test-quest");
+			expect(mockRegistry.loadQuestData).toHaveBeenCalledWith("test-quest");
 			expect(controller.currentQuest).toEqual(mockQuest);
 			expect(controller.currentChapterIndex).toBe(0);
 			expect(controller.currentChapter?.id).toBe("chapter-1");
@@ -138,7 +139,7 @@ describe("QuestController", () => {
 		});
 
 		it("should not start a quest if it does not exist", async () => {
-			mockRegistry.getQuest.mockReturnValue(/** @type {any} */ (null));
+			mockRegistry.loadQuestData.mockResolvedValue(/** @type {any} */ (null));
 
 			await controller.startQuest("non-existent");
 
@@ -226,7 +227,7 @@ describe("QuestController", () => {
 			await controller.resumeQuest();
 
 			expect(controller.progressService.getProgress).toHaveBeenCalled();
-			expect(mockRegistry.getQuest).toHaveBeenCalledWith("test-quest");
+			expect(mockRegistry.loadQuestData).toHaveBeenCalledWith("test-quest");
 			expect(mockEventBus.emit).toHaveBeenCalledWith(EVENTS.QUEST.STARTED, {
 				quest: mockQuest,
 				continued: true,
@@ -390,7 +391,7 @@ describe("QuestController", () => {
 		});
 
 		it("should return false if quest does not exist", async () => {
-			mockRegistry.getQuest.mockReturnValue(/** @type {any} */ (null));
+			mockRegistry.loadQuestData.mockResolvedValue(/** @type {any} */ (null));
 			const result = await controller.loadQuest("non-existent");
 			expect(result).toBe(false);
 		});
