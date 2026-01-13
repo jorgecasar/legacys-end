@@ -1,5 +1,3 @@
-import { ROUTES } from "../constants/routes.js";
-
 /**
  * ReturnToHubUseCase
  *
@@ -10,32 +8,24 @@ export class ReturnToHubUseCase {
 	/**
 	 * @param {Object} dependencies
 	 * @param {import('../controllers/quest-controller.js').QuestController} dependencies.questController
-	 * @param {import('../utils/router.js').Router} dependencies.router
 	 * @param {import('../services/logger-service.js').LoggerService} dependencies.logger
 	 */
-	constructor({ questController, router, logger }) {
+	constructor({ questController, logger }) {
 		this.questController = questController;
-		this.router = router;
 		this.logger = logger;
 	}
 
 	/**
 	 * Execute the use case
-	 * @param {boolean} replace - Whether to replace history entry
 	 * @returns {{success: boolean, error?: Error}}
 	 */
-	execute(replace = false) {
+	execute(_replace = false) {
 		try {
 			this.logger.info("🏛️ Returning to Hub");
 
 			// Reset quest controller if needed
 			if (this.questController?.currentQuest) {
 				this.questController.returnToHub();
-			}
-
-			// Navigate if we have a router and are not already at the hub URL
-			if (this.router && this.router.currentPath !== ROUTES.HUB) {
-				this.router.navigate(ROUTES.HUB, replace);
 			}
 
 			return { success: true };

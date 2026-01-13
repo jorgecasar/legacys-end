@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ROUTES } from "../constants/routes.js";
 import { ReturnToHubUseCase } from "./return-to-hub.js";
 
 describe("ReturnToHubUseCase", () => {
@@ -7,8 +6,6 @@ describe("ReturnToHubUseCase", () => {
 	let useCase;
 	/** @type {any} */
 	let mockQuestController;
-	/** @type {any} */
-	let mockRouter;
 
 	/** @type {any} */
 	let mockLogger;
@@ -19,11 +16,6 @@ describe("ReturnToHubUseCase", () => {
 			returnToHub: vi.fn(),
 		};
 
-		mockRouter = {
-			currentPath: "/quest/test-quest",
-			navigate: vi.fn(),
-		};
-
 		mockLogger = {
 			info: vi.fn(),
 			error: vi.fn(),
@@ -31,95 +23,26 @@ describe("ReturnToHubUseCase", () => {
 
 		useCase = new ReturnToHubUseCase({
 			questController: mockQuestController,
-			router: mockRouter,
 			logger: /** @type {any} */ (mockLogger),
 		});
 	});
 
-	it("should return to hub successfully", () => {
+	it("should return success and call returnToHub", () => {
 		const result = useCase.execute();
 
 		expect(result.success).toBe(true);
 		expect(mockQuestController.returnToHub).toHaveBeenCalled();
-		expect(mockRouter.navigate).toHaveBeenCalledWith(ROUTES.HUB, false);
-	});
-
-	it("should call returnToHub on quest controller", () => {
-		useCase.execute();
-
-		expect(mockQuestController.returnToHub).toHaveBeenCalled();
-	});
-
-	it("should navigate to hub route", () => {
-		useCase.execute();
-
-		expect(mockRouter.navigate).toHaveBeenCalledWith(ROUTES.HUB, false);
-	});
-
-	it("should use replace when specified", () => {
-		useCase.execute(true);
-
-		expect(mockRouter.navigate).toHaveBeenCalledWith(ROUTES.HUB, true);
-	});
-
-	it("should not navigate if already at hub", () => {
-		mockRouter.currentPath = ROUTES.HUB;
-
-		useCase.execute();
-
-		expect(mockRouter.navigate).not.toHaveBeenCalled();
 	});
 
 	it("should not call returnToHub if no current quest", () => {
 		mockQuestController.currentQuest = null;
-
 		useCase.execute();
-
 		expect(mockQuestController.returnToHub).not.toHaveBeenCalled();
 	});
 
-	it("should handle missing quest controller gracefully", () => {
-		useCase = new ReturnToHubUseCase({
-			// @ts-expect-error - Testing with null questController
-			questController: null,
-			router: mockRouter,
-			logger: /** @type {any} */ (mockLogger),
-		});
-
-		const result = useCase.execute();
-
-		expect(result.success).toBe(true);
-		expect(mockRouter.navigate).toHaveBeenCalled();
-	});
-
-	it("should handle missing router gracefully", () => {
-		useCase = new ReturnToHubUseCase({
-			questController: mockQuestController,
-			// @ts-expect-error - Testing with null router
-			router: null,
-			logger: /** @type {any} */ (mockLogger),
-		});
-
-		const result = useCase.execute();
-
-		expect(result.success).toBe(true);
-		expect(mockQuestController.returnToHub).toHaveBeenCalled();
-	});
 	it("should handle mistakes in questController.returnToHub", () => {
 		const error = new Error("Quest Error");
 		mockQuestController.returnToHub.mockImplementation(() => {
-			throw error;
-		});
-
-		const result = useCase.execute();
-
-		expect(result.success).toBe(false);
-		expect(result.error).toBe(error);
-	});
-
-	it("should catch and return errors during navigation", () => {
-		const error = new Error("Nav Error");
-		mockRouter.navigate.mockImplementation(() => {
 			throw error;
 		});
 

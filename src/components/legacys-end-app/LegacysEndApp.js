@@ -156,12 +156,43 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 		this.syncSessionState();
 		this.requestUpdate();
 
+		// Subscribe to session manager notifications for routing
+		this.sessionManager.subscribe((/** @type {any} */ notification) =>
+			this.#handleSessionNotification(notification),
+		);
+
 		// Controllers implicit on this, but good to keep references if needed
 		// this.serviceController = context.serviceController;
 		// this.characterContexts = context.characterContexts;
 
 		/** @type {import('../../services/game-state-service').HotSwitchState} */
 		this._lastHotSwitchState = null;
+	}
+
+	/**
+	 * Handles notifications from GameSessionManager
+	 * @param {any} notification
+	 */
+	#handleSessionNotification(notification) {
+		if (notification.type === "navigation") {
+			if (notification.location === "hub") {
+				this.router.navigate(ROUTES.HUB);
+			} else if (notification.location === "quest" && notification.questId) {
+				const currentPath = window.location.pathname;
+				const targetPath = ROUTES.QUEST(notification.questId);
+				// Avoid redundant navigation/history entry if already there (e.g. started via URL)
+				if (!currentPath.includes(notification.questId)) {
+					this.router.navigate(targetPath);
+				}
+			}
+		} else if (notification.type === "chapter-change") {
+			if (notification.questId && notification.chapter?.id) {
+				this.router.navigate(
+					ROUTES.CHAPTER(notification.questId, notification.chapter.id),
+					false, // Push
+				);
+			}
+		}
 	}
 
 	// Deleted #setupServices

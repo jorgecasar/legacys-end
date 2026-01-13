@@ -9,9 +9,6 @@
 export function setupSessionManager(context) {
 	// Initialize GameSessionManager with quest navigation dependencies
 	context.sessionManager.questController = context.questController;
-	if (context.router) {
-		context.sessionManager.router = context.router;
-	}
 	// Initialize event listeners
 	context.sessionManager.setupEventListeners();
 }

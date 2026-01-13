@@ -1,5 +1,4 @@
 import { EVENTS } from "../constants/events.js";
-import { ROUTES } from "../constants/routes.js";
 import { ServiceType } from "../services/user-services.js";
 import { CompleteQuestUseCase } from "../use-cases/complete-quest.js";
 import { ContinueQuestUseCase } from "../use-cases/continue-quest.js";
@@ -64,7 +63,7 @@ export class GameSessionManager extends Observable {
 		this.gameState = this.options.gameState;
 		this.progressService = this.options.progressService;
 		this.questController = this.options.questController;
-		this.router = this.options.router;
+		// Router removed
 		this.eventBus = this.options.eventBus;
 		/** @type {import('../services/logger-service.js').LoggerService} */
 		this.logger = this.options.logger;
@@ -132,14 +131,6 @@ export class GameSessionManager extends Observable {
 	 * @param {number} payload.index
 	 */
 	#handleChapterChange({ chapter, index }) {
-		// Update URL to reflect chapter (without reloading)
-		if (this.currentQuest && this.router) {
-			this.router.navigate(
-				ROUTES.CHAPTER(this.currentQuest.id, chapter.id),
-				false, // Push to history instead of replace
-			);
-		}
-
 		// Ensure we have fresh data and setup the world
 		const chapterData = chapter;
 
@@ -179,6 +170,7 @@ export class GameSessionManager extends Observable {
 			type: "chapter-change",
 			chapter,
 			index,
+			questId: this.currentQuest?.id,
 		});
 	}
 
@@ -280,7 +272,7 @@ export class GameSessionManager extends Observable {
 		if (!this.__returnToHubUseCase) {
 			this.__returnToHubUseCase = new ReturnToHubUseCase({
 				questController: this.questController,
-				router: this.router,
+				// Router removed
 				logger: this.logger,
 			});
 		}

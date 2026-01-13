@@ -39,8 +39,6 @@ describe("GameSessionManager", () => {
 	/** @type {any} */
 	let mockQuestController;
 	/** @type {any} */
-	let mockRouter;
-	/** @type {any} */
 	let mockControllers;
 	/** @type {any} */
 	let mockEventBus;
@@ -101,11 +99,6 @@ describe("GameSessionManager", () => {
 			currentChapter: { id: "chapter-1", exitZone: {} },
 		};
 
-		// Mock Router
-		mockRouter = {
-			navigate: vi.fn(),
-		};
-
 		// Mock Controllers
 		mockControllers = {
 			keyboard: {},
@@ -139,7 +132,7 @@ describe("GameSessionManager", () => {
 			gameState: mockGameState,
 			progressService: mockProgressService,
 			questController: mockQuestController,
-			router: mockRouter,
+			// router removed
 			controllers: mockControllers,
 			eventBus: mockEventBus,
 			logger: mockLogger,
@@ -200,7 +193,6 @@ describe("GameSessionManager", () => {
 
 			chapterChangeCallback({ chapter: mockChapter, index: 1 });
 
-			expect(mockRouter.navigate).toHaveBeenCalled();
 			expect(mockGameState.setHeroPosition).toHaveBeenCalledWith(10, 10);
 		});
 
