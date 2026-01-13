@@ -53,6 +53,12 @@ This document outlines the mandatory architectural and coding standards for "Leg
     *   *Example*: `KeyboardController`.
     *   *Rule*: Do not put global state in a Controller.
 
+### Reactive State Derivation
+*   **Principle**: "Reactive State derivations over Imperative Synchronization".
+*   **Reasoning**: Avoid "Glue Code" (manually syncing state between parents and children via events).
+*   **Pattern**: Prefer **Reactive Primitives** (`@lit/task`, Signals) that derive UI state directly from usage.
+*   **Anti-Pattern**: Using `onDataLoaded` callbacks to copy data from a Service to a Component's internal state.
+
 ### Use Cases (Domain Logic)
 *   **Use Cases**: Pure business logic classes.
     *   *Example*: `EvaluateChapterTransitionUseCase`.

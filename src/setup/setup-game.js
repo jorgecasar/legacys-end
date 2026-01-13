@@ -40,7 +40,6 @@ export function setupGameService(context) {
 				position: state.heroPos,
 				themeMode: state.themeMode,
 				hotSwitchState: state.hotSwitchState,
-				userData: /** @type {any} */ (context).userData,
 			};
 		},
 		setTheme: (mode) => {

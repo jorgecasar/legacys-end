@@ -77,12 +77,6 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 	collision = /** @type {any} */ (null);
 
 	// User Data
-	/** @type {Object} */
-	userData = {};
-	/** @type {Boolean} */
-	userLoading = false;
-	/** @type {string|null} */
-	userError = null;
 
 	// Additional providers (referenced in connectedCallback)
 	/** @type {import("@lit/context").ContextProvider<any, any>} */
@@ -110,9 +104,6 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 		this.showQuestCompleteDialog = false;
 
 		// Initialize process
-		this.userData = {};
-		this.userLoading = true;
-		this.userError = null;
 
 		// Initialize Quest System
 		this.currentQuest = null;
@@ -228,17 +219,6 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 
 		// Initial theme application
 		this.applyTheme();
-		if (this.serviceController) {
-			this.serviceController.loadUserData();
-		}
-
-		// Listen for data loaded event
-		this.eventBus.on("data-loaded", (/** @type {any} */ data) => {
-			this.userData = data;
-			this.userLoading = false;
-			this.userError = null;
-			this.requestUpdate();
-		});
 
 		// Initial sync
 		this.syncSessionState();
@@ -272,13 +252,7 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 		this.themeProvider.setValue({ themeMode: mode });
 	}
 
-	updated(/** @type {any} */ changedProperties) {
-		if (changedProperties.has("chapterId")) {
-			if (this.serviceController) {
-				this.serviceController.loadUserData();
-			}
-		}
-	}
+	updated(/** @type {any} */ _changedProperties) {}
 
 	/** @type {import('../../services/game-state-service').HotSwitchState} */
 	_lastHotSwitchState = null;
@@ -303,9 +277,6 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 		// React directly to signals
 		const newHotSwitchState = this.gameState.hotSwitchState.get();
 		if (this._lastHotSwitchState !== newHotSwitchState) {
-			if (this.serviceController) {
-				this.serviceController.loadUserData();
-			}
 			this._lastHotSwitchState = newHotSwitchState;
 		}
 

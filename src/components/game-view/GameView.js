@@ -233,7 +233,6 @@ export class GameView extends SignalWatcher(LitElement) {
 		if (this.app.serviceController) {
 			this.app.serviceController.options.profileProvider =
 				this.app.profileProvider;
-			this.app.serviceController.loadUserData();
 		}
 
 		if (this.app.characterContexts) {

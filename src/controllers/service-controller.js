@@ -2,6 +2,8 @@
  * @typedef {import('lit').ReactiveController} ReactiveController
  */
 
+import { Task, TaskStatus } from "@lit/task";
+
 /** @typedef {import("../services/user-services.js").IUserService} IUserService */
 /** @typedef {import("../services/user-services.js").UserData} UserData */
 /** @typedef {import("../services/user-services.js").ServiceType} ServiceType */
@@ -11,8 +13,6 @@
  * @property {Record<string, IUserService>} [services] - Map of service instances {legacy, mock, new}
  * @property {import('../mixins/context-mixin.js').ContextProvider<any>} [profileProvider] - Profile context provider
  * @property {() => IUserService|null} [getActiveService] - Function to get active service
- * @property {(userData: UserData) => void} [onDataLoaded] - Callback when data loads
- * @property {(error: string) => void} [onError] - Callback on error
  */
 
 /**
@@ -38,17 +38,17 @@ export class ServiceController {
 			services: {},
 			profileProvider: undefined,
 			getActiveService: () => null,
-			onDataLoaded: () => {},
-			onError: () => {},
 			...options,
 		};
 
-		/** @type {UserData|null} */
-		this.userData = null;
-		/** @type {boolean} */
-		this.userLoading = false;
-		/** @type {string|null} */
-		this.userError = null;
+		this.userTask = new Task(host, {
+			task: async ([service], { signal: _signal }) => {
+				if (!service) return null;
+				// ID is hardcoded to 1 as noted by user, currently only single user context exists.
+				return service.fetchUserData(1);
+			},
+			args: () => [this.options.getActiveService?.()],
+		});
 
 		host.addController(this);
 	}
@@ -58,65 +58,30 @@ export class ServiceController {
 	hostDisconnected() {}
 
 	/**
-	 * Load user data from active service
+	 * Called every time the task completes (successfully or error)
+	 * or when the host updates. We sync the task state to the provider here.
 	 */
-	async loadUserData() {
-		this.userLoading = true;
-		this.userError = null;
-		this.updateProfileContext();
-
-		try {
-			const service = this.options.getActiveService?.();
-			if (service) {
-				this.userData = await service.fetchUserData(1);
-				this.options.onDataLoaded?.(this.userData);
-			}
-		} catch (e) {
-			this.userError = /** @type {Error} */ (e).message;
-			this.options.onError?.(/** @type {Error} */ (e).message);
-		} finally {
-			this.userLoading = false;
-			this.updateProfileContext();
-		}
+	hostUpdate() {
+		this.#updateProfileContext();
 	}
 
 	/**
-	 * Update profile context with current state
+	 * Update profile context with current task state
 	 */
-	updateProfileContext() {
+	#updateProfileContext() {
 		if (!this.options.profileProvider) return;
 
+		const status = this.userTask.status;
+		const error = this.userTask.error;
+		const value = this.userTask.value;
+
 		this.options.profileProvider.setValue({
-			name: this.userData?.name,
-			role: this.userData?.role,
-			loading: this.userLoading,
-			error: this.userError,
+			name: value?.name,
+			role: value?.role,
+			loading: status === TaskStatus.PENDING || status === TaskStatus.INITIAL,
+			error: error ? String(error) : null,
 			serviceName: this.options.getActiveService?.()?.getServiceName(),
 		});
-	}
-
-	/**
-	 * Get current user data
-	 * @returns {UserData|null}
-	 */
-	getUserData() {
-		return this.userData;
-	}
-
-	/**
-	 * Check if data is loading
-	 * @returns {boolean}
-	 */
-	isLoading() {
-		return this.userLoading;
-	}
-
-	/**
-	 * Get current error
-	 * @returns {string|null}
-	 */
-	getError() {
-		return this.userError;
 	}
 
 	/**
@@ -129,7 +94,6 @@ export class ServiceController {
 		if (!serviceType) return null;
 
 		// If service type is NEW (dynamic), check hotSwitchState
-		// Please verify if HotSwitchState allows undefined or if these methods need fixes
 		if (serviceType === "new") {
 			if (hotSwitchState === "legacy")
 				return this.options.services?.legacy || null;

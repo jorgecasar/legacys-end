@@ -12,6 +12,10 @@ This document provides a detailed reference for the core modules of the project:
 **Reasoning**:
 In standard Lit applications, state is usually managed within components using reactive properties. However, in a game engine, state often needs to be accessed and modified by purely logical entities (Managers, Controllers) that are *not* UI components.
 
+### 5. Reactive State Derivation (New)
+**Principle**: "Reactive State derivations over Imperative Synchronization".
+**Reasoning**: avoid "Glue Code" (manually syncing state between parents and children via events). Prefer **Reactive Primitives** (`@lit/task`, Signals) that derive UI state directly from usage. If a Controller has the data, share the Controller (or a Context), do NOT copy the data to the App component just to pass it down.
+
 *   **Decoupling Logic from UI**: `GameStateService` can run game logic, update coordinates, or handle inventory without needing a DOM element.
 *   **Fine-Grained Reactivity**: By using `@lit-labs/signals`, the service becomes a pinpoint reactive data source. UI components only re-render when the specific signals they use are updated.
 *   **Automatic Dependency Tracking**: Components using the `SignalWatcher` mixin automatically tracking which signals they access in `render()`, removing the need for manual `subscribe()` and `unsubscribe()` boilerplate.
@@ -246,10 +250,9 @@ Controllers are specialized classes (often using Lit's Reactive Controller patte
 *   `ServiceControllerOptions`: Services map, profile provider, and callbacks.
 *   `getActiveService(serviceType, hotSwitchState)`: Dynamic service selection.
 **Outputs**:
-*   `onDataLoaded(userData)`: Triggered when data loads successfully.
-*   `onError(error)`: Triggered on loading errors.
+*   `ServiceController` exposes `userTask` (Lit Task) for reactive consumption.
 **Key Logic**:
-*   `loadUserData()`: Fetches data, handles loading/error states, and updates the `ProfileContext`.
+*   `userTask`: Handles async data fetching responsibilities reactively.
 *   **Dynamic Service Selection**: For `serviceType === "new"`, switches between legacy/new based on `hotSwitchState`.
 
 ### `CharacterContextController`

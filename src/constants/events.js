@@ -37,6 +37,5 @@ export const EVENTS = {
 	},
 	SYSTEM: {
 		/** @type {'data-loaded'} */
-		DATA_LOADED: "data-loaded",
 	},
 };

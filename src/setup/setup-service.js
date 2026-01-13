@@ -16,12 +16,6 @@ export function setupService(host, context) {
 	).serviceController = new ServiceController(host, {
 		services: context.services || {},
 		getActiveService: () => context.serviceController?.getActiveService(),
-		onDataLoaded: (userData) => {
-			context.eventBus.emit("data-loaded", userData);
-		},
-		onError: (error) => {
-			context.eventBus.emit("error", { error });
-		},
 	});
 	context.serviceController = /** @type {any} */ (host).serviceController;
 }

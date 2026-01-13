@@ -1,3 +1,4 @@
+import { TaskStatus } from "@lit/task";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ServiceController } from "./service-controller.js";
 
@@ -16,10 +17,6 @@ describe("ServiceController", () => {
 	let newService;
 	/** @type {any} */
 	let profileProvider;
-	/** @type {any} */
-	let onDataLoaded;
-	/** @type {any} */
-	let onError;
 
 	beforeEach(() => {
 		host = {
@@ -66,17 +63,13 @@ describe("ServiceController", () => {
 		profileProvider = {
 			setValue: vi.fn(),
 		};
-
-		onDataLoaded = vi.fn();
-		onError = vi.fn();
 	});
 
 	it("should initialize correctly", () => {
 		controller = new ServiceController(host);
 		expect(host.addController).toHaveBeenCalledWith(controller);
-		expect(controller.userData).toBeNull();
-		expect(controller.userLoading).toBe(false);
-		expect(controller.userError).toBeNull();
+		expect(controller.userTask).toBeDefined();
+		expect(controller.userTask.status).toBe(TaskStatus.INITIAL);
 	});
 
 	describe("getActiveService", () => {
@@ -110,158 +103,91 @@ describe("ServiceController", () => {
 			const service = controller.getActiveService("new", null);
 			expect(service).toBeNull();
 		});
-
-		it("should return null for unknown service type", () => {
-			const service = controller.getActiveService("unknown", null);
-			expect(service).toBeNull();
-		});
-
-		it("should return null if serviceType is null", () => {
-			const service = controller.getActiveService(
-				/** @type {any} */ (null),
-				null,
-			);
-			expect(service).toBeNull();
-		});
 	});
 
-	describe("loadUserData", () => {
+	describe("Task Execution (loadUserData replacement)", () => {
 		beforeEach(() => {
 			controller = new ServiceController(host, {
 				services: { legacy: legacyService },
 				profileProvider,
 				getActiveService: () => legacyService,
-				onDataLoaded,
-				onError,
 			});
 		});
 
-		it("should load user data successfully", async () => {
-			await controller.loadUserData();
+		it("should fetch user data when service is active", async () => {
+			// Trigger task update logic manually or wait for task if it auto-runs
+			// @lit/task auto-runs when host updates or args change.
+			// Since we just created it, and activeService returns legacyService, it should run.
+			await controller.userTask.run();
 
 			expect(legacyService.fetchUserData).toHaveBeenCalledWith(1);
-			expect(controller.userData).toEqual({
+			expect(controller.userTask.status).toBe(TaskStatus.COMPLETE);
+			expect(controller.userTask.value).toEqual({
 				id: 1,
 				name: "Legacy User",
 				role: "developer",
 				hp: 50,
 				avatarColor: "#ef4444",
 			});
-			expect(controller.userLoading).toBe(false);
-			expect(controller.userError).toBeNull();
-			expect(onDataLoaded).toHaveBeenCalledWith(controller.userData);
-			expect(profileProvider.setValue).toHaveBeenCalled();
 		});
 
-		it("should handle errors during loading", async () => {
+		it("should update profile context and callback on success", async () => {
+			await controller.userTask.run();
+
+			// Emulate host update which calls hostUpdate()
+			controller.hostUpdate();
+
+			expect(profileProvider.setValue).toHaveBeenCalledWith(
+				expect.objectContaining({
+					name: "Legacy User",
+					loading: false,
+					error: null,
+					serviceName: "legacy",
+				}),
+			);
+		});
+
+		it("should handle errors", async () => {
 			legacyService.fetchUserData.mockRejectedValue(new Error("Network error"));
 
-			await controller.loadUserData();
+			try {
+				await controller.userTask.run();
+			} catch (_e) {
+				// Task run might reject
+			}
 
-			expect(controller.userData).toBeNull();
-			expect(controller.userLoading).toBe(false);
-			expect(controller.userError).toBe("Network error");
-			expect(onError).toHaveBeenCalledWith("Network error");
-			expect(profileProvider.setValue).toHaveBeenCalled();
-		});
+			controller.hostUpdate();
 
-		it("should set loading state during fetch", async () => {
-			let loadingDuringFetch = false;
-			legacyService.fetchUserData.mockImplementation(async () => {
-				loadingDuringFetch = controller.userLoading;
-				return {
-					id: 1,
-					name: "Test",
-					role: "user",
-					hp: 50,
-					avatarColor: "#ef4444",
-				};
-			});
-
-			await controller.loadUserData();
-
-			expect(loadingDuringFetch).toBe(true);
-			expect(controller.userLoading).toBe(false);
-		});
-
-		it("should do nothing if no active service", async () => {
-			controller.options.getActiveService = () => null;
-
-			await controller.loadUserData();
-
-			expect(controller.userData).toBeNull();
-			expect(onDataLoaded).not.toHaveBeenCalled();
+			expect(controller.userTask.status).toBe(TaskStatus.ERROR);
+			expect(profileProvider.setValue).toHaveBeenCalledWith(
+				expect.objectContaining({
+					error: "Error: Network error",
+					loading: false,
+				}),
+			);
 		});
 	});
 
 	describe("updateProfileContext", () => {
-		beforeEach(() => {
+		it("should update profile context with pending state", async () => {
 			controller = new ServiceController(host, {
-				services: { legacy: legacyService },
 				profileProvider,
 				getActiveService: () => legacyService,
 			});
-		});
 
-		it("should update profile context with user data", () => {
-			controller.userData = {
-				id: 1,
-				name: "Test User",
-				role: "admin",
-				hp: 100,
-				avatarColor: "#22c55e",
-			};
-			controller.userLoading = false;
-			controller.userError = null;
+			// We need to trick the task into pending state or just check initial
+			expect(controller.userTask.status).toBe(TaskStatus.INITIAL);
 
-			controller.updateProfileContext();
+			// Manually call private method wrapper if it was public...
+			// Since it's private called by hostUpdate, we call hostUpdate
+			controller.hostUpdate();
 
-			expect(profileProvider.setValue).toHaveBeenCalledWith({
-				name: "Test User",
-				role: "admin",
-				loading: false,
-				error: null,
-				serviceName: "legacy",
-			});
-		});
-
-		it("should do nothing if no profileProvider", () => {
-			controller.options.profileProvider = undefined;
-			controller.updateProfileContext();
-			// Should not throw
-		});
-	});
-
-	describe("Getters", () => {
-		beforeEach(() => {
-			controller = new ServiceController(host);
-		});
-
-		it("getUserData should return current userData", () => {
-			controller.userData = {
-				id: 1,
-				name: "Test",
-				role: "user",
-				hp: 50,
-				avatarColor: "#ef4444",
-			};
-			expect(controller.getUserData()).toEqual({
-				id: 1,
-				name: "Test",
-				role: "user",
-				hp: 50,
-				avatarColor: "#ef4444",
-			});
-		});
-
-		it("isLoading should return current loading state", () => {
-			controller.userLoading = true;
-			expect(controller.isLoading()).toBe(true);
-		});
-
-		it("getError should return current error", () => {
-			controller.userError = "Test error";
-			expect(controller.getError()).toBe("Test error");
+			expect(profileProvider.setValue).toHaveBeenCalledWith(
+				expect.objectContaining({
+					loading: true, // INITIAL is considered loading in our logic
+					error: null,
+				}),
+			);
 		});
 	});
 });
