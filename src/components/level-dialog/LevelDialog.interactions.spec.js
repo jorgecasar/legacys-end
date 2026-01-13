@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { EVENTS } from "../constants/events.js";
-import { logger } from "../services/logger-service.js";
-import { GameView } from "./game-view/game-view.js";
-import { LevelDialog } from "./level-dialog/level-dialog.js"; // Mock child component
+import { EVENTS } from "../../constants/events.js";
+import { logger } from "../../services/logger-service.js";
+import { GameView } from "../game-view/game-view.js";
+import { LevelDialog } from "./LevelDialog.js"; // Mock child component
 
 // Mock WebAwesome components to avoid rendering issues in JSDOM
 vi.mock("@awesome.me/webawesome/dist/components/dialog/dialog.js", () => ({}));
 vi.mock("@awesome.me/webawesome/dist/components/button/button.js", () => ({}));
 vi.mock("@awesome.me/webawesome/dist/components/icon/icon.js", () => ({}));
-vi.mock("./game-viewport/game-viewport.js", () => ({})); // Mock child component
+vi.mock("../game-viewport/game-viewport.js", () => ({})); // Mock child component
 
 describe("LevelDialog Interactions", () => {
 	let element;
