@@ -4,44 +4,44 @@
  */
 const QUEST_LOADERS = {
 	"the-aura-of-sovereignty": () =>
-		import("./the-aura-of-sovereignty/index.js").then(
-			(m) => m.THE_AURA_OF_SOVEREIGNTY_QUEST,
+		import("./the-aura-of-sovereignty/index.js").then((m) =>
+			m.getAuraOfSovereigntyQuest(),
 		),
 	"the-chromatic-loom": () =>
-		import("./the-chromatic-loom/index.js").then(
-			(m) => m.TOKEN_OF_AGNOSTICISM_QUEST,
+		import("./the-chromatic-loom/index.js").then((m) =>
+			m.getChromaticLoomQuest(),
 		),
 	"the-orb-of-inquiry": () =>
-		import("./the-orb-of-inquiry/index.js").then(
-			(m) => m.THE_ORB_OF_INQUIRY_QUEST,
+		import("./the-orb-of-inquiry/index.js").then((m) =>
+			m.getOrbOfInquiryQuest(),
 		),
 	"the-flowing-heartstone": () =>
-		import("./the-flowing-heartstone/index.js").then(
-			(m) => m.STATE_MANAGEMENT_RAID_QUEST,
+		import("./the-flowing-heartstone/index.js").then((m) =>
+			m.getStateManagementRaidQuest(),
 		),
 	"the-watchers-bastion": () =>
-		import("./the-watchers-bastion/index.js").then(
-			(m) => m.GATE_OF_IDENTITY_QUEST,
+		import("./the-watchers-bastion/index.js").then((m) =>
+			m.getGateOfIdentityQuest(),
 		),
 	"the-mirror-of-veracity": () =>
-		import("./the-mirror-of-veracity/index.js").then(
-			(m) => m.THE_MIRROR_OF_VERACITY_QUEST,
+		import("./the-mirror-of-veracity/index.js").then((m) =>
+			m.getMirrorOfVeracityQuest(),
 		),
 	"the-crimson-altar": () =>
-		import("./the-crimson-altar/index.js").then(
-			(m) => m.THE_SCRYING_POOL_OF_CHAOS_QUEST,
+		import("./the-crimson-altar/index.js").then((m) =>
+			m.getScryingPoolOfChaosQuest(),
 		),
 	"the-scroll-of-tongues": () =>
-		import("./the-scroll-of-tongues/index.js").then(
-			(m) => m.THE_SCROLL_OF_TONGUES_QUEST,
+		import("./the-scroll-of-tongues/index.js").then((m) =>
+			m.getScrollOfTonguesQuest(),
 		),
 	"the-unseen-harmony": () =>
-		import("./the-unseen-harmony/index.js").then(
-			(m) => m.THE_UNSEEN_HARMONY_QUEST,
+		import("./the-unseen-harmony/index.js").then((m) =>
+			m.getUnseenHarmonyQuest(),
 		),
 	"the-oracle-of-silicon": () =>
-		import("./the-oracle-of-silicon/index.js").then(
-			(m) => m.THE_ORACLE_OF_SILICON_QUEST,
+		import("./the-oracle-of-silicon/index.js").then((m) =>
+			m.getOracleOfSiliconQuest(),
 		),
 };
 
@@ -69,4 +69,7 @@ export async function loadQuest(questId) {
 
 // Re-export QUESTS from manifest for backward compatibility or direct metadata access
 // But consumers should prefer quest-registry-service.js
-export { QUEST_MANIFEST as QUESTS } from "./quest-manifest.js";
+import { getQuestManifest } from "./quest-manifest.js";
+export const getQuests = getQuestManifest;
+/** @deprecated Use getQuests() instead */
+export const QUESTS = getQuestManifest;

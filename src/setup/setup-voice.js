@@ -29,6 +29,7 @@ export function setupVoice(host, context) {
 	/** @type {VoiceElement & { voice: VoiceController }} */ (host).voice =
 		new VoiceController(host, {
 			logger: context.logger,
+			localizationService: context.localizationService,
 			// @ts-expect-error - context.aiService is optional in type but guaranteed by bootstrapper
 			aiService: context.aiService,
 			// @ts-expect-error

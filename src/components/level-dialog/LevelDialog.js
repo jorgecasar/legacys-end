@@ -1,6 +1,7 @@
 import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/dialog/dialog.js";
 import "@awesome.me/webawesome/dist/components/icon/icon.js";
+import { msg, str, updateWhenLocaleChanges } from "@lit/localize";
 import { html, LitElement } from "lit";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { map } from "lit/directives/map.js";
@@ -46,6 +47,7 @@ export class LevelDialog extends LitElement {
 
 	constructor() {
 		super();
+		updateWhenLocaleChanges(this);
 		/** @type {LevelConfig} */
 		this.config = /** @type {LevelConfig} */ ({});
 		this.level = "";
@@ -159,11 +161,16 @@ export class LevelDialog extends LitElement {
 				);
 			case "analysis":
 				return (
-					"Key architectural changes: " +
+					msg("Key architectural changes: ") +
 					(this.config.architecturalChanges?.join(". ") || "")
 				);
-			case "confirmation":
-				return `Level complete! You have obtained ${this.config.reward?.name || "a new object"}.`;
+			case "confirmation": {
+				const levelCompleteText = msg("Level Complete!");
+				const rewardText = this.config.reward?.name
+					? msg(str`You have obtained ${this.config.reward.name}.`)
+					: "";
+				return `${levelCompleteText} ${rewardText}`.trim();
+			}
 			default:
 				return "";
 		}
@@ -221,7 +228,10 @@ export class LevelDialog extends LitElement {
 	 * @param {string} type - The type of the code snippet
 	 * @returns {import("lit").TemplateResult} The rendered code snippet
 	 */
-	#renderCode({ title = "Identified Problem", code, language = "js" }, type) {
+	#renderCode(
+		{ title = msg("Identified Problem"), code, language = "js" },
+		type,
+	) {
 		return html`
 			<h6 class="slide-title ${type}">${title}</h6>
 			<!-- @ts-ignore -->
@@ -280,7 +290,7 @@ export class LevelDialog extends LitElement {
 	 */
 	#renderAnalysisSlide() {
 		return html`
-			<h6 class="slide-title-analysis">Key Architectural Changes</h6>
+			<h6 class="slide-title-analysis">${msg("Key Architectural Changes")}</h6>
 			<div class="analysis-list">
 				${this.config.architecturalChanges?.map(
 					(change) => html`
@@ -303,7 +313,7 @@ export class LevelDialog extends LitElement {
 			<div class="slide-content-between">
 				<div></div>
 				<div class="quest-complete-container">
-					<h2 class="quest-complete-title">Level Complete!</h2>
+					<h2 class="quest-complete-title">${msg("Level Complete!")}</h2>
 					${
 						this.config.reward
 							? html`
@@ -317,7 +327,7 @@ export class LevelDialog extends LitElement {
 								/>
 								<div class="reward-info">
 									<h6 class="reward-name">${this.config.reward.name}</h6>
-									<p class="reward-desc">Acquired! This item has been added to your inventory.</p>
+									<p class="reward-desc">${msg("Acquired! This item has been added to your inventory.")}</p>
 								</div>
 							</div>
 						`
@@ -392,7 +402,7 @@ export class LevelDialog extends LitElement {
 						?disabled="${this.slideIndex === 0}"
 						@click="${() => this.slideIndex--}"
 					>
-						<wa-icon slot="start" name="arrow-left"></wa-icon> PREV
+						<wa-icon slot="start" name="arrow-left"></wa-icon> ${msg("PREV")}
 					</wa-button>
 					
 					<!-- Indicators -->
@@ -414,7 +424,7 @@ export class LevelDialog extends LitElement {
 								@click="${this.#dispatchComplete}"
 								style="--border-radius: 0; animation: bounce 1s infinite;"
 							>
-								<span>EVOLVE <wa-icon slot="end" name="arrow-right"></wa-icon></span>
+								<span>${msg("EVOLVE")} <wa-icon slot="end" name="arrow-right"></wa-icon></span>
 							</wa-button>
 						`
 							: html`
@@ -423,7 +433,7 @@ export class LevelDialog extends LitElement {
 								.variant="${"brand"}"
 								@click="${() => this.slideIndex++}"
 							>
-								<span>NEXT <wa-icon slot="end" name="arrow-right"></wa-icon></span>
+								<span>${msg("NEXT")} <wa-icon slot="end" name="arrow-right"></wa-icon></span>
 							</wa-button>
 						`
 					}

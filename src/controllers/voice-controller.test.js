@@ -238,7 +238,7 @@ describe("VoiceController", () => {
 			await controller.narrateDialogue("Original text");
 
 			expect(promptSpy).toHaveBeenCalledWith(
-				"Original text IMPORTANT: Reformulate this line for voice acting. Output MUST be in 'en-US'.",
+				"Original text IMPORTANT: Reformulate this line for voice acting. Output MUST be in 'en'.",
 			);
 			// Check that it queues the speech
 			// Since we mocked speak, we can't check internal call, but we can verify prompt usage
@@ -599,7 +599,14 @@ describe("VoiceController", () => {
 			);
 			vi.clearAllMocks();
 
-			controller.options.language = "es-ES";
+			// Mock localization service
+			const mockLocalizationService = {
+				getLocale: vi.fn().mockReturnValue("es-ES"),
+			};
+			controller.localizationService = /** @type {any} */ (
+				mockLocalizationService
+			);
+
 			controller.celebrateChapter();
 
 			expect(voiceSynthesisService.speak).toHaveBeenCalled();
@@ -620,7 +627,14 @@ describe("VoiceController", () => {
 			);
 			vi.clearAllMocks();
 
-			controller.options.language = "es-ES";
+			// Mock localization service
+			const mockLocalizationService = {
+				getLocale: vi.fn().mockReturnValue("es-ES"),
+			};
+			controller.localizationService = /** @type {any} */ (
+				mockLocalizationService
+			);
+
 			controller.celebrateChapter();
 
 			const callArgs = /** @type {import("vitest").Mock} */ (

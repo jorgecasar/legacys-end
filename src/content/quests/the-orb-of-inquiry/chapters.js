@@ -1,3 +1,4 @@
+import { msg } from "@lit/localize";
 import { ServiceType } from "../../../services/user-services.js";
 
 /**
@@ -13,27 +14,37 @@ import { ServiceType } from "../../../services/user-services.js";
 
 /** @typedef {import("../quest-types.js").LevelConfig} LevelConfig */
 
-/** @type {Record<string, LevelConfig>} */
-export const THE_ORB_OF_INQUIRY_CHAPTERS = {
+/** @returns {Record<string, LevelConfig>} */
+export const getOrbOfInquiryChapters = () => ({
 	"hall-of-definition": {
 		id: "hall-of-definition",
-		title: "Hall of Definition",
-		description:
+		title: msg("Hall of Definition"),
+		description: msg(
 			"Alarion enters the Hall of Definition to learn how to forge abstract service contracts. Before injecting, we must define 'what' a service does, not 'how'. This creates a clear blueprint for any backend interaction.",
-		problemTitle: "Before: The Concrete Dependency",
-		problemDesc:
+		),
+		problemTitle: msg("Before: The Concrete Dependency"),
+		problemDesc: msg(
 			"Component logic assumes direct interaction with fetch or a specific global object. No clear public interface for backend services. Lack of predictability and direct coupling to implementation details, not abstract needs.",
-		solutionTitle: "After: The Interface Contract",
+		),
+		solutionTitle: msg("After: The Interface Contract"),
 		architecturalChanges: [
-			"Contract First: We define an abstract interface (what the service does).",
-			"Clarity Gained: The component now expects a service that adheres to this clear contract.",
-			"Preparation for IoC: This blueprint is the foundation for injecting any compliant service.",
-			"Future-Proof: Any future backend service must implement this contract, ensuring compatibility.",
+			msg(
+				"Contract First: We define an abstract interface (what the service does).",
+			),
+			msg(
+				"Clarity Gained: The component now expects a service that adheres to this clear contract.",
+			),
+			msg(
+				"Preparation for IoC: This blueprint is the foundation for injecting any compliant service.",
+			),
+			msg(
+				"Future-Proof: Any future backend service must implement this contract, ensuring compatibility.",
+			),
 		],
 		codeSnippets: {
 			end: [
 				{
-					title: "Interface Abstraction",
+					title: msg("Interface Abstraction"),
 					code: `export class IProductService {
     // The Contract
     fetchProductData(id) {
@@ -53,17 +64,17 @@ export const THE_ORB_OF_INQUIRY_CHAPTERS = {
 			y: 50,
 			width: 10,
 			height: 20,
-			label: "Temple of Inversion",
+			label: msg("Temple of Inversion"),
 		},
 		backgroundStyle: `url('/assets/hall-of-definition/background.png')`,
 		npc: {
-			name: "Architect",
+			name: msg("Architect"),
 			icon: "pen-tool",
 			image: "/assets/hall-of-definition/npc.png",
 			position: { x: 70, y: 20 },
 		},
 		reward: {
-			name: "Codex",
+			name: msg("Codex"),
 			image: "/assets/hall-of-definition/reward.png",
 			position: { x: 50, y: 20 },
 		},
@@ -75,22 +86,30 @@ export const THE_ORB_OF_INQUIRY_CHAPTERS = {
 
 	"temple-of-inversion": {
 		id: "temple-of-inversion",
-		title: "Temple of Inversion",
-		description:
+		title: msg("Temple of Inversion"),
+		description: msg(
 			"The Purveyor installs the Red Focus Crystal (Legacy Service) into the Altar. This demonstrates Context Provision: establishing a data source that flows downwards, available to any component that requests it.",
-		problemTitle: "Before: Component Coupling",
-		problemDesc:
+		),
+		problemTitle: msg("Before: Component Coupling"),
+		problemDesc: msg(
 			"The service is tightly coupled to the component, making it impossible to share the instance or swap the implementation.",
-		solutionTitle: "Context Provider",
+		),
+		solutionTitle: msg("Context Provider"),
 		architecturalChanges: [
-			"Inversion of Control: The parent provides the dependency, the child consumes it.",
-			"Decoupling: Intermediate components don't need to know about the service.",
-			"Flexibility: We can provide different implementations at different levels.",
+			msg(
+				"Inversion of Control: The parent provides the dependency, the child consumes it.",
+			),
+			msg(
+				"Decoupling: Intermediate components don't need to know about the service.",
+			),
+			msg(
+				"Flexibility: We can provide different implementations at different levels.",
+			),
 		],
 		codeSnippets: {
 			start: [
 				{
-					title: "Tightly coupled",
+					title: msg("Tightly coupled"),
 					code: `export class ProductItem extends LitElement {
     /* ... */
     #service = {
@@ -102,12 +121,12 @@ export const THE_ORB_OF_INQUIRY_CHAPTERS = {
 			],
 			end: [
 				{
-					title: "Create the Context",
+					title: msg("Create the Context"),
 					code: `import { createContext } from '@lit/context';
 export const productContext = createContext('product');`,
 				},
 				{
-					title: "Create the Provider",
+					title: msg("Create the Provider"),
 					code: `import { ContextProvider } from '@lit/context';
 import { productContext } from './contexts/product-context.js';
 
@@ -144,17 +163,17 @@ export class ProductProviderLegacy extends LitElement {
 			y: 90,
 			width: 20,
 			height: 10,
-			label: "The Jeweler's Workshop",
+			label: msg("The Jeweler's Workshop"),
 		},
 		backgroundStyle: `url('/assets/temple-of-inversion/background.png')`,
 		npc: {
-			name: "Purveyor",
+			name: msg("Purveyor"),
 			icon: "shopping-bag",
 			image: "/assets/temple-of-inversion/npc.png",
 			position: { x: 30, y: 50 },
 		},
 		reward: {
-			name: "Crystal",
+			name: msg("Crystal"),
 			image: "/assets/temple-of-inversion/reward.png",
 			position: { x: 26, y: 40 },
 		},
@@ -163,21 +182,27 @@ export class ProductProviderLegacy extends LitElement {
 
 	"the-jewelers-workshop": {
 		id: "the-jewelers-workshop",
-		title: "The Jeweler's Workshop",
-		description:
+		title: msg("The Jeweler's Workshop"),
+		description: msg(
 			"The Master Jeweler teaches Alarion to set the raw Crystal (Context) into the Necklace (Component). This represents the ContextConsumer: linking the component to data provided from above, transforming separate parts into a unified masterpiece.",
-		problemTitle: "Before: Hardcoded Dependency",
-		problemDesc:
+		),
+		problemTitle: msg("Before: Hardcoded Dependency"),
+		problemDesc: msg(
 			"The component creates its own service instance, ignoring the provider.",
-		solutionTitle: "After: Context Consumption",
+		),
+		solutionTitle: msg("After: Context Consumption"),
 		architecturalChanges: [
-			"Dependency Injection: The component receives its dependency from the context.",
-			"Decoupling: The component doesn't know who provides the service, only that it is provided.",
+			msg(
+				"Dependency Injection: The component receives its dependency from the context.",
+			),
+			msg(
+				"Decoupling: The component doesn't know who provides the service, only that it is provided.",
+			),
 		],
 		codeSnippets: {
 			start: [
 				{
-					title: "Logic is coupled to the component",
+					title: msg("Logic is coupled to the component"),
 					code: `export class ProductItem extends LitElement {
     // ❌ Logic is coupled to the component
     // How do I get the service?
@@ -205,7 +230,7 @@ export class ProductProviderLegacy extends LitElement {
 
 			end: [
 				{
-					title: "Consume the context",
+					title: msg("Consume the context"),
 					code: `import { ContextConsumer } from '@lit/context';
 import { productContext } from './contexts/product-context.js';
 
@@ -232,16 +257,22 @@ export class ProductItem extends LitElement {
 		stats: { maintainability: 85, portability: 85 },
 		serviceType: /** @type {any} */ (null),
 		startPos: { x: 50, y: 10 },
-		exitZone: { x: 50, y: 95, width: 20, height: 10, label: "Training Room" },
+		exitZone: {
+			x: 50,
+			y: 95,
+			width: 20,
+			height: 10,
+			label: msg("Training Room"),
+		},
 		backgroundStyle: `url('/assets/the-jewelers-workshop/background.png')`,
 		npc: {
-			name: "The Master Jeweler",
+			name: msg("The Master Jeweler"),
 			icon: "link",
 			image: "/assets/the-jewelers-workshop/npc.png",
 			position: { x: 20, y: 20 },
 		},
 		reward: {
-			name: "Necklace",
+			name: msg("Necklace"),
 			image: "/assets/the-jewelers-workshop/reward.png",
 			position: { x: 50, y: 55 },
 		},
@@ -253,22 +284,28 @@ export class ProductItem extends LitElement {
 
 	"assay-chamber": {
 		id: "assay-chamber",
-		title: "The Assay Chamber",
-		description:
+		title: msg("The Assay Chamber"),
+		description: msg(
 			"The Grand Appraiser uses a Lantern of Emulation (Mock Provider) to test the necklace without risking the real gem. This teaches the value of Mocking: validating the component in a controlled, isolated environment.",
-		problemTitle: "Before: Hard Dependency",
-		problemDesc:
+		),
+		problemTitle: msg("Before: Hard Dependency"),
+		problemDesc: msg(
 			"Testing with the real legacy service is slow, flaky, and requires a network connection.",
-		solutionTitle: "After: Mock Provider",
+		),
+		solutionTitle: msg("After: Mock Provider"),
 		architecturalChanges: [
-			"Isolation: We can test the component without external dependencies.",
-			"Speed: Tests run instantly without network requests.",
-			"Predictability: We control the data returned by the mock (The Yellow Light).",
+			msg(
+				"Isolation: We can test the component without external dependencies.",
+			),
+			msg("Speed: Tests run instantly without network requests."),
+			msg(
+				"Predictability: We control the data returned by the mock (The Yellow Light).",
+			),
 		],
 		codeSnippets: {
 			start: [
 				{
-					title: "Testing with real service",
+					title: msg("Testing with real service"),
 					code: `import { ProductItem } from './product-item.js';
 
 // ⚠️ Slow, flaky, requires backend
@@ -280,7 +317,7 @@ export class ProductItem extends LitElement {
 			],
 			end: [
 				{
-					title: "Create the provider MOCK",
+					title: msg("Create the provider MOCK"),
 					code: `import { ContextProvider } from '@lit/context';
 import { productContext } from './contexts/product-context.js';
 
@@ -321,17 +358,17 @@ export class ProductProviderMock extends LitElement {
 			y: 95,
 			width: 20,
 			height: 10,
-			label: "Liberated Battlefield",
+			label: msg("Liberated Battlefield"),
 		},
 		backgroundStyle: `url('/assets/assay-chamber/background.png')`,
 		npc: {
-			name: "Grand Appraiser",
+			name: msg("Grand Appraiser"),
 			icon: "crosshair",
 			image: "/assets/assay-chamber/npc.png",
 			position: { x: 80, y: 20 },
 		},
 		reward: {
-			name: "Amber Gem",
+			name: msg("Amber Gem"),
 			image: "/assets/assay-chamber/reward.png",
 			position: { x: 69, y: 52 },
 		},
@@ -340,9 +377,10 @@ export class ProductProviderMock extends LitElement {
 
 	"liberated-battlefield": {
 		id: "liberated-battlefield",
-		title: "Liberated Battlefield",
-		description:
+		title: msg("Liberated Battlefield"),
+		description: msg(
 			"The final structure blocking the way forward. Interacting triggers the final sequence: the Hot Switch (swapping the Legacy Crystal for the New Blue Crystal) and the demonstration of 100% Portability.",
+		),
 		zones: [
 			{
 				x: 50,
@@ -370,19 +408,22 @@ export class ProductProviderMock extends LitElement {
 			},
 		],
 
-		problemTitle: "Before: Static Configuration",
-		problemDesc:
+		problemTitle: msg("Before: Static Configuration"),
+		problemDesc: msg(
 			"Changing the service implementation requires code changes and recompilation.",
-		solutionTitle: "After: Dynamic Injection",
+		),
+		solutionTitle: msg("After: Dynamic Injection"),
 		architecturalChanges: [
-			"Portability: We can swap the backend without touching the UI code.",
-			"Agility: We can A/B test different implementations easily.",
-			"Future-Proofing: The application is ready for any future backend changes.",
+			msg("Portability: We can swap the backend without touching the UI code."),
+			msg("Agility: We can A/B test different implementations easily."),
+			msg(
+				"Future-Proofing: The application is ready for any future backend changes.",
+			),
 		],
 		codeSnippets: {
 			start: [
 				{
-					title: "Legacy Context",
+					title: msg("Legacy Context"),
 					code: `<product-provider-legacy>
     <product-item></product-item>
 </product-provider-legacy>`,
@@ -390,13 +431,13 @@ export class ProductProviderMock extends LitElement {
 			],
 			end: [
 				{
-					title: "New Context",
+					title: msg("New Context"),
 					code: `<product-provider-new>
     <product-item></product-item>
 </product-provider-new>`,
 				},
 				{
-					title: "Other Context",
+					title: msg("Other Context"),
 					code: `<product-provider-other>
     <product-item></product-item>
 </product-provider-other>`,
@@ -406,20 +447,20 @@ export class ProductProviderMock extends LitElement {
 		stats: { maintainability: 100, portability: 100 },
 		serviceType: /** @type {any} */ (null),
 		startPos: { x: 95, y: 30 },
-		exitZone: { x: 50, y: 10, width: 20, height: 10, label: "Victory" },
+		exitZone: { x: 50, y: 10, width: 20, height: 10, label: msg("Victory") },
 		postDialogBackgroundStyle: `url('/assets/liberated-battlefield/background_end.png')`,
 		backgroundStyle: `url('/assets/liberated-battlefield/background.png')`,
 		npc: {
-			name: "Oracle",
+			name: msg("Oracle"),
 			icon: "eye",
 			image: "/assets/liberated-battlefield/npc.png",
 			position: { x: 50, y: 70 },
 			requirements: {
-				hotSwitchState: { value: "new", message: "REQ: NEW API" },
+				hotSwitchState: { value: "new", message: msg("REQ: NEW API") },
 			},
 		},
 		reward: {
-			name: "Key",
+			name: msg("Key"),
 			image: "/assets/liberated-battlefield/reward.png",
 			position: { x: 50, y: 47 },
 		},
@@ -427,4 +468,4 @@ export class ProductProviderMock extends LitElement {
 			image: "/assets/liberated-battlefield/hero.png",
 		},
 	},
-};
+});

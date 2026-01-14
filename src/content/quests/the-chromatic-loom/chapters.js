@@ -1,3 +1,4 @@
+import { msg } from "@lit/localize";
 import { ServiceType } from "../../../services/user-services.js";
 
 /**
@@ -5,20 +6,20 @@ import { ServiceType } from "../../../services/user-services.js";
  *
  * This quest teaches Design Tokens and visual adaptation:
  * - Level 2: CSS Custom Properties, Design Tokens, Dark Mode
- *
-import { ActionType, InteractionType } from "../quest-types.js";
+ */
 
 /** @typedef {import("../quest-types.js").LevelConfig} LevelConfig */
 
-/** @type {Record<string, LevelConfig>} */
-export const THE_CHROMATIC_LOOM_CHAPTERS = {
+/** @returns {Record<string, LevelConfig>} */
+export const getChromaticLoomChapters = () => ({
 	"fortress-of-design": {
 		id: "fortress-of-design",
-		title: "The Fortress of Design",
-		description:
+		title: msg("The Fortress of Design"),
+		description: msg(
 			"Represents diverse Design Systems. Use Design Tokens (CSS Variables) to unify styles and enable Dark Mode.",
-		problemTitle: "Rigid Structure",
-		problemDesc: "Start by selecting the element to inspect its styles.",
+		),
+		problemTitle: msg("Rigid Structure"),
+		problemDesc: msg("Start by selecting the element to inspect its styles."),
 		zones: [
 			{
 				x: 0,
@@ -42,7 +43,7 @@ export const THE_CHROMATIC_LOOM_CHAPTERS = {
 		codeSnippets: {
 			start: [
 				{
-					title: "Hardcoded Colors",
+					title: msg("Hardcoded Colors"),
 					code: `/* ❌ Hardcoded Colors */
 .tunic {
     background-color: #1e3a8a; /* Blue */
@@ -53,7 +54,7 @@ export const THE_CHROMATIC_LOOM_CHAPTERS = {
 			],
 			end: [
 				{
-					title: "Design Tokens (CSS Vars)",
+					title: msg("Design Tokens (CSS Vars)"),
 					code: `/* ✅ Design Tokens (CSS Vars) */
 :host {
     --tunic-color: #1e3a8a;
@@ -77,20 +78,23 @@ export const THE_CHROMATIC_LOOM_CHAPTERS = {
 			y: 50,
 			width: 10,
 			height: 20,
-			label: "Hall of Definition",
+			label: msg("Hall of Definition"),
 		},
 		backgroundStyle: "url('/assets/fortress-of-design/background.png')",
 		npc: {
-			name: "Style Guardian",
+			name: msg("Style Guardian"),
 			icon: "shield",
 			image: "/assets/fortress-of-design/npc.png",
 			position: { x: 50, y: 50 },
 		},
 		reward: {
-			name: "Trunk",
+			name: msg("Trunk"),
 			image: "/assets/fortress-of-design/reward.png",
 			position: { x: 56, y: 50 },
 		},
 		hero: { image: "/assets/fortress-of-design/hero.png" },
 	},
-};
+});
+
+/** @deprecated Use getChromaticLoomChapters() instead */
+export const THE_CHROMATIC_LOOM_CHAPTERS = getChromaticLoomChapters();

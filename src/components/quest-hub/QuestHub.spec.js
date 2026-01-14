@@ -1,6 +1,7 @@
 import axe from "axe-core";
 import { html, render } from "lit";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { Difficulty } from "../../content/quests/quest-types.js";
 import "./quest-hub.js";
 
 /** @typedef {import("./QuestHub.js").QuestHub} QuestHub */
@@ -24,7 +25,7 @@ describe("QuestHub Component", () => {
 				id: "q1",
 				name: "Quest 1",
 				description: "Desc 1",
-				difficulty: "Beginner",
+				difficulty: Difficulty.BEGINNER,
 				estimatedTime: "30 min",
 				icon: "quest-icon",
 				progress: 0,
@@ -36,7 +37,8 @@ describe("QuestHub Component", () => {
 				id: "q2",
 				name: "Quest 2",
 				description: "Desc 2",
-				difficulty: "Advanced",
+				difficulty: Difficulty.ADVANCED,
+				difficultyLabel: "Advanced",
 				estimatedTime: "30 min",
 				icon: "quest-icon",
 				progress: 50,
@@ -67,7 +69,7 @@ describe("QuestHub Component", () => {
 				id: "q3",
 				name: "Future Quest",
 				description: "Coming Soon",
-				difficulty: "Beginner",
+				difficulty: Difficulty.BEGINNER,
 				estimatedTime: "30 min",
 				icon: "quest-icon",
 			},
@@ -98,7 +100,7 @@ describe("QuestHub Component", () => {
 				id: "q1",
 				name: "Quest 1",
 				description: "Desc 1",
-				difficulty: "Beginner",
+				difficulty: Difficulty.BEGINNER,
 				estimatedTime: "30 min",
 				icon: "quest-icon",
 				progress: 0,

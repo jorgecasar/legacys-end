@@ -1,23 +1,25 @@
-export const ABOUT_SLIDES_CONTENT = [
+import { msg } from "@lit/localize";
+
+export const getAboutSlidesContent = () => [
 	{
-		title: "Legacy's End",
+		title: msg("Legacy's End"),
 		lines: [
-			"A game built with Lit and Web Awesome.",
-			"Demonstrating the power of modern web standards.",
+			msg("A game built with Lit and Web Awesome."),
+			msg("Demonstrating the power of modern web standards."),
 		],
 	},
 	{
-		title: "Jorge del Casar",
+		title: msg("Jorge del Casar"),
 		lines: [
-			"Head of Tech at ActioGlobal",
-			"Google Developer Expert",
-			"+20 years working on web",
+			msg("Head of Tech at ActioGlobal"),
+			msg("Google Developer Expert"),
+			msg("+20 years working on web"),
 		],
 	},
 	{
-		title: "Web Components Expert",
+		title: msg("Web Components Expert"),
 		lines: [
-			"Creating reusable, encapsulated, and standard-based UI components.",
+			msg("Creating reusable, encapsulated, and standard-based UI components."),
 		],
 	},
 ];

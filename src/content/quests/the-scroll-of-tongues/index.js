@@ -1,32 +1,29 @@
-import { Difficulty } from "../quest-types.js";
-import { THE_SCROLL_OF_TONGUES_CHAPTERS } from "./chapters.js";
+import { msg } from "@lit/localize";
+import { getScrollOfTonguesMetadata } from "../quest-manifest.js";
+import { getScrollOfTonguesChapters } from "./chapters.js";
 
-export const THE_SCROLL_OF_TONGUES_QUEST = {
-	id: "the-scroll-of-tongues",
-	name: "The Scroll of Tongues",
-	subtitle: "Unlock Your App for Every Language and Market",
-	description:
-		"Unlock Global Territories. Translate and adapt components to any language and culture, achieving Total Globalization.",
-	legacyProblem:
+/** @returns {import("../quest-types.js").Quest} */
+export const getScrollOfTonguesQuest = () => ({
+	...getScrollOfTonguesMetadata(),
+	legacyProblem: msg(
 		"Hardcoded strings, date/number format issues across regions, lack of localization.",
-	prerequisites: ["the-crimson-altar"],
+	),
 	shortcuts: /** @type {string[]} */ ([]),
-	difficulty: Difficulty.INTERMEDIATE,
-	icon: "globe",
-	estimatedTime: "25-35 min",
+	estimatedTime: msg("25-35 min"),
 	concepts: [
-		"i18n Context",
-		"Locale Management",
-		"Contextual Formatting",
-		"String Management",
+		msg("i18n Context"),
+		msg("Locale Management"),
+		msg("Contextual Formatting"),
+		msg("String Management"),
 	],
 	chapterIds: /** @type {string[]} */ ([]),
 	// Chapter data
-	chapters: THE_SCROLL_OF_TONGUES_CHAPTERS,
+	chapters: getScrollOfTonguesChapters(),
 	reward: {
-		badge: "Polyglot Master",
-		description: "Globally accessible component, adapted to any culture",
-		ability: "Total Globalization",
+		badge: msg("Polyglot Master"),
+		description: msg("Globally accessible component, adapted to any culture"),
+		ability: msg("Total Globalization"),
 	},
-	status: "coming-soon",
-};
+});
+
+// No static exports here to ensure reactivity via functions.

@@ -1,6 +1,1383 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
 <file target-language="es" source-language="en" original="lit-localize-inputs" datatype="plaintext">
-<body/>
+<body>
+<trans-unit id="s0487f33d9ddaabde">
+  <source>About</source>
+  <target>Acerca de</target>
+</trans-unit>
+<trans-unit id="sdf8d7a0ca1125f6d">
+  <source>Legacy's End</source>
+  <target>El Fin del Legado</target>
+</trans-unit>
+<trans-unit id="s10e3f9954b0801eb">
+  <source>A game built with Lit and Web Awesome.</source>
+  <target>Un juego construido con Lit y Web Awesome.</target>
+</trans-unit>
+<trans-unit id="sb954bd5d1b8134fa">
+  <source>Demonstrating the power of modern web standards.</source>
+  <target>Demostrando el poder de los estándares web modernos.</target>
+</trans-unit>
+<trans-unit id="sd68e0bf678adb13b">
+  <source>Jorge del Casar</source>
+  <target>Jorge del Casar</target>
+</trans-unit>
+<trans-unit id="scb16decfc352eac6">
+  <source>Head of Tech at ActioGlobal</source>
+  <target>Responsable de Tecnología en ActioGlobal</target>
+</trans-unit>
+<trans-unit id="sa4a288d27e39b114">
+  <source>Google Developer Expert</source>
+  <target>Google Developer Expert</target>
+</trans-unit>
+<trans-unit id="s766c60347994a92c">
+  <source>+20 years working on web</source>
+  <target>+20 años trabajando en la web</target>
+</trans-unit>
+<trans-unit id="s0938334ce2bf3a41">
+  <source>Web Components Expert</source>
+  <target>Experto en Web Components</target>
+</trans-unit>
+<trans-unit id="scdef2d7f13a7c760">
+  <source>Creating reusable, encapsulated, and standard-based UI components.</source>
+  <target>Creando componentes de UI reutilizables, encapsulados y basados en estándares.</target>
+</trans-unit>
+<trans-unit id="s8f25fcf085cff55e">
+  <source>About Legacy's End</source>
+  <target>Acerca de El Fin del Legado</target>
+</trans-unit>
+<trans-unit id="sa557ae6bee9148a6">
+  <source>Progress</source>
+  <target>Progreso</target>
+</trans-unit>
+<trans-unit id="s63bd678021e0a979">
+  <source>Coming Soon</source>
+  <target>Próximamente</target>
+</trans-unit>
+<trans-unit id="se3e714766f25ef93">
+  <source>Locked</source>
+  <target>Bloqueado</target>
+</trans-unit>
+<trans-unit id="s14bec4678c4e60cc">
+  <source>Restart</source>
+  <target>Reiniciar</target>
+</trans-unit>
+<trans-unit id="s81ecf2d4386b8e84">
+  <source>Continue</source>
+  <target>Continuar</target>
+</trans-unit>
+<trans-unit id="sae1c7f13b7c0c47f">
+  <source>Start</source>
+  <target>Empezar</target>
+</trans-unit>
+<trans-unit id="se68a71b4d65d0213">
+  <source>The Aura of Sovereignty</source>
+  <target>El Aura de Soberanía</target>
+</trans-unit>
+<trans-unit id="s4209b718183d43ac">
+  <source>Forging the Immutable Component Shield</source>
+  <target>Forjando el Escudo de Componentes Inmutables</target>
+</trans-unit>
+<trans-unit id="s4db3faa4e6a0d407">
+  <source>The Chromatic Loom</source>
+  <target>El Telar Cromático</target>
+</trans-unit>
+<trans-unit id="sd3390d82cc538516">
+  <source>Weaving the Threads of Agnosticism</source>
+  <target>Tejiendo los Hilos del Agnosticismo</target>
+</trans-unit>
+<trans-unit id="sb3f2a20bdd4defa9">
+  <source>Alarion visits the Weavers of the Chromatic Loom to learn the art of Agnosticism. He must create components that can accept any thread (color/theme) without being bound to a specific dye. Design Tokens are the key.</source>
+  <target>Alarión visita a las Tejedoras del Telar Cromático para aprender el arte del Agnosticismo. Debe crear componentes que puedan aceptar cualquier hilo (color/tema) sin estar atados a un tinte específico. Los Design Tokens son la clave.</target>
+</trans-unit>
+<trans-unit id="s27269f64a30adba7">
+  <source>The Orb of Inquiry</source>
+  <target>El Orbe de la Indagación</target>
+</trans-unit>
+<trans-unit id="sf08ce8cf4cf19dd8">
+  <source>Gazing into the Attribute Abyss</source>
+  <target>Mirando al Abismo de los Atributos</target>
+</trans-unit>
+<trans-unit id="s442c03e3d6b8af7d">
+  <source>The Flowing Heartstone</source>
+  <target>La Piedra Corazón Fluida</target>
+</trans-unit>
+<trans-unit id="s5b980d8d301f3d6f">
+  <source>Channeling the River of State</source>
+  <target>Canalizando el Río del Estado</target>
+</trans-unit>
+<trans-unit id="s8ea1bcd834cfb92a">
+  <source>The Watcher's Bastion</source>
+  <target>El Bastión del Vigilante</target>
+</trans-unit>
+<trans-unit id="sf05c67c570d53566">
+  <source>Guarding the Events of the Self</source>
+  <target>Protegiendo los Eventos del Yo</target>
+</trans-unit>
+<trans-unit id="s5b160847df044afb">
+  <source>The Mirror of Veracity</source>
+  <target>El Espejo de la Veracidad</target>
+</trans-unit>
+<trans-unit id="s29b486f26af4fd2a">
+  <source>Reflecting All Possible States</source>
+  <target>Reflejando Todos los Estados Posibles</target>
+</trans-unit>
+<trans-unit id="s3a98022fe720c05a">
+  <source>The Mirror shows Alarion not just who he is, but who he could be. He must build a Storybook of his life, documenting every possible state (Loading, Error, Empty, Success) to ensure he is ready for anything.</source>
+  <target>El Espejo le muestra a Alarión no solo quién es, sino quién podría ser. Debe construir un Storybook de su vida, documentando cada estado posible (Cargando, Error, Vacío, Éxito) para asegurar que está preparado para todo.</target>
+</trans-unit>
+<trans-unit id="sa6260f345b434dcd">
+  <source>The Crimson Altar</source>
+  <target>El Altar Carmesí</target>
+</trans-unit>
+<trans-unit id="sac27984bc517c1d0">
+  <source>Surviving the Unit Test Trials</source>
+  <target>Sobreviviendo a las Pruebas de Tests Unitarios</target>
+</trans-unit>
+<trans-unit id="saf50eb876522dd77">
+  <source>The Scroll of Tongues</source>
+  <target>El Pergamino de las Lenguas</target>
+</trans-unit>
+<trans-unit id="s12a1a58b97467796">
+  <source>Speaking to Every Soul</source>
+  <target>Hablando a Cada Alma</target>
+</trans-unit>
+<trans-unit id="sa46e3adb48120f25">
+  <source>The world is vast, and not everyone speaks the same language. Alarion must decrypt the Scroll of Tongues (i18n) to make his message understood by all, ensuring his legacy reaches every corner of the realm.</source>
+  <target>El mundo es vasto, y no todos hablan el mismo idioma. Alarión debe descifrar el Pergamino de las Lenguas (i18n) para que su mensaje sea entendido por todos, asegurando que su legado alcance cada rincón del reino.</target>
+</trans-unit>
+<trans-unit id="sf1ca98839c3d5aea">
+  <source>The Unseen Harmony</source>
+  <target>La Armonía Invisible</target>
+</trans-unit>
+<trans-unit id="s661341f8974b7c87">
+  <source>Navigating with the Mind's Eye</source>
+  <target>Navegando con el Ojo de la Mente</target>
+</trans-unit>
+<trans-unit id="s4916b3abaebeaeaa">
+  <source>The Oracle of Silicon</source>
+  <target>El Oráculo de Silicio</target>
+</trans-unit>
+<trans-unit id="s16e93b03015a1422">
+  <source>Optimizing the Essence of Time</source>
+  <target>Optimizando la Esencia del Tiempo</target>
+</trans-unit>
+<trans-unit id="s95ec118dc363f611">
+  <source>In the final trial, Alarion faces the Oracle, who judges him on speed and efficiency. He must optimize his performance, reduce his weight (bundle size), and move with the speed of thought. Performance &amp; Best Practices.</source>
+  <target>En la prueba final, Alarión se enfrenta al Oráculo, quien le juzga por su velocidad y eficiencia. Debe optimizar su rendimiento, reducir su peso (tamaño del paquete) y moverse con la velocidad del pensamiento. Rendimiento y Mejores Prácticas.</target>
+</trans-unit>
+<trans-unit id="sc46a7ef0cfe1d954">
+  <source>The Swamp of Global Scope</source>
+  <target>El Pantano del Ámbito Global</target>
+</trans-unit>
+<trans-unit id="s52f4f3b58f3a9df9">
+  <source>Alarion's components break under Global CSS pollution. The Rainwalker shows him the Shadow Boundary—a protective barrier that shields his code from the outside world.</source>
+  <target>Los componentes de Alarión se rompen bajo la contaminación del CSS Global. El Caminante de la Lluvia le muestra el Límite de la Sombra: una barrera protectora que blinda su código del mundo exterior.</target>
+</trans-unit>
+<trans-unit id="s2f4b83266f726f1f">
+  <source>Before: Style Bleeding</source>
+  <target>Antes: Filtración de Estilos</target>
+</trans-unit>
+<trans-unit id="sa941ff90db8343c5">
+  <source>Global styles destroy component appearance.</source>
+  <target>Los estilos globales destruyen la apariencia del componente.</target>
+</trans-unit>
+<trans-unit id="scd3b7cbd78cfd3cf">
+  <source>After: Shadow Encapsulation</source>
+  <target>Después: Encapsulación Shadow</target>
+</trans-unit>
+<trans-unit id="s6713d5c57835a5a0">
+  <source>The Rainwalker</source>
+  <target>El Caminante de la Lluvia</target>
+</trans-unit>
+<trans-unit id="s66724ea8cd3f8825">
+  <source>Umbrella</source>
+  <target>Paraguas</target>
+</trans-unit>
+<trans-unit id="sb38339b1c61dbd0a">
+  <source>Hall of Fragments</source>
+  <target>Salón de los Fragmentos</target>
+</trans-unit>
+<trans-unit id="s1f9ae0b233f74e6b">
+  <source>The Acid Rain: Global styles that bleed everywhere</source>
+  <target>La Lluvia Ácida: Estilos globales que se filtran por todas partes</target>
+</trans-unit>
+<trans-unit id="s54fc4065dc89b12f">
+  <source>UMBRELLA (Encapsulated Styles)</source>
+  <target>PARAGUAS (Estilos Encapsulados)</target>
+</trans-unit>
+<trans-unit id="s0e10f182dd377d93">
+  <source>Problem: The code is tangled.</source>
+  <target>Problema: El código está enredado.</target>
+</trans-unit>
+<trans-unit id="sbf2819167477a496">
+  <source>It handles business logic (fetch),</source>
+  <target>Maneja la lógica de negocio (fetch),</target>
+</trans-unit>
+<trans-unit id="s3a004fd0c8b291af">
+  <source>knows the global DOM structure (getElementById),</source>
+  <target>conoce la estructura global del DOM (getElementById),</target>
+</trans-unit>
+<trans-unit id="s2a72f8bdfe13b23c">
+  <source>and injects styles and structure (innerHTML).</source>
+  <target>e inyecta estilos y estructura (innerHTML).</target>
+</trans-unit>
+<trans-unit id="se24d44fa21cd72d4">
+  <source>Identity Gained: The code is now a defined entity &lt;product-item&gt;), not a chaotic script.</source>
+  <target>Identidad Ganada: El código es ahora una entidad definida &lt;product-item&gt;), no un script caótico.</target>
+</trans-unit>
+<trans-unit id="sb636445465158fbb">
+  <source>DOM Independent: The component no longer uses getElementById or interacts with the global DOM directly.</source>
+  <target>Independiente del DOM: El componente ya no usa getElementById ni interactúa directamente con el DOM global.</target>
+</trans-unit>
+<trans-unit id="scf1664756789fc4d">
+  <source>Encapsulation Achieved: The static styles ensure the component is protected from the Monolith's global CSS (Shadow DOM).</source>
+  <target>Encapsulación Lograda: Los estilos estáticos aseguran que el componente esté protegido del CSS global del Monolito (Shadow DOM).</target>
+</trans-unit>
+<trans-unit id="sf14329d67ef7499b">
+  <source>Couple Logic</source>
+  <target>Lógica Acoplada</target>
+</trans-unit>
+<trans-unit id="sac3d85bb9f47a763">
+  <source>The Shadow Threshold</source>
+  <target>El Umbral de la Sombra</target>
+</trans-unit>
+<trans-unit id="s7f24951663b728e7">
+  <source>Fragments' Oracle</source>
+  <target>Oráculo de los Fragmentos</target>
+</trans-unit>
+<trans-unit id="s0a58208a8624ad8a">
+  <source>Garments</source>
+  <target>Vestiduras</target>
+</trans-unit>
+<trans-unit id="sa63dfa6295ac99be">
+  <source>Component styles bleed into global scope, and global styles break components. Lack of isolation.</source>
+  <target>Los estilos de los componentes se filtran al ámbito global, y los estilos globales rompen los componentes. Falta de aislamiento.</target>
+</trans-unit>
+<trans-unit id="se040d477745a95d6">
+  <source>5-10 min</source>
+  <target>5-10 min</target>
+</trans-unit>
+<trans-unit id="seec73c0d56abb026">
+  <source>2-3 short levels</source>
+  <target>2-3 niveles cortos</target>
+</trans-unit>
+<trans-unit id="s7c8bd01888d19437">
+  <source>Web Components</source>
+  <target>Web Components</target>
+</trans-unit>
+<trans-unit id="s6cc75b5854dfe3b9">
+  <source>Shadow DOM</source>
+  <target>Shadow DOM</target>
+</trans-unit>
+<trans-unit id="sf11de73d36a96117">
+  <source>Isolation</source>
+  <target>Aislamiento</target>
+</trans-unit>
+<trans-unit id="sbb41080a87a54195">
+  <source>Isolated Component</source>
+  <target>Componente Aislado</target>
+</trans-unit>
+<trans-unit id="s7d9d6c6c0d1548a9">
+  <source>Component isolated, no CSS/JS global conflicts</source>
+  <target>Componente aislado, sin conflictos globales de CSS/JS</target>
+</trans-unit>
+<trans-unit id="sa0baa3cd4b962212">
+  <source>Encapsulation and Isolation</source>
+  <target>Encapsulación y Aislamiento</target>
+</trans-unit>
+<trans-unit id="s631390b9da137600">
+  <source>Hall of Definition</source>
+  <target>Salón de la Definición</target>
+</trans-unit>
+<trans-unit id="s65659c8412e5b6cf">
+  <source>Before: The Concrete Dependency</source>
+  <target>Antes: La Dependencia Concreta</target>
+</trans-unit>
+<trans-unit id="s4bbbf8a15c544ecd">
+  <source>After: The Interface Contract</source>
+  <target>Después: El Contrato de Interfaz</target>
+</trans-unit>
+<trans-unit id="s483b84b17a7dec56">
+  <source>Contract First: We define an abstract interface (what the service does).</source>
+  <target>El Contrato Primero: Definimos una interfaz abstracta (lo que el servicio hace).</target>
+</trans-unit>
+<trans-unit id="sd6793f27b24e17d8">
+  <source>Clarity Gained: The component now expects a service that adheres to this clear contract.</source>
+  <target>Claridad Ganada: El componente ahora espera un servicio que cumpla con este contrato claro.</target>
+</trans-unit>
+<trans-unit id="scea26801c6830f8d">
+  <source>Preparation for IoC: This blueprint is the foundation for injecting any compliant service.</source>
+  <target>Preparación para IoC: Este plano es la base para inyectar cualquier servicio compatible.</target>
+</trans-unit>
+<trans-unit id="s63faa22e4efe2168">
+  <source>Interface Abstraction</source>
+  <target>Abstracción de Interfaz</target>
+</trans-unit>
+<trans-unit id="s2b7824e120cd2b78">
+  <source>Temple of Inversion</source>
+  <target>Templo de la Inversión</target>
+</trans-unit>
+<trans-unit id="s7a24d81d25cd47f4">
+  <source>Architect</source>
+  <target>Arquitecto</target>
+</trans-unit>
+<trans-unit id="sefba5ef46cf8e2e4">
+  <source>Codex</source>
+  <target>Códice</target>
+</trans-unit>
+<trans-unit id="see55cab941f2adb0">
+  <source>The Purveyor installs the Red Focus Crystal (Legacy Service) into the Altar. This demonstrates Context Provision: establishing a data source that flows downwards, available to any component that requests it.</source>
+  <target>El Proveedor instala el Cristal de Enfoque Rojo (Servicio Legado) en el Altar. Esto demuestra la Provisión de Contexto: establecer una fuente de datos que fluye hacia abajo, disponible para cualquier componente que la solicite.</target>
+</trans-unit>
+<trans-unit id="s6ec2eded774a2e52">
+  <source>Before: Component Coupling</source>
+  <target>Antes: Acoplamiento de Componentes</target>
+</trans-unit>
+<trans-unit id="s7142e9859e0eff97">
+  <source>The service is tightly coupled to the component, making it impossible to share the instance or swap the implementation.</source>
+  <target>El servicio está estrechamente acoplado al componente, lo que hace imposible compartir la instancia o cambiar la implementación.</target>
+</trans-unit>
+<trans-unit id="se4107f8416d2bd81">
+  <source>Context Provider</source>
+  <target>Proveedor de Contexto</target>
+</trans-unit>
+<trans-unit id="s8c074433cfc70429">
+  <source>Decoupling: Intermediate components don't need to know about the service.</source>
+  <target>Desacoplamiento: Los componentes intermedios no necesitan conocer el servicio.</target>
+</trans-unit>
+<trans-unit id="sf19bf0fd84b4b216">
+  <source>Flexibility: We can provide different implementations at different levels.</source>
+  <target>Flexibilidad: Podemos proporcionar diferentes implementaciones en diferentes niveles.</target>
+</trans-unit>
+<trans-unit id="s5c7f02e2b2a5b9b8">
+  <source>Tightly coupled</source>
+  <target>Estrechamente acoplado</target>
+</trans-unit>
+<trans-unit id="s5209fd340427dc51">
+  <source>Create the Context</source>
+  <target>Crear el Contexto</target>
+</trans-unit>
+<trans-unit id="s64e1a236d9b1943b">
+  <source>The Jeweler's Workshop</source>
+  <target>El Taller del Joyero</target>
+</trans-unit>
+<trans-unit id="sd226e8d2a040237d">
+  <source>Purveyor</source>
+  <target>Proveedor</target>
+</trans-unit>
+<trans-unit id="sf2e6f3bb262537e9">
+  <source>Crystal</source>
+  <target>Cristal</target>
+</trans-unit>
+<trans-unit id="s8a65ee1bba2b995d">
+  <source>Before: Hardcoded Dependency</source>
+  <target>Antes: Dependencia Codificada</target>
+</trans-unit>
+<trans-unit id="sb39fcb483e086bc1">
+  <source>After: Context Consumption</source>
+  <target>Después: Consumo de Contexto</target>
+</trans-unit>
+<trans-unit id="s7b796c663af71a3f">
+  <source>Decoupling: The component doesn't know who provides the service, only that it is provided.</source>
+  <target>Desacoplamiento: El componente no sabe quién proporciona el servicio, solo que se proporciona.</target>
+</trans-unit>
+<trans-unit id="sd8f9d232ac7bec9c">
+  <source>Logic is coupled to the component</source>
+  <target>La lógica está acoplada al componente</target>
+</trans-unit>
+<trans-unit id="s307420c84a41c5aa">
+  <source>Training Room</source>
+  <target>Sala de Entrenamiento</target>
+</trans-unit>
+<trans-unit id="s094ccfc1f93310b6">
+  <source>The Master Jeweler</source>
+  <target>El Maestro Joyero</target>
+</trans-unit>
+<trans-unit id="sa6413359281dd479">
+  <source>Necklace</source>
+  <target>Collar</target>
+</trans-unit>
+<trans-unit id="sdb261a4db7154269">
+  <source>The Assay Chamber</source>
+  <target>La Cámara de Ensayo</target>
+</trans-unit>
+<trans-unit id="s5f8893550401d47f">
+  <source>The Grand Appraiser uses a Lantern of Emulation (Mock Provider) to test the necklace without risking the real gem. This teaches the value of Mocking: validating the component in a controlled, isolated environment.</source>
+  <target>El Gran Tasador usa una Linterna de Emulación (Proveedor Mock) para probar el collar sin arriesgar la gema real. Esto enseña el valor del Mocking: validar el componente en un entorno controlado y aislado.</target>
+</trans-unit>
+<trans-unit id="s0ee7231379a2385e">
+  <source>Before: Hard Dependency</source>
+  <target>Antes: Dependencia Dura</target>
+</trans-unit>
+<trans-unit id="s35bb69540439ac8e">
+  <source>After: Mock Provider</source>
+  <target>Después: Proveedor Mock</target>
+</trans-unit>
+<trans-unit id="s345873e9c204e8d1">
+  <source>Isolation: We can test the component without external dependencies.</source>
+  <target>Aislamiento: Podemos probar el componente sin dependencias externas.</target>
+</trans-unit>
+<trans-unit id="s433f637f0c98b49e">
+  <source>Speed: Tests run instantly without network requests.</source>
+  <target>Velocidad: Las pruebas se ejecutan instantáneamente sin solicitudes de red.</target>
+</trans-unit>
+<trans-unit id="sa08a280f5486e341">
+  <source>Predictability: We control the data returned by the mock (The Yellow Light).</source>
+  <target>Predictibilidad: Controlamos los datos devueltos por el mock (La Luz Amarilla).</target>
+</trans-unit>
+<trans-unit id="s8b90160b219e3660">
+  <source>Testing with real service</source>
+  <target>Probando con el servicio real</target>
+</trans-unit>
+<trans-unit id="s226f8f2c9005d741">
+  <source>Liberated Battlefield</source>
+  <target>Campo de Batalla Liberado</target>
+</trans-unit>
+<trans-unit id="sa7bf063ad4011aec">
+  <source>Grand Appraiser</source>
+  <target>Gran Tasador</target>
+</trans-unit>
+<trans-unit id="sedd264c424d6a817">
+  <source>Amber Gem</source>
+  <target>Gema Ámbar</target>
+</trans-unit>
+<trans-unit id="s8a9cbbddd80739af">
+  <source>The final structure blocking the way forward. Interacting triggers the final sequence: the Hot Switch (swapping the Legacy Crystal for the New Blue Crystal) and the demonstration of 100% Portability.</source>
+  <target>La estructura final que bloquea el camino. Interactuar activa la secuencia final: el Cambio en Caliente (Hot Switch) (cambiando el Cristal Legado por el Nuevo Cristal Azul) y la demostración de la Portabilidad al 100%.</target>
+</trans-unit>
+<trans-unit id="saeb9dc9145403aa4">
+  <source>Before: Static Configuration</source>
+  <target>Antes: Configuración Estática</target>
+</trans-unit>
+<trans-unit id="seb3dd275987ee579">
+  <source>Changing the service implementation requires code changes and recompilation.</source>
+  <target>Cambiar la implementación del servicio requiere cambios en el código y recompilación.</target>
+</trans-unit>
+<trans-unit id="s9e91b8531cd17e69">
+  <source>After: Dynamic Injection</source>
+  <target>Después: Inyección Dinámica</target>
+</trans-unit>
+<trans-unit id="scf7303bd9af345c5">
+  <source>Legacy Context</source>
+  <target>Contexto Legado</target>
+</trans-unit>
+<trans-unit id="s7cda9b34add2b6aa">
+  <source>New Context</source>
+  <target>Contexto Nuevo</target>
+</trans-unit>
+<trans-unit id="s10ad6c66a65749b6">
+  <source>Other Context</source>
+  <target>Otro Contexto</target>
+</trans-unit>
+<trans-unit id="s78589f6aa7482f15">
+  <source>Victory</source>
+  <target>Victoria</target>
+</trans-unit>
+<trans-unit id="sedbed0d0ed06dd37">
+  <source>Oracle</source>
+  <target>Oráculo</target>
+</trans-unit>
+<trans-unit id="s59cd91fe10ef55dd">
+  <source>REQ: NEW API</source>
+  <target>REQ: NUEVA API</target>
+</trans-unit>
+<trans-unit id="s506b6a19d12f414c">
+  <source>Key</source>
+  <target>Llave</target>
+</trans-unit>
+<trans-unit id="s7f3f5e5290e0f757">
+  <source>Tight coupling to concrete implementations, making testing and flexibility impossible.</source>
+  <target>Estrecho acoplamiento a implementaciones concretas, haciendo que las pruebas y la flexibilidad sean imposibles.</target>
+</trans-unit>
+<trans-unit id="sd97db180b2ed9efb">
+  <source>20-25 min</source>
+  <target>20-25 min</target>
+</trans-unit>
+<trans-unit id="s0dcb21efbc889a69">
+  <source>Backend Agnostic</source>
+  <target>Agnóstico del Backend</target>
+</trans-unit>
+<trans-unit id="sdeb611f8b2609422">
+  <source>100% backend-agnostic and testable component</source>
+  <target>Componente 100% agnóstico del backend y testeable</target>
+</trans-unit>
+<trans-unit id="s50f2da4b996273aa">
+  <source>Logical Independence</source>
+  <target>Independencia Lógica</target>
+</trans-unit>
+<trans-unit id="sd03c537f123f42a6">
+  <source>Exit Fullscreen</source>
+  <target>Salir de Pantalla Completa</target>
+</trans-unit>
+<trans-unit id="s4b10acae683d2978">
+  <source>Fullscreen</source>
+  <target>Pantalla Completa</target>
+</trans-unit>
+<trans-unit id="s71cc6dee645f6ead">
+  <source>LEGACY'S END</source>
+  <target>LEGACY'S END</target>
+</trans-unit>
+<trans-unit id="sf5be66a2259b8964">
+  <source>Tired of legacy code? It's time for transformation!</source>
+  <target>¿Cansado del código legado? ¡Es hora de la transformación!</target>
+</trans-unit>
+<trans-unit id="s95b75d8ae79154c7">
+  <source>Each chapter is an interactive mission where you'll refactor real code, learning to:</source>
+  <target>Cada capítulo es una misión interactiva donde refactorizarás código real, aprendiendo a:</target>
+</trans-unit>
+<trans-unit id="sf92437eec77ae8da">
+  <source>🛡️ Encapsulate Code</source>
+  <target>🛡️ Encapsular Código</target>
+</trans-unit>
+<trans-unit id="se77ff99efe3eaad2">
+  <source>Master Web Components and Shadow DOM to build truly autonomous UI elements.</source>
+  <target>Domina los Web Components y el Shadow DOM para construir elementos de UI verdaderamente autónomos.</target>
+</trans-unit>
+<trans-unit id="s6e0fbdee19b556de">
+  <source>🎨 Themeable UI</source>
+  <target>🎨 UI Tematizable</target>
+</trans-unit>
+<trans-unit id="sc699e9d9f5349659">
+  <source>Architect flexible design systems using CSS Tokens that adapt to any brand.</source>
+  <target>Arquitecta sistemas de diseño flexibles usando CSS Tokens que se adaptan a cualquier marca.</target>
+</trans-unit>
+<trans-unit id="sd6d1b9ece627d1c4">
+  <source>🌐 Decouple Services</source>
+  <target>🌐 Desacoplar Servicios</target>
+</trans-unit>
+<trans-unit id="sc7fb5086385e5726">
+  <source>❤️ Reactive State</source>
+  <target>❤️ Estado Reactivo</target>
+</trans-unit>
+<trans-unit id="sd2110349cb7bd56b">
+  <source>🔒 Robust Security</source>
+  <target>🔒 Seguridad Robusta</target>
+</trans-unit>
+<trans-unit id="s9c7fea4584f441d6">
+  <source>Centralize authentication and authorization to keep your application resilient.</source>
+  <target>Centraliza la autenticación y autorización para mantener tu aplicación resiliente.</target>
+</trans-unit>
+<trans-unit id="s83ed3b572ee2c77b">
+  <source>✅ Ultimate Testing</source>
+  <target>✅ Pruebas Definitivas</target>
+</trans-unit>
+<trans-unit id="s59c6ffeddfbbafde">
+  <source>🧩 Scalable Patterns</source>
+  <target>🧩 Patrones Escalables</target>
+</trans-unit>
+<trans-unit id="s3b01047d3138afc1">
+  <source>Master Dependency Injection and Command patterns for enterprise-grade code.</source>
+  <target>Domina la Inyección de Dependencias y los patrones Command para código de grado empresarial.</target>
+</trans-unit>
+<trans-unit id="s822f9f8a9c4534e0">
+  <source>📝 Self-Documentation</source>
+  <target>📝 Autodocumentación</target>
+</trans-unit>
+<trans-unit id="s60b1b5a72d0df8f8">
+  <source>Leverage JSDoc and standard conventions to keep your codebase readable.</source>
+  <target>Aprovecha JSDoc y las convenciones estándar para mantener tu base de código legible.</target>
+</trans-unit>
+<trans-unit id="s18b85d8686096af2">
+  <source>🏎️ High Performance</source>
+  <target>🏎️ Alto Rendimiento</target>
+</trans-unit>
+<trans-unit id="s7940915716ac1582">
+  <source>Minimize rendering cycles and optimize bundles for a lightning-fast experience.</source>
+  <target>Minimiza los ciclos de renderizado y optimiza los paquetes para una experiencia ultrarrápida.</target>
+</trans-unit>
+<trans-unit id="sb4a9fba9e09ab5ff">
+  <source>🤖 Built-in AI</source>
+  <target>🤖 IA Integrada</target>
+</trans-unit>
+<trans-unit id="s466428faa6591fa2">
+  <source>Leverage the power of the browser's 1st-class AI APIs for natural interaction.</source>
+  <target>Aprovecha el poder de las APIs de IA de primera clase del navegador para una interacción natural.</target>
+</trans-unit>
+<trans-unit id="s5d1818736a223982">
+  <source>♿ Accessibility</source>
+  <target>♿ Accesibilidad</target>
+</trans-unit>
+<trans-unit id="s28c82e3ccf97979c">
+  <source>Master ARIA and focus management to build inclusive experiences for all.</source>
+  <target>Domina ARIA y la gestión del enfoque para construir experiencias inclusivas para todos.</target>
+</trans-unit>
+<trans-unit id="s5b4ea5e033997bea">
+  <source>Read More</source>
+  <target>Leer Más</target>
+</trans-unit>
+<trans-unit id="se61fb5de09acfb7e">
+  <source>Choose your next adventure...</source>
+  <target>Elige tu próxima aventura...</target>
+</trans-unit>
+<trans-unit id="s90e63428cbbe41a3">
+  <source>Reset Progress</source>
+  <target>Reiniciar Progreso</target>
+</trans-unit>
+<trans-unit id="s2b588e75abe62d1a">
+  <source>Are you sure you want to reset all progress? This cannot be undone.</source>
+  <target>¿Estás seguro de que quieres reiniciar todo el progreso? Esto no se puede deshacer.</target>
+</trans-unit>
+<trans-unit id="s94b45426c7ba0561">
+  <source>Loading Quest...</source>
+  <target>Cargando Misión...</target>
+</trans-unit>
+<trans-unit id="s4ec2a3e10d84ee1b">
+  <source>Loading level data...</source>
+  <target>Cargando datos del nivel...</target>
+</trans-unit>
+<trans-unit id="s091f3b38c997ae43">
+  <source>The Fortress of Design</source>
+  <target>La Fortaleza del Diseño</target>
+</trans-unit>
+<trans-unit id="s7b915d4313f0be69">
+  <source>Rigid Structure</source>
+  <target>Estructura Rígida</target>
+</trans-unit>
+<trans-unit id="s2b7b4f3f3ff3102a">
+  <source>Start by selecting the element to inspect its styles.</source>
+  <target>Comienza seleccionando el elemento para inspeccionar sus estilos.</target>
+</trans-unit>
+<trans-unit id="sab07b3e7339fe891">
+  <source>Hardcoded Colors</source>
+  <target>Colores Hardcodeados</target>
+</trans-unit>
+<trans-unit id="s58a28a6677db83d1">
+  <source>Style Guardian</source>
+  <target>Guardián de Estilo</target>
+</trans-unit>
+<trans-unit id="s4be8940d9940b09d">
+  <source>Trunk</source>
+  <target>Baúl</target>
+</trans-unit>
+<trans-unit id="sd1bc71506f968316">
+  <source>Hardcoded styles, inability to adapt to Dark Mode or different branding requirements.</source>
+  <target>Estilos hardcodeados, incapacidad de adaptarse al Modo Oscuro o a diferentes requisitos de marca.</target>
+</trans-unit>
+<trans-unit id="sd65e592e662879e1">
+  <source>20-30 min</source>
+  <target>20-30 min</target>
+</trans-unit>
+<trans-unit id="s07dedc6b8dd93f3b">
+  <source>Design Tokens</source>
+  <target>Tokens de Diseño</target>
+</trans-unit>
+<trans-unit id="s92199c418b0cee68">
+  <source>CSS Custom Properties</source>
+  <target>CSS Custom Properties</target>
+</trans-unit>
+<trans-unit id="s94bab3c06d9aa091">
+  <source>Programmatic Theming</source>
+  <target>Tematización Programática</target>
+</trans-unit>
+<trans-unit id="s472e08886f0af786">
+  <source>Visually Agnostic</source>
+  <target>Visualmente Agnóstico</target>
+</trans-unit>
+<trans-unit id="sd1d5b0a145b36520">
+  <source>Visually agnostic and adaptable component</source>
+  <target>Componente visualmente agnóstico y adaptable</target>
+</trans-unit>
+<trans-unit id="s7b4eac9640059f32">
+  <source>Visual Adaptation</source>
+  <target>Adaptación Visual</target>
+</trans-unit>
+<trans-unit id="s3920d50711b279a0">
+  <source>Prop drilling, unpredictable global state mutation, and excessive re-renders due to poor reactivity.</source>
+  <target>Prop drilling, mutación impredecible del estado global y re-renderizados excesivos debido a una reactividad deficiente.</target>
+</trans-unit>
+<trans-unit id="se178cc8466dd49f1">
+  <source>30-40 min</source>
+  <target>30-40 min</target>
+</trans-unit>
+<trans-unit id="s15fad8f9b309db1d">
+  <source>Reactive Patterns</source>
+  <target>Patrones Reactivos</target>
+</trans-unit>
+<trans-unit id="s3d3b4f88fa2273ee">
+  <source>Signals</source>
+  <target>Signals</target>
+</trans-unit>
+<trans-unit id="sac335058bc37c05e">
+  <source>Observable Stores</source>
+  <target>Almacenes Observables</target>
+</trans-unit>
+<trans-unit id="se8fe905ea6d44e86">
+  <source>Context API (for Stores)</source>
+  <target>Context API (para Almacenes)</target>
+</trans-unit>
+<trans-unit id="s8d816573d0674c87">
+  <source>Unidirectional Data Flow</source>
+  <target>Flujo de Datos Unidireccional</target>
+</trans-unit>
+<trans-unit id="s246b8bc6be509180">
+  <source>State Master</source>
+  <target>Maestro del Estado</target>
+</trans-unit>
+<trans-unit id="s68992ea539645d1c">
+  <source>Reactive, predictable component without prop drilling</source>
+  <target>Componente reactivo y predecible sin prop drilling</target>
+</trans-unit>
+<trans-unit id="sfe0e3ab1cb2f3f07">
+  <source>State Predictability</source>
+  <target>Predecibilidad del Estado</target>
+</trans-unit>
+<trans-unit id="sb70fef79e7c5676c">
+  <source>Scattered authentication logic, repetitive `isLoggedIn()` checks, and vulnerable redirection flows.</source>
+  <target>Lógica de autenticación dispersa, comprobaciones `isLoggedIn()` repetitivas y flujos de redirección vulnerables.</target>
+</trans-unit>
+<trans-unit id="s7d875bb0db8cb33c">
+  <source>4-5 levels</source>
+  <target>4-5 niveles</target>
+</trans-unit>
+<trans-unit id="s114e78334455577f">
+  <source>Auth Guards</source>
+  <target>Guardias de Autenticación</target>
+</trans-unit>
+<trans-unit id="s5970d3bae8f9e5c1">
+  <source>User Context</source>
+  <target>Contexto de Usuario</target>
+</trans-unit>
+<trans-unit id="sc5d25a3b3ef6bb4f">
+  <source>Centralized Session Management</source>
+  <target>Gestión de Sesión Centralizada</target>
+</trans-unit>
+<trans-unit id="s13ec77bbc60946e0">
+  <source>Frontend Perimeter Security</source>
+  <target>Seguridad Perimetral del Frontend</target>
+</trans-unit>
+<trans-unit id="sc40b6086a271cdb9">
+  <source>Route Protection</source>
+  <target>Protección de Rutas</target>
+</trans-unit>
+<trans-unit id="sf73762748c563b5a">
+  <source>Security Sentinel Badge</source>
+  <target>Insignia de Centinela de Seguridad</target>
+</trans-unit>
+<trans-unit id="s1afbe2b2006aeab7">
+  <source>Application with protected routes, reactive and centrally managed user identity.</source>
+  <target>Aplicación con rutas protegidas, identidad de usuario reactiva y gestionada centralmente.</target>
+</trans-unit>
+<trans-unit id="s8193c9acacc2285f">
+  <source>Master of Centralized Security</source>
+  <target>Maestro de la Seguridad Centralizada</target>
+</trans-unit>
+<trans-unit id="sb8beb64ab5b1f7c6">
+  <source>Build the Ultimate Anti-Regression Shield</source>
+  <target>Construye el Escudo Anti-Regresión Definitivo</target>
+</trans-unit>
+<trans-unit id="sfacc6566128b46fa">
+  <source>Dominate the art of Verification. Create a defense system against regressions and future bugs using the Mirror of Veracity.</source>
+  <target>Domina el arte de la Verificación. Crea un sistema de defensa contra regresiones y errores futuros usando el Espejo de la Veracidad.</target>
+</trans-unit>
+<trans-unit id="sc0d727720d69c483">
+  <source>Code is fragile, prone to regression bugs, and lacks automated verification.</source>
+  <target>El código es frágil, propenso a errores de regresión y carece de verificación automatizada.</target>
+</trans-unit>
+<trans-unit id="s3f2eb0b23a6aaa1b">
+  <source>Testing Pyramid</source>
+  <target>Pirámide de Pruebas</target>
+</trans-unit>
+<trans-unit id="sd6edc75b2224287b">
+  <source>Unit Testing</source>
+  <target>Pruebas Unitarias</target>
+</trans-unit>
+<trans-unit id="sd242dcc1a9011655">
+  <source>Integration Testing</source>
+  <target>Pruebas de Integración</target>
+</trans-unit>
+<trans-unit id="s715cc27dca9b310d">
+  <source>Mocking</source>
+  <target>Mocking</target>
+</trans-unit>
+<trans-unit id="s6c84ea19e1b38753">
+  <source>TDD</source>
+  <target>TDD (Desarrollo Guiado por Pruebas)</target>
+</trans-unit>
+<trans-unit id="sef880d4cc6b17e55">
+  <source>Truth Seeker</source>
+  <target>Buscador de la Verdad</target>
+</trans-unit>
+<trans-unit id="s910f34b9f9c7be14">
+  <source>A shielded component, verified and resistant to regressions</source>
+  <target>Un componente blindado, verificado y resistente a regresiones</target>
+</trans-unit>
+<trans-unit id="s585dea15de918480">
+  <source>Automated Verification</source>
+  <target>Verificación Automatizada</target>
+</trans-unit>
+<trans-unit id="se78c31b4691d2b9e">
+  <source>Unhandled errors crash the app, silent failures, lack of visibility into issues.</source>
+  <target>Los errores no manejados bloquean la app, fallos silenciosos, falta de visibilidad de los problemas.</target>
+</trans-unit>
+<trans-unit id="sca11f112339baec3">
+  <source>35-45 min</source>
+  <target>35-45 min</target>
+</trans-unit>
+<trans-unit id="s985904951fd1671f">
+  <source>Centralized Error Handling</source>
+  <target>Manejo de Errores Centralizado</target>
+</trans-unit>
+<trans-unit id="s2992d526956f739e">
+  <source>Logging</source>
+  <target>Registro (Logging)</target>
+</trans-unit>
+<trans-unit id="s8095296216dfb9d1">
+  <source>Observability Patterns</source>
+  <target>Patrones de Observabilidad</target>
+</trans-unit>
+<trans-unit id="scfd198c2bade39d7">
+  <source>Boundary Error Components</source>
+  <target>Componentes Binarios de Error (Error Boundary)</target>
+</trans-unit>
+<trans-unit id="s5138b79ec85155dc">
+  <source>Chaos Warden</source>
+  <target>Guardián del Caos</target>
+</trans-unit>
+<trans-unit id="sddc983111270c750">
+  <source>Resilient application with full error observability</source>
+  <target>Aplicación resiliente con total observabilidad de errores</target>
+</trans-unit>
+<trans-unit id="s58be8fd77d82e55a">
+  <source>Centralized Monitoring</source>
+  <target>Monitoreo Centralizado</target>
+</trans-unit>
+<trans-unit id="s51ba2b11aefe9c55">
+  <source>Hardcoded strings, date/number format issues across regions, lack of localization.</source>
+  <target>Cadenas hardcodeadas, problemas de formato de fecha/número en distintas regiones, falta de localización.</target>
+</trans-unit>
+<trans-unit id="se7c0d39dc94ebc1b">
+  <source>25-35 min</source>
+  <target>25-35 min</target>
+</trans-unit>
+<trans-unit id="s8a60b9e2802b9efa">
+  <source>i18n Context</source>
+  <target>Contexto i18n</target>
+</trans-unit>
+<trans-unit id="sde66ec8ccc6219e6">
+  <source>Locale Management</source>
+  <target>Gestión de Locales</target>
+</trans-unit>
+<trans-unit id="sa365918edad2f689">
+  <source>Contextual Formatting</source>
+  <target>Formato Contextual</target>
+</trans-unit>
+<trans-unit id="s536a18dde6ef1a63">
+  <source>String Management</source>
+  <target>Gestión de Cadenas</target>
+</trans-unit>
+<trans-unit id="se562ae11843c776b">
+  <source>Polyglot Master</source>
+  <target>Maestro Políglota</target>
+</trans-unit>
+<trans-unit id="s3f434f25bd9e2874">
+  <source>Globally accessible component, adapted to any culture</source>
+  <target>Componente accesible globalmente, adaptado a cualquier cultura</target>
+</trans-unit>
+<trans-unit id="s57d529d392c103d4">
+  <source>Total Globalization</source>
+  <target>Globalización Total</target>
+</trans-unit>
+<trans-unit id="sa331782be5271ab6">
+  <source>The Fog of Silence</source>
+  <target>La Niebla del Silencio</target>
+</trans-unit>
+<trans-unit id="sa49e2738128db2b1">
+  <source>Alarion enters a thick fog where sight is useless. He must learn to navigate using inner resonance and digital echoes. Master the basics of Keyboard Navigation and ARIA Labels.</source>
+  <target>Alarión entra en una niebla espesa donde la vista es inútil. Debe aprender a navegar usando resonancia interna y ecos digitales. Domina los fundamentos de la Navegación por Teclado y las Etiquetas ARIA.</target>
+</trans-unit>
+<trans-unit id="s1ad88c0dacc21c9a">
+  <source>The Invisible Maze</source>
+  <target>El Laberinto Invisible</target>
+</trans-unit>
+<trans-unit id="s1d4354a32cb6dc45">
+  <source>The interface is a maze with no signs, invisible to those who cannot see with eyes.</source>
+  <target>La interfaz es un laberinto sin señales, invisible para aquellos que no pueden ver con los ojos.</target>
+</trans-unit>
+<trans-unit id="sc414ebee3df5c9d7">
+  <source>The Guided Path</source>
+  <target>El Camino Guiado</target>
+</trans-unit>
+<trans-unit id="s0bacbe48010c8159">
+  <source>By adding semantic labels and logical focus flow, the path becomes clear even in the darkest fog.</source>
+  <target>Al añadir etiquetas semánticas y un flujo de enfoque lógico, el camino se vuelve claro incluso en la niebla más oscura.</target>
+</trans-unit>
+<trans-unit id="s893b44f551f0e637">
+  <source>The Blind Guide</source>
+  <target>El Guía Ciego</target>
+</trans-unit>
+<trans-unit id="sb201036d942f39b6">
+  <source>Sonar Ring</source>
+  <target>Anillo de Sonar</target>
+</trans-unit>
+<trans-unit id="s660cb8552dffcdcb">
+  <source>The Echo Chamber</source>
+  <target>La Cámara de los Ecos</target>
+</trans-unit>
+<trans-unit id="sfb9576783fb61ff8">
+  <source>In the Echo Chamber, every change in the world must be announced to those listening. Learn to use ARIA Live Regions and Focus Management to harmonize the experience.</source>
+  <target>En la Cámara de los Ecos, cada cambio en el mundo debe ser anunciado a quienes escuchan. Aprende a usar las Regiones en Vivo ARIA y la Gestión del Enfoque para armonizar la experiencia.</target>
+</trans-unit>
+<trans-unit id="s3479687064f1159d">
+  <source>Silent Changes</source>
+  <target>Cambios Silenciosos</target>
+</trans-unit>
+<trans-unit id="s5ba0c472cf06d46c">
+  <source>Things happen in the shadow, but the Echoes remain silent, leaving the player lost.</source>
+  <target>Las cosas suceden en la sombra, pero los Ecos permanecen en silencio, dejando al jugador perdido.</target>
+</trans-unit>
+<trans-unit id="sb282629c765efb58">
+  <source>Resonant Truth</source>
+  <target>Verdad Resonante</target>
+</trans-unit>
+<trans-unit id="s50ceddeb85e4d961">
+  <source>With Live Regions, the world's pulse is heard by all, ensuring no event goes unnoticed.</source>
+  <target>Con las Regiones en Vivo, el pulso del mundo es escuchado por todos, asegurando que ningún evento pase desapercibido.</target>
+</trans-unit>
+<trans-unit id="s4775474db56a0b17">
+  <source>Vibrating Sigil</source>
+  <target>Sigilo Vibrante</target>
+</trans-unit>
+<trans-unit id="s0787c0dafbaed76b">
+  <source>Inaccessible application, keyboard traps, lack of screen reader support.</source>
+  <target>Aplicación inaccesible, trampas de teclado, falta de soporte para lectores de pantalla.</target>
+</trans-unit>
+<trans-unit id="s27078a4a7f28465b">
+  <source>ARIA Live Regions</source>
+  <target>ARIA Live Regions</target>
+</trans-unit>
+<trans-unit id="sc8ec1b086cf70fba">
+  <source>Focus Management</source>
+  <target>Gestión del Enfoque</target>
+</trans-unit>
+<trans-unit id="sbe832dccbbe73f5e">
+  <source>Semantic HTML</source>
+  <target>Semantic HTML</target>
+</trans-unit>
+<trans-unit id="s5c5739d6f76dc8ad">
+  <source>Screen Readers</source>
+  <target>Lectores de Pantalla</target>
+</trans-unit>
+<trans-unit id="s0129b7c570cbf1fe">
+  <source>Keyboard Navigation</source>
+  <target>Navegación por Teclado</target>
+</trans-unit>
+<trans-unit id="s4d0846efb5102f2b">
+  <source>Blindseer's Lens</source>
+  <target>Lente del Vidente Ciego</target>
+</trans-unit>
+<trans-unit id="s548ed6885aea474b">
+  <source>An accessible component, usable by all</source>
+  <target>Un componente accesible, utilizable por todos</target>
+</trans-unit>
+<trans-unit id="sd294ea002c3fc049">
+  <source>Universal Perception</source>
+  <target>Percepción Universal</target>
+</trans-unit>
+<trans-unit id="s4b53d959dcaf7c84">
+  <source>The Deaf Ear</source>
+  <target>El Oído Sordo</target>
+</trans-unit>
+<trans-unit id="s8adc502ed3406c0a">
+  <source>Fix a browser permission error blocking the microphone.</source>
+  <target>Corrige un error de permiso del navegador que bloquea el micrófono.</target>
+</trans-unit>
+<trans-unit id="sd92341cc73a5e8ad">
+  <source>The Muted Prophet</source>
+  <target>El Profeta Silenciado</target>
+</trans-unit>
+<trans-unit id="s32e2aa4fd0fb113e">
+  <source>The Oracle cannot hear your pleas because the gates of the browser are locked tight. You must unlock the voice channel.</source>
+  <target>El Oráculo no puede oír tus súplicas porque las puertas del navegador están cerradas a cal y canto. Debes desbloquear el canal de voz.</target>
+</trans-unit>
+<trans-unit id="s27f72b895e8a1e76">
+  <source>Voice Channel Open</source>
+  <target>Canal de Voz Abierto</target>
+</trans-unit>
+<trans-unit id="s13da415a1db93926">
+  <source>You've successfully requested and handled microphone permissions, allowing the Oracle to hear the intent behind the whispers.</source>
+  <target>Has solicitado y gestionado con éxito los permisos del micrófono, permitiendo al Oráculo escuchar la intención tras los susurros.</target>
+</trans-unit>
+<trans-unit id="se264c69bae447575">
+  <source>The Echo</source>
+  <target>El Eco</target>
+</trans-unit>
+<trans-unit id="sf42449f0434cf23c">
+  <source>Voice Harmonizer</source>
+  <target>Armonizador de Voz</target>
+</trans-unit>
+<trans-unit id="scfb36373595fd434">
+  <source>The Parrot</source>
+  <target>El Loro</target>
+</trans-unit>
+<trans-unit id="sc74eddbf4e22e827">
+  <source>Implement speech synthesis to make the game talk back.</source>
+  <target>Implementa la síntesis de voz para que el juego te responda.</target>
+</trans-unit>
+<trans-unit id="scd2ee66dbaa85031">
+  <source>Silent Echoes</source>
+  <target>Ecos Silenciosos</target>
+</trans-unit>
+<trans-unit id="sac883044fbcbd962">
+  <source>The Oracle processes truth but remains silent. Give the digital construct a voice to speak the truths it finds.</source>
+  <target>El Oráculo procesa la verdad pero permanece en silencio. Dale al constructo digital una voz para que pronuncie las verdades que encuentre.</target>
+</trans-unit>
+<trans-unit id="s1fec5de83c2bf3df">
+  <source>Digital Voice Acquired</source>
+  <target>Voz Digital Adquirida</target>
+</trans-unit>
+<trans-unit id="sf68e8ba7e00aa971">
+  <source>Using the Web Speech API, the Oracle now speaks back, guiding you through the silicon trails.</source>
+  <target>Usando la API de Voz Web, el Oráculo ahora responde, guiándote por los senderos de silicio.</target>
+</trans-unit>
+<trans-unit id="sacbdc1c221d8dd04">
+  <source>Silver Tongue</source>
+  <target>Lengua de Plata</target>
+</trans-unit>
+<trans-unit id="sa90d7d38523ec71a">
+  <source>The Babel Fish</source>
+  <target>El Pez de Babel</target>
+</trans-unit>
+<trans-unit id="s5752bc8cf55b3374">
+  <source>Use the AI Prompt API to translate user commands into game actions.</source>
+  <target>Usa la API de Prompt de IA para traducir los comandos del usuario en acciones del juego.</target>
+</trans-unit>
+<trans-unit id="s1984b8233539ca09">
+  <source>Lost in Translation</source>
+  <target>Perdido en la Traducción</target>
+</trans-unit>
+<trans-unit id="sc2533fb26a1033ed">
+  <source>The Oracle hears 'Let's bounce' but doesn't know you mean 'return to hub'. Use the Prompt API to bridge the gap.</source>
+  <target>El Oráculo oye 'Vámonos de aquí' pero no sabe que quieres decir 'volver al hub'. Usa la API de Prompt para salvar la distancia.</target>
+</trans-unit>
+<trans-unit id="s4c6119ebcb85736c">
+  <source>Intent Deciphered</source>
+  <target>Intención Descifrada</target>
+</trans-unit>
+<trans-unit id="sb20dc157bad23345">
+  <source>You've integrated Gemini Nano to parse natural language into actionable game commands.</source>
+  <target>Has integrado Gemini Nano para analizar el lenguaje natural en comandos de juego accionables.</target>
+</trans-unit>
+<trans-unit id="sa6399cd49e562e09">
+  <source>Intent Weaver</source>
+  <target>Tejedor de Intenciones</target>
+</trans-unit>
+<trans-unit id="s6134de360773c65c">
+  <source>The Context Key</source>
+  <target>La Clave de Contexto</target>
+</trans-unit>
+<trans-unit id="sbde52275e0285033">
+  <source>Inject game context into the AI prompt for smarter responses.</source>
+  <target>Inyecta contexto del juego en el prompt de la IA para obtener respuestas más inteligentes.</target>
+</trans-unit>
+<trans-unit id="sc134455799a1ac3e">
+  <source>Blind Oracle</source>
+  <target>Oráculo Ciego</target>
+</trans-unit>
+<trans-unit id="s0f342b79a19a54aa">
+  <source>The AI doesn't know where you are or what you're holding. Inject the GameContext so it can understand 'Open this'.</source>
+  <target>La IA no sabe dónde estás ni qué tienes en la mano. Inyecta el GameContext para que pueda entender 'Abre esto'.</target>
+</trans-unit>
+<trans-unit id="s3f828be778e4cbaf">
+  <source>Contextual Awareness</source>
+  <target>Conciencia Contextual</target>
+</trans-unit>
+<trans-unit id="sc7cd1a9235a39074">
+  <source>By providing environmental data to the Prompt API, the Oracle can now make informed decisions based on the game's state.</source>
+  <target>Al proporcionar datos del entorno a la API de Prompt, el Oráculo ahora puede tomar decisiones informadas basadas en el estado del juego.</target>
+</trans-unit>
+<trans-unit id="s5e3f94e1a99eb268">
+  <source>Oracle's Sight</source>
+  <target>Vista del Oráculo</target>
+</trans-unit>
+<trans-unit id="sfd7b9d73fa2f8469">
+  <source>The Hallucination</source>
+  <target>La Alucinación</target>
+</trans-unit>
+<trans-unit id="s99fb273abfe837b0">
+  <source>Handle AI errors and invalid JSON responses gracefully.</source>
+  <target>Gestiona con elegancia los errores de la IA y las respuestas JSON no válidas.</target>
+</trans-unit>
+<trans-unit id="sdcf156c5e4f3ba3a">
+  <source>The Shattered Logic</source>
+  <target>La Lógica Destrozada</target>
+</trans-unit>
+<trans-unit id="s6afbcd9d112c466f">
+  <source>The Oracle sometimes speaks in riddles that break the game's logic. Build a shield to catch invalid responses.</source>
+  <target>El Oráculo a veces habla en acertijos que rompen la lógica del juego. Construye un escudo para atrapar las respuestas no válidas.</target>
+</trans-unit>
+<trans-unit id="sa4e8f4447b78a1d2">
+  <source>Logic Refined</source>
+  <target>Lógica Refinada</target>
+</trans-unit>
+<trans-unit id="sd3783e08e004779c">
+  <source>You've implemented robust error handling and response validation for the AI's output.</source>
+  <target>Has implementado un manejo de errores robusto y validación de respuestas para la salida de la IA.</target>
+</trans-unit>
+<trans-unit id="s1eb6cffb76a1d8fe">
+  <source>Rigid 'if/else' command matching that fails on natural language. Lack of accessibility through voice.</source>
+  <target>Coincidencia rígida de comandos 'if/else' que falla con el lenguaje natural. Falta de accesibilidad mediante la voz.</target>
+</trans-unit>
+<trans-unit id="s366041e189fc558c">
+  <source>15-20 min</source>
+  <target>15-20 min</target>
+</trans-unit>
+<trans-unit id="s462b7390b63855e9">
+  <source>Built-in AI</source>
+  <target>IA Integrada</target>
+</trans-unit>
+<trans-unit id="s688a22943ad69f1b">
+  <source>Prompt API</source>
+  <target>API de Prompt</target>
+</trans-unit>
+<trans-unit id="se6c9e53f486b4dcd">
+  <source>Web Speech API</source>
+  <target>API de Voz Web</target>
+</trans-unit>
+<trans-unit id="sab82ddda38cf7cf3">
+  <source>Intent Parsing</source>
+  <target>Análisis de Intenciones</target>
+</trans-unit>
+<trans-unit id="sa5a8434e463294d4">
+  <source>Ability to control the game via natural language and voice</source>
+  <target>Capacidad de controlar el juego mediante lenguaje natural y voz</target>
+</trans-unit>
+<trans-unit id="sc303d0347013a5b6">
+  <source>Command Override</source>
+  <target>Anulación de Comandos</target>
+</trans-unit>
+<trans-unit id="sc5bd76e2005e1d17">
+  <source>CONTROLS</source>
+  <target>CONTROLES</target>
+</trans-unit>
+<trans-unit id="sda6330d625b26211">
+  <source>ARROWS TO MOVE</source>
+  <target>FLECHAS PARA MOVER</target>
+</trans-unit>
+<trans-unit id="sd49b2aec17481470">
+  <source>SPACE TO INTERACT</source>
+  <target>ESPACIO PARA INTERACTUAR</target>
+</trans-unit>
+<trans-unit id="s23cd6a7952b76f82">
+  <source>ESC TO MENU</source>
+  <target>ESC PARA MENÚ</target>
+</trans-unit>
+<trans-unit id="sc914cd25f04874ac">
+  <source>Voice Control</source>
+  <target>Control por Voz</target>
+</trans-unit>
+<trans-unit id="s6debdeb5c7290e2b">
+  <source>PAUSED</source>
+  <target>PAUSA</target>
+</trans-unit>
+<trans-unit id="s9f949262986e25b4">
+  <source>RESUME GAME</source>
+  <target>REANUDAR JUEGO</target>
+</trans-unit>
+<trans-unit id="seb700a67f42cebd6">
+  <source>RESTART QUEST</source>
+  <target>REINICIAR MISIÓN</target>
+</trans-unit>
+<trans-unit id="s9e56095f217b2e23">
+  <source>RETURN TO HUB</source>
+  <target>VOLVER AL HUB</target>
+</trans-unit>
+<trans-unit id="s8ce7e9dd2f642ef7">
+  <source>Error: No quest data for completion screen.</source>
+  <target>Error: No hay datos de la misión para la pantalla de finalización.</target>
+</trans-unit>
+<trans-unit id="s2204f55ad8660d1f">
+  <source>QUEST COMPLETE!</source>
+  <target>¡MISIÓN COMPLETADA!</target>
+</trans-unit>
+<trans-unit id="s26435831e26cf77f">
+  <source>Congratulations, hero! You have successfully completed the quest:</source>
+  <target>¡Felicidades, héroe! Has completado con éxito la misión:</target>
+</trans-unit>
+<trans-unit id="s139bb6926f6b442f">
+  <source>You earned the badge:</source>
+  <target>Has ganado la insignia:</target>
+</trans-unit>
+<trans-unit id="sf1b4ecb1abd15dd5">
+  <source>Ability gained:</source>
+  <target>Habilidad ganada:</target>
+</trans-unit>
+<trans-unit id="sad3a2d2a8a492607">
+  <source>Beginner</source>
+  <target>Principiante</target>
+</trans-unit>
+<trans-unit id="sb39c29728a3aab64">
+  <source>Intermediate</source>
+  <target>Intermedio</target>
+</trans-unit>
+<trans-unit id="s21b06c38fc4164db">
+  <source>Advanced</source>
+  <target>Avanzado</target>
+</trans-unit>
+<trans-unit id="s5f45b0a663a21651">
+  <source>Expert</source>
+  <target>Experto</target>
+</trans-unit>
+<trans-unit id="see2d1cfa6b9e6f6f">
+  <source>TALK</source>
+  <target>HABLAR</target>
+</trans-unit>
+<trans-unit id="sedfadfe170be83a2">
+  <source>Key architectural changes: </source>
+  <target>Cambios arquitectónicos clave: </target>
+</trans-unit>
+<trans-unit id="s1dc6a31104bfed9b">
+  <source>Identified Problem</source>
+  <target>Problema Identificado</target>
+</trans-unit>
+<trans-unit id="s47caac73da1099c8">
+  <source>Key Architectural Changes</source>
+  <target>Cambios Arquitectónicos Clave</target>
+</trans-unit>
+<trans-unit id="s87d3f0132330335f">
+  <source>Level Complete!</source>
+  <target>¡Nivel Completado!</target>
+</trans-unit>
+<trans-unit id="s5aba8b77ba535ab1">
+  <source>Acquired! This item has been added to your inventory.</source>
+  <target>¡Adquirido! Este objeto se ha añadido a tu inventario.</target>
+</trans-unit>
+<trans-unit id="s99767f199881ae10">
+  <source>PREV</source>
+  <target>ANTERIOR</target>
+</trans-unit>
+<trans-unit id="sc776f66d33e8b210">
+  <source>EVOLVE</source>
+  <target>EVOLUCIONAR</target>
+</trans-unit>
+<trans-unit id="sfa236dc6043a5fe8">
+  <source>NEXT</source>
+  <target>SIGUIENTE</target>
+</trans-unit>
+<trans-unit id="s57a94dec0f069ee2">
+  <source>You have obtained <x id="0" equiv-text="${this.config.reward.name}"/>.</source>
+  <target>Has obtenido <x id="0" equiv-text="${this.config.reward.name}"/>.</target>
+</trans-unit>
+<trans-unit id="s485889f52aa786db">
+  <source>Before Alarion can connect with others, he must learn to exist without being corrupted by them. In the Toxic Swamp of Global Scope, he must find an umbrella to protect his styles and DOM from the chaotic environment. Encapsulate your code.</source>
+  <target>Antes de que Alarión pueda conectarse con otros, debe aprender a existir sin ser corrompido por ellos. En el Pantano Tóxico del Ámbito Global, debe encontrar un paraguas para proteger sus estilos y el DOM del entorno caótico. Encapsula tu código.</target>
+</trans-unit>
+<trans-unit id="s51c87d409e952710">
+  <source>To understand the outside world, Alarion must learn to observe without interfering. The Orb of Inquiry reveals how to accept data through Attributes and Properties, reacting to changes like a reflection in water.</source>
+  <target>Para entender el mundo exterior, Alarión debe aprender a observar sin interferir. El Orbe de la Indagación revela cómo aceptar datos a través de Attributes y Properties, reaccionando a los cambios como un reflejo en el agua.</target>
+</trans-unit>
+<trans-unit id="s2c86e25fd47416e5">
+  <source>Deep within the Crystal Caverns lies the Heartstone, pulsing with energy. Alarion must learn to channel this energy (State) downstream to his children, ensuring the flow is unidirectional and controlled. Reactive Data Flow.</source>
+  <target>En lo profundo de las Cavernas de Cristal yace la Piedra Corazón, pulsando con energía. Alarión debe aprender a canalizar esta energía (State) hacia sus hijos, asegurando que el flujo sea unidireccional y controlado. Flujo de Datos Reactivo.</target>
+</trans-unit>
+<trans-unit id="sf8027c610f91f880">
+  <source>The Watchers demand proof of identity. Alarion must learn to speak for himself, dispatching Custom Events to notify the world of his actions, without checking who is listening. The principle of 'Fire and Forget'.</source>
+  <target>Los Vigilantes exigen prueba de identidad. Alarión debe aprender a hablar por sí mismo, despachando Custom Events para notificar al mundo de sus acciones, sin verificar quién está escuchando. El principio de 'Fire and Forget'.</target>
+</trans-unit>
+<trans-unit id="sea12f3198cad2a08">
+  <source>The Chaos Spirits try to break Alarion. He must forge a suit of Armor (Unit Tests) that can withstand every attack. Only by proving his logic is sound can he survive the Crimson Altar.</source>
+  <target>Los Espíritus del Caos intentan quebrar a Alarión. Debe forjar una armadura (Unit Tests) que pueda resistir cada ataque. Solo demostrando que su lógica es sólida podrá sobrevivir al Altar Carmesí.</target>
+</trans-unit>
+<trans-unit id="s15066548e3b50482">
+  <source>Alarion is blinded by the mists of the Unseen. He must learn to navigate using only his other senses (Accessibility/a11y), ensuring that even those who cannot see the path can still follow his journey.</source>
+  <target>Alarión es cegado por las nieblas de lo Invisible. Debe aprender a navegar usando solo sus otros sentidos (Accessibility/a11y), asegurando que incluso aquellos que no pueden ver el camino puedan seguir su viaje.</target>
+</trans-unit>
+<trans-unit id="sf6aa6654ed48e885">
+  <source>Focuses on removing global dependencies and encapsulating the code, achieving Shadow DOM and Custom Elements.</source>
+  <target>Se enfoca en eliminar dependencias globales y encapsular el código, logrando Shadow DOM y Custom Elements.</target>
+</trans-unit>
+<trans-unit id="sac91ff9e2dd01faa">
+  <source>Solution: The Evolved Code (Lit Web Component)</source>
+  <target>Solución: El Código Evolucionado (Lit Web Component)</target>
+</trans-unit>
+<trans-unit id="s5af1a84f40905b11">
+  <source>First Step Taken: Structure and Style are now safe, even if Logic is still coupled.</source>
+  <target>Primer Paso Dado: La Estructura y el Estilo ahora están seguros, aunque la Lógica aún esté acoplada.</target>
+</trans-unit>
+<trans-unit id="sc47115d5e0effb1c">
+  <source>Web Componet encapsulation</source>
+  <target>Encapsulación de Web Component</target>
+</trans-unit>
+<trans-unit id="s4c83f39bd1932e2b">
+  <source>Represents diverse Design Systems. Use Design Tokens (CSS Variables) to unify styles and enable Dark Mode.</source>
+  <target>Representa diversos Design Systems. Usa Design Tokens (CSS Variables) para unificar estilos y habilitar el Modo Oscuro.</target>
+</trans-unit>
+<trans-unit id="sa0cec2ac8ff17897">
+  <source>Design Tokens (CSS Vars)</source>
+  <target>Design Tokens (CSS Vars)</target>
+</trans-unit>
+<trans-unit id="s160992d412654f3a">
+  <source>Alarion enters the Hall of Definition to learn how to forge abstract service contracts. Before injecting, we must define 'what' a service does, not 'how'. This creates a clear blueprint for any backend interaction.</source>
+  <target>Alarión entra al Salón de la Definición para aprender a forjar contratos de servicio abstractos. Antes de inyectar, debemos definir 'qué' hace un servicio, no 'cómo'. Esto crea un plano claro para cualquier interacción con el backend.</target>
+</trans-unit>
+<trans-unit id="sc860eda74c404af8">
+  <source>Component logic assumes direct interaction with fetch or a specific global object. No clear public interface for backend services. Lack of predictability and direct coupling to implementation details, not abstract needs.</source>
+  <target>La lógica del componente asume interacción directa con fetch o un objeto global específico. No hay una interfaz pública clara para los servicios de backend. Falta de predictibilidad y acoplamiento directo a detalles de implementación, no a necesidades abstractas.</target>
+</trans-unit>
+<trans-unit id="s5e83d9afbe2d6cce">
+  <source>Future-Proof: Any future backend service must implement this contract, ensuring compatibility.</source>
+  <target>A Prueba de Futuro: Cualquier servicio de backend futuro debe implementar este contrato, asegurando compatibilidad.</target>
+</trans-unit>
+<trans-unit id="sfa79530eb10e38d2">
+  <source>Inversion of Control: The parent provides the dependency, the child consumes it.</source>
+  <target>Inversion of Control: El padre proporciona la dependencia, el hijo la consume.</target>
+</trans-unit>
+<trans-unit id="sfc9ae1bd9be21023">
+  <source>Create the Provider</source>
+  <target>Crear el Provider</target>
+</trans-unit>
+<trans-unit id="s5b5ec4b51ea06c00">
+  <source>The Master Jeweler teaches Alarion to set the raw Crystal (Context) into the Necklace (Component). This represents the ContextConsumer: linking the component to data provided from above, transforming separate parts into a unified masterpiece.</source>
+  <target>El Maestro Joyero enseña a Alarión a engarzar el Cristal en bruto (Context) en el Collar (Component). Esto representa el ContextConsumer: vincular el componente a los datos proporcionados desde arriba, transformando partes separadas en una obra maestra unificada.</target>
+</trans-unit>
+<trans-unit id="s11f43aa9ed765241">
+  <source>The component creates its own service instance, ignoring the provider.</source>
+  <target>El componente crea su propia instancia de servicio, ignorando el provider.</target>
+</trans-unit>
+<trans-unit id="s1b736065170ad1d2">
+  <source>Dependency Injection: The component receives its dependency from the context.</source>
+  <target>Dependency Injection: El componente recibe su dependencia del contexto.</target>
+</trans-unit>
+<trans-unit id="s53fecc5b8475588d">
+  <source>Consume the context</source>
+  <target>Consumir el contexto</target>
+</trans-unit>
+<trans-unit id="s71a2e0f41a71be54">
+  <source>Testing with the real legacy service is slow, flaky, and requires a network connection.</source>
+  <target>Probar con el servicio legado real es lento, inestable y requiere una conexión de red.</target>
+</trans-unit>
+<trans-unit id="s70b481863f993d8f">
+  <source>Create the provider MOCK</source>
+  <target>Crear el provider MOCK</target>
+</trans-unit>
+<trans-unit id="s69553261c14fa075">
+  <source>Portability: We can swap the backend without touching the UI code.</source>
+  <target>Portabilidad: Podemos cambiar el backend sin tocar el código de UI.</target>
+</trans-unit>
+<trans-unit id="sc30ae3efd6e57d45">
+  <source>Agility: We can A/B test different implementations easily.</source>
+  <target>Agilidad: Podemos hacer A/B test de diferentes implementaciones fácilmente.</target>
+</trans-unit>
+<trans-unit id="sb0b4f9daad74e5a8">
+  <source>Future-Proofing: The application is ready for any future backend changes.</source>
+  <target>Preparación para el Futuro: La aplicación está lista para cualquier cambio futuro en el backend.</target>
+</trans-unit>
+<trans-unit id="s08b9b1313db83112">
+  <source>LEGACY'S END is your epic journey to master clean, portable, and maintainable frontend architecture. Join Alarion, the code acolyte, as he unlocks powerful architectural skills to turn chaos into mastery.</source>
+  <target>LEGACY'S END es tu viaje épico para dominar una arquitectura frontend limpia, portable y mantenible. Únete a Alarión, el acólito del código, mientras desbloquea poderosas habilidades arquitectónicas para convertir el caos en maestría.</target>
+</trans-unit>
+<trans-unit id="sd624f550005e37ba">
+  <source>Isolate business logic from infrastructure to enable seamless backend swaps.</source>
+  <target>Aísla la lógica de negocio de la infraestructura para permitir cambios de backend sin fricciones.</target>
+</trans-unit>
+<trans-unit id="see9d575b5a43b348">
+  <source>Control data flow with modern signals and observers for predictable updates.</source>
+  <target>Controla el flujo de datos con Signals y Observers modernos para actualizaciones predecibles.</target>
+</trans-unit>
+<trans-unit id="s2f5fbd3a3e3d4942">
+  <source>Implement anti-regression shields with unit, integration, and E2E tests.</source>
+  <target>Implementa escudos anti-regresión con pruebas unitarias, de integración y E2E.</target>
+</trans-unit>
+</body>
 </file>
 </xliff>

@@ -1,6 +1,7 @@
 import "@awesome.me/webawesome/dist/components/icon/icon.js";
 import "@awesome.me/webawesome/dist/components/tag/tag.js";
 import "@awesome.me/webawesome/dist/components/tooltip/tooltip.js";
+import { msg, updateWhenLocaleChanges } from "@lit/localize";
 import { html, LitElement } from "lit";
 import { ifDefined } from "lit/directives/if-defined.js";
 import {
@@ -41,6 +42,7 @@ export class NpcElement extends LitElement {
 
 	constructor() {
 		super();
+		updateWhenLocaleChanges(this);
 		this.name = "";
 		this.image = "";
 		this.icon = "";
@@ -65,7 +67,7 @@ export class NpcElement extends LitElement {
             .open="${open}"
             trigger="manual"
         >
-		${this.action || "TALK"}
+		${this.action || msg("TALK")}
         </wa-tooltip>
 		${
 			this.image

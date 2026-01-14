@@ -7,6 +7,7 @@ import {
 import { GameSessionManager } from "../managers/game-session-manager.js";
 import { aiService } from "../services/ai-service.js";
 import { GameStateService } from "../services/game-state-service.js";
+import { LocalizationService } from "../services/localization-service.js";
 import { logger } from "../services/logger-service.js";
 import { preloader } from "../services/preloader-service.js";
 import { ProgressService } from "../services/progress-service.js";
@@ -37,6 +38,7 @@ import { eventBus as centralEventBus } from "./event-bus.js";
  * @property {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} evaluateChapterTransition
  * @property {import('../services/ai-service.js').AIService} aiService
  * @property {import('../services/voice-synthesis-service.js').VoiceSynthesisService} voiceSynthesisService
+ * @property {import('../services/localization-service.js').LocalizationService} localizationService
  */
 
 /**
@@ -58,6 +60,7 @@ import { eventBus as centralEventBus } from "./event-bus.js";
  * @property {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} [evaluateChapterTransition]
  * @property {import('../services/ai-service.js').AIService} aiService
  * @property {import('../services/voice-synthesis-service.js').VoiceSynthesisService} voiceSynthesisService
+ * @property {import('../services/localization-service.js').LocalizationService} localizationService
  */
 
 /**
@@ -114,6 +117,13 @@ export class GameBootstrapper {
 			logger,
 		);
 
+		const localizationService = new LocalizationService(logger, storageAdapter);
+
+		// Wire quest cache invalidation on locale change
+		localizationService.onLocaleChange(() => {
+			registry.invalidateQuestCache();
+		});
+
 		const services = {
 			legacy: new LegacyUserService(),
 			mock: new MockUserService(),
@@ -150,6 +160,7 @@ export class GameBootstrapper {
 			evaluateChapterTransition: new EvaluateChapterTransitionUseCase(),
 			aiService,
 			voiceSynthesisService,
+			localizationService,
 		};
 	}
 
@@ -180,6 +191,7 @@ export class GameBootstrapper {
 			evaluateChapterTransition: servicesContext.evaluateChapterTransition,
 			aiService: servicesContext.aiService,
 			voiceSynthesisService: servicesContext.voiceSynthesisService,
+			localizationService: servicesContext.localizationService,
 		};
 
 		// Run existing setup helpers

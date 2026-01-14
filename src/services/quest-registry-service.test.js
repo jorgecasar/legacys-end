@@ -7,9 +7,8 @@ import {
 	isQuestLocked,
 } from "./quest-registry-service.js";
 
-// Mock the quests data
-vi.mock("../content/quests/quests-data.js", () => ({
-	QUESTS: {
+vi.mock("../content/quests/quests-data.js", () => {
+	const mockQuests = {
 		"quest-1": {
 			id: "quest-1",
 			name: "First Quest",
@@ -34,13 +33,18 @@ vi.mock("../content/quests/quests-data.js", () => ({
 			prerequisites: [],
 			status: "coming-soon",
 		},
-	},
-	loadQuest: vi
-		.fn()
-		.mockImplementation((id) =>
-			Promise.resolve(id === "non-existent" ? undefined : { id }),
-		),
-}));
+	};
+
+	return {
+		getQuests: vi.fn().mockReturnValue(mockQuests),
+		QUESTS: mockQuests,
+		loadQuest: vi
+			.fn()
+			.mockImplementation((id) =>
+				Promise.resolve(id === "non-existent" ? undefined : { id }),
+			),
+	};
+});
 
 describe("Quest Registry Service", () => {
 	describe("getQuest", () => {

@@ -1,3 +1,4 @@
+import { msg } from "@lit/localize";
 import { html } from "lit";
 
 /**
@@ -11,24 +12,25 @@ import { html } from "lit";
  * @typedef {import("../quest-types.js").LevelConfig} LevelConfig
  */
 
-/** @type {Record<string, LevelConfig>} */
-export const THE_AURA_OF_SOVEREIGNTY_CHAPTERS = {
+/** @returns {Record<string, LevelConfig>} */
+export const getAuraOfSovereigntyChapters = () => ({
 	"swamp-of-scope": {
 		id: "swamp-of-scope",
-		title: "The Swamp of Global Scope",
-		description:
+		title: msg("The Swamp of Global Scope"),
+		description: msg(
 			"Alarion's components break under Global CSS pollution. The Rainwalker shows him the Shadow Boundary—a protective barrier that shields his code from the outside world.",
-		problemTitle: "Before: Style Bleeding",
-		problemDesc: "Global styles destroy component appearance.",
-		solutionTitle: "After: Shadow Encapsulation",
+		),
+		problemTitle: msg("Before: Style Bleeding"),
+		problemDesc: msg("Global styles destroy component appearance."),
+		solutionTitle: msg("After: Shadow Encapsulation"),
 		backgroundStyle: `url('/assets/swamp-of-scope/background.png')`,
 		npc: {
-			name: "The Rainwalker",
+			name: msg("The Rainwalker"),
 			image: "/assets/swamp-of-scope/npc.png",
 			position: { x: 40, y: 55 },
 		},
 		reward: {
-			name: "Umbrella",
+			name: msg("Umbrella"),
 			image: "/assets/swamp-of-scope/reward.png",
 			position: { x: 40, y: 40 },
 		},
@@ -42,12 +44,12 @@ export const THE_AURA_OF_SOVEREIGNTY_CHAPTERS = {
 			y: 95,
 			width: 30,
 			height: 10,
-			label: "Hall of Fragments",
+			label: msg("Hall of Fragments"),
 		},
 		codeSnippets: {
 			start: [
 				{
-					title: "The Acid Rain: Global styles that bleed everywhere",
+					title: msg("The Acid Rain: Global styles that bleed everywhere"),
 					language: "html",
 					code: `<style>
   h1 {
@@ -64,7 +66,7 @@ export const THE_AURA_OF_SOVEREIGNTY_CHAPTERS = {
 			],
 			end: [
 				{
-					title: "UMBRELLA (Encapsulated Styles)",
+					title: msg("UMBRELLA (Encapsulated Styles)"),
 					code: `import { LitElement, html, css } from 'lit';
 
 export class SafeHouse extends LitElement {
@@ -89,29 +91,38 @@ export class SafeHouse extends LitElement {
 	},
 	"hall-of-fragments": {
 		id: "hall-of-fragments",
-		title: "Hall of Fragments",
-		description:
+		title: msg("Hall of Fragments"),
+		description: msg(
 			"Focuses on removing global dependencies and encapsulating the code, achieving Shadow DOM and Custom Elements.",
-		problemTitle: "Problem: The code is tangled.",
+		),
+		problemTitle: msg("Problem: The code is tangled."),
 		problemDesc: html`
 		<ul>
-			<li>It handles business logic (fetch),</li>
-			<li>knows the global DOM structure (getElementById),</li>
-			<li>and injects styles and structure (innerHTML).</li>
+			<li>${msg("It handles business logic (fetch),")}</li>
+			<li>${msg("knows the global DOM structure (getElementById),")}</li>
+			<li>${msg("and injects styles and structure (innerHTML).")}</li>
 		</ul>`,
 
-		solutionTitle: "Solution: The Evolved Code (Lit Web Component)",
+		solutionTitle: msg("Solution: The Evolved Code (Lit Web Component)"),
 		architecturalChanges: [
-			"Identity Gained: The code is now a defined entity <product-item>), not a chaotic script.",
-			"DOM Independent: The component no longer uses getElementById or interacts with the global DOM directly.",
-			"Encapsulation Achieved: The static styles ensure the component is protected from the Monolith's global CSS (Shadow DOM).",
-			"First Step Taken: Structure and Style are now safe, even if Logic is still coupled.",
+			msg(
+				"Identity Gained: The code is now a defined entity <product-item>), not a chaotic script.",
+			),
+			msg(
+				"DOM Independent: The component no longer uses getElementById or interacts with the global DOM directly.",
+			),
+			msg(
+				"Encapsulation Achieved: The static styles ensure the component is protected from the Monolith's global CSS (Shadow DOM).",
+			),
+			msg(
+				"First Step Taken: Structure and Style are now safe, even if Logic is still coupled.",
+			),
 		],
 
 		codeSnippets: {
 			start: [
 				{
-					title: "Couple Logic",
+					title: msg("Couple Logic"),
 					code: `function renderProfile() {
 	// ❌ Logical Coupling: The UI controls data fetching.
 	fetch('https://legacycorp.com/product-data')
@@ -130,7 +141,7 @@ renderProfile();`,
 			],
 			end: [
 				{
-					title: "Web Componet encapsulation",
+					title: msg("Web Componet encapsulation"),
 					code: `import { LitElement, html } from 'lit';
 
 export class ProductItem extends LitElement {
@@ -177,17 +188,17 @@ customElements.define('product-item', ProductItem);`,
 			y: 50,
 			width: 10,
 			height: 20,
-			label: "The Shadow Threshold",
+			label: msg("The Shadow Threshold"),
 		},
 		backgroundStyle: `url('/assets/hall-of-fragments/background.png')`,
 		npc: {
-			name: "Fragments' Oracle",
+			name: msg("Fragments' Oracle"),
 			icon: "user",
 			image: "/assets/hall-of-fragments/npc.png",
 			position: { x: 50, y: 40 },
 		},
 		reward: {
-			name: "Garments",
+			name: msg("Garments"),
 			image: "/assets/hall-of-fragments/reward.png",
 			position: { x: 60, y: 45 },
 		},
@@ -196,4 +207,4 @@ customElements.define('product-item', ProductItem);`,
 			reward: "/assets/hall-of-fragments/hero-reward.png",
 		},
 	},
-};
+});

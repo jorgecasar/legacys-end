@@ -1,32 +1,29 @@
-import { Difficulty } from "../quest-types.js";
-import { THE_SCRYING_POOL_OF_CHAOS_CHAPTERS } from "./chapters.js";
+import { msg } from "@lit/localize";
+import { getScryingPoolOfChaosMetadata } from "../quest-manifest.js";
+import { getCrimsonAltarChapters } from "./chapters.js";
 
-export const THE_SCRYING_POOL_OF_CHAOS_QUEST = {
-	id: "the-crimson-altar",
-	name: "The Crimson Altar",
-	subtitle: "Transform Error Chaos into Intelligence",
-	description:
-		"Achieve Total Monitoring. Channel application chaos to a control point, capturing and reacting to failures without stopping the application.",
-	legacyProblem:
+/** @returns {import("../quest-types.js").Quest} */
+export const getScryingPoolOfChaosQuest = () => ({
+	...getScryingPoolOfChaosMetadata(),
+	legacyProblem: msg(
 		"Unhandled errors crash the app, silent failures, lack of visibility into issues.",
-	prerequisites: ["the-flowing-heartstone", "the-mirror-of-veracity"],
+	),
 	shortcuts: /** @type {string[]} */ ([]),
-	difficulty: Difficulty.ADVANCED,
-	icon: "eye",
-	estimatedTime: "35-45 min",
+	estimatedTime: msg("35-45 min"),
 	concepts: [
-		"Centralized Error Handling",
-		"Logging",
-		"Observability Patterns",
-		"Boundary Error Components",
+		msg("Centralized Error Handling"),
+		msg("Logging"),
+		msg("Observability Patterns"),
+		msg("Boundary Error Components"),
 	],
 	chapterIds: /** @type {string[]} */ ([]),
 	// Chapter data
-	chapters: THE_SCRYING_POOL_OF_CHAOS_CHAPTERS,
+	chapters: getCrimsonAltarChapters(),
 	reward: {
-		badge: "Chaos Warden",
-		description: "Resilient application with full error observability",
-		ability: "Centralized Monitoring",
+		badge: msg("Chaos Warden"),
+		description: msg("Resilient application with full error observability"),
+		ability: msg("Centralized Monitoring"),
 	},
-	status: "coming-soon",
-};
+});
+
+// No static exports here to ensure reactivity via functions.

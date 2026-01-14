@@ -1,5 +1,6 @@
+import { msg, updateWhenLocaleChanges } from "@lit/localize";
 import { html, LitElement } from "lit";
-import { ABOUT_SLIDES_CONTENT } from "../../content/about-content.js";
+import { getAboutSlidesContent } from "../../content/about-content.js";
 import "@awesome.me/webawesome/dist/components/dialog/dialog.js";
 import "@awesome.me/webawesome/dist/components/carousel/carousel.js";
 import "@awesome.me/webawesome/dist/components/carousel-item/carousel-item.js";
@@ -14,11 +15,17 @@ import { aboutSlidesStyles } from "./AboutSlides.styles.js";
 export class AboutSlides extends LitElement {
 	static styles = aboutSlidesStyles;
 
+	constructor() {
+		super();
+		updateWhenLocaleChanges(this);
+	}
+
 	render() {
+		const slides = getAboutSlidesContent();
 		return html`
-			<wa-dialog label="About Legacy's End" class="about-dialog" style="--width: 800px;">
+			<wa-dialog label="${msg("About Legacy's End")}" class="about-dialog" style="--width: 800px;">
 				<wa-carousel navigation pagination mouseDragging>
-					${ABOUT_SLIDES_CONTENT.map(
+					${slides.map(
 						(slide) => html`
 						<wa-carousel-item>
 							<h2>${slide.title}</h2>

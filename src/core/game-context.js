@@ -18,6 +18,7 @@
  * @property {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} [evaluateChapterTransition]
  * @property {import('../services/ai-service.js').AIService} [aiService]
  * @property {import('../services/voice-synthesis-service.js').VoiceSynthesisService} [voiceSynthesisService]
+ * @property {import('../services/localization-service.js').LocalizationService} [localizationService]
  */
 
 // This file only serves as a type definition hub for now.

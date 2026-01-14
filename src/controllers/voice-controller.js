@@ -57,6 +57,7 @@ import {
  * @property {(action: string, value: unknown) => void} [onDebugAction] - Debug action callback
  * @property {() => boolean} [isEnabled] - Check if voice control is enabled
  * @property {string} [language] - Language code (e.g., 'en-US', 'es-ES')
+ * @property {import('../services/localization-service.js').LocalizationService} [localizationService] - Localization service
  * @property {() => void} [onCompleteLevel] - Complete level callback
  */
 
@@ -71,6 +72,23 @@ import {
  * @implements {ReactiveController}
  */
 export class VoiceController {
+	/**
+	 * @param {import('lit').ReactiveControllerHost} host
+	 * @param {VoiceControllerOptions} options
+	 */
+	/**
+	 * Get the current language code
+	 * @returns {string}
+	 */
+	#getLanguage() {
+		return (
+			this.localizationService?.getLocale() ||
+			document.documentElement.lang ||
+			this.options.language ||
+			"en-US"
+		);
+	}
+
 	/**
 	 * @param {import('lit').ReactiveControllerHost} host
 	 * @param {VoiceControllerOptions} options
@@ -92,6 +110,9 @@ export class VoiceController {
 
 		/** @type {import('../services/logger-service.js').LoggerService} */
 		this.logger = this.options.logger;
+
+		/** @type {import('../services/localization-service.js').LocalizationService|undefined} */
+		this.localizationService = this.options.localizationService;
 
 		/** @type {SpeechRecognition|null} */
 		this.recognition = null;
@@ -115,8 +136,8 @@ export class VoiceController {
 			this.recognition = new SpeechRecognition();
 			this.recognition.continuous = true;
 			this.recognition.interimResults = false;
-			// Set language based on options
-			this.recognition.lang = this.options.language || "en-US";
+			// Set language based on localization service or defaults
+			this.recognition.lang = this.#getLanguage();
 
 			this.recognition.onstart = () => {
 				this.isListening = true;
@@ -137,6 +158,10 @@ export class VoiceController {
 
 				// Prevent auto-restart if disabled or we are speaking
 				if (this.enabled && this.options.isEnabled?.() && !this.isSpeaking) {
+					// Update language before restarting
+					if (this.recognition) {
+						this.recognition.lang = this.#getLanguage();
+					}
 					const duration = Date.now() - this.lastStartTime;
 					// If session lasted less than 2 seconds, assume instability
 					if (duration < 2000) {
@@ -184,12 +209,13 @@ export class VoiceController {
 
 			if (status === "readily" || status === "available") {
 				// Create Alarion's command processing session
+				const lang = this.#getLanguage();
 				await this.aiService.createSession("alarion", {
-					language: this.options.language || "en-US",
+					language: lang,
 					initialPrompts: [
 						{
 							role: "system",
-							content: getAlarionSystemPrompt(this.options.language || "en-US"),
+							content: getAlarionSystemPrompt(lang),
 						},
 						...ALARION_TRAINING_EXAMPLES,
 					],
@@ -197,7 +223,7 @@ export class VoiceController {
 
 				// Create NPC narration session
 				await this.aiService.createSession("npc", {
-					language: this.options.language || "en-US",
+					language: lang,
 					initialPrompts: [
 						{
 							role: "system",
@@ -229,7 +255,7 @@ export class VoiceController {
 		this.isSpeaking = true;
 		this.stop();
 
-		const targetLang = lang || this.recognition?.lang || this.options.language;
+		const targetLang = lang || this.#getLanguage();
 
 		this.voiceSynthesisService.speak(text, {
 			lang: targetLang,
@@ -264,7 +290,7 @@ export class VoiceController {
 		// Use AI to act as the NPC and summarize/speak the text
 		if (this.npcSession) {
 			try {
-				const targetLang = lang || this.options.language;
+				const targetLang = lang || this.#getLanguage();
 				const prompt = `${text} IMPORTANT: Reformulate this line for voice acting. Output MUST be in '${targetLang}'.`;
 				const response = await this.npcSession.prompt(prompt);
 				narration = response.replace(/```json|```/g, "").trim();
@@ -351,7 +377,7 @@ export class VoiceController {
 				isDialogOpen: false,
 				isRewardCollected: false,
 			};
-			const targetLang = this.options.language || "en-US";
+			const targetLang = this.#getLanguage();
 			const contextStr = `[Context: Dialog=${context.isDialogOpen ? "Open" : "Closed"}, Reward=${context.isRewardCollected ? "Collected" : "Not Collected"}]`;
 			const promptWithContext = `${contextStr} User command: "${command}". IMPORTANT: The 'lang' field in JSON MUST be '${targetLang}' and 'feedback' text MUST be in '${targetLang}'.`;
 
@@ -385,12 +411,12 @@ export class VoiceController {
 	 */
 	executeAction(action, value, lang = null) {
 		const safeLang = lang && lang !== "undefined" ? lang : null;
-		const language = safeLang || this.options.language || "en-US";
+		const language = safeLang || this.#getLanguage();
 		executeVoiceAction(action, value, /** @type {any} */ (this), language);
 	}
 
 	celebrateChapter() {
-		const lang = this.options.language || "en-US";
+		const lang = this.#getLanguage();
 		const isEn = lang.startsWith("en");
 
 		const phrases = isEn

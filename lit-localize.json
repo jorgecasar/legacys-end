@@ -5,8 +5,8 @@
 	"inputFiles": ["src/**/*.js"],
 	"output": {
 		"mode": "runtime",
-		"outputDir": "./src/generated/locales",
-		"localeCodesModule": "./src/generated/locale-codes.js"
+		"outputDir": "src/generated/locales",
+		"localeCodesModule": "src/generated/locales/locale-codes.js"
 	},
 	"interchange": {
 		"format": "xliff",

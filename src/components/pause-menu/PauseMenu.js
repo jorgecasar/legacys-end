@@ -1,6 +1,7 @@
 import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/dialog/dialog.js";
 import "@awesome.me/webawesome/dist/components/icon/icon.js";
+import { msg, updateWhenLocaleChanges } from "@lit/localize";
 import { html, LitElement } from "lit";
 import { pauseMenuStyles } from "./PauseMenu.styles.js";
 
@@ -20,28 +21,29 @@ export class PauseMenu extends LitElement {
 
 	constructor() {
 		super();
+		updateWhenLocaleChanges(this);
 		this.open = false;
 	}
 
 	render() {
 		return html`
 			<wa-dialog 
-				label="PAUSED" 
+				label="${msg("PAUSED")}" 
 				?open="${this.open}"
 				style="--width: 320px;"
 				@wa-request-close="${this.handleRequestClose}"
 			>
 				<div class="menu-buttons">
 					<wa-button variant="brand" class="menu-btn" @click="${this.dispatchResume}">
-						<wa-icon slot="start" name="play"></wa-icon> RESUME GAME
+						<wa-icon slot="start" name="play"></wa-icon> ${msg("RESUME GAME")}
 					</wa-button>
 					
 					<wa-button variant="neutral" class="menu-btn" @click="${this.dispatchRestart}">
-						<wa-icon slot="start" name="rotate-left"></wa-icon> RESTART QUEST
+						<wa-icon slot="start" name="rotate-left"></wa-icon> ${msg("RESTART QUEST")}
 					</wa-button>
 					
 					<wa-button variant="danger" class="menu-btn" @click="${this.dispatchQuit}">
-						<wa-icon slot="start" name="door-open"></wa-icon> RETURN TO HUB
+						<wa-icon slot="start" name="door-open"></wa-icon> ${msg("RETURN TO HUB")}
 					</wa-button>
 				</div>
 			</wa-dialog>

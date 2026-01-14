@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { GameEvents } from "../../core/event-bus.js";
 import { logger } from "../../services/logger-service.js";
 import { GameView } from "../game-view/game-view.js";
 import { LevelDialog } from "./LevelDialog.js"; // Mock child component

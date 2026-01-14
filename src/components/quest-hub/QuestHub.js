@@ -1,8 +1,11 @@
+import { msg, updateWhenLocaleChanges } from "@lit/localize";
 import { html, LitElement, nothing } from "lit";
 import { questHubStyles } from "./QuestHub.styles.js";
 import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/icon/icon.js";
 import "../about-slides/about-slides.js";
+import "../language-selector/LanguageSelector.js";
+import "../language-selector/LanguageSelector.js";
 import "./components/quest-card/quest-card.js";
 
 /**
@@ -36,16 +39,20 @@ export class QuestHub extends LitElement {
 		comingSoonQuests: { type: Array },
 		showFullDescription: { type: Boolean },
 		isFullscreen: { type: Boolean },
+		localizationService: { attribute: false },
 	};
 
 	constructor() {
 		super();
+		updateWhenLocaleChanges(this);
 		/** @type {EnrichedQuest[]} */
 		this.quests = [];
 		/** @type {EnrichedQuest[]} */
 		this.comingSoonQuests = [];
 		this.showFullDescription = false;
 		this.isFullscreen = !!document.fullscreenElement;
+		/** @type {import('../../services/localization-service.js').LocalizationService | undefined} */
+		this.localizationService = undefined;
 	}
 
 	connectedCallback() {
@@ -84,78 +91,81 @@ export class QuestHub extends LitElement {
 				<header class="hub-header">
 					<nav class="hub-navbar">
 						<div class="navbar-actions">
-							<wa-button variant="brand" @click="${this.#dispatchOpenAbout}">
-								<wa-icon slot="start" name="user"></wa-icon>
-								About
-							</wa-button>
-							<wa-button @click="${this.#toggleFullscreen}">
-								<wa-icon slot="start" name="${this.isFullscreen ? "compress" : "expand"}"></wa-icon>
-								${this.isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-							</wa-button>
+						<wa-button variant="brand" @click="${this.#dispatchOpenAbout}">
+						<wa-icon slot="start" name="user"></wa-icon>
+						${msg("About")}
+						</wa-button>
+						<wa-button @click="${this.#toggleFullscreen}">
+						<wa-icon slot="start" name="${this.isFullscreen ? "compress" : "expand"}"></wa-icon>
+						${this.isFullscreen ? msg("Exit Fullscreen") : msg("Fullscreen")}
+						</wa-button>
+						<language-selector
+							.localizationService="${this.localizationService}"
+						></language-selector>
 						</div>
 					</nav>
 
 					<div class="header-content">
-						<h1 class="hub-title">LEGACY'S END</h1>
-						<p class="hub-subtitle">Tired of legacy code? It's time for transformation!</p>
+						<h1 class="hub-title">${msg("LEGACY'S END")}</h1>
+						<p class="hub-subtitle">${msg("Tired of legacy code? It's time for transformation!")}</p>
 						
 						<div class="hub-description">
-							<p>LEGACY'S END is your epic journey to master clean, portable, and maintainable frontend architecture. Join Alarion, the code acolyte, as he unlocks powerful architectural skills to turn chaos into mastery.</p>
+							<p>${msg("LEGACY'S END is your epic journey to master clean, portable, and maintainable frontend architecture. Join Alarion, the code acolyte, as he unlocks powerful architectural skills to turn chaos into mastery.")}</p>
 							
 							${
 								this.showFullDescription
 									? html`
-								<p>Each chapter is an interactive mission where you'll refactor real code, learning to:</p>
+								<p>${msg("Each chapter is an interactive mission where you'll refactor real code, learning to:")}</p>
 								<div class="learning-objectives">
 									<wa-card appearance="filled">
-										<div slot="header">🛡️ Encapsulate Code</div>
-										Master Web Components and Shadow DOM to build truly autonomous UI elements.
+										<div slot="header">${msg("🛡️ Encapsulate Code")}</div>
+										${msg("Master Web Components and Shadow DOM to build truly autonomous UI elements.")}
 									</wa-card>
 									<wa-card appearance="filled">
-										<div slot="header">🎨 Themeable UI</div>
-										Architect flexible design systems using CSS Tokens that adapt to any brand.
+										<div slot="header">${msg("🎨 Themeable UI")}</div>
+										${msg("Architect flexible design systems using CSS Tokens that adapt to any brand.")}
 									</wa-card>
 									<wa-card appearance="filled">
-										<div slot="header">🌐 Decouple Services</div>
-										Isolate business logic from infrastructure to enable seamless backend swaps.
+										<div slot="header">${msg("🌐 Decouple Services")}</div>
+										${msg("Isolate business logic from infrastructure to enable seamless backend swaps.")}
 									</wa-card>
 									<wa-card appearance="filled">
-										<div slot="header">❤️ Reactive State</div>
-										Control data flow with modern signals and observers for predictable updates.
+										<div slot="header">${msg("❤️ Reactive State")}</div>
+										${msg("Control data flow with modern signals and observers for predictable updates.")}
 									</wa-card>
 									<wa-card appearance="filled">
-										<div slot="header">🔒 Robust Security</div>
-										Centralize authentication and authorization to keep your application resilient.
+										<div slot="header">${msg("🔒 Robust Security")}</div>
+										${msg("Centralize authentication and authorization to keep your application resilient.")}
 									</wa-card>
 									<wa-card appearance="filled">
-										<div slot="header">✅ Ultimate Testing</div>
-										Implement anti-regression shields with unit, integration, and E2E tests.
+										<div slot="header">${msg("✅ Ultimate Testing")}</div>
+										${msg("Implement anti-regression shields with unit, integration, and E2E tests.")}
 									</wa-card>
 									<wa-card appearance="filled">
-										<div slot="header">🧩 Scalable Patterns</div>
-										Master Dependency Injection and Command patterns for enterprise-grade code.
+										<div slot="header">${msg("🧩 Scalable Patterns")}</div>
+										${msg("Master Dependency Injection and Command patterns for enterprise-grade code.")}
 									</wa-card>
 									<wa-card appearance="filled">
-										<div slot="header">📝 Self-Documentation</div>
-										Leverage JSDoc and standard conventions to keep your codebase readable.
+										<div slot="header">${msg("📝 Self-Documentation")}</div>
+										${msg("Leverage JSDoc and standard conventions to keep your codebase readable.")}
 									</wa-card>
 									<wa-card appearance="filled">
-										<div slot="header">🏎️ High Performance</div>
-										Minimize rendering cycles and optimize bundles for a lightning-fast experience.
+										<div slot="header">${msg("🏎️ High Performance")}</div>
+										${msg("Minimize rendering cycles and optimize bundles for a lightning-fast experience.")}
 									</wa-card>
 									<wa-card appearance="filled">
-										<div slot="header">🤖 Built-in AI</div>
-										Leverage the power of the browser's 1st-class AI APIs for natural interaction.
+										<div slot="header">${msg("🤖 Built-in AI")}</div>
+										${msg("Leverage the power of the browser's 1st-class AI APIs for natural interaction.")}
 									</wa-card>
 									<wa-card appearance="filled">
-										<div slot="header">♿ Accessibility</div>
-										Master ARIA and focus management to build inclusive experiences for all.
+										<div slot="header">${msg("♿ Accessibility")}</div>
+										${msg("Master ARIA and focus management to build inclusive experiences for all.")}
 									</wa-card>
 								</div>
 							`
 									: html`
 								<wa-button @click="${this.#toggleDescription}" variant="neutral">
-									Read More
+									${msg("Read More")}
 								</wa-button>
 							`
 							}
@@ -164,7 +174,7 @@ export class QuestHub extends LitElement {
 				</header>
 
 				<section class="quests-section">
-					<h2 class="section-title">Choose your next adventure...</h2>
+					<h2 class="section-title">${msg("Choose your next adventure...")}</h2>
 					<div class="wa-grid">
 						${this.quests.map(
 							(quest) => html`
@@ -177,7 +187,7 @@ export class QuestHub extends LitElement {
 				${
 					this.comingSoonQuests.length > 0
 						? html`<section class="coming-soon-section">
-						<h2 class="section-title">Coming Soon</h2>
+						<h2 class="section-title">${msg("Coming Soon")}</h2>
 						<div class="wa-grid">
 							${this.comingSoonQuests.map(
 								(quest) => html`
@@ -192,7 +202,7 @@ export class QuestHub extends LitElement {
 				<footer class="hub-footer">
 					<wa-button variant="danger" @click="${this.#dispatchReset}">
 						<wa-icon slot="start" name="trash"></wa-icon>
-						Reset Progress
+						${msg("Reset Progress")}
 					</wa-button>
 				</footer>
 				
@@ -207,7 +217,9 @@ export class QuestHub extends LitElement {
 	#dispatchReset() {
 		if (
 			confirm(
-				"Are you sure you want to reset all progress? This cannot be undone.",
+				msg(
+					"Are you sure you want to reset all progress? This cannot be undone.",
+				),
 			)
 		) {
 			this.dispatchEvent(

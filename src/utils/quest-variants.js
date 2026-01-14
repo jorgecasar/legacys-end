@@ -1,3 +1,6 @@
+import { msg } from "@lit/localize";
+import { Difficulty } from "../content/quests/quest-types.js";
+
 /**
  * @typedef {import('../content/quests/quest-types.js').EnrichedQuest} EnrichedQuest
  */
@@ -15,18 +18,40 @@ export function getQuestVariant(quest) {
 
 /**
  * Gets the variant for a difficulty badge
- * @param {string} difficulty - The difficulty level
+ * @param {string} [difficulty=Difficulty.BEGINNER] - The difficulty level
  * @returns {"success" | "warning" | "danger" | "neutral"} The variant name
  */
-export function getDifficultyVariant(difficulty) {
+export function getDifficultyVariant(difficulty = Difficulty.BEGINNER) {
 	switch (difficulty.toLowerCase()) {
-		case "beginner":
+		case Difficulty.BEGINNER:
 			return "success";
-		case "intermediate":
+		case Difficulty.INTERMEDIATE:
 			return "warning";
-		case "advanced":
+		case Difficulty.ADVANCED:
 			return "danger";
+		case Difficulty.EXPERT:
+			return "danger"; // Or a specific color for expert
 		default:
 			return "neutral";
+	}
+}
+
+/**
+ * Gets the localized label for a difficulty level
+ * @param {string} [difficulty=Difficulty.BEGINNER] - The difficulty level
+ * @returns {string} The localized label
+ */
+export function getDifficultyLabel(difficulty = Difficulty.BEGINNER) {
+	switch (difficulty.toLowerCase()) {
+		case Difficulty.BEGINNER:
+			return msg("Beginner");
+		case Difficulty.INTERMEDIATE:
+			return msg("Intermediate");
+		case Difficulty.ADVANCED:
+			return msg("Advanced");
+		case Difficulty.EXPERT:
+			return msg("Expert");
+		default:
+			return difficulty;
 	}
 }

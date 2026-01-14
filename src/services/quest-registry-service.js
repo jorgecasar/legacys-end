@@ -1,4 +1,4 @@
-import { loadQuest, QUESTS } from "../content/quests/quests-data.js";
+import { getQuests, loadQuest } from "../content/quests/quests-data.js";
 
 /**
  * @typedef {import("../content/quests/quest-types.js").Quest} Quest
@@ -12,7 +12,7 @@ import { loadQuest, QUESTS } from "../content/quests/quests-data.js";
  */
 
 /**
- * Local cache for loaded quest data
+ * Local cache for loaded quest data (full quests with chapters)
  * @type {Record<string, Quest>}
  */
 const questCache = {};
@@ -23,7 +23,10 @@ const questCache = {};
  * @returns {Quest|undefined} Quest object (metadata or full data) or undefined if not found
  */
 export function getQuest(questId) {
-	return questCache[questId] || QUESTS[questId];
+	// Priority: Full quest data (if loaded meta matches current locale)
+	// However, since quest data might be static in its module, we might need more care.
+	// For Phase 1, we focus on metadata.
+	return questCache[questId] || getQuests()[questId];
 }
 
 /**
@@ -44,7 +47,7 @@ export async function loadQuestData(questId) {
  * @returns {Quest[]} Array of all quests
  */
 export function getAllQuests() {
-	return Object.values(QUESTS);
+	return Object.values(getQuests());
 }
 
 /**
@@ -78,4 +81,13 @@ export function getAvailableQuests(_completedQuests = []) {
  */
 export function getComingSoonQuests() {
 	return getAllQuests().filter((quest) => quest.status === "coming-soon");
+}
+
+/**
+ * Invalidate quest cache (to force reload in new language)
+ */
+export function invalidateQuestCache() {
+	Object.keys(questCache).forEach((key) => {
+		delete questCache[key];
+	});
 }

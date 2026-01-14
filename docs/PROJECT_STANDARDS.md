@@ -315,3 +315,14 @@ console.warn("Invalid state");
 logger.info("Quest started", { questId });
 logger.warn("Invalid state", { state });
 ```
+---
+
+## 10. Internationalization (i18n) & Glossary
+
+*   **Runtime Localization**: Use `@lit/localize` for all user-facing strings.
+*   **Reactive Loading**: Content must be exported as functions (e.g., `getQuestData()`) to ensure reactivity when the locale changes.
+*   **Technical Glossary**: Technical terms must NOT be translated.
+    *   **Strategy**: Documentation-based Preservation. Technical terms remain as plain text in `msg()` calls.
+    *   **Source of Truth**: Consult `docs/I18N_GLOSSARY.md` for the list of non-translatable terms.
+    *   **Workflow**: When extracting strings (`npm run localize:extract`) or translating XLIFF files, ensure terms from the glossary are preserved as English in the `<target>` tags.
+*   **Plain Text Preference**: Avoid interpolating glossary constants into `msg()` in the source code. Prefer plain text for better readability and easier extraction.

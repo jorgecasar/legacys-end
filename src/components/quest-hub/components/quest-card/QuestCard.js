@@ -2,10 +2,15 @@ import "@awesome.me/webawesome/dist/components/badge/badge.js";
 import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/card/card.js";
 import "@awesome.me/webawesome/dist/components/icon/icon.js";
-import "@awesome.me/webawesome/dist/components/progress-bar/progress-bar.js";
+import "@awesome.me/webawesome/dist/components/tag/tag.js";
+import "@awesome.me/webawesome/dist/components/tooltip/tooltip.js";
+import { msg, updateWhenLocaleChanges } from "@lit/localize";
 import { html, LitElement, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
-import { getDifficultyVariant } from "../../../../utils/quest-variants.js";
+import {
+	getDifficultyLabel,
+	getDifficultyVariant,
+} from "../../../../utils/quest-variants.js";
 import { questCardStyles } from "./QuestCard.styles.js";
 
 /**
@@ -37,6 +42,7 @@ export class QuestCard extends LitElement {
 
 	constructor() {
 		super();
+		updateWhenLocaleChanges(this);
 		/** @type {EnrichedQuest} */
 		this.quest = /** @type {EnrichedQuest} */ ({});
 		this.isComingSoon = false;
@@ -105,7 +111,7 @@ export class QuestCard extends LitElement {
 						!locked
 							? html`
 							<div class="progress-info">
-								<span>Progress</span>
+								<span>${msg("Progress")}</span>
 								<span>${Math.round(progress)}%</span>
 							</div>
 							<wa-progress-bar .value="${progress}" style="--height: 6px;"></wa-progress-bar>
@@ -119,7 +125,7 @@ export class QuestCard extends LitElement {
 						<wa-icon name="clock"></wa-icon> ${this.quest.estimatedTime}
 					</span>
 					<wa-badge .variant="${getDifficultyVariant(this.quest.difficulty || "beginner")}">
-						${this.quest.difficulty}
+						${getDifficultyLabel(this.quest.difficulty || "beginner")}
 					</wa-badge>
 				</div>
 
@@ -131,12 +137,12 @@ export class QuestCard extends LitElement {
 							this.isComingSoon
 								? html`
 								<wa-button ?disabled="${true}" variant="neutral">
-									Coming Soon
+									${msg("Coming Soon")}
 								</wa-button>
 							`
 								: html`
 								<wa-button variant="neutral" ?disabled="${true}">
-									<wa-icon slot="start" name="lock"></wa-icon> Locked
+									<wa-icon slot="start" name="lock"></wa-icon> ${msg("Locked")}
 								</wa-button>
 							`
 						}
@@ -148,7 +154,7 @@ export class QuestCard extends LitElement {
 						!locked && completed
 							? html`
 						<wa-button variant="success" @click="${this.#handleRestart}">
-							<wa-icon slot="start" name="rotate-right"></wa-icon> Restart
+							<wa-icon slot="start" name="rotate-right"></wa-icon> ${msg("Restart")}
 						</wa-button>
 					`
 							: ""
@@ -158,11 +164,11 @@ export class QuestCard extends LitElement {
 						!locked && !completed
 							? html`
 							<wa-button 
-								variant="brand" 
-								@click="${this.#handleQuestAction}"
-							>
-								<wa-icon slot="start" name="play"></wa-icon> ${progress > 0 ? "Continue" : "Start"}
-							</wa-button>
+							variant="brand" 
+							@click="${this.#handleQuestAction}"
+						>
+							<wa-icon slot="start" name="play"></wa-icon> ${progress > 0 ? msg("Continue") : msg("Start")}
+						</wa-button>
 					`
 							: ""
 					}

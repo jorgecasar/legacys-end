@@ -1,13 +1,15 @@
-import { THE_ORB_OF_INQUIRY_METADATA } from "../quest-manifest.js";
+import { msg } from "@lit/localize";
+import { getOrbOfInquiryMetadata } from "../quest-manifest.js";
 
-import { THE_ORB_OF_INQUIRY_CHAPTERS } from "./chapters.js";
+import { getOrbOfInquiryChapters } from "./chapters.js";
 
-export const THE_ORB_OF_INQUIRY_QUEST = {
-	...THE_ORB_OF_INQUIRY_METADATA,
-	legacyProblem:
+export const getOrbOfInquiryQuest = () => ({
+	...getOrbOfInquiryMetadata(),
+	legacyProblem: msg(
 		"Tight coupling to concrete implementations, making testing and flexibility impossible.",
+	),
 	shortcuts: /** @type {string[]} */ ([]),
-	estimatedTime: "20-25 min",
+	estimatedTime: msg("20-25 min"),
 	concepts: [
 		"DIP",
 		"IoC",
@@ -25,10 +27,12 @@ export const THE_ORB_OF_INQUIRY_QUEST = {
 		"liberated-battlefield",
 	],
 	// Chapter data
-	chapters: THE_ORB_OF_INQUIRY_CHAPTERS,
+	chapters: getOrbOfInquiryChapters(),
 	reward: {
-		badge: "Backend Agnostic",
-		description: "100% backend-agnostic and testable component",
-		ability: "Logical Independence",
+		badge: msg("Backend Agnostic"),
+		description: msg("100% backend-agnostic and testable component"),
+		ability: msg("Logical Independence"),
 	},
-};
+});
+
+// No static exports here to ensure reactivity via functions.

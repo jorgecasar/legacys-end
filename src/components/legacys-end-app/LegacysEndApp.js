@@ -1,3 +1,4 @@
+import { msg } from "@lit/localize";
 import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement } from "lit";
 import { CollectRewardCommand } from "../../commands/collect-reward-command.js";
@@ -132,6 +133,7 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 		this.commandBus = context.commandBus;
 		this.aiService = context.aiService;
 		this.voiceSynthesisService = context.voiceSynthesisService;
+		this.localizationService = context.localizationService;
 		this.router = /** @type {import("../../utils/router.js").Router} */ (
 			context.router
 		);
@@ -359,12 +361,14 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 		// Reactions to isLoading, isInHub, etc., happen via SignalWatcher
 		const isLoading = this.sessionManager?.isLoading.get() || false;
 		const isInHub = this.sessionManager?.isInHub.get() || false;
+		// Track locale change to trigger re-render
+		this.localizationService?.getLocale();
 
 		if (isLoading) {
 			return html`
 				<div class="loading-overlay">
 					<wa-spinner></wa-spinner>
-					<p>Loading Quest...</p>
+					<p>${msg("Loading Quest...")}</p>
 				</div>
 			`;
 		}
@@ -390,6 +394,7 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 			<quest-hub
 				.quests="${this.getEnrichedQuests()}"
 				.comingSoonQuests="${this.questController?.getComingSoonQuests() || []}"
+				.localizationService="${this.localizationService}"
 				@quest-select="${(/** @type {CustomEvent} */ e) => this.#handleQuestSelect(e.detail.questId)}"
 				@quest-continue="${(/** @type {CustomEvent} */ e) => this.#handleContinueQuest(e.detail.questId)}"
 				@reset-progress="${() => this.#handleResetProgress()}"
@@ -429,7 +434,7 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 
 		const currentConfig = this.getChapterData(chapterId || "");
 		if (!currentConfig) {
-			return html`<div>Loading level data...</div>`;
+			return html`<div>${msg("Loading level data...")}</div>`;
 		}
 
 		const effectiveConfig = { ...currentConfig };
