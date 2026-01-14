@@ -328,6 +328,7 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 
 	#handleResetProgress() {
 		this.gameService.resetProgress();
+		this.requestUpdate();
 	}
 
 	getActiveService() {

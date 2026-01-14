@@ -124,10 +124,8 @@ export class GameService {
 	 */
 	resetProgress() {
 		if (this.options.resetProgress) {
-			if (confirm("⚠️ Reset all quest progress? This cannot be undone!")) {
-				this.options.resetProgress();
-				logger.info("🔄 Progress reset!");
-			}
+			this.options.resetProgress();
+			logger.info("🔄 Progress reset!");
 		}
 	}
 

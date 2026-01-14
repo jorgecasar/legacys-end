@@ -110,20 +110,12 @@ describe("GameService", () => {
 		expect(progress).toEqual({});
 	});
 
-	it("should call resetProgress callback when confirmed", () => {
-		const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+	it("should call resetProgress callback immediately", () => {
+		const confirmSpy = vi.spyOn(window, "confirm");
 		gameService.resetProgress();
-		expect(confirmSpy).toHaveBeenCalled();
+		expect(confirmSpy).not.toHaveBeenCalled();
 		expect(options.resetProgress).toHaveBeenCalled();
 		expect(logger.info).toHaveBeenCalledWith("🔄 Progress reset!");
-		confirmSpy.mockRestore();
-	});
-
-	it("should not call resetProgress callback when cancelled", () => {
-		const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
-		gameService.resetProgress();
-		expect(confirmSpy).toHaveBeenCalled();
-		expect(options.resetProgress).not.toHaveBeenCalled();
 		confirmSpy.mockRestore();
 	});
 
