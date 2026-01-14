@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { EVENTS } from "../constants/events.js";
 import { GameEvents } from "../core/event-bus.js";
 import { FakeProgressService } from "../services/fakes/fake-progress-service.js";
 import { QuestController } from "./quest-controller.js";
@@ -120,12 +119,12 @@ describe("QuestController", () => {
 			expect(fakeProgressService.progress.currentQuest).toBe("test-quest");
 			expect(fakeProgressService.progress.currentChapter).toBe("chapter-1");
 
-			expect(mockEventBus.emit).toHaveBeenCalledWith(EVENTS.QUEST.STARTED, {
+			expect(mockEventBus.emit).toHaveBeenCalledWith(GameEvents.QUEST_STARTED, {
 				quest: mockQuest,
 				started: true,
 			});
 			expect(mockEventBus.emit).toHaveBeenCalledWith(
-				EVENTS.QUEST.CHAPTER_CHANGED,
+				GameEvents.CHAPTER_CHANGED,
 				{
 					chapter: expect.objectContaining({ id: "chapter-1" }),
 					index: 0,
@@ -171,7 +170,7 @@ describe("QuestController", () => {
 			expect(controller.currentChapter?.id).toBe("chapter-2");
 
 			expect(mockEventBus.emit).toHaveBeenCalledWith(
-				EVENTS.QUEST.CHAPTER_CHANGED,
+				GameEvents.CHAPTER_CHANGED,
 				{
 					chapter: expect.objectContaining({ id: "chapter-2" }),
 					index: 1,
@@ -208,7 +207,7 @@ describe("QuestController", () => {
 			await controller.resumeQuest();
 
 			expect(mockRegistry.loadQuestData).toHaveBeenCalledWith("test-quest");
-			expect(mockEventBus.emit).toHaveBeenCalledWith(EVENTS.QUEST.STARTED, {
+			expect(mockEventBus.emit).toHaveBeenCalledWith(GameEvents.QUEST_STARTED, {
 				quest: mockQuest,
 				continued: true,
 			});
@@ -299,9 +298,7 @@ describe("QuestController", () => {
 			expect(fakeProgressService.progress.currentQuest).toBeNull();
 			expect(fakeProgressService.progress.currentChapter).toBeNull();
 
-			expect(mockEventBus.emit).toHaveBeenCalledWith(
-				EVENTS.QUEST.RETURN_TO_HUB,
-			);
+			expect(mockEventBus.emit).toHaveBeenCalledWith(GameEvents.RETURN_TO_HUB);
 		});
 	});
 
@@ -344,7 +341,7 @@ describe("QuestController", () => {
 			// Should NOT reset progress (completed chapters should remain if any)
 			// But verify it doesn't emit STARTED
 			expect(mockEventBus.emit).not.toHaveBeenCalledWith(
-				EVENTS.QUEST.STARTED,
+				GameEvents.QUEST_STARTED,
 				expect.anything(),
 			);
 		});
@@ -396,9 +393,7 @@ describe("QuestController", () => {
 			// If our test-quest isn't that, it might be locked now, but state is reset.
 
 			expect(controller.currentQuest).toBeNull();
-			expect(mockEventBus.emit).toHaveBeenCalledWith(
-				EVENTS.QUEST.RETURN_TO_HUB,
-			);
+			expect(mockEventBus.emit).toHaveBeenCalledWith(GameEvents.RETURN_TO_HUB);
 		});
 
 		// ... (Other simple getters omitted or kept as simple unit tests)

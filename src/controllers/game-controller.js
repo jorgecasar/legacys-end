@@ -6,7 +6,7 @@
  */
 
 import { AdvanceChapterCommand } from "../commands/advance-chapter-command.js";
-import { EVENTS } from "../constants/events.js";
+import { GameEvents } from "../core/event-bus.js";
 
 /**
  * @typedef {Object} GameControllerOptions
@@ -51,23 +51,23 @@ export class GameController {
 
 		// Listen for level completion
 		this.options.eventBus?.on(
-			EVENTS.UI.LEVEL_COMPLETED,
+			GameEvents.LEVEL_COMPLETED,
 			this.handleLevelCompleted,
 		);
 		// Listen for exit zone
 		this.options.eventBus?.on(
-			EVENTS.UI.EXIT_ZONE_REACHED,
+			GameEvents.EXIT_ZONE_REACHED,
 			this.handleExitZoneReached,
 		);
 	}
 
 	hostDisconnected() {
 		this.options.eventBus?.off(
-			EVENTS.UI.LEVEL_COMPLETED,
+			GameEvents.LEVEL_COMPLETED,
 			this.handleLevelCompleted,
 		);
 		this.options.eventBus?.off(
-			EVENTS.UI.EXIT_ZONE_REACHED,
+			GameEvents.EXIT_ZONE_REACHED,
 			this.handleExitZoneReached,
 		);
 	}

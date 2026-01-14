@@ -5,7 +5,7 @@
 
 import { InteractCommand } from "../commands/interact-command.js";
 import { PauseGameCommand } from "../commands/pause-game-command.js";
-import { EVENTS } from "../constants/events.js";
+import { GameEvents } from "../core/event-bus.js";
 
 /**
  * @typedef {Object} KeyboardOptions
@@ -121,7 +121,7 @@ export class KeyboardController {
 
 		if (moveX !== 0 || moveY !== 0) {
 			if (this.options.eventBus) {
-				this.options.eventBus.emit(EVENTS.UI.HERO_MOVE_INPUT, {
+				this.options.eventBus.emit(GameEvents.HERO_MOVE_INPUT, {
 					dx: moveX,
 					dy: moveY,
 				});

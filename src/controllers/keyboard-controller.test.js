@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { InteractCommand } from "../commands/interact-command.js";
 import { PauseGameCommand } from "../commands/pause-game-command.js";
-import { EVENTS } from "../constants/events.js";
+import { GameEvents } from "../core/event-bus.js";
 import { KeyboardController } from "./keyboard-controller.js";
 
 // Mock commands
@@ -72,8 +72,11 @@ describe("KeyboardController", () => {
 
 		expect(event.preventDefault).toHaveBeenCalled();
 		expect(context.eventBus.emit).toHaveBeenCalledWith(
-			EVENTS.UI.HERO_MOVE_INPUT,
-			{ dx: 0, dy: -2.5 },
+			GameEvents.HERO_MOVE_INPUT,
+			{
+				dx: 0,
+				dy: -2.5,
+			},
 		);
 	});
 
@@ -83,8 +86,11 @@ describe("KeyboardController", () => {
 
 		expect(event.preventDefault).toHaveBeenCalled();
 		expect(context.eventBus.emit).toHaveBeenCalledWith(
-			EVENTS.UI.HERO_MOVE_INPUT,
-			{ dx: 2.5, dy: 0 },
+			GameEvents.HERO_MOVE_INPUT,
+			{
+				dx: 2.5,
+				dy: 0,
+			},
 		);
 	});
 
@@ -171,8 +177,11 @@ describe("KeyboardController", () => {
 		eventMap.keydown(event);
 
 		expect(context.eventBus.emit).toHaveBeenCalledWith(
-			EVENTS.UI.HERO_MOVE_INPUT,
-			{ dx: 5.0, dy: 0 },
+			GameEvents.HERO_MOVE_INPUT,
+			{
+				dx: 5.0,
+				dy: 0,
+			},
 		);
 	});
 

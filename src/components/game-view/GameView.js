@@ -6,8 +6,8 @@ import { AdvanceChapterCommand } from "../../commands/advance-chapter-command.js
 import { InteractCommand } from "../../commands/interact-command.js";
 import { MoveHeroCommand } from "../../commands/move-hero-command.js";
 import { PauseGameCommand } from "../../commands/pause-game-command.js";
-import { EVENTS } from "../../constants/events.js";
 import { KeyboardController } from "../../controllers/keyboard-controller.js";
+import { GameEvents } from "../../core/event-bus.js";
 import { setupCharacterContexts } from "../../setup/setup-character-contexts.js";
 import { setupCollision } from "../../setup/setup-collision.js";
 import {
@@ -121,11 +121,14 @@ export class GameView extends SignalWatcher(LitElement) {
 
 		// Subscribe to global events via eventBus
 		if (this.app?.eventBus) {
-			this.app.eventBus.on(EVENTS.UI.DIALOG_NEXT, this.#boundHandleDialogNext);
-			this.app.eventBus.on(EVENTS.UI.DIALOG_PREV, this.#boundHandleDialogPrev);
-			this.app.eventBus.on(EVENTS.UI.HERO_AUTO_MOVE, this.#boundHandleAutoMove);
+			this.app.eventBus.on(GameEvents.DIALOG_NEXT, this.#boundHandleDialogNext);
+			this.app.eventBus.on(GameEvents.DIALOG_PREV, this.#boundHandleDialogPrev);
 			this.app.eventBus.on(
-				EVENTS.UI.HERO_MOVE_INPUT,
+				GameEvents.HERO_AUTO_MOVE,
+				this.#boundHandleAutoMove,
+			);
+			this.app.eventBus.on(
+				GameEvents.HERO_MOVE_INPUT,
 				this.#boundHandleMoveInput,
 			);
 		}
@@ -134,14 +137,20 @@ export class GameView extends SignalWatcher(LitElement) {
 	disconnectedCallback() {
 		super.disconnectedCallback();
 		if (this.app?.eventBus) {
-			this.app.eventBus.off(EVENTS.UI.DIALOG_NEXT, this.#boundHandleDialogNext);
-			this.app.eventBus.off(EVENTS.UI.DIALOG_PREV, this.#boundHandleDialogPrev);
 			this.app.eventBus.off(
-				EVENTS.UI.HERO_AUTO_MOVE,
+				GameEvents.DIALOG_NEXT,
+				this.#boundHandleDialogNext,
+			);
+			this.app.eventBus.off(
+				GameEvents.DIALOG_PREV,
+				this.#boundHandleDialogPrev,
+			);
+			this.app.eventBus.off(
+				GameEvents.HERO_AUTO_MOVE,
 				this.#boundHandleAutoMove,
 			);
 			this.app.eventBus.off(
-				EVENTS.UI.HERO_MOVE_INPUT,
+				GameEvents.HERO_MOVE_INPUT,
 				this.#boundHandleMoveInput,
 			);
 		}
@@ -380,7 +389,7 @@ export class GameView extends SignalWatcher(LitElement) {
 	 * Handles level completion
 	 */
 	handleLevelComplete() {
-		this.app.eventBus.emit(EVENTS.UI.LEVEL_COMPLETED);
+		this.app.eventBus.emit(GameEvents.LEVEL_COMPLETED);
 	}
 
 	/**

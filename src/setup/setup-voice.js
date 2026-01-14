@@ -4,8 +4,8 @@ import { NextDialogSlideCommand } from "../commands/next-dialog-slide-command.js
 import { PauseGameCommand } from "../commands/pause-game-command.js";
 import { PrevDialogSlideCommand } from "../commands/prev-dialog-slide-command.js";
 import { gameConfig } from "../config/game-configuration.js";
-import { EVENTS } from "../constants/events.js";
 import { VoiceController } from "../controllers/voice-controller.js";
+import { GameEvents } from "../core/event-bus.js";
 
 /**
  * @typedef {import('lit').LitElement} LitElement
@@ -35,7 +35,7 @@ export function setupVoice(host, context) {
 			voiceSynthesisService: context.voiceSynthesisService,
 			onMove: (dx, dy) => {
 				if (context.eventBus) {
-					context.eventBus.emit(EVENTS.UI.HERO_MOVE_INPUT, { dx, dy });
+					context.eventBus.emit(GameEvents.HERO_MOVE_INPUT, { dx, dy });
 				}
 			},
 			onInteract: () => {

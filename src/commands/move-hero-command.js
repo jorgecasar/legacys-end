@@ -1,4 +1,4 @@
-import { EVENTS } from "../constants/events.js";
+import { GameEvents } from "../core/event-bus.js";
 
 /**
  * MoveHeroCommand
@@ -75,7 +75,7 @@ export class MoveHeroCommand {
 	_emitMoveEvent() {
 		if (this.eventBus) {
 			const state = this.gameState.getState();
-			this.eventBus.emit(EVENTS.UI.HERO_MOVED, {
+			this.eventBus.emit(GameEvents.HERO_MOVED, {
 				x: state.heroPos.x,
 				y: state.heroPos.y,
 				hasCollectedItem: state.hasCollectedItem,

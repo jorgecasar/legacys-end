@@ -1,5 +1,5 @@
 import { Signal } from "@lit-labs/signals";
-import { EVENTS } from "../constants/events.js";
+import { GameEvents } from "../core/event-bus.js";
 import { ServiceType } from "../services/user-services.js";
 import { CompleteQuestUseCase } from "../use-cases/complete-quest.js";
 import { ContinueQuestUseCase } from "../use-cases/continue-quest.js";
@@ -90,7 +90,7 @@ export class GameSessionManager {
 	setupEventListeners() {
 		if (!this.eventBus) return;
 
-		this.eventBus.on(EVENTS.QUEST.CHAPTER_CHANGED, (payload) =>
+		this.eventBus.on(GameEvents.CHAPTER_CHANGED, (payload) =>
 			this.#handleChapterChange(payload),
 		);
 	}

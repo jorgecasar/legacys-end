@@ -1,22 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../constants/events.js", () => ({
-	EVENTS: {
-		QUEST: {
-			STARTED: "quest-started",
-			COMPLETED: "quest-completed",
-			CHAPTER_CHANGED: "chapter-changed",
-			RETURN_TO_HUB: "return-to-hub",
-		},
-		UI: {
-			THEME_CHANGED: "theme-changed",
-			CONTEXT_CHANGED: "context-changed",
-			DIALOG_OPENED: "dialog-opened",
-			INTERACTION_LOCKED: "interaction-locked",
-		},
-	},
-}));
-
 vi.mock("../services/user-services.js", () => ({
 	ServiceType: {
 		LEGACY: "Legacy API",
@@ -25,7 +8,7 @@ vi.mock("../services/user-services.js", () => ({
 	},
 }));
 
-import { EVENTS } from "../constants/events.js";
+import { GameEvents } from "../core/event-bus.js";
 // Fakes
 import { FakeGameStateService } from "../services/fakes/fake-game-state-service.js";
 import { FakeProgressService } from "../services/fakes/fake-progress-service.js";
@@ -133,7 +116,7 @@ describe("GameSessionManager", () => {
 		it("should subscribe to event bus events when setupEventListeners is called", () => {
 			manager.setupEventListeners();
 			expect(mockEventBus.on).toHaveBeenCalledWith(
-				"chapter-changed",
+				GameEvents.CHAPTER_CHANGED,
 				expect.any(Function),
 			);
 		});
@@ -142,7 +125,7 @@ describe("GameSessionManager", () => {
 			manager.setupEventListeners();
 			manager.currentQuest.set(/** @type {any} */ ({ id: "test-quest" }));
 			const chapterChangeCallback = mockEventBus.on.mock.calls.find(
-				(/** @type {any} */ call) => call[0] === "chapter-changed",
+				(/** @type {any} */ call) => call[0] === GameEvents.CHAPTER_CHANGED,
 			)[1];
 
 			const mockChapter = {
@@ -159,7 +142,7 @@ describe("GameSessionManager", () => {
 		it("should set hotSwitchState to 'mock' when entering a chapter with MOCK service type", () => {
 			manager.setupEventListeners();
 			const chapterChangeCallback = mockEventBus.on.mock.calls.find(
-				(/** @type {any} */ call) => call[0] === EVENTS.QUEST.CHAPTER_CHANGED,
+				(/** @type {any} */ call) => call[0] === GameEvents.CHAPTER_CHANGED,
 			)[1];
 
 			const mockChapter = {
@@ -179,7 +162,7 @@ describe("GameSessionManager", () => {
 			fakeGameState.hotSwitchState.set("mock"); // Pre-condition
 
 			const chapterChangeCallback = mockEventBus.on.mock.calls.find(
-				(/** @type {any} */ call) => call[0] === EVENTS.QUEST.CHAPTER_CHANGED,
+				(/** @type {any} */ call) => call[0] === GameEvents.CHAPTER_CHANGED,
 			)[1];
 
 			const mockChapter = {
@@ -199,7 +182,7 @@ describe("GameSessionManager", () => {
 			fakeGameState.hotSwitchState.set("mock"); // Pre-condition
 
 			const chapterChangeCallback = mockEventBus.on.mock.calls.find(
-				(/** @type {any} */ call) => call[0] === EVENTS.QUEST.CHAPTER_CHANGED,
+				(/** @type {any} */ call) => call[0] === GameEvents.CHAPTER_CHANGED,
 			)[1];
 
 			const mockChapter = {
@@ -220,7 +203,7 @@ describe("GameSessionManager", () => {
 			fakeGameState.heroPos.set(initialPos);
 
 			const callback = mockEventBus.on.mock.calls.find(
-				(/** @type {any} */ c) => c[0] === EVENTS.QUEST.CHAPTER_CHANGED,
+				(/** @type {any} */ c) => c[0] === GameEvents.CHAPTER_CHANGED,
 			)[1];
 
 			callback({ chapter: { id: "no-pos" }, index: 0 });

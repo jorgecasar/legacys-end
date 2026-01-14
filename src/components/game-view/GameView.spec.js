@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { EVENTS } from "../../constants/events.js";
+import { GameEvents } from "../../core/event-bus.js";
 import { logger } from "../../services/logger-service.js";
 import { GameView } from "./game-view.js";
 
@@ -217,7 +217,7 @@ describe("GameView Component", () => {
 
 		it("should handle HERO_MOVE_INPUT event", () => {
 			// Emit event through event bus
-			mockApp.eventBus.emit(EVENTS.UI.HERO_MOVE_INPUT, { dx: 1, dy: 0 });
+			mockApp.eventBus.emit(GameEvents.HERO_MOVE_INPUT, { dx: 1, dy: 0 });
 
 			// Verify it executes a MoveHeroCommand via commandBus
 			expect(mockApp.commandBus.execute).toHaveBeenCalled();
@@ -246,7 +246,7 @@ describe("GameView Component", () => {
 			// Simulate level completion
 			el.handleLevelComplete();
 
-			expect(spy).toHaveBeenCalledWith(EVENTS.UI.LEVEL_COMPLETED);
+			expect(spy).toHaveBeenCalledWith(GameEvents.LEVEL_COMPLETED);
 		});
 	});
 });

@@ -1,4 +1,4 @@
-import { EVENTS } from "../constants/events.js";
+import { GameEvents } from "../core/event-bus.js";
 
 /**
  * @typedef {import("lit").ReactiveController} ReactiveController
@@ -56,14 +56,14 @@ export class GameZoneController {
 	 * Lifecycle method called when host connects to the DOM
 	 */
 	hostConnected() {
-		this.context.eventBus.on(EVENTS.UI.HERO_MOVED, this.handleHeroMoved);
+		this.context.eventBus.on(GameEvents.HERO_MOVED, this.handleHeroMoved);
 	}
 
 	/**
 	 * Lifecycle method called when host disconnects from DOM
 	 */
 	hostDisconnected() {
-		this.context.eventBus.off(EVENTS.UI.HERO_MOVED, this.handleHeroMoved);
+		this.context.eventBus.off(GameEvents.HERO_MOVED, this.handleHeroMoved);
 	}
 
 	/**

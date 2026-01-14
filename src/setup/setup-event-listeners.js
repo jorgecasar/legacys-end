@@ -14,7 +14,7 @@ import { logger } from "../services/logger-service.js";
  */
 export function setupAnalyticsListeners() {
 	// Track quest lifecycle
-	eventBus.on(GameEvents.QUEST_START, (data) => {
+	eventBus.on(GameEvents.QUEST_STARTED, (data) => {
 		logger.info("📊 [Analytics] Quest started:", data.questId);
 		// In production, this would send to analytics service
 		// analytics.track('quest_start', { questId: data.questId });

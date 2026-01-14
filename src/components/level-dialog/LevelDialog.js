@@ -5,7 +5,7 @@ import { html, LitElement } from "lit";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { map } from "lit/directives/map.js";
 import "syntax-highlight-element";
-import { EVENTS } from "../../constants/events.js";
+import { GameEvents } from "../../core/event-bus.js";
 import { escapeHtml } from "../../utils/html-utils.js";
 import {
 	processImagePath,
@@ -72,7 +72,7 @@ export class LevelDialog extends LitElement {
 			changedProperties.has("config")
 		) {
 			this.dispatchEvent(
-				new CustomEvent(EVENTS.UI.SLIDE_CHANGED, {
+				new CustomEvent(GameEvents.SLIDE_CHANGED, {
 					detail: { text: this.#getCurrentSlideText() },
 					bubbles: true,
 					composed: true,

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { EVENTS } from "../constants/events.js";
+import { GameEvents } from "../core/event-bus.js";
 import { FakeGameStateService } from "../services/fakes/fake-game-state-service.js";
 import { GameZoneController } from "./game-zone-controller.js";
 
@@ -55,7 +55,7 @@ describe("GameZoneController", () => {
 		});
 		controller.hostConnected();
 		expect(context.eventBus.on).toHaveBeenCalledWith(
-			EVENTS.UI.HERO_MOVED,
+			GameEvents.HERO_MOVED,
 			/** @type {any} */ (controller).handleHeroMoved,
 		);
 	});

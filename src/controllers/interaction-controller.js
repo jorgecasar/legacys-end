@@ -3,7 +3,6 @@
  */
 
 import { gameConfig } from "../config/game-configuration.js";
-import { EVENTS } from "../constants/events.js";
 
 /**
  * @typedef {import('../services/game-state-service.js').HotSwitchState} HotSwitchState
@@ -134,28 +133,15 @@ export class InteractionController {
 			if (this.options.gameState) {
 				this.options.gameState.setShowDialog(true);
 			}
-			if (this.options.eventBus) {
-				this.options.eventBus.emit(EVENTS.UI.DIALOG_OPENED);
-			}
 		} else if (result.action === "showLocked") {
 			if (this.options.gameState) {
 				this.options.gameState.setLockedMessage(result.message || null);
-			}
-			if (this.options.eventBus) {
-				this.options.eventBus.emit(EVENTS.UI.INTERACTION_LOCKED, {
-					message: result.message || null,
-				});
 			}
 
 			// Auto clear message after delay
 			setTimeout(() => {
 				if (this.options.gameState) {
 					this.options.gameState.setLockedMessage(null);
-				}
-				if (this.options.eventBus) {
-					this.options.eventBus.emit(EVENTS.UI.INTERACTION_LOCKED, {
-						message: null,
-					});
 				}
 			}, 1000);
 		}

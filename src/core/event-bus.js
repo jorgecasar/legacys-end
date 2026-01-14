@@ -188,37 +188,85 @@ export const eventBus = new EventBus();
 
 /**
  * Common game events (for type safety and documentation)
+ * Consolidated from legacy EVENTS constant
  */
 export const GameEvents = {
 	// Quest events
-	QUEST_START: "quest:start",
+	/** @type {'quest:started'} */
+	QUEST_STARTED: "quest:started",
+	/** @type {'quest:complete'} */
 	QUEST_COMPLETE: "quest:complete",
+	/** @type {'quest:failed'} */
 	QUEST_FAILED: "quest:failed",
+	/** @type {'return-to-hub'} */
+	RETURN_TO_HUB: "return-to-hub",
 
 	// Chapter events
+	/** @type {'chapter-changed'} */
+	CHAPTER_CHANGED: "chapter-changed",
+	/** @type {'chapter:start'} */
 	CHAPTER_START: "chapter:start",
+	/** @type {'chapter:complete'} */
 	CHAPTER_COMPLETE: "chapter:complete",
 
-	// Game state events
+	// Hero/Movement events
+	/** @type {'hero:move'} */
 	HERO_MOVE: "hero:move",
+	/** @type {'hero-moved'} */
+	HERO_MOVED: "hero-moved",
+	/** @type {'hero-auto-move'} */
+	HERO_AUTO_MOVE: "hero-auto-move",
+	/** @type {'hero-move-input'} */
+	HERO_MOVE_INPUT: "hero-move-input",
+
+	// Item/Reward events
+	/** @type {'item:collect'} */
 	ITEM_COLLECT: "item:collect",
+	/** @type {'reward:collect'} */
 	REWARD_COLLECT: "reward:collect",
 
-	// UI events
+	// Dialog/UI events
+	/** @type {'dialog:open'} */
 	DIALOG_OPEN: "dialog:open",
+	/** @type {'dialog:close'} */
 	DIALOG_CLOSE: "dialog:close",
+
+	/** @type {'dialog-next'} */
+	DIALOG_NEXT: "dialog-next",
+	/** @type {'dialog-prev'} */
+	DIALOG_PREV: "dialog-prev",
+	/** @type {'slide-changed'} */
+	SLIDE_CHANGED: "slide-changed",
+
+	// Level/Zone events
+	/** @type {'level-completed'} */
+	LEVEL_COMPLETED: "level-completed",
+	/** @type {'exit-zone-reached'} */
+	EXIT_ZONE_REACHED: "exit-zone-reached",
+
+	// Game state events
+	/** @type {'game:pause'} */
 	PAUSE: "game:pause",
+	/** @type {'game:resume'} */
 	RESUME: "game:resume",
 
 	// Navigation events
+	/** @type {'navigate:hub'} */
 	NAVIGATE_HUB: "navigate:hub",
+	/** @type {'navigate:quest'} */
 	NAVIGATE_QUEST: "navigate:quest",
 
-	// Error events
-	ERROR: "error",
-	WARNING: "warning",
+	// Theme events
+	/** @type {'theme-changed'} */
+	THEME_CHANGED: "theme-changed",
 
 	// System events
+	/** @type {'error'} */
+	ERROR: "error",
+	/** @type {'warning'} */
+	WARNING: "warning",
+	/** @type {'loading:start'} */
 	LOADING_START: "loading:start",
+	/** @type {'loading:end'} */
 	LOADING_END: "loading:end",
 };

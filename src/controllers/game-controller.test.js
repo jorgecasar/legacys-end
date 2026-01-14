@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { EVENTS } from "../constants/events.js";
+import { GameEvents } from "../core/event-bus.js";
 import { FakeGameStateService } from "../services/fakes/fake-game-state-service.js";
 import { GameService } from "../services/game-service.js";
 import { GameController } from "./game-controller.js";
@@ -128,11 +128,11 @@ describe("GameController", () => {
 		controller.hostDisconnected();
 
 		expect(context.eventBus.off).toHaveBeenCalledWith(
-			EVENTS.UI.LEVEL_COMPLETED,
+			GameEvents.LEVEL_COMPLETED,
 			controller.handleLevelCompleted,
 		);
 		expect(context.eventBus.off).toHaveBeenCalledWith(
-			EVENTS.UI.EXIT_ZONE_REACHED,
+			GameEvents.EXIT_ZONE_REACHED,
 			controller.handleExitZoneReached,
 		);
 	});

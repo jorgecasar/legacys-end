@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { EVENTS } from "../../constants/events.js";
+import { GameEvents } from "../../core/event-bus.js";
 import { logger } from "../../services/logger-service.js";
 import { GameView } from "../game-view/game-view.js";
 import { LevelDialog } from "./LevelDialog.js"; // Mock child component
@@ -245,7 +245,7 @@ describe("GameView Integration", () => {
 
 		// Decoupled logic: GameView only emits LEVEL_COMPLETED
 		expect(element.app.eventBus.emit).toHaveBeenCalledWith(
-			EVENTS.UI.LEVEL_COMPLETED,
+			GameEvents.LEVEL_COMPLETED,
 		);
 	});
 
@@ -310,7 +310,7 @@ describe("GameView Integration", () => {
 		let autoMoveCallback;
 		const mockEventBus = {
 			on: vi.fn((event, cb) => {
-				if (event === EVENTS.UI.HERO_AUTO_MOVE) autoMoveCallback = cb;
+				if (event === GameEvents.HERO_AUTO_MOVE) autoMoveCallback = cb;
 			}),
 			off: vi.fn(),
 			emit: vi.fn(),

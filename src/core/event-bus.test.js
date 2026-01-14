@@ -210,7 +210,7 @@ describe("EventBus", () => {
 
 	describe("GameEvents constants", () => {
 		it("should define common event names", () => {
-			expect(GameEvents.QUEST_START).toBe("quest:start");
+			expect(GameEvents.QUEST_STARTED).toBe("quest:started");
 			expect(GameEvents.HERO_MOVE).toBe("hero:move");
 			expect(GameEvents.ERROR).toBe("error");
 		});

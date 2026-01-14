@@ -3,7 +3,6 @@
  */
 
 import { Task, TaskStatus } from "@lit/task";
-import { EVENTS } from "../constants/events.js";
 import { eventBus, GameEvents } from "../core/event-bus.js";
 
 /**
@@ -436,7 +435,7 @@ export class QuestController {
 		);
 
 		// Emit global event
-		this.eventBus.emit(EVENTS.QUEST.CHAPTER_CHANGED, {
+		this.eventBus.emit(GameEvents.CHAPTER_CHANGED, {
 			chapter: /** @type {Chapter} */ (this.currentChapter),
 			index: this.currentChapterIndex,
 		});
@@ -487,7 +486,7 @@ export class QuestController {
 
 		// Notify host
 		// Emit global event
-		this.eventBus.emit(EVENTS.QUEST.RETURN_TO_HUB);
+		this.eventBus.emit(GameEvents.RETURN_TO_HUB);
 		this.host.requestUpdate();
 	}
 
@@ -628,14 +627,14 @@ export class QuestController {
 	 */
 	#emitQuestEvents(additionalData = {}, emitStart = true) {
 		if (this.currentQuest && emitStart) {
-			this.eventBus.emit(EVENTS.QUEST.STARTED, {
+			this.eventBus.emit(GameEvents.QUEST_STARTED, {
 				quest: this.currentQuest,
 				...additionalData,
 			});
 		}
 
 		if (this.currentChapter) {
-			this.eventBus.emit(EVENTS.QUEST.CHAPTER_CHANGED, {
+			this.eventBus.emit(GameEvents.CHAPTER_CHANGED, {
 				chapter: /** @type {Chapter} */ (this.currentChapter),
 				index: this.currentChapterIndex,
 			});

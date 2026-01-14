@@ -1,4 +1,4 @@
-import { EVENTS } from "../constants/events.js";
+import { GameEvents } from "../core/event-bus.js";
 
 /**
  * @typedef {import("lit").ReactiveController} ReactiveController
@@ -50,11 +50,11 @@ export class CollisionController {
 	 * Called when the host is connected to the DOM
 	 */
 	hostConnected() {
-		this.context.eventBus.on(EVENTS.UI.HERO_MOVED, this.handleHeroMoved);
+		this.context.eventBus.on(GameEvents.HERO_MOVED, this.handleHeroMoved);
 	}
 
 	hostDisconnected() {
-		this.context.eventBus.off(EVENTS.UI.HERO_MOVED, this.handleHeroMoved);
+		this.context.eventBus.off(GameEvents.HERO_MOVED, this.handleHeroMoved);
 	}
 
 	/**
@@ -99,7 +99,7 @@ export class CollisionController {
 			hLeft < eRight && hRight > eLeft && hTop < eBottom && hBottom > eTop;
 
 		if (collided) {
-			this.context.eventBus.emit(EVENTS.UI.EXIT_ZONE_REACHED);
+			this.context.eventBus.emit(GameEvents.EXIT_ZONE_REACHED);
 		}
 
 		return collided;

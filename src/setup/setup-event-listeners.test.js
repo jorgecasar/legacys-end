@@ -24,7 +24,7 @@ describe("EventBus Listeners", () => {
 			const logSpy = vi.spyOn(logger, "info");
 			setupAnalyticsListeners();
 
-			eventBus.emit(GameEvents.QUEST_START, { questId: "test-quest" });
+			eventBus.emit(GameEvents.QUEST_STARTED, { questId: "test-quest" });
 
 			expect(logSpy).toHaveBeenCalledWith(
 				"📊 [Analytics] Quest started:",
@@ -135,7 +135,7 @@ describe("EventBus Listeners", () => {
 			const logSpy = vi.spyOn(logger, "info");
 			initializeEventListeners();
 
-			eventBus.emit(GameEvents.QUEST_START, { questId: "test" });
+			eventBus.emit(GameEvents.QUEST_STARTED, { questId: "test" });
 
 			expect(logSpy).toHaveBeenCalledWith(
 				"📊 [Analytics] Quest started:",

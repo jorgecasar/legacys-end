@@ -1,4 +1,4 @@
-import { EVENTS } from "../constants/events.js";
+import { GameEvents } from "../core/event-bus.js";
 
 /**
  * Command to trigger the hero's auto-movement to a specific position.
@@ -18,7 +18,7 @@ export class AutoMoveCommand {
 
 	execute() {
 		if (this.eventBus) {
-			this.eventBus.emit(EVENTS.UI.HERO_AUTO_MOVE, { x: this.x, y: this.y });
+			this.eventBus.emit(GameEvents.HERO_AUTO_MOVE, { x: this.x, y: this.y });
 		}
 	}
 }

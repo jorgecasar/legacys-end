@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { EVENTS } from "../constants/events.js";
+import { GameEvents } from "../core/event-bus.js";
 import { CollisionController } from "./collision-controller.js";
 
 describe("CollisionController", () => {
@@ -43,7 +43,7 @@ describe("CollisionController", () => {
 	it("should subscribe to HERO_MOVED on hostConnected", () => {
 		controller.hostConnected();
 		expect(context.eventBus.on).toHaveBeenCalledWith(
-			EVENTS.UI.HERO_MOVED,
+			GameEvents.HERO_MOVED,
 			controller.handleHeroMoved,
 		);
 	});
@@ -51,7 +51,7 @@ describe("CollisionController", () => {
 	it("should unsubscribe from HERO_MOVED on hostDisconnected", () => {
 		controller.hostDisconnected();
 		expect(context.eventBus.off).toHaveBeenCalledWith(
-			EVENTS.UI.HERO_MOVED,
+			GameEvents.HERO_MOVED,
 			controller.handleHeroMoved,
 		);
 	});
@@ -114,7 +114,7 @@ describe("CollisionController", () => {
 
 			expect(result).toBe(true);
 			expect(context.eventBus.emit).toHaveBeenCalledWith(
-				EVENTS.UI.EXIT_ZONE_REACHED,
+				GameEvents.EXIT_ZONE_REACHED,
 			);
 		});
 

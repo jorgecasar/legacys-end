@@ -1,4 +1,4 @@
-import { EVENTS } from "../constants/events.js";
+import { GameEvents } from "../core/event-bus.js";
 
 /**
  * Command to go to the previous slide in the level dialog.
@@ -14,7 +14,7 @@ export class PrevDialogSlideCommand {
 
 	execute() {
 		if (this.eventBus) {
-			this.eventBus.emit(EVENTS.UI.DIALOG_PREV);
+			this.eventBus.emit(GameEvents.DIALOG_PREV);
 		}
 	}
 }
