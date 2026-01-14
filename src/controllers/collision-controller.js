@@ -99,7 +99,7 @@ export class CollisionController {
 			hLeft < eRight && hRight > eLeft && hTop < eBottom && hBottom > eTop;
 
 		if (collided) {
-			this.context.eventBus.emit(GameEvents.EXIT_ZONE_REACHED);
+			/** @type {any} */ (this.host).gameController?.handleExitZoneReached();
 		}
 
 		return collided;

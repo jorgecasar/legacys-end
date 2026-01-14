@@ -96,16 +96,11 @@ export class GameView extends SignalWatcher(LitElement) {
 		this.gameController = null;
 
 		// Bind handlers
-		this.#boundHandleDialogNext = this.#handleDialogNext.bind(this);
-		this.#boundHandleDialogPrev = this.#handleDialogPrev.bind(this);
+
 		this.#boundHandleAutoMove = this.#handleAutoMove.bind(this);
 		this.#boundHandleMoveInput = this.#handleMoveInput.bind(this);
 	}
 
-	/** @type {() => void} */
-	#boundHandleDialogNext;
-	/** @type {() => void} */
-	#boundHandleDialogPrev;
 	/** @type {(data: any) => void} */
 	#boundHandleAutoMove;
 	/** @type {(data: any) => void} */
@@ -121,8 +116,6 @@ export class GameView extends SignalWatcher(LitElement) {
 
 		// Subscribe to global events via eventBus
 		if (this.app?.eventBus) {
-			this.app.eventBus.on(GameEvents.DIALOG_NEXT, this.#boundHandleDialogNext);
-			this.app.eventBus.on(GameEvents.DIALOG_PREV, this.#boundHandleDialogPrev);
 			this.app.eventBus.on(
 				GameEvents.HERO_AUTO_MOVE,
 				this.#boundHandleAutoMove,
@@ -137,14 +130,6 @@ export class GameView extends SignalWatcher(LitElement) {
 	disconnectedCallback() {
 		super.disconnectedCallback();
 		if (this.app?.eventBus) {
-			this.app.eventBus.off(
-				GameEvents.DIALOG_NEXT,
-				this.#boundHandleDialogNext,
-			);
-			this.app.eventBus.off(
-				GameEvents.DIALOG_PREV,
-				this.#boundHandleDialogPrev,
-			);
 			this.app.eventBus.off(
 				GameEvents.HERO_AUTO_MOVE,
 				this.#boundHandleAutoMove,
@@ -389,7 +374,9 @@ export class GameView extends SignalWatcher(LitElement) {
 	 * Handles level completion
 	 */
 	handleLevelComplete() {
-		this.app.eventBus.emit(GameEvents.LEVEL_COMPLETED);
+		if (this.gameController) {
+			this.gameController.handleLevelCompleted();
+		}
 	}
 
 	/**
@@ -406,9 +393,9 @@ export class GameView extends SignalWatcher(LitElement) {
 	}
 
 	/**
-	 * Handles dialog next navigation
+	 * Advances to the next dialog slide
 	 */
-	#handleDialogNext() {
+	nextDialogSlide() {
 		const dialog =
 			/** @type {import('../level-dialog/level-dialog.js').LevelDialog} */ (
 				this.shadowRoot?.querySelector("level-dialog")
@@ -417,9 +404,9 @@ export class GameView extends SignalWatcher(LitElement) {
 	}
 
 	/**
-	 * Handles dialog previous navigation
+	 * Returns to the previous dialog slide
 	 */
-	#handleDialogPrev() {
+	prevDialogSlide() {
 		const dialog =
 			/** @type {import('../level-dialog/level-dialog.js').LevelDialog} */ (
 				this.shadowRoot?.querySelector("level-dialog")

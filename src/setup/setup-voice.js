@@ -53,16 +53,16 @@ export function setupVoice(host, context) {
 				}
 			},
 			onNextSlide: () => {
-				if (context.commandBus && context.eventBus) {
+				if (context.commandBus) {
 					context.commandBus.execute(
-						new NextDialogSlideCommand(context.eventBus),
+						new NextDialogSlideCommand(/** @type {any} */ (host)),
 					);
 				}
 			},
 			onPrevSlide: () => {
-				if (context.commandBus && context.eventBus) {
+				if (context.commandBus) {
 					context.commandBus.execute(
-						new PrevDialogSlideCommand(context.eventBus),
+						new PrevDialogSlideCommand(/** @type {any} */ (host)),
 					);
 				}
 			},

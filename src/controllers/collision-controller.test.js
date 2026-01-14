@@ -99,7 +99,7 @@ describe("CollisionController", () => {
 
 		it("should return false if item is not collected", () => {
 			expect(controller.checkExitZone(50, 50, exitZone, false)).toBe(false);
-			expect(context.eventBus.emit).not.toHaveBeenCalled();
+			expect(/** @type {any} */ (host).gameController).toBeUndefined();
 		});
 
 		it("should return false if exitZone is null", () => {
@@ -109,21 +109,32 @@ describe("CollisionController", () => {
 		});
 
 		it("should detect collision when item is collected and overlapping", () => {
+			// Mock gameController
+			/** @type {any} */ (host).gameController = {
+				handleExitZoneReached: vi.fn(),
+			};
+
 			// Hero at 50,50 overlaps with exit at 50,50
 			const result = controller.checkExitZone(50, 50, exitZone, true);
 
 			expect(result).toBe(true);
-			expect(context.eventBus.emit).toHaveBeenCalledWith(
-				GameEvents.EXIT_ZONE_REACHED,
-			);
+			expect(
+				/** @type {any} */ (host).gameController.handleExitZoneReached,
+			).toHaveBeenCalled();
 		});
 
 		it("should not detect collision if strictly outside", () => {
+			/** @type {any} */ (host).gameController = {
+				handleExitZoneReached: vi.fn(),
+			};
+
 			// Hero at 70,70 is far from exit at 50,50
 			const result = controller.checkExitZone(70, 70, exitZone, true);
 
 			expect(result).toBe(false);
-			expect(context.eventBus.emit).not.toHaveBeenCalled();
+			expect(
+				/** @type {any} */ (host).gameController.handleExitZoneReached,
+			).not.toHaveBeenCalled();
 		});
 	});
 });

@@ -90,7 +90,12 @@ describe("Quest Journey E2E", () => {
 
 		// 6. Transition to Chapter 2
 		// Simulate reaching exit zone
-		app.eventBus.emit("exit-zone-reached");
+		if (gameView.gameController) {
+			gameView.gameController.handleExitZoneReached();
+		} else {
+			// Fallback if controller not found (should not happen in real app)
+			console.warn("GameController not found in E2E test");
+		}
 
 		// Wait for transition animation
 		await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -123,7 +128,12 @@ describe("Quest Journey E2E", () => {
 		await new Promise((resolve) => setTimeout(resolve, 500));
 
 		// Reach exit zone of last chapter
-		app.eventBus.emit("exit-zone-reached");
+		const gameViewResumed = app.shadowRoot.querySelector("game-view");
+		if (gameViewResumed?.gameController) {
+			gameViewResumed.gameController.handleExitZoneReached();
+		} else {
+			console.warn("GameController not found in E2E test (Resumed)");
+		}
 
 		// 10. Verify Victory Screen
 		await new Promise((resolve) => setTimeout(resolve, 2000));

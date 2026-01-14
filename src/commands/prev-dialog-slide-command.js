@@ -1,20 +1,18 @@
-import { GameEvents } from "../core/event-bus.js";
-
 /**
  * Command to go to the previous slide in the level dialog.
  */
 export class PrevDialogSlideCommand {
 	/**
-	 * @param {import('../core/event-bus.js').EventBus} eventBus
+	 * @param {import('../components/game-view/GameView.js').GameView} gameView
 	 */
-	constructor(eventBus) {
-		this.eventBus = eventBus;
+	constructor(gameView) {
+		this.gameView = gameView;
 		this.name = "PrevDialogSlideCommand";
 	}
 
 	execute() {
-		if (this.eventBus) {
-			this.eventBus.emit(GameEvents.DIALOG_PREV);
+		if (this.gameView) {
+			this.gameView.prevDialogSlide();
 		}
 	}
 }

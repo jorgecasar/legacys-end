@@ -241,12 +241,17 @@ describe("GameView Integration", () => {
 		const dialog = element.shadowRoot?.querySelector("level-dialog");
 		expect(dialog).toBeTruthy();
 
+		// Mock gameController locally on the element		// Mock gameController on element
+		element.gameController = /** @type {any} */ ({
+			handleLevelCompleted: vi.fn(),
+		});
+
 		dialog?.dispatchEvent(new CustomEvent("complete"));
 
-		// Decoupled logic: GameView only emits LEVEL_COMPLETED
-		expect(element.app.eventBus.emit).toHaveBeenCalledWith(
-			GameEvents.LEVEL_COMPLETED,
-		);
+		// Decoupled logic: GameView calls gameController.handleLevelCompleted
+		expect(
+			/** @type {any} */ (element).gameController.handleLevelCompleted,
+		).toHaveBeenCalled();
 	});
 
 	it("should re-dispatch 'close-dialog' event from level-dialog close", async () => {

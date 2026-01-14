@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { GameEvents } from "../core/event-bus.js";
+
 import { FakeGameStateService } from "../services/fakes/fake-game-state-service.js";
 import { GameService } from "../services/game-service.js";
 import { GameController } from "./game-controller.js";
@@ -120,24 +120,7 @@ describe("GameController", () => {
 		}).toThrow("GameController requires a gameService option");
 	});
 
-	it("should remove event listeners on disconnect", () => {
-		gameService = new GameService();
-		controller = new GameController(host, { ...context, gameService });
-		controller.hostConnected();
-
-		controller.hostDisconnected();
-
-		expect(context.eventBus.off).toHaveBeenCalledWith(
-			GameEvents.LEVEL_COMPLETED,
-			controller.handleLevelCompleted,
-		);
-		expect(context.eventBus.off).toHaveBeenCalledWith(
-			GameEvents.EXIT_ZONE_REACHED,
-			controller.handleExitZoneReached,
-		);
-	});
-
-	it("should handle EXIT_ZONE_REACHED event by executing AdvanceChapterCommand", () => {
+	it("should handle exit zone reached by executing AdvanceChapterCommand", () => {
 		gameService = new GameService();
 		controller = new GameController(host, { ...context, gameService });
 		controller.hostConnected();

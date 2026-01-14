@@ -231,18 +231,10 @@ export const GameEvents = {
 	/** @type {'dialog:close'} */
 	DIALOG_CLOSE: "dialog:close",
 
-	/** @type {'dialog-next'} */
-	DIALOG_NEXT: "dialog-next",
-	/** @type {'dialog-prev'} */
-	DIALOG_PREV: "dialog-prev",
 	/** @type {'slide-changed'} */
 	SLIDE_CHANGED: "slide-changed",
 
 	// Level/Zone events
-	/** @type {'level-completed'} */
-	LEVEL_COMPLETED: "level-completed",
-	/** @type {'exit-zone-reached'} */
-	EXIT_ZONE_REACHED: "exit-zone-reached",
 
 	// Game state events
 	/** @type {'game:pause'} */

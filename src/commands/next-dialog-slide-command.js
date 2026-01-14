@@ -1,20 +1,18 @@
-import { GameEvents } from "../core/event-bus.js";
-
 /**
  * Command to advance to the next slide in the level dialog.
  */
 export class NextDialogSlideCommand {
 	/**
-	 * @param {import('../core/event-bus.js').EventBus} eventBus
+	 * @param {import('../components/game-view/GameView.js').GameView} gameView
 	 */
-	constructor(eventBus) {
-		this.eventBus = eventBus;
+	constructor(gameView) {
+		this.gameView = gameView;
 		this.name = "NextDialogSlideCommand";
 	}
 
 	execute() {
-		if (this.eventBus) {
-			this.eventBus.emit(GameEvents.DIALOG_NEXT);
+		if (this.gameView) {
+			this.gameView.nextDialogSlide();
 		}
 	}
 }

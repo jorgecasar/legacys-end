@@ -78,6 +78,14 @@ The project originally used a custom `Observable` implementation for coarse-grai
 *   **Maintainability**: Removed manual subscription management. Components now use the `SignalWatcher` mixin.
 *   **Boilerplate Reduction**: Eliminated the need for `GameStateMapper` and manual `syncState` methods in the root component.
 
+### 6. Event System Simplification
+**Question**: Why were global events (`DIALOG_NEXT`, `LEVEL_COMPLETED`) replaced with direct method calls?
+
+**Reasoning**:
+*   **Traceability**: Direct method calls (e.g., `gameView.nextDialogSlide()`) are easier to trace in IDEs than loose event strings.
+*   **Decoupling**: Reduces reliance on the central `EventBus` for local component interactions (like a View talking to its Controller).
+*   **Simplicity**: specialized logic (like level completion) is now handled via explicit methods on `GameController` rather than generic event listeners.
+
 ---
 
 ## 🏗️ Services (`src/services/`)
@@ -248,7 +256,7 @@ Controllers are specialized classes (often using Lit's Reactive Controller patte
 **Inputs**:
 *   `checkExitZone(x, y, exitZone, collected)`: `exitZone` must match `{x, y, width, height}` (`Box` type).
 **Outputs**:
-*   Triggers `onExitCollision` callback when conditions are met.
+*   Calls `host.gameController.handleExitZoneReached()` directly when conditions are met.
 **Key Logic**:
 *   `checkExitZone()`: Determines if the player has entered the level exit area (only active if item is collected).
 *   `checkAABB(box1, box2)`: Generic collision utility.
@@ -317,6 +325,8 @@ Controllers are specialized classes (often using Lit's Reactive Controller patte
 *   `GameControllerOptions`: Injected `GameService` and `LoggerService`.
 **Outputs**:
 *   Console logs for state inspection.
+*   `handleLevelCompleted()`: Public method called by GameView when a level is finished.
+*   `handleExitZoneReached()`: Public method called by CollisionController when the exit is reached.
 *   **Note**: `window.game` has been removed. Use `app.gameService` in the console for debugging if needed.
 
 ### `GameService`

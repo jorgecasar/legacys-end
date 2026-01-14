@@ -240,13 +240,18 @@ describe("GameView Component", () => {
 			expect(el.keyboard?.options.interaction).toBeDefined();
 		});
 
-		it("should emit LEVEL_COMPLETED event on level completion", () => {
-			const spy = vi.spyOn(mockApp.eventBus, "emit");
+		it("should call gameController.handleLevelCompleted on level completion", () => {
+			// Mock gameController
+			el.gameController = /** @type {any} */ ({
+				handleLevelCompleted: vi.fn(),
+			});
 
 			// Simulate level completion
 			el.handleLevelComplete();
 
-			expect(spy).toHaveBeenCalledWith(GameEvents.LEVEL_COMPLETED);
+			expect(
+				/** @type {any} */ (el).gameController.handleLevelCompleted,
+			).toHaveBeenCalled();
 		});
 	});
 });
