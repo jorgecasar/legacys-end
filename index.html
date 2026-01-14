@@ -4,7 +4,28 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>Legacy's End</title>
+	<meta name="description"
+		content="Legacy's End - Master clean, portable, and maintainable frontend architecture through an epic RPG adventure. Learn Web Components, Signals, Dependency Injection, and modern web patterns.">
+	<meta name="theme-color" content="#1a1a2e">
+
+	<!-- Resource Hints for Performance -->
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+
+	<!-- Open Graph / Social Media -->
+	<meta property="og:title" content="Legacy's End - Web Architecture RPG">
+	<meta property="og:description"
+		content="Master clean, portable, and maintainable frontend architecture through gaming">
+	<meta property="og:type" content="website">
+	<meta property="og:url" content="https://jorgecasar.github.io/legacys-end/">
+
+	<!-- Twitter Card -->
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:title" content="Legacy's End">
+	<meta name="twitter:description" content="Learn web architecture through an epic RPG adventure">
+
+	<title>Legacy's End - Web Architecture RPG</title>
 	<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 	<style>
 		html,
@@ -27,6 +48,15 @@
 				window.history.replaceState(null, '', fullPath);
 			}
 		})();
+
+		// Register Service Worker for caching (solves GitHub Pages cache policy)
+		if ('serviceWorker' in navigator) {
+			window.addEventListener('load', () => {
+				navigator.serviceWorker.register('/legacys-end/sw.js')
+					.then(() => console.log('✅ Service Worker registered'))
+					.catch(err => console.warn('❌ SW registration failed:', err));
+			});
+		}
 	</script>
 </head>
 
