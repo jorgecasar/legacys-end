@@ -7,11 +7,11 @@
 export class ContinueQuestCommand {
 	/**
 	 * @param {Object} params
-	 * @param {import('../use-cases/continue-quest.js').ContinueQuestUseCase} params.continueQuestUseCase
+	 * @param {import('../managers/game-session-manager.js').GameSessionManager} params.sessionManager
 	 * @param {string} params.questId
 	 */
-	constructor({ continueQuestUseCase, questId }) {
-		this.continueQuestUseCase = continueQuestUseCase;
+	constructor({ sessionManager, questId }) {
+		this.sessionManager = sessionManager;
 		this.questId = questId;
 		this.name = "ContinueQuest";
 		this.metadata = { questId };
@@ -21,7 +21,7 @@ export class ContinueQuestCommand {
 	 * Execute the command
 	 */
 	async execute() {
-		const result = await this.continueQuestUseCase.execute(this.questId);
+		const result = await this.sessionManager.continueQuest(this.questId);
 		if (!result.success) {
 			throw result.error || new Error("Failed to continue quest");
 		}

@@ -43,6 +43,13 @@ describe("GameController", () => {
 			},
 			questController: {
 				hasNextChapter: vi.fn(),
+				isLastChapter: vi.fn(),
+			},
+			sessionManager: {
+				currentQuest: { get: vi.fn() },
+				questController: { isLastChapter: vi.fn(), hasNextChapter: vi.fn() },
+				completeQuest: vi.fn(),
+				completeChapter: vi.fn(),
 			},
 			logger: {
 				info: vi.fn(),
@@ -140,6 +147,7 @@ describe("GameController", () => {
 		expect(context.commandBus.execute).toHaveBeenCalled();
 		const command = context.commandBus.execute.mock.calls[0][0];
 		expect(command.constructor.name).toBe("AdvanceChapterCommand");
+		expect(command.sessionManager).toBe(context.sessionManager);
 	});
 
 	describe("handleLevelCompleted", () => {
@@ -172,6 +180,7 @@ describe("GameController", () => {
 			expect(context.commandBus.execute).toHaveBeenCalled();
 			const command = context.commandBus.execute.mock.calls[0][0];
 			expect(command.constructor.name).toBe("AdvanceChapterCommand");
+			expect(command.sessionManager).toBe(context.sessionManager);
 		});
 
 		it("should mark item as collected if reward collected but NO next chapter (Fallback/Last Level)", () => {

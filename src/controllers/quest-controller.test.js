@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { EVENTS } from "../constants/events.js";
+import { GameEvents } from "../core/event-bus.js";
 import { FakeProgressService } from "../services/fakes/fake-progress-service.js";
 import { QuestController } from "./quest-controller.js";
 
@@ -189,9 +190,12 @@ describe("QuestController", () => {
 			expect(fakeProgressService.isChapterCompleted("chapter-3")).toBe(true);
 			expect(fakeProgressService.isQuestCompleted("test-quest")).toBe(true);
 
-			expect(mockEventBus.emit).toHaveBeenCalledWith(EVENTS.QUEST.COMPLETED, {
-				quest: mockQuest,
-			});
+			expect(mockEventBus.emit).toHaveBeenCalledWith(
+				GameEvents.QUEST_COMPLETE,
+				{
+					quest: mockQuest,
+				},
+			);
 		});
 	});
 

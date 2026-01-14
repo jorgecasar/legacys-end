@@ -90,41 +90,9 @@ export class GameSessionManager {
 	setupEventListeners() {
 		if (!this.eventBus) return;
 
-		this.eventBus.on(EVENTS.QUEST.STARTED, (payload) =>
-			this.#handleQuestStart(payload),
-		);
 		this.eventBus.on(EVENTS.QUEST.CHAPTER_CHANGED, (payload) =>
 			this.#handleChapterChange(payload),
 		);
-		this.eventBus.on(EVENTS.QUEST.COMPLETED, (payload) =>
-			this.#handleQuestComplete(payload),
-		);
-		this.eventBus.on(EVENTS.QUEST.RETURN_TO_HUB, () =>
-			this.#handleReturnToHub(),
-		);
-		this.eventBus.on(EVENTS.UI.THEME_CHANGED, (payload) =>
-			this.#handleThemeChange(payload),
-		);
-		this.eventBus.on(EVENTS.UI.CONTEXT_CHANGED, (payload) =>
-			this.#handleContextChange(payload),
-		);
-		this.eventBus.on(EVENTS.UI.DIALOG_OPENED, () => this.#handleShowDialog());
-		this.eventBus.on(EVENTS.UI.INTERACTION_LOCKED, (payload) =>
-			this.#handleInteractionLocked(payload),
-		);
-	}
-
-	/**
-	 * Handle quest start event
-	 * @param {Object} payload
-	 * @param {import('../services/quest-registry-service').Quest} payload.quest
-	 */
-	#handleQuestStart({ quest }) {
-		this.currentQuest.set(quest);
-		this.isInHub.set(false);
-		this.isLoading.set(false);
-		this.logger.info(`🎮 Started quest: ${quest.name}`);
-		// Navigation handled by signal observation in App
 	}
 
 	/**
@@ -170,61 +138,6 @@ export class GameSessionManager {
 		);
 
 		// Reactivity: App observes QuestController.currentChapter or events
-	}
-
-	/**
-	 * Handle quest complete event
-	 * @param {Object} payload
-	 * @param {import('../services/quest-registry-service').Quest} payload.quest
-	 */
-	#handleQuestComplete({ quest }) {
-		this.logger.info(`✅ Completed quest: ${quest.name}`);
-		this.logger.info(`🏆 Earned badge: ${quest.reward?.badge}`);
-		this.gameState.setQuestCompleted(true);
-		// Reactivity: App observes gameState.isQuestCompleted
-	}
-
-	/**
-	 * Handle return to hub event
-	 */
-	#handleReturnToHub() {
-		this.returnToHub();
-	}
-
-	/**
-	 * Handle theme change event
-	 * @param {Object} payload
-	 * @param {import('../services/game-state-service').ThemeMode} payload.theme
-	 */
-	#handleThemeChange({ theme }) {
-		this.gameState.setThemeMode(theme);
-	}
-
-	/**
-	 * Handle context change event
-	 * @param {Object} payload
-	 * @param {import('../services/game-state-service').HotSwitchState} payload.context
-	 */
-	#handleContextChange({ context }) {
-		if (this.gameState.hotSwitchState.get() !== context) {
-			this.gameState.setHotSwitchState(context);
-		}
-	}
-
-	/**
-	 * Handle show dialog event
-	 */
-	#handleShowDialog() {
-		this.gameState.setShowDialog(true);
-	}
-
-	/**
-	 * Handle interaction locked event
-	 * @param {Object} payload
-	 * @param {string|null} payload.message
-	 */
-	#handleInteractionLocked({ message }) {
-		this.gameState.setLockedMessage(message);
 	}
 
 	/**
@@ -318,14 +231,18 @@ export class GameSessionManager {
 	 */
 	async startQuest(/** @type {string} */ questId) {
 		this.#setLoadingState(true);
+		this.gameState.resetQuestState();
 
 		const result = await this._startQuestUseCase.execute(questId);
 
 		if (result.success) {
-			// State updated via QUEST_STARTED event
+			this.currentQuest.set(result.quest);
+			this.isInHub.set(false);
+			this.logger.info(`🎮 Started quest: ${result.quest.name}`);
 		}
 
 		this.#setLoadingState(false);
+		return result;
 	}
 
 	/**
@@ -333,14 +250,18 @@ export class GameSessionManager {
 	 */
 	async continueQuest(/** @type {string} */ questId) {
 		this.#setLoadingState(true);
+		this.gameState.resetQuestState();
 
 		const result = await this._continueQuestUseCase.execute(questId);
 
 		if (result.success) {
-			// State updated via QUEST_STARTED event
+			this.currentQuest.set(result.quest);
+			this.isInHub.set(false);
+			this.logger.info(`🎮 Continues quest: ${result.quest.name}`);
 		}
 
 		this.#setLoadingState(false);
+		return result;
 	}
 
 	/**
@@ -416,30 +337,35 @@ export class GameSessionManager {
 		const result = this._completeQuestUseCase.execute();
 
 		if (result.success) {
-			// Quest completed, notify observers via signals if needed, mostly App handles it
+			this.gameState.setQuestCompleted(true);
 		}
 	}
 
-	returnToHub(replace = false) {
+	async returnToHub(replace = false) {
 		// Ensure clean state even if called directly
 		// (Do this before guard, as we might want to clear UI state even if already in hub logic)
 		this.gameState.setQuestCompleted(false);
 		this.gameState.setPaused(false);
 
-		if (this.isInHub.get() && !this.currentQuest.get()) return;
+		if (this.isInHub.get() && !this.currentQuest.get()) {
+			return { success: true };
+		}
 
 		// Guard against infinite recursion
-		if (this._isReturningToHub) return;
+		if (this._isReturningToHub) return { success: true };
 		this._isReturningToHub = true;
 
 		try {
-			const result = this._returnToHubUseCase.execute(replace);
+			const result = /** @type {{success: boolean, error?: Error}} */ (
+				await this._returnToHubUseCase.execute(replace)
+			);
 
 			if (result.success) {
 				this.currentQuest.set(null);
 				this.isInHub.set(true);
 				// Navigation implicit
 			}
+			return result;
 		} finally {
 			this._isReturningToHub = false;
 		}

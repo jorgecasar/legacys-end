@@ -91,14 +91,10 @@ export class GameZoneController {
 		});
 
 		results.forEach((result) => {
-			if (result.type === "THEME_CHANGE" && this.context.eventBus) {
-				this.context.eventBus.emit(EVENTS.UI.THEME_CHANGED, {
-					theme: result.payload,
-				});
-			} else if (result.type === "CONTEXT_CHANGE" && this.context.eventBus) {
-				this.context.eventBus.emit(EVENTS.UI.CONTEXT_CHANGED, {
-					context: result.payload,
-				});
+			if (result.type === "THEME_CHANGE") {
+				this.context.gameState.setThemeMode(result.payload);
+			} else if (result.type === "CONTEXT_CHANGE") {
+				this.context.gameState.setHotSwitchState(result.payload);
 			}
 		});
 	}

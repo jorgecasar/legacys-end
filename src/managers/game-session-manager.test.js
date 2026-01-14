@@ -79,6 +79,7 @@ describe("GameSessionManager", () => {
 			isInQuest: vi.fn().mockReturnValue(true),
 			currentQuest: { id: "test-quest", name: "Test Quest" },
 			currentChapter: { id: "chapter-1", exitZone: {} },
+			progressService: fakeProgressService,
 		};
 
 		// Mock Controllers
@@ -132,33 +133,9 @@ describe("GameSessionManager", () => {
 		it("should subscribe to event bus events when setupEventListeners is called", () => {
 			manager.setupEventListeners();
 			expect(mockEventBus.on).toHaveBeenCalledWith(
-				"quest-started",
-				expect.any(Function),
-			);
-			expect(mockEventBus.on).toHaveBeenCalledWith(
 				"chapter-changed",
 				expect.any(Function),
 			);
-			expect(mockEventBus.on).toHaveBeenCalledWith(
-				"quest-completed",
-				expect.any(Function),
-			);
-			expect(mockEventBus.on).toHaveBeenCalledWith(
-				"return-to-hub",
-				expect.any(Function),
-			);
-		});
-
-		it("should handle quest-completed event by updating game state", () => {
-			manager.setupEventListeners();
-			const completeCallback = mockEventBus.on.mock.calls.find(
-				(/** @type {any} */ call) => call[0] === "quest-completed",
-			)[1];
-
-			completeCallback({ quest: { name: "Test Quest", reward: {} } });
-
-			// Assertion on state, NOT on method call
-			expect(fakeGameState.isQuestCompleted.get()).toBe(true);
 		});
 
 		it("should reset hero position on chapter change", () => {
@@ -177,72 +154,6 @@ describe("GameSessionManager", () => {
 
 			// Assertion on state
 			expect(fakeGameState.heroPos.get()).toEqual({ x: 10, y: 10 });
-		});
-
-		it("should clear completion state when returning to hub", () => {
-			// Setup with direct state manipulation
-			fakeGameState.isQuestCompleted.set(true);
-
-			manager.setupEventListeners();
-			const returnCallback = mockEventBus.on.mock.calls.find(
-				(/** @type {any} */ call) => call[0] === "return-to-hub",
-			)[1];
-
-			returnCallback();
-
-			// Assertion on state
-			expect(fakeGameState.isQuestCompleted.get()).toBe(false);
-			expect(fakeGameState.isPaused.get()).toBe(false);
-		});
-
-		it("should handle theme-changed event", () => {
-			manager.setupEventListeners();
-			const themeCallback = mockEventBus.on.mock.calls.find(
-				(/** @type {any} */ call) => call[0] === "theme-changed",
-			)[1];
-
-			themeCallback({ theme: "dark" });
-
-			// Assertion on state
-			expect(fakeGameState.themeMode.get()).toBe("dark");
-		});
-
-		it("should handle context-changed event", () => {
-			manager.setupEventListeners();
-			fakeGameState.hotSwitchState.set("legacy");
-
-			const contextCallback = mockEventBus.on.mock.calls.find(
-				(/** @type {any} */ call) => call[0] === "context-changed",
-			)[1];
-
-			contextCallback({ context: "new" });
-
-			// Assertion on state
-			expect(fakeGameState.hotSwitchState.get()).toBe("new");
-		});
-
-		it("should handle dialog-opened event", () => {
-			manager.setupEventListeners();
-			const dialogCallback = mockEventBus.on.mock.calls.find(
-				(/** @type {any} */ call) => call[0] === "dialog-opened",
-			)[1];
-
-			dialogCallback();
-
-			// Assertion on state
-			expect(fakeGameState.showDialog.get()).toBe(true);
-		});
-
-		it("should handle interaction-locked event", () => {
-			manager.setupEventListeners();
-			const lockedCallback = mockEventBus.on.mock.calls.find(
-				(/** @type {any} */ call) => call[0] === "interaction-locked",
-			)[1];
-
-			lockedCallback({ message: "Locked!" });
-
-			// Assertion on state
-			expect(fakeGameState.lockedMessage.get()).toBe("Locked!");
 		});
 
 		it("should set hotSwitchState to 'mock' when entering a chapter with MOCK service type", () => {
@@ -333,95 +244,29 @@ describe("GameSessionManager", () => {
 	});
 
 	describe("startQuest", () => {
-		it("should start a quest successfully (event-driven)", async () => {
-			// Mock EventBus to capture listeners
-			/** @type {Object<string, Function>} */
-			const listeners = {};
-			mockEventBus.on.mockImplementation(
-				(/** @type {string} */ evt, /** @type {Function} */ cb) => {
-					listeners[evt] = cb;
-					return () => {};
-				},
-			);
+		it("should start a quest successfully", async () => {
+			const questId = "test-quest";
+			await manager.startQuest(questId);
 
-			// Setup listeners
-			manager.setupEventListeners();
-
-			// Mock Controller to emit event
-			mockQuestController.startQuest.mockImplementation(async () => {
-				if (listeners[EVENTS.QUEST.STARTED]) {
-					listeners[EVENTS.QUEST.STARTED]({
-						quest: { id: "test-quest", name: "Test Quest" },
-					});
-				}
-			});
-
-			await manager.startQuest("test-quest");
-
-			expect(mockQuestController.startQuest).toHaveBeenCalledWith("test-quest");
-			// State should be updated via the event handler
+			expect(mockQuestController.startQuest).toHaveBeenCalledWith(questId);
 			expect(manager.isInHub.get()).toBe(false);
-			expect(manager.currentQuest.get()).toEqual({
-				id: "test-quest",
-				name: "Test Quest",
-			});
+			expect(manager.currentQuest.get()?.id).toBe(questId);
 		});
 
 		it("should handle loading state", async () => {
-			// Mock EventBus to capture listeners
-			/** @type {Object<string, Function>} */
-			const listeners = {};
-			mockEventBus.on.mockImplementation(
-				(/** @type {string} */ evt, /** @type {Function} */ cb) => {
-					listeners[evt] = cb;
-					return () => {};
-				},
-			);
-			manager.setupEventListeners();
-
-			// Mock Controller to emit event to clear loading
-			mockQuestController.startQuest.mockImplementation(async () => {
-				// Simulate event
-				if (listeners[EVENTS.QUEST.STARTED]) {
-					listeners[EVENTS.QUEST.STARTED]({
-						quest: { id: "test-quest", name: "Test Quest" },
-					});
-				}
-			});
-
 			await manager.startQuest("test-quest");
 			expect(manager.isLoading.get()).toBe(false);
 		});
 	});
 
 	describe("continueQuest", () => {
-		it("should continue a quest from last checkpoint (event-driven)", async () => {
-			// Mock EventBus
-			/** @type {Object<string, Function>} */
-			const listeners = {};
-			mockEventBus.on.mockImplementation(
-				(/** @type {string} */ evt, /** @type {Function} */ cb) => {
-					listeners[evt] = cb;
-					return () => {};
-				},
-			);
-			manager.setupEventListeners();
+		it("should continue a quest from last checkpoint", async () => {
+			const questId = "test-quest";
+			await manager.continueQuest(questId);
 
-			// Mock Controller to emit event
-			mockQuestController.continueQuest.mockImplementation(async () => {
-				if (listeners[EVENTS.QUEST.STARTED]) {
-					listeners[EVENTS.QUEST.STARTED]({
-						quest: { id: "test-quest", name: "Test Quest" },
-					});
-				}
-			});
-
-			await manager.continueQuest("test-quest");
-
-			expect(mockQuestController.continueQuest).toHaveBeenCalledWith(
-				"test-quest",
-			);
+			expect(mockQuestController.continueQuest).toHaveBeenCalledWith(questId);
 			expect(manager.isInHub.get()).toBe(false);
+			expect(manager.currentQuest.get()?.id).toBe(questId);
 		});
 	});
 
@@ -443,15 +288,22 @@ describe("GameSessionManager", () => {
 	});
 
 	describe("returnToHub", () => {
-		it("should return to hub and reset state", () => {
+		it("should return to hub and reset state", async () => {
 			manager.currentQuest.set(/** @type {any} */ ({ id: "test-quest" }));
 			manager.isInHub.set(false);
 
-			manager.returnToHub();
+			await manager.returnToHub();
 
 			expect(mockQuestController.returnToHub).toHaveBeenCalled();
 			expect(manager.currentQuest.get()).toBeNull();
 			expect(manager.isInHub.get()).toBe(true);
+		});
+	});
+
+	describe("completeQuest", () => {
+		it("should complete a quest and update state", () => {
+			manager.completeQuest();
+			expect(fakeGameState.isQuestCompleted.get()).toBe(true);
 		});
 	});
 	describe("loadChapter", () => {

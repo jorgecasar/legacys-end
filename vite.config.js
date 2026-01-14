@@ -44,6 +44,7 @@ export default defineConfig(({ mode }) => {
 			},
 		},
 		test: {
+			silent: true,
 			browser: {
 				enabled: true,
 				headless: true,

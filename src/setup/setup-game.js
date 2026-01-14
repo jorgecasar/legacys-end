@@ -45,7 +45,6 @@ export function setupGameService(context) {
 		setTheme: (mode) => {
 			if (mode === "light" || mode === "dark") {
 				context.gameState.setThemeMode(mode);
-				context.eventBus.emit("theme-changed", { theme: mode });
 				logger.info(`🎨 Theme set to: ${mode} `);
 			} else {
 				logger.error(`❌ Invalid theme: ${mode}. Use 'light' or 'dark'`);

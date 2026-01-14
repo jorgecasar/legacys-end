@@ -45,8 +45,41 @@ export class ProgressService {
 			);
 		this.logger = logger;
 		this.storageKey = "legacys-end-progress";
-		/** @type {ProgressState} */
-		this.progress = this.loadProgress() || this._getDefaultState();
+		this.progress = this._initializeProgress();
+	}
+
+	/**
+	 * Initialize progress by merging loaded data with default state.
+	 * @returns {ProgressState}
+	 * @private
+	 */
+	_initializeProgress() {
+		const defaultState = this._getDefaultState();
+		const loaded = this.loadProgress();
+		if (!loaded) return defaultState;
+
+		// Deep-ish merge to ensure all expected arrays and objects exist
+		return {
+			...defaultState,
+			...loaded,
+			completedQuests: Array.isArray(loaded.completedQuests)
+				? loaded.completedQuests
+				: defaultState.completedQuests,
+			completedChapters: Array.isArray(loaded.completedChapters)
+				? loaded.completedChapters
+				: defaultState.completedChapters,
+			unlockedQuests: Array.isArray(loaded.unlockedQuests)
+				? loaded.unlockedQuests
+				: defaultState.unlockedQuests,
+			achievements: Array.isArray(loaded.achievements)
+				? loaded.achievements
+				: defaultState.achievements,
+			stats: { ...defaultState.stats, ...(loaded.stats || {}) },
+			chapterStates: {
+				...defaultState.chapterStates,
+				...(loaded.chapterStates || {}),
+			},
+		};
 	}
 
 	/**

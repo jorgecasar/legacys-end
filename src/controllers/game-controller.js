@@ -76,14 +76,15 @@ export class GameController {
 		// Prevent multiple triggers
 		if (this.isTransitioning) return;
 
-		const { gameState, questController, commandBus } = this.options;
-		if (commandBus && gameState && questController) {
+		const { gameState, questController, commandBus, sessionManager } =
+			this.options;
+		if (commandBus && gameState && questController && sessionManager) {
 			this.isTransitioning = true;
 			commandBus
 				.execute(
 					new AdvanceChapterCommand({
 						gameState,
-						questController,
+						sessionManager,
 					}),
 				)
 				.finally(() => {
@@ -101,7 +102,8 @@ export class GameController {
 	 * Executes logic to advance chapter or complete quest
 	 */
 	handleLevelCompleted = () => {
-		const { gameState, questController, commandBus } = this.options;
+		const { gameState, questController, commandBus, sessionManager } =
+			this.options;
 
 		// 1. Hide dialog if open (handled by UI state, but ensures clean slate)
 		gameState?.setShowDialog(false);
@@ -114,11 +116,11 @@ export class GameController {
 			this.logger?.info("📖 Advancing to next chapter");
 			// Stop auto-move if any? (Handled by AdvanceChapterCommand presumably or logic)
 
-			if (commandBus && gameState && questController) {
+			if (commandBus && gameState && sessionManager) {
 				commandBus.execute(
 					new AdvanceChapterCommand({
 						gameState,
-						questController,
+						sessionManager,
 					}),
 				);
 			}

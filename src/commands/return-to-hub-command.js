@@ -7,10 +7,10 @@
 export class ReturnToHubCommand {
 	/**
 	 * @param {Object} params
-	 * @param {import('../use-cases/return-to-hub.js').ReturnToHubUseCase} params.returnToHubUseCase
+	 * @param {import('../managers/game-session-manager.js').GameSessionManager} params.sessionManager
 	 */
-	constructor({ returnToHubUseCase }) {
-		this.returnToHubUseCase = returnToHubUseCase;
+	constructor({ sessionManager }) {
+		this.sessionManager = sessionManager;
 		this.name = "ReturnToHub";
 		this.metadata = {};
 	}
@@ -20,7 +20,7 @@ export class ReturnToHubCommand {
 	 */
 	async execute() {
 		const result = /** @type {{success: boolean, error?: Error}} */ (
-			await this.returnToHubUseCase.execute()
+			await this.sessionManager.returnToHub()
 		);
 		if (!result.success) {
 			throw result.error || new Error("Failed to return to hub");

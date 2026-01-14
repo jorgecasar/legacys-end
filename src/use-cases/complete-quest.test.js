@@ -25,7 +25,9 @@ describe("CompleteQuestUseCase", () => {
 		// Create mock quest controller
 		mockQuestController = {
 			currentQuest: mockQuest,
-			completeQuest: vi.fn(),
+			progressService: {
+				completeQuest: vi.fn(),
+			},
 		};
 
 		mockEventBus = {
@@ -50,7 +52,9 @@ describe("CompleteQuestUseCase", () => {
 
 		expect(result.success).toBe(true);
 		expect(result.questId).toBe("test-quest");
-		expect(mockQuestController.completeQuest).toHaveBeenCalled();
+		expect(
+			mockQuestController.progressService.completeQuest,
+		).toHaveBeenCalledWith("test-quest");
 	});
 
 	it("should emit QUEST_COMPLETE event", () => {
@@ -69,11 +73,13 @@ describe("CompleteQuestUseCase", () => {
 
 		expect(result.success).toBe(false);
 		expect(result.error).toBeDefined();
-		expect(mockQuestController.completeQuest).not.toHaveBeenCalled();
+		expect(
+			mockQuestController.progressService.completeQuest,
+		).not.toHaveBeenCalled();
 	});
 
 	it("should handle errors gracefully", () => {
-		mockQuestController.completeQuest.mockImplementation(() => {
+		mockQuestController.progressService.completeQuest.mockImplementation(() => {
 			throw new Error("Completion failed");
 		});
 
@@ -84,7 +90,7 @@ describe("CompleteQuestUseCase", () => {
 	});
 
 	it("should emit ERROR event on failure", () => {
-		mockQuestController.completeQuest.mockImplementation(() => {
+		mockQuestController.progressService.completeQuest.mockImplementation(() => {
 			throw new Error("Completion failed");
 		});
 

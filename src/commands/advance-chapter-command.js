@@ -8,11 +8,11 @@ export class AdvanceChapterCommand {
 	/**
 	 * @param {Object} params
 	 * @param {import('../services/game-state-service.js').GameStateService} params.gameState
-	 * @param {import('../controllers/quest-controller.js').QuestController} params.questController
+	 * @param {import('../managers/game-session-manager.js').GameSessionManager} params.sessionManager
 	 */
-	constructor({ gameState, questController }) {
+	constructor({ gameState, sessionManager }) {
 		this.gameState = gameState;
-		this.questController = questController;
+		this.sessionManager = sessionManager;
 		this.name = "AdvanceChapter";
 		this.metadata = {};
 	}
@@ -21,16 +21,18 @@ export class AdvanceChapterCommand {
 	 * Execute the command
 	 */
 	async execute() {
-		if (this.questController.isInQuest()) {
+		const quest = this.sessionManager.currentQuest.get();
+		if (quest) {
 			this.gameState.setEvolving(true);
 
 			// Simulate evolution animation duration
 			await new Promise((resolve) => setTimeout(resolve, 500));
 
-			if (this.questController.isLastChapter()) {
-				this.questController.completeQuest();
+			const questController = this.sessionManager.questController;
+			if (questController.isLastChapter()) {
+				await this.sessionManager.completeQuest();
 			} else {
-				this.questController.completeChapter();
+				this.sessionManager.completeChapter();
 			}
 
 			this.gameState.setEvolving(false);

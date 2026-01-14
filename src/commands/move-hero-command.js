@@ -47,7 +47,10 @@ export class MoveHeroCommand {
 		this.previousPos = { x: current.x, y: current.y };
 
 		// Execute move
-		this.gameState.setHeroPosition(current.x + this.dx, current.y + this.dy);
+		const nextX = Math.max(0, Math.min(100, current.x + this.dx));
+		const nextY = Math.max(0, Math.min(100, current.y + this.dy));
+
+		this.gameState.setHeroPosition(nextX, nextY);
 
 		// Trigger callback if provided
 		this.onMove?.();

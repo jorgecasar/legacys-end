@@ -6,16 +6,18 @@ describe("AdvanceChapterCommand", () => {
 	/** @type {FakeGameStateService} */
 	let fakeGameState;
 	/** @type {any} */
-	let mockQuestController;
+	let mockSessionManager;
 
 	beforeEach(() => {
 		vi.useFakeTimers();
 		fakeGameState = new FakeGameStateService();
-		mockQuestController = {
-			isInQuest: vi.fn().mockReturnValue(true),
+		mockSessionManager = {
+			currentQuest: { get: vi.fn().mockReturnValue({ id: "test-quest" }) },
+			questController: {
+				isLastChapter: vi.fn().mockReturnValue(false),
+			},
 			completeChapter: vi.fn(),
 			completeQuest: vi.fn(),
-			isLastChapter: vi.fn().mockReturnValue(false),
 		};
 	});
 
@@ -26,7 +28,7 @@ describe("AdvanceChapterCommand", () => {
 	it("should advance chapter with evolution state sequence", async () => {
 		const command = new AdvanceChapterCommand({
 			gameState: fakeGameState,
-			questController: mockQuestController,
+			sessionManager: mockSessionManager,
 		});
 
 		const executePromise = command.execute();
@@ -38,24 +40,24 @@ describe("AdvanceChapterCommand", () => {
 		await vi.advanceTimersByTimeAsync(500);
 		await executePromise;
 
-		expect(mockQuestController.completeChapter).toHaveBeenCalled();
+		expect(mockSessionManager.completeChapter).toHaveBeenCalled();
 		expect(fakeGameState.isEvolving.get()).toBe(false);
 	});
 
 	describe("Regression Tests", () => {
 		it("should complete quest if on last chapter (Fix: Unable to exit last chapter)", async () => {
-			mockQuestController.isLastChapter.mockReturnValue(true);
+			mockSessionManager.questController.isLastChapter.mockReturnValue(true);
 			const command = new AdvanceChapterCommand({
 				gameState: fakeGameState,
-				questController: mockQuestController,
+				sessionManager: mockSessionManager,
 			});
 
 			const executePromise = command.execute();
 			await vi.advanceTimersByTimeAsync(500);
 			await executePromise;
 
-			expect(mockQuestController.completeQuest).toHaveBeenCalled();
-			expect(mockQuestController.completeChapter).not.toHaveBeenCalled();
+			expect(mockSessionManager.completeQuest).toHaveBeenCalled();
+			expect(mockSessionManager.completeChapter).not.toHaveBeenCalled();
 		});
 	});
 });

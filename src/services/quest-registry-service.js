@@ -1,4 +1,5 @@
 import { loadQuest, QUESTS } from "../content/quests/quests-data.js";
+
 /**
  * @typedef {import("../content/quests/quest-types.js").Quest} Quest
  */
@@ -11,12 +12,18 @@ import { loadQuest, QUESTS } from "../content/quests/quests-data.js";
  */
 
 /**
+ * Local cache for loaded quest data
+ * @type {Record<string, Quest>}
+ */
+const questCache = {};
+
+/**
  * Get quest metadata by ID
  * @param {string} questId - Quest identifier
- * @returns {Quest|undefined} Quest object (metadata only) or undefined if not found
+ * @returns {Quest|undefined} Quest object (metadata or full data) or undefined if not found
  */
 export function getQuest(questId) {
-	return QUESTS[questId];
+	return questCache[questId] || QUESTS[questId];
 }
 
 /**
@@ -25,7 +32,11 @@ export function getQuest(questId) {
  * @returns {Promise<Quest|undefined>}
  */
 export async function loadQuestData(questId) {
-	return loadQuest(questId);
+	const quest = await loadQuest(questId);
+	if (quest) {
+		questCache[questId] = quest;
+	}
+	return quest;
 }
 
 /**

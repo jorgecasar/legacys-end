@@ -3,17 +3,17 @@ import { ReturnToHubCommand } from "./return-to-hub-command.js";
 
 describe("ReturnToHubCommand", () => {
 	/** @type {any} */
-	let mockUseCase;
+	let mockSessionManager;
 	/** @type {ReturnToHubCommand} */
 	let command;
 
 	beforeEach(() => {
-		mockUseCase = {
-			execute: vi.fn().mockResolvedValue({ success: true }),
+		mockSessionManager = {
+			returnToHub: vi.fn().mockResolvedValue({ success: true }),
 		};
 
 		command = new ReturnToHubCommand({
-			returnToHubUseCase: mockUseCase,
+			sessionManager: mockSessionManager,
 		});
 	});
 
@@ -21,22 +21,22 @@ describe("ReturnToHubCommand", () => {
 		expect(command.name).toBe("ReturnToHub");
 	});
 
-	it("should execute use case", async () => {
+	it("should execute session manager", async () => {
 		const result = await command.execute();
 
-		expect(mockUseCase.execute).toHaveBeenCalled();
+		expect(mockSessionManager.returnToHub).toHaveBeenCalled();
 		expect(result).toEqual({ success: true });
 	});
 
-	it("should throw error if use case fails", async () => {
+	it("should throw error if session manager fails", async () => {
 		const error = new Error("Navigation failed");
-		mockUseCase.execute.mockResolvedValue({ success: false, error });
+		mockSessionManager.returnToHub.mockResolvedValue({ success: false, error });
 
 		await expect(command.execute()).rejects.toThrow("Navigation failed");
 	});
 
-	it("should throw generic error if use case fails without error object", async () => {
-		mockUseCase.execute.mockResolvedValue({ success: false });
+	it("should throw generic error if session manager fails without error object", async () => {
+		mockSessionManager.returnToHub.mockResolvedValue({ success: false });
 
 		await expect(command.execute()).rejects.toThrow("Failed to return to hub");
 	});

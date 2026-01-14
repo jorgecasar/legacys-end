@@ -53,27 +53,6 @@ describe("StartQuestUseCase", () => {
 		expect(listener).toHaveBeenCalledWith({ source: "startQuest" });
 	});
 
-	it("should emit QUEST_START event on success", async () => {
-		const listener = vi.fn();
-		eventBus.on(GameEvents.QUEST_START, listener);
-
-		await useCase.execute("test-quest");
-
-		expect(listener).toHaveBeenCalledWith({
-			questId: "test-quest",
-			quest: mockQuest,
-		});
-	});
-
-	it("should emit NAVIGATE_QUEST event on success", async () => {
-		const listener = vi.fn();
-		eventBus.on(GameEvents.NAVIGATE_QUEST, listener);
-
-		await useCase.execute("test-quest");
-
-		expect(listener).toHaveBeenCalledWith({ questId: "test-quest" });
-	});
-
 	it("should emit LOADING_END event", async () => {
 		const listener = vi.fn();
 		eventBus.on(GameEvents.LOADING_END, listener);

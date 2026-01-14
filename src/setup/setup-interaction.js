@@ -16,6 +16,7 @@ export function setupInteraction(host, context) {
 		host
 	).interaction = new InteractionController(host, {
 		eventBus: context.eventBus,
+		gameState: context.gameState,
 		getState: () => {
 			const state = context.gameState.getState();
 			const currentChapter = context.questController.currentChapter;

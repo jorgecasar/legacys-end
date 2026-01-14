@@ -3,18 +3,20 @@ import { StartQuestCommand } from "./start-quest-command.js";
 
 describe("StartQuestCommand", () => {
 	/** @type {any} */
-	let mockUseCase;
+	let mockSessionManager;
 	const questId = "quest-1";
 	/** @type {StartQuestCommand} */
 	let command;
 
 	beforeEach(() => {
-		mockUseCase = {
-			execute: vi.fn().mockResolvedValue({ success: true, data: { questId } }),
+		mockSessionManager = {
+			startQuest: vi
+				.fn()
+				.mockResolvedValue({ success: true, quest: { id: questId } }),
 		};
 
 		command = new StartQuestCommand({
-			startQuestUseCase: mockUseCase,
+			sessionManager: mockSessionManager,
 			questId,
 		});
 	});
@@ -24,22 +26,22 @@ describe("StartQuestCommand", () => {
 		expect(command.metadata).toEqual({ questId });
 	});
 
-	it("should execute use case with correct questId", async () => {
+	it("should execute session manager with correct questId", async () => {
 		const result = await command.execute();
 
-		expect(mockUseCase.execute).toHaveBeenCalledWith(questId);
-		expect(result).toEqual({ success: true, data: { questId } });
+		expect(mockSessionManager.startQuest).toHaveBeenCalledWith(questId);
+		expect(result).toEqual({ success: true, quest: { id: questId } });
 	});
 
-	it("should throw error if use case fails", async () => {
+	it("should throw error if session manager fails", async () => {
 		const error = new Error("Quest failed");
-		mockUseCase.execute.mockResolvedValue({ success: false, error });
+		mockSessionManager.startQuest.mockResolvedValue({ success: false, error });
 
 		await expect(command.execute()).rejects.toThrow("Quest failed");
 	});
 
-	it("should throw generic error if use case fails without error object", async () => {
-		mockUseCase.execute.mockResolvedValue({ success: false });
+	it("should throw generic error if session manager fails without error object", async () => {
+		mockSessionManager.startQuest.mockResolvedValue({ success: false });
 
 		await expect(command.execute()).rejects.toThrow("Failed to start quest");
 	});

@@ -178,4 +178,30 @@ describe("MoveHeroCommand", () => {
 			hasCollectedItem: false,
 		});
 	});
+
+	it("should clamp x and y to 0", () => {
+		fakeGameState.heroPos.set({ x: 2, y: 2 });
+		command = new MoveHeroCommand({
+			gameState: fakeGameState,
+			dx: -10,
+			dy: -10,
+		});
+
+		command.execute();
+
+		expect(fakeGameState.heroPos.get()).toEqual({ x: 0, y: 0 });
+	});
+
+	it("should clamp x and y to 100", () => {
+		fakeGameState.heroPos.set({ x: 98, y: 98 });
+		command = new MoveHeroCommand({
+			gameState: fakeGameState,
+			dx: 10,
+			dy: 10,
+		});
+
+		command.execute();
+
+		expect(fakeGameState.heroPos.get()).toEqual({ x: 100, y: 100 });
+	});
 });

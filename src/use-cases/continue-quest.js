@@ -34,7 +34,6 @@ export class ContinueQuestUseCase {
 			const quest = this.questController.currentQuest;
 
 			// Emit navigation event
-			this.eventBus.emit(GameEvents.NAVIGATE_QUEST, { questId });
 
 			return { success: true, quest };
 		} catch (error) {

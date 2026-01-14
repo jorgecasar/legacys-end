@@ -4,7 +4,7 @@
 
 import { Task, TaskStatus } from "@lit/task";
 import { EVENTS } from "../constants/events.js";
-import { eventBus } from "../core/event-bus.js";
+import { eventBus, GameEvents } from "../core/event-bus.js";
 
 /**
  * @typedef {import("../services/quest-registry-service.js").Quest} Quest
@@ -468,7 +468,7 @@ export class QuestController {
 
 		// Notify host - the host is responsible for calling returnToHub after any animations/messages
 		// Emit global event - consumers responsible for UI
-		this.eventBus.emit(EVENTS.QUEST.COMPLETED, { quest: this.currentQuest });
+		this.eventBus.emit(GameEvents.QUEST_COMPLETE, { quest: this.currentQuest });
 	}
 
 	/**

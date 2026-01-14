@@ -34,8 +34,6 @@ export class StartQuestUseCase {
 			const quest = this.questController.currentQuest;
 
 			// Emit success events
-			this.eventBus.emit(GameEvents.QUEST_START, { questId, quest });
-			this.eventBus.emit(GameEvents.NAVIGATE_QUEST, { questId });
 
 			return { success: true, quest };
 		} catch (error) {

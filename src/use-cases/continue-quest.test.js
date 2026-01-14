@@ -71,18 +71,6 @@ describe("ContinueQuestUseCase", () => {
 		// Check emission directly
 	});
 
-	it("should emit NAVIGATE_QUEST event on success", async () => {
-		await useCase.execute("test-quest");
-
-		expect(mockEventBus.emit).toHaveBeenCalledWith(GameEvents.NAVIGATE_QUEST, {
-			questId: "test-quest",
-		});
-
-		await useCase.execute("test-quest");
-
-		// Check emission directly
-	});
-
 	it("should emit LOADING_END event", async () => {
 		await useCase.execute("test-quest");
 

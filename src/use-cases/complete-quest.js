@@ -36,8 +36,10 @@ export class CompleteQuestUseCase {
 			const questId = currentQuest.id;
 			this.logger.info(`🎉 Completing quest: ${questId}`);
 
-			// Complete the quest via controller
-			this.questController.completeQuest();
+			// The persistence part is handled here
+			// Note: questController.completeQuest() previously did this.
+			// We move it here to be the single source of truth for completion business logic.
+			this.questController.progressService.completeQuest(questId);
 
 			// Emit completion event
 			this.eventBus.emit(GameEvents.QUEST_COMPLETE, {

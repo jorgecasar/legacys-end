@@ -211,6 +211,15 @@ export class GameStateService {
 	}
 
 	/**
+	 * Reset the ephemeral state for a new quest.
+	 * Clears quest completion flags in addition to chapter state.
+	 */
+	resetQuestState() {
+		this.resetChapterState();
+		this.isQuestCompleted.set(false);
+	}
+
+	/**
 	 * Set the text of the currently active dialog slide.
 	 * @param {string} text - The dialog text
 	 */

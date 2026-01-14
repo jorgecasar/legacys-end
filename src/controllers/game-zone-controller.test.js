@@ -106,9 +106,7 @@ describe("GameZoneController", () => {
 			// The arguments passed to checkZones are irrelevant for this test as usage is mocked,
 			// but we call it to trigger the flow.
 			controller.checkZones(50, 35, true);
-			expect(context.eventBus.emit).toHaveBeenCalledWith("theme-changed", {
-				theme: "light",
-			});
+			expect(fakeGameState.themeMode.get()).toBe("light");
 		});
 
 		it("should NOT trigger theme change if item is NOT collected", () => {
@@ -119,6 +117,7 @@ describe("GameZoneController", () => {
 
 			context.questController.currentChapter = { zones: themeZones };
 			fakeGameState.hasCollectedItem.set(false);
+			fakeGameState.themeMode.set("dark");
 
 			// Logic is inside processGameZoneInteraction.
 			// If I mock it to return [] (empty actions), I simulate "No Action".
@@ -131,10 +130,7 @@ describe("GameZoneController", () => {
 			});
 
 			controller.checkZones(50, 35, true);
-			expect(context.eventBus.emit).not.toHaveBeenCalledWith(
-				"theme-changed",
-				expect.anything(),
-			);
+			expect(fakeGameState.themeMode.get()).toBe("dark");
 		});
 	});
 });

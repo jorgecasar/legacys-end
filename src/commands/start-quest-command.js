@@ -7,11 +7,11 @@
 export class StartQuestCommand {
 	/**
 	 * @param {Object} params
-	 * @param {import('../use-cases/start-quest.js').StartQuestUseCase} params.startQuestUseCase
+	 * @param {import('../managers/game-session-manager.js').GameSessionManager} params.sessionManager
 	 * @param {string} params.questId
 	 */
-	constructor({ startQuestUseCase, questId }) {
-		this.startQuestUseCase = startQuestUseCase;
+	constructor({ sessionManager, questId }) {
+		this.sessionManager = sessionManager;
 		this.questId = questId;
 		this.name = "StartQuest";
 		this.metadata = { questId };
@@ -21,7 +21,7 @@ export class StartQuestCommand {
 	 * Execute the command
 	 */
 	async execute() {
-		const result = await this.startQuestUseCase.execute(this.questId);
+		const result = await this.sessionManager.startQuest(this.questId);
 		if (!result.success) {
 			throw result.error || new Error("Failed to start quest");
 		}

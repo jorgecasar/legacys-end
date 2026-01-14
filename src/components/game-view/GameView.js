@@ -370,7 +370,7 @@ export class GameView extends SignalWatcher(LitElement) {
 			this.app.commandBus.execute(
 				new AdvanceChapterCommand({
 					gameState: this.app.gameState,
-					questController: this.app.questController,
+					sessionManager: this.app.sessionManager,
 				}),
 			);
 		}

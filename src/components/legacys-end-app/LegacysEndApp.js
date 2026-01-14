@@ -400,7 +400,7 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 		if (this.commandBus) {
 			return this.commandBus.execute(
 				new StartQuestCommand({
-					startQuestUseCase: this.sessionManager._startQuestUseCase,
+					sessionManager: this.sessionManager,
 					questId,
 				}),
 			);
@@ -412,7 +412,7 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 		if (this.commandBus) {
 			return this.commandBus.execute(
 				new ContinueQuestCommand({
-					continueQuestUseCase: this.sessionManager._continueQuestUseCase,
+					sessionManager: this.sessionManager,
 					questId,
 				}),
 			);
@@ -503,7 +503,7 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 	#returnToHub() {
 		this.#executeCommand(
 			new ReturnToHubCommand({
-				returnToHubUseCase: this.sessionManager._returnToHubUseCase,
+				sessionManager: this.sessionManager,
 			}),
 			() => this.sessionManager.returnToHub(),
 		);

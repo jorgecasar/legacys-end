@@ -9,6 +9,7 @@ import { EVENTS } from "../constants/events.js";
  * @typedef {import('../services/game-state-service.js').HotSwitchState} HotSwitchState
  * @typedef {import('../content/quests/quest-types.js').LevelConfig} LevelConfig
  * @typedef {import('../core/event-bus.js').EventBus} EventBus
+ * @typedef {import('../services/game-state-service.js').GameStateService} GameStateService
  */
 
 /**
@@ -23,6 +24,7 @@ import { EVENTS } from "../constants/events.js";
 /**
  * @typedef {Object} InteractionOptions
  * @property {EventBus} [eventBus] - Event bus for emitting events
+ * @property {GameStateService} [gameState] - Game state service
  * @property {number} [interactionDistance] - Max distance to interact (default: from config)
  * @property {() => InteractionState} [getState] - Accessor for game state
  * @property {() => ({x: number, y: number}|null|undefined)} [getNpcPosition] - Accessor for NPC coordinates
@@ -51,6 +53,7 @@ export class InteractionController {
 		/** @type {InteractionOptions} */
 		this.options = {
 			eventBus: /** @type {any} */ (null),
+			gameState: /** @type {any} */ (null),
 			interactionDistance: gameConfig.gameplay.interactionDistance,
 			getState: () => ({
 				level: "",
@@ -127,17 +130,33 @@ export class InteractionController {
 			hasCollectedItem,
 		});
 
-		if (result.action === "showDialog" && this.options.eventBus) {
-			this.options.eventBus.emit(EVENTS.UI.DIALOG_OPENED);
-		} else if (result.action === "showLocked" && this.options.eventBus) {
-			this.options.eventBus.emit(EVENTS.UI.INTERACTION_LOCKED, {
-				message: result.message || null,
-			});
-			// Auto clear message after delay (could be moved to UI component or managed differently)
-			setTimeout(() => {
-				this.options.eventBus?.emit(EVENTS.UI.INTERACTION_LOCKED, {
-					message: null,
+		if (result.action === "showDialog") {
+			if (this.options.gameState) {
+				this.options.gameState.setShowDialog(true);
+			}
+			if (this.options.eventBus) {
+				this.options.eventBus.emit(EVENTS.UI.DIALOG_OPENED);
+			}
+		} else if (result.action === "showLocked") {
+			if (this.options.gameState) {
+				this.options.gameState.setLockedMessage(result.message || null);
+			}
+			if (this.options.eventBus) {
+				this.options.eventBus.emit(EVENTS.UI.INTERACTION_LOCKED, {
+					message: result.message || null,
 				});
+			}
+
+			// Auto clear message after delay
+			setTimeout(() => {
+				if (this.options.gameState) {
+					this.options.gameState.setLockedMessage(null);
+				}
+				if (this.options.eventBus) {
+					this.options.eventBus.emit(EVENTS.UI.INTERACTION_LOCKED, {
+						message: null,
+					});
+				}
 			}, 1000);
 		}
 	}
