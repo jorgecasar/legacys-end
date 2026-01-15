@@ -1378,6 +1378,10 @@
   <source>Implement anti-regression shields with unit, integration, and E2E tests.</source>
   <target>Implementa escudos anti-regresión con pruebas unitarias, de integración y E2E.</target>
 </trans-unit>
+<trans-unit id="sefcf950b3cc4fc3b">
+  <source>Language</source>
+  <target>Idioma</target>
+</trans-unit>
 </body>
 </file>
 </xliff>

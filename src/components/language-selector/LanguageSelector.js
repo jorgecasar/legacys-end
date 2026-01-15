@@ -2,7 +2,7 @@ import { SignalWatcher } from "@lit-labs/signals";
 import { css, html, LitElement, nothing } from "lit";
 import "@awesome.me/webawesome/dist/components/select/select.js";
 import "@awesome.me/webawesome/dist/components/option/option.js";
-import { updateWhenLocaleChanges } from "@lit/localize";
+import { msg, updateWhenLocaleChanges } from "@lit/localize";
 import { allLocales } from "../../generated/locales/locale-codes.js";
 
 /**
@@ -37,6 +37,7 @@ export class LanguageSelector extends SignalWatcher(LitElement) {
 
 		return html`
 			<wa-select
+				aria-label="${msg("Language")}"
 				.value="${currentLocale}"
 				@change="${this.#handleParamsChange}"
 			>

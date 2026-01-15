@@ -398,18 +398,22 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 		// Track locale change to trigger re-render
 		this.localizationService?.getLocale();
 
-		if (isLoading) {
-			return html`
-				<div class="loading-overlay">
-					<wa-spinner></wa-spinner>
-					<p>${msg("Loading Quest...")}</p>
-				</div>
-			`;
-		}
-		if (isInHub) {
-			return this.renderHub();
-		}
-		return this.renderGame();
+		return html`
+			<main>
+				${
+					isLoading
+						? html`
+						<div class="loading-overlay">
+							<wa-spinner></wa-spinner>
+							<p>${msg("Loading Quest...")}</p>
+						</div>
+					`
+						: isInHub
+							? this.renderHub()
+							: this.renderGame()
+				}
+			</main>
+		`;
 	}
 
 	getEnrichedQuests() {

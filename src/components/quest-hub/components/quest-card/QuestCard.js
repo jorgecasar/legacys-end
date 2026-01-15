@@ -93,7 +93,7 @@ export class QuestCard extends LitElement {
 				.appearance="${completed ? "filled" : "outlined"}"
 			>
 				<div slot="header" class="card-header">
-					<h5 class="quest-header">${this.quest.name}</h5>
+					<h3 class="quest-header">${this.quest.name}</h3>
 					<wa-icon .name="${this.quest.icon || "box"}"></wa-icon>
 				</div>
 
@@ -101,7 +101,7 @@ export class QuestCard extends LitElement {
 					${
 						this.quest.subtitle
 							? html`
-							<h6 class="quest-subtitle">${this.quest.subtitle}</h6>
+							<h4 class="quest-subtitle">${this.quest.subtitle}</h4>
 						`
 							: ""
 					}
