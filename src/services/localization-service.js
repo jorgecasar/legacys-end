@@ -57,7 +57,7 @@ export class LocalizationService {
 			this.logger.info(`🌐 Using default locale: ${sourceLocale}`);
 		}
 
-		this._localeSignal = new Signal.State(initialLocale);
+		this._localeSignal = new Signal.State(sourceLocale);
 
 		// Set initial locale
 		this.setLocale(initialLocale);
