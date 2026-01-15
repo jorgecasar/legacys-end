@@ -20,10 +20,10 @@
  * @property {Object} [gearProvider]
  * @property {Object} [powerProvider]
  * @property {Object} [masteryProvider]
- * @property {import('../mixins/context-mixin.js').ContextProvider<any>} [characterProvider] - Combined provider if used
+ * @property {import('@lit/context').ContextProvider<any>} [characterProvider] - Combined provider if used
  * @property {import('../services/game-state-service.js').GameStateService} gameState
- * @property {import('./quest-controller.js').QuestController} questController
- * @property {import('../mixins/context-mixin.js').ContextProvider<any>} [characterProvider] - Combined provider if used
+ * @property {import('../controllers/quest-controller.js').QuestController} questController
+ * @property {import('../services/theme-service.js').ThemeService} themeService
  */
 
 /**
@@ -66,8 +66,8 @@ export class CharacterContextController {
 		// Calculate derived values
 		const level = currentChapter?.id || "";
 		const chapterData = currentChapter;
-		const { isRewardCollected, hasCollectedItem, hotSwitchState, themeMode } =
-			state;
+		const { isRewardCollected, hasCollectedItem, hotSwitchState } = state;
+		const themeMode = this.options.themeService?.themeMode?.get() || "light";
 
 		const suit = {
 			image: chapterData?.hero

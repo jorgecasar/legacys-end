@@ -1,3 +1,4 @@
+import { ContextProvider } from "@lit/context";
 import { msg } from "@lit/localize";
 import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement } from "lit";
@@ -7,6 +8,7 @@ import { ReturnToHubCommand } from "../../commands/return-to-hub-command.js";
 import { StartQuestCommand } from "../../commands/start-quest-command.js";
 import { ToggleHotSwitchCommand } from "../../commands/toggle-hot-switch-command.js";
 import { ROUTES } from "../../constants/routes.js";
+import { themeContext } from "../../contexts/theme-context.js";
 import { eventBus as centralEventBus } from "../../core/event-bus.js";
 import { GameBootstrapper } from "../../core/game-bootstrapper.js";
 import { ContextMixin } from "../../mixins/context-mixin.js";
@@ -49,6 +51,10 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 	eventBus = centralEventBus;
 	/** @type {import("../../services/logger-service.js").LoggerService} */
 	logger = /** @type {any} */ (null);
+	/** @type {import("../../services/theme-service.js").ThemeService} */
+	themeService = /** @type {any} */ (null);
+	/** @type {import("@lit/context").ContextProvider<any>} */
+	themeProvider = /** @type {any} */ (null);
 	/** @type {import("../../services/ai-service.js").AIService} */
 	aiService = /** @type {any} */ (null);
 	/** @type {import("../../services/voice-synthesis-service.js").VoiceSynthesisService} */
@@ -139,6 +145,13 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 		this.aiService = context.aiService;
 		this.voiceSynthesisService = context.voiceSynthesisService;
 		this.localizationService = context.localizationService;
+
+		this.themeService = context.themeService;
+		this.themeProvider = new ContextProvider(this, {
+			context: themeContext,
+			initialValue: this.themeService,
+		});
+
 		this.router = /** @type {import("../../utils/router.js").Router} */ (
 			context.router
 		);
@@ -213,12 +226,7 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 	}
 
 	applyTheme() {
-		if (!this.gameState) return;
-		const mode = this.gameState.themeMode.get();
-		this.classList.add("wa-theme-pixel");
-		this.classList.remove("wa-dark", "wa-light");
-		this.classList.add(mode === "dark" ? "wa-dark" : "wa-light");
-		this.themeProvider.setValue({ themeMode: mode });
+		// Delegated to ThemeService
 	}
 
 	updated(/** @type {any} */ _changedProperties) {}
@@ -226,27 +234,18 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 	/** @type {import('../../services/game-state-service').HotSwitchState} */
 	_lastHotSwitchState = null;
 
-	/** @type {import('../../services/game-state-service.js').ThemeMode | null} */
-	_lastThemeMode = null;
-
 	/**
 	 * @param {import('lit').PropertyValues} changedProperties
 	 */
 	willUpdate(changedProperties) {
 		super.willUpdate(changedProperties);
 
-		// Apply theme only when it changes
-		if (!this.gameState) return;
-		const newThemeMode = this.gameState.themeMode.get();
-		if (this._lastThemeMode !== newThemeMode) {
-			this.applyTheme();
-			this._lastThemeMode = newThemeMode;
-		}
-
 		// React directly to signals
-		const newHotSwitchState = this.gameState.hotSwitchState.get();
-		if (this._lastHotSwitchState !== newHotSwitchState) {
-			this._lastHotSwitchState = newHotSwitchState;
+		if (this.gameState) {
+			const newHotSwitchState = this.gameState.hotSwitchState.get();
+			if (this._lastHotSwitchState !== newHotSwitchState) {
+				this._lastHotSwitchState = newHotSwitchState;
+			}
 		}
 
 		// React directly to session signals for routing

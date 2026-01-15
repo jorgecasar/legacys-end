@@ -14,7 +14,6 @@ describe("GameStateService", () => {
 		expect(state.heroPos).toBeDefined();
 		expect(state.hasCollectedItem).toBe(false);
 		expect(state.isPaused).toBe(false);
-		expect(state.themeMode).toBe("light");
 	});
 
 	it("should return a copy of the state", () => {
@@ -52,17 +51,6 @@ describe("GameStateService", () => {
 			}).toThrow("Invalid hot switch state");
 		});
 
-		it("should update theme mode", () => {
-			service.setThemeMode("dark");
-			expect(service.getState().themeMode).toBe("dark");
-		});
-
-		it("should throw on invalid theme mode", () => {
-			expect(() => {
-				service.setThemeMode(/** @type {any} */ ("invalid"));
-			}).toThrow("Invalid theme mode");
-		});
-
 		it("should throw on invalid hero position - negative x", () => {
 			expect(() => {
 				service.setHeroPosition(-1, 50);
@@ -94,11 +82,6 @@ describe("GameStateService", () => {
 		it("should update locked message", () => {
 			service.setLockedMessage("Locked!");
 			expect(service.getState().lockedMessage).toBe("Locked!");
-		});
-
-		it("should update theme mode", () => {
-			service.setThemeMode("dark");
-			expect(service.getState().themeMode).toBe("dark");
 		});
 
 		it("should reset chapter state correctly", () => {

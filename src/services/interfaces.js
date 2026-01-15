@@ -10,7 +10,7 @@
 /** @typedef {import('./game-state-service.js').GameState} GameState */
 
 /** @typedef {import('./game-state-service.js').HotSwitchState} HotSwitchState */
-/** @typedef {import('./game-state-service.js').ThemeMode} ThemeMode */
+
 /** @typedef {import('./progress-service.js').ProgressState} ProgressState */
 /** @typedef {import('./quest-registry-service.js').Quest} Quest */
 /** @typedef {import('../config/game-configuration.js').AnimationConfig} AnimationConfig */
@@ -31,7 +31,7 @@
  * @property {(paused: boolean) => void} setPaused - Set pause state
  * @property {(evolving: boolean) => void} setEvolving - Set evolution state
  * @property {(message: string|null) => void} setLockedMessage - Set locked message
- * @property {(mode: ThemeMode) => void} setThemeMode - Set theme mode
+
  * @property {() => void} resetChapterState - Reset chapter-specific state
  * @property {(callback: (state: GameState, oldState: GameState) => void) => Function} subscribe - Subscribe to state changes
  */

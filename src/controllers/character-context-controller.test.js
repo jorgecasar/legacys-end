@@ -13,6 +13,8 @@ describe("CharacterContextController", () => {
 	let fakeGameState;
 	/** @type {any} */
 	let mockQuestController;
+	/** @type {any} */
+	let mockThemeService;
 
 	beforeEach(() => {
 		host = {
@@ -26,10 +28,10 @@ describe("CharacterContextController", () => {
 		// Use FakeGameStateService instead of mock
 		fakeGameState = new FakeGameStateService();
 		// Set default test state
-		fakeGameState.themeMode.set("light");
 		fakeGameState.hotSwitchState.set("legacy");
 		fakeGameState.hasCollectedItem.set(false);
 		fakeGameState.isRewardCollected.set(false);
+		// Remove fakeGameState.themeMode.set("light"); -> no longer used
 
 		mockQuestController = {
 			currentChapter: {
@@ -39,10 +41,18 @@ describe("CharacterContextController", () => {
 			},
 		};
 
+		// Mock ThemeService with a signal-like object
+		mockThemeService = {
+			themeMode: {
+				get: vi.fn().mockReturnValue("light"),
+			},
+		};
+
 		controller = new CharacterContextController(/** @type {any} */ (host), {
 			gameState: fakeGameState,
 			questController: mockQuestController,
 			characterProvider,
+			themeService: mockThemeService,
 		});
 	});
 
@@ -122,7 +132,7 @@ describe("CharacterContextController", () => {
 
 		it("should update power context based on hot switch state", () => {
 			fakeGameState.hotSwitchState.set("new");
-			fakeGameState.themeMode.set("dark");
+			mockThemeService.themeMode.get.mockReturnValue("dark");
 
 			controller.hostUpdate();
 
@@ -140,6 +150,7 @@ describe("CharacterContextController", () => {
 			controller = new CharacterContextController(/** @type {any} */ (host), {
 				gameState: fakeGameState,
 				questController: mockQuestController,
+				themeService: mockThemeService,
 			});
 
 			expect(() => controller.hostUpdate()).not.toThrow();

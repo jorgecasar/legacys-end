@@ -38,16 +38,21 @@ export function setupGameService(context) {
 				level: context.questController.currentChapter?.id || "",
 				hasCollectedItem: state.hasCollectedItem,
 				position: state.heroPos,
-				themeMode: state.themeMode,
+				themeMode: context.themeService
+					? context.themeService.themeMode.get()
+					: "light",
 				hotSwitchState: state.hotSwitchState,
 			};
 		},
 		setTheme: (mode) => {
-			if (mode === "light" || mode === "dark") {
-				context.gameState.setThemeMode(mode);
-				logger.info(`🎨 Theme set to: ${mode} `);
+			if (context.themeService) {
+				context.themeService.setTheme(
+					/** @type {import('../services/theme-service.js').ThemeMode} */ (
+						mode
+					),
+				);
 			} else {
-				logger.error(`❌ Invalid theme: ${mode}. Use 'light' or 'dark'`);
+				logger.warn("ThemeService not available");
 			}
 		},
 		// Quest commands

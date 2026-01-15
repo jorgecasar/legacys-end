@@ -11,6 +11,8 @@ describe("GameZoneController", () => {
 	let context;
 	/** @type {FakeGameStateService} */
 	let fakeGameState;
+	/** @type {any} */
+	let mockThemeService;
 
 	beforeEach(() => {
 		host = {
@@ -24,6 +26,14 @@ describe("GameZoneController", () => {
 		// Initial state
 		fakeGameState.hasCollectedItem.set(false);
 
+		mockThemeService = {
+			themeMode: {
+				get: vi.fn().mockReturnValue("light"),
+				set: vi.fn(),
+			},
+			setTheme: vi.fn(),
+		};
+
 		context = {
 			eventBus: {
 				on: vi.fn(),
@@ -34,6 +44,7 @@ describe("GameZoneController", () => {
 				currentChapter: {},
 			},
 			gameState: fakeGameState,
+			themeService: mockThemeService,
 		};
 	});
 
@@ -103,7 +114,7 @@ describe("GameZoneController", () => {
 				execute: vi.fn().mockReturnValue([
 					{
 						type: "THEME_CHANGE",
-						payload: "light",
+						payload: "dark",
 					},
 				]),
 			};
@@ -114,38 +125,36 @@ describe("GameZoneController", () => {
 
 			// Update state to have collected item
 			fakeGameState.hasCollectedItem.set(true);
+			mockThemeService.themeMode.get.mockReturnValue("light");
 
-			// Above limit -> Light
-			// The arguments passed to checkZones are irrelevant for this test as usage is mocked,
-			// but we call it to trigger the flow.
+			// Trigger check
 			controller.checkZones(50, 35, true);
-			expect(fakeGameState.themeMode.get()).toBe("light");
+			expect(mockThemeService.setTheme).toHaveBeenCalledWith("dark");
 		});
 
-		it("should NOT trigger theme change if item is NOT collected", () => {
-			// I'll add `requiresItem: true` to the Zone in the test, and update UseCase to handle it.
-			// Let's stick to the Plan: "Refactor Quest Logic".
-			// I missed this nuance in the original file, it was a TODO/Empty test.
-			// I will populate it correctly now using Fakes.
-
+		it("should propagate theme change to service even if same (service handles optimization)", () => {
 			context.questController.currentChapter = { zones: themeZones };
-			fakeGameState.hasCollectedItem.set(false);
-			fakeGameState.themeMode.set("dark");
-
-			// Logic is inside processGameZoneInteraction.
-			// If I mock it to return [] (empty actions), I simulate "No Action".
+			// Mock UseCase returning same theme
 			const mockUseCase = {
-				execute: vi.fn().mockReturnValue([]),
+				execute: vi.fn().mockReturnValue([
+					{
+						type: "THEME_CHANGE",
+						payload: "light",
+					},
+				]),
 			};
 
 			controller = new GameZoneController(host, context, {
 				processGameZoneInteraction: /** @type {any} */ (mockUseCase),
 			});
 
+			mockThemeService.themeMode.get.mockReturnValue("light");
+
 			controller.checkZones(50, 35, true);
-			expect(fakeGameState.themeMode.get()).toBe("dark");
+			expect(mockThemeService.setTheme).toHaveBeenCalledWith("light");
 		});
 	});
+
 	describe("Regressions & Optimizations", () => {
 		it("should skip processing if position has not changed", () => {
 			const processSpy = vi.fn().mockReturnValue([]);
@@ -161,18 +170,18 @@ describe("GameZoneController", () => {
 
 			// Call update again with same position
 			controller.hostUpdate();
-			expect(processSpy).toHaveBeenCalledTimes(1); // Should not increase
+			expect(processSpy).toHaveBeenCalledTimes(1);
 
 			// Change position
 			fakeGameState.heroPos.set({ x: 20, y: 20 });
 			controller.hostUpdate();
-			expect(processSpy).toHaveBeenCalledTimes(2); // Should increase
+			expect(processSpy).toHaveBeenCalledTimes(2);
 		});
 
 		it("should prioritize the last matching zone when zones overlap", () => {
 			const processSpy = vi.fn().mockReturnValue([
 				{ type: "CONTEXT_CHANGE", payload: "legacy" },
-				{ type: "CONTEXT_CHANGE", payload: "new" }, // Should win
+				{ type: "CONTEXT_CHANGE", payload: "new" },
 			]);
 
 			controller = new GameZoneController(host, context, {
@@ -188,28 +197,6 @@ describe("GameZoneController", () => {
 
 			expect(spy).toHaveBeenCalledWith("new");
 			expect(spy).toHaveBeenCalledTimes(1);
-		});
-
-		it("should only update state if value actually changed", () => {
-			// Set initial state
-			fakeGameState.setThemeMode("light");
-
-			const processSpy = vi.fn().mockReturnValue([
-				{ type: "THEME_CHANGE", payload: "light" }, // Same as current
-			]);
-
-			controller = new GameZoneController(host, context, {
-				processGameZoneInteraction: /** @type {any} */ ({
-					execute: processSpy,
-				}),
-			});
-
-			const spy = vi.spyOn(fakeGameState, "setThemeMode");
-
-			fakeGameState.heroPos.set({ x: 50, y: 50 });
-			controller.hostUpdate();
-
-			expect(spy).not.toHaveBeenCalled(); // Should skip update
 		});
 	});
 });

@@ -1,14 +1,11 @@
 import { ContextProvider } from "@lit/context";
-export { ContextProvider };
 
 import { characterContext } from "../contexts/character-context.js";
 import { profileContext } from "../contexts/profile-context.js";
-import { themeContext } from "../contexts/theme-context.js";
 
 /**
  * @typedef {Object} ContextMixinInterface
  * @property {ContextProvider<any>} profileProvider - Provider for profile context
- * @property {ContextProvider<any>} themeProvider - Provider for theme context
  * @property {ContextProvider<any>} characterProvider - Provider for character context
  */
 
@@ -28,10 +25,7 @@ export const ContextMixin = (superClass) =>
 				context: profileContext,
 				initialValue: { loading: true },
 			});
-			this.themeProvider = new ContextProvider(this, {
-				context: themeContext,
-				initialValue: { themeMode: "light" },
-			});
+			// themeProvider refactored to LegacysEndApp as a direct Service Provider
 			this.characterProvider = new ContextProvider(this, {
 				context: characterContext,
 				initialValue: {

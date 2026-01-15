@@ -16,9 +16,9 @@ const mockStorage = {
 
 // Mock @lit/localize
 vi.mock("@lit/localize", () => ({
-	configureLocalization: vi.fn().mockImplementation(({ loadLocale }) => ({
+	configureLocalization: vi.fn().mockImplementation(() => ({
 		getLocale: vi.fn(),
-		setLocale: vi.fn().mockImplementation(async (locale) => {
+		setLocale: vi.fn().mockImplementation(async () => {
 			// await loadLocale(locale); // Skip loading to avoid unmocked dynamic imports
 			return Promise.resolve();
 		}),

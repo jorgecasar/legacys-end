@@ -80,11 +80,8 @@ export class GameZoneController {
 		const themeChange = results.findLast(
 			(/** @type {any} */ r) => r.type === "THEME_CHANGE",
 		);
-		if (themeChange) {
-			const currentTheme = this.context.gameState.themeMode.get();
-			if (currentTheme !== themeChange.payload) {
-				this.context.gameState.setThemeMode(themeChange.payload);
-			}
+		if (themeChange && this.context.themeService) {
+			this.context.themeService.setTheme(themeChange.payload);
 		}
 
 		// Handle CONTEXT_CHANGE (Last one wins if multiple)

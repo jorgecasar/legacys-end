@@ -112,7 +112,7 @@ export class GameViewport extends SignalWatcher(LitElement) {
 		const backgroundPath = extractAssetPath(backgroundStyle);
 
 		const hotSwitchState = stateService.hotSwitchState.get();
-		const themeMode = stateService.themeMode.get();
+		const themeMode = this.app?.themeService?.themeMode.get() || "light";
 		const hasCollectedItem = stateService.hasCollectedItem.get();
 
 		return html`

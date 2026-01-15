@@ -1,5 +1,6 @@
 import { createContext } from "@lit/context";
 
-// Manages the global visual theme of the application.
-// Provides: themeMode (string: 'light' | 'dark')
-export const themeContext = createContext(Symbol("theme-context"));
+/**
+ * @type {import("@lit/context").Context<unknown, import("../services/theme-service.js").ThemeService>}
+ */
+export const themeContext = createContext(Symbol("theme-service"));

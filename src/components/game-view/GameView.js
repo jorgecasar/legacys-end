@@ -29,7 +29,6 @@ import { styles } from "./game-view.css.js";
 
 /**
  * @typedef {Object} GameState
- * @property {import('../../services/game-state-service.js').ThemeMode} [themeMode]
  * @property {import('../../config/game-configuration.js').GameplayConfig} config
  * @property {Object} ui
  * @property {boolean} ui.isPaused

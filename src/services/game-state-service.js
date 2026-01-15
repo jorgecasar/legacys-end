@@ -2,7 +2,6 @@ import { Signal } from "@lit-labs/signals";
 import {
 	HotSwitchStateValidator,
 	PositionValidator,
-	ThemeModeValidator,
 } from "../utils/validators.js";
 
 /**
@@ -16,7 +15,6 @@ import {
  * 	showDialog: boolean,
  * 	isQuestCompleted: boolean,
  * 	lockedMessage: string|null,
- * 	themeMode: ThemeMode,
  * 	currentDialogText: string
  * }} GameState
  */
@@ -27,10 +25,6 @@ import {
  * @typedef {Object} HeroPosition
  * @property {number} x - X coordinate percentage (0-100)
  * @property {number} y - Y coordinate percentage (0-100)
- */
-
-/**
- * @typedef {'light' | 'dark'} ThemeMode
  */
 
 /**
@@ -45,7 +39,6 @@ import {
  * - Collected items (per session/chapter)
  * - Active context (hot switch state)
  * - UI state (paused, evolving, locked messages)
- * - Theme mode
  *
  * Implements IGameStateService interface (see interfaces.js)
  * @implements {IGameStateService}
@@ -68,7 +61,6 @@ export class GameStateService {
 		this.showDialog = new Signal.State(false);
 		this.isQuestCompleted = new Signal.State(false);
 		this.lockedMessage = new Signal.State(/** @type {string|null} */ (null));
-		this.themeMode = new Signal.State(/** @type {ThemeMode} */ ("light"));
 		this.currentDialogText = new Signal.State("");
 	}
 
@@ -87,7 +79,6 @@ export class GameStateService {
 			showDialog: this.showDialog.get(),
 			isQuestCompleted: this.isQuestCompleted.get(),
 			lockedMessage: this.lockedMessage.get(),
-			themeMode: this.themeMode.get(),
 			currentDialogText: this.currentDialogText.get(),
 		};
 	}
@@ -181,20 +172,6 @@ export class GameStateService {
 	 */
 	setLockedMessage(message) {
 		this.lockedMessage.set(message);
-	}
-
-	/**
-	 * Set the visual theme mode.
-	 * @param {ThemeMode} mode - Theme mode ('light' or 'dark')
-	 * @throws {Error} If mode is invalid
-	 */
-	setThemeMode(mode) {
-		const validation = ThemeModeValidator.validate(mode);
-		if (!validation.isValid) {
-			const errors = validation.errors.map((e) => e.message).join(", ");
-			throw new Error(`Invalid theme mode: ${errors}`);
-		}
-		this.themeMode.set(mode);
 	}
 
 	/**

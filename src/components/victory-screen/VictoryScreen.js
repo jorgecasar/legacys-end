@@ -54,7 +54,7 @@ export class VictoryScreen extends LitElement {
 				<h1 class="victory-title">${msg("QUEST COMPLETE!")}</h1>
 				<p class="victory-text"><small>
 					${msg("Congratulations, hero! You have successfully completed the quest:")}
-					<span style="color: ${this.quest.color || "black"};">${this.quest.name}</span>.
+					<strong>${this.quest.name}</strong>.
 				</small></p>
 
 				<ul class="rewards-list" role="list">

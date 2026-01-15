@@ -15,7 +15,6 @@ export class FakeGameStateService extends GameStateService {
 	get current() {
 		return {
 			heroPos: this.heroPos.get(),
-			themeMode: this.themeMode.get(),
 			isPaused: this.isPaused.get(),
 			isQuestCompleted: this.isQuestCompleted.get(),
 			isInHub: true, // Derived usually, but checking core state

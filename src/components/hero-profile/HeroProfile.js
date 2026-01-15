@@ -1,6 +1,7 @@
 import "@awesome.me/webawesome/dist/components/tag/tag.js";
 
 import { ContextConsumer } from "@lit/context";
+import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement } from "lit";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { characterContext } from "../../contexts/character-context.js";
@@ -22,7 +23,7 @@ import { heroProfileStyles } from "./HeroProfile.styles.js";
  * @property {string} tooltipText - Optional tooltip text.
  * @property {string} hotSwitchState - State for API injection visualization (legacy, mock, new).
  */
-export class HeroProfile extends LitElement {
+export class HeroProfile extends SignalWatcher(LitElement) {
 	static properties = {
 		/**
 		 * Base image source for the hero.
@@ -36,10 +37,10 @@ export class HeroProfile extends LitElement {
 		profileData: { state: true },
 
 		/**
-		 * Theme data from themeContext.
+		 * Theme Service from themeContext.
 		 * @internal
 		 */
-		themeData: { state: true },
+		themeService: { state: true },
 
 		/**
 		 * Suit data from characterContext.
@@ -71,7 +72,7 @@ export class HeroProfile extends LitElement {
 		new ContextConsumer(this, {
 			context: themeContext,
 			callback: (value) => {
-				this.themeData = value;
+				this.themeService = value;
 			},
 			subscribe: true,
 		});
@@ -90,14 +91,24 @@ export class HeroProfile extends LitElement {
 	/**
 	 * @param {Map<string, any>} changedProperties
 	 */
-	updated(changedProperties) {
-		if (changedProperties.has("themeData") && this.themeData) {
-			if (this.themeData.themeMode === "dark") {
+	update(changedProperties) {
+		// Reactive class update based on signal
+		if (this.themeService) {
+			const mode = this.themeService.themeMode.get();
+			if (mode === "dark") {
 				this.classList.add("wa-dark");
 			} else {
 				this.classList.remove("wa-dark");
 			}
 		}
+		super.update(changedProperties);
+	}
+
+	/**
+	 * @param {Map<string, any>} changedProperties
+	 */
+	updated(changedProperties) {
+		// theme logic moved to update() for signal reactivity
 
 		if (changedProperties.has("hotSwitchState")) {
 			this.classList.remove(

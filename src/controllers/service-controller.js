@@ -11,7 +11,7 @@ import { Task, TaskStatus } from "@lit/task";
 /**
  * @typedef {Object} ServiceControllerOptions
  * @property {Record<string, IUserService>} [services] - Map of service instances {legacy, mock, new}
- * @property {import('../mixins/context-mixin.js').ContextProvider<any>} [profileProvider] - Profile context provider
+ * @property {import('@lit/context').ContextProvider<any>} [profileProvider] - Profile context provider
  * @property {() => IUserService|null} [getActiveService] - Function to get active service
  */
 

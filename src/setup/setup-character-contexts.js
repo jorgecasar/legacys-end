@@ -19,6 +19,10 @@ export function setupCharacterContexts(host, context) {
 			masteryProvider: undefined,
 			gameState: context.gameState,
 			questController: context.questController,
+			themeService:
+				/** @type {import('../services/theme-service.js').ThemeService} */ (
+					context.themeService
+				),
 		},
 	);
 }

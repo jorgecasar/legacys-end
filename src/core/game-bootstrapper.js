@@ -19,9 +19,15 @@ import {
 } from "../services/user-services.js";
 import { voiceSynthesisService } from "../services/voice-synthesis-service.js";
 import { setupRoutes } from "../setup/routes.js";
+import { setupCharacterContexts } from "../setup/setup-character-contexts.js";
+import { setupCollision } from "../setup/setup-collision.js";
 import { setupGameService } from "../setup/setup-game.js";
+import { setupInteraction } from "../setup/setup-interaction.js";
 import { setupQuest } from "../setup/setup-quest.js";
+import { setupService } from "../setup/setup-service.js";
 import { setupSessionManager } from "../setup/setup-session-manager.js";
+import { setupVoice } from "../setup/setup-voice.js";
+import { setupZones } from "../setup/setup-zones.js";
 import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-transition.js";
 import { Router } from "../utils/router.js";
 import { eventBus as centralEventBus } from "./event-bus.js";
@@ -39,6 +45,7 @@ import { eventBus as centralEventBus } from "./event-bus.js";
  * @property {import('../services/ai-service.js').AIService} aiService
  * @property {import('../services/voice-synthesis-service.js').VoiceSynthesisService} voiceSynthesisService
  * @property {import('../services/localization-service.js').LocalizationService} localizationService
+ * @property {import('../services/theme-service.js').ThemeService} themeService
  */
 
 /**
@@ -61,6 +68,7 @@ import { eventBus as centralEventBus } from "./event-bus.js";
  * @property {import('../services/ai-service.js').AIService} aiService
  * @property {import('../services/voice-synthesis-service.js').VoiceSynthesisService} voiceSynthesisService
  * @property {import('../services/localization-service.js').LocalizationService} localizationService
+ * @property {import('../services/theme-service.js').ThemeService} themeService
  */
 
 /**
@@ -107,6 +115,10 @@ export class GameBootstrapper {
 	async #setupServices() {
 		const storageAdapter = new LocalStorageAdapter();
 		const gameState = new GameStateService(logger);
+
+		const themeService = new (
+			await import("../services/theme-service.js")
+		).ThemeService(logger, storageAdapter);
 
 		// Dynamic import to avoid chunking warning
 		const registry = await import("../services/quest-registry-service.js");
@@ -161,6 +173,7 @@ export class GameBootstrapper {
 			aiService,
 			voiceSynthesisService,
 			localizationService,
+			themeService,
 		};
 	}
 
@@ -192,6 +205,7 @@ export class GameBootstrapper {
 			aiService: servicesContext.aiService,
 			voiceSynthesisService: servicesContext.voiceSynthesisService,
 			localizationService: servicesContext.localizationService,
+			themeService: servicesContext.themeService,
 		};
 
 		// Run existing setup helpers
@@ -201,10 +215,14 @@ export class GameBootstrapper {
 		await setupQuest(/** @type {any} */ (host), context);
 		setupSessionManager(context);
 		setupGameService(context);
+		setupService(/** @type {any} */ (host), context);
+		setupCharacterContexts(/** @type {any} */ (host), context);
+		setupZones(/** @type {any} */ (host), context);
+		setupInteraction(/** @type {any} */ (host), context);
+		setupCollision(/** @type {any} */ (host), context);
+		setupVoice(/** @type {any} */ (host), context);
 
-		// Note: serviceController and characterContexts seem to be setup implicitly or
-		// they are part of the 'setupGameService' or similar?
-		// Looking at LegacysEndApp, they are accessed from context after usage.
+		// Note: serviceController and characterContexts are accessed via context after usage.
 		// Wait, looking at LegacysEndApp source lines 239-251:
 		// setupQuest(this, context);
 		// setupSessionManager(context);

@@ -19,6 +19,7 @@
  * @property {import('../services/ai-service.js').AIService} [aiService]
  * @property {import('../services/voice-synthesis-service.js').VoiceSynthesisService} [voiceSynthesisService]
  * @property {import('../services/localization-service.js').LocalizationService} [localizationService]
+ * @property {import('../services/theme-service.js').ThemeService} [themeService]
  */
 
 // This file only serves as a type definition hub for now.
