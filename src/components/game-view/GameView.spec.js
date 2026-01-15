@@ -251,4 +251,183 @@ describe("GameView Component", () => {
 			).toHaveBeenCalled();
 		});
 	});
+
+	describe("Event Subscription Lifecycle (Regression Tests)", () => {
+		it("should subscribe to HERO_MOVE_INPUT when app is available in connectedCallback", async () => {
+			// Create element with app already set
+			const mockApp = getMockApp();
+			const el = /** @type {any} */ (document.createElement("game-view"));
+			el.app = mockApp;
+			el.gameState = /** @type {any} */ ({
+				ui: {
+					isPaused: false,
+					showDialog: false,
+					isQuestCompleted: false,
+					lockedMessage: "",
+				},
+				hero: { pos: { x: 0, y: 0 }, isEvolving: false, hotSwitchState: null },
+				config: { zones: [] },
+				quest: {
+					data: {},
+					chapterNumber: 0,
+					totalChapters: 0,
+					isLastChapter: false,
+					levelId: "",
+				},
+				levelState: {
+					hasCollectedItem: false,
+					isRewardCollected: false,
+					isCloseToTarget: false,
+				},
+			});
+
+			document.body.appendChild(el);
+			await el.updateComplete;
+
+			// Verify subscription happened
+			expect(mockApp.eventBus.on).toHaveBeenCalledWith(
+				GameEvents.HERO_MOVE_INPUT,
+				expect.any(Function),
+			);
+
+			// Verify event handling works
+			mockApp.eventBus.emit(GameEvents.HERO_MOVE_INPUT, { dx: 1, dy: 0 });
+			expect(mockApp.commandBus.execute).toHaveBeenCalled();
+		});
+
+		it("should subscribe to HERO_MOVE_INPUT when app is set AFTER connectedCallback", async () => {
+			// Regression test for the bug: app set after connectedCallback
+			const mockApp = getMockApp();
+			const el = /** @type {any} */ (document.createElement("game-view"));
+
+			// Connect element WITHOUT app (simulates page refresh scenario)
+			document.body.appendChild(el);
+			await el.updateComplete;
+
+			// Verify no subscription yet (app is null)
+			expect(mockApp.eventBus.on).not.toHaveBeenCalled();
+
+			// Now set app property (simulates app becoming available)
+			el.app = mockApp;
+			el.gameState = /** @type {any} */ ({
+				ui: {
+					isPaused: false,
+					showDialog: false,
+					isQuestCompleted: false,
+					lockedMessage: "",
+				},
+				hero: { pos: { x: 0, y: 0 }, isEvolving: false, hotSwitchState: null },
+				config: { zones: [] },
+				quest: {
+					data: {},
+					chapterNumber: 0,
+					totalChapters: 0,
+					isLastChapter: false,
+					levelId: "",
+				},
+				levelState: {
+					hasCollectedItem: false,
+					isRewardCollected: false,
+					isCloseToTarget: false,
+				},
+			});
+			await el.updateComplete;
+
+			// CRITICAL: Verify subscription happened when app became available
+			expect(mockApp.eventBus.on).toHaveBeenCalledWith(
+				GameEvents.HERO_MOVE_INPUT,
+				expect.any(Function),
+			);
+
+			// Verify event handling works after subscription
+			mockApp.eventBus.emit(GameEvents.HERO_MOVE_INPUT, { dx: 1, dy: 0 });
+			expect(mockApp.commandBus.execute).toHaveBeenCalled();
+		});
+
+		it("should not subscribe multiple times if updated multiple times", async () => {
+			// Prevent duplicate subscriptions
+			const mockApp = getMockApp();
+			const el = /** @type {any} */ (document.createElement("game-view"));
+			el.app = mockApp;
+			el.gameState = /** @type {any} */ ({
+				ui: {
+					isPaused: false,
+					showDialog: false,
+					isQuestCompleted: false,
+					lockedMessage: "",
+				},
+				hero: { pos: { x: 0, y: 0 }, isEvolving: false, hotSwitchState: null },
+				config: { zones: [] },
+				quest: {
+					data: {},
+					chapterNumber: 0,
+					totalChapters: 0,
+					isLastChapter: false,
+					levelId: "",
+				},
+				levelState: {
+					hasCollectedItem: false,
+					isRewardCollected: false,
+					isCloseToTarget: false,
+				},
+			});
+
+			document.body.appendChild(el);
+			await el.updateComplete;
+
+			const initialCallCount = mockApp.eventBus.on.mock.calls.length;
+
+			// Trigger multiple updates
+			el.gameState = { ...el.gameState };
+			await el.updateComplete;
+			el.gameState = { ...el.gameState };
+			await el.updateComplete;
+
+			// Verify subscription only happened once
+			expect(mockApp.eventBus.on.mock.calls.length).toBe(initialCallCount);
+		});
+
+		it("should unsubscribe from events on disconnect", async () => {
+			const mockApp = getMockApp();
+			const el = /** @type {any} */ (document.createElement("game-view"));
+			el.app = mockApp;
+			el.gameState = /** @type {any} */ ({
+				ui: {
+					isPaused: false,
+					showDialog: false,
+					isQuestCompleted: false,
+					lockedMessage: "",
+				},
+				hero: { pos: { x: 0, y: 0 }, isEvolving: false, hotSwitchState: null },
+				config: { zones: [] },
+				quest: {
+					data: {},
+					chapterNumber: 0,
+					totalChapters: 0,
+					isLastChapter: false,
+					levelId: "",
+				},
+				levelState: {
+					hasCollectedItem: false,
+					isRewardCollected: false,
+					isCloseToTarget: false,
+				},
+			});
+
+			document.body.appendChild(el);
+			await el.updateComplete;
+
+			// Verify subscription happened
+			expect(mockApp.eventBus.on).toHaveBeenCalled();
+
+			// Disconnect element
+			document.body.removeChild(el);
+
+			// Verify unsubscription happened
+			expect(mockApp.eventBus.off).toHaveBeenCalledWith(
+				GameEvents.HERO_MOVE_INPUT,
+				expect.any(Function),
+			);
+		});
+	});
 });

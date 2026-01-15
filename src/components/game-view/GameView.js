@@ -79,6 +79,7 @@ export class GameView extends SignalWatcher(LitElement) {
 		/** @type {any} */
 		this.app = null;
 		this._controllersInitialized = false;
+		this._eventsSubscribed = false;
 		this._autoMoveRequestId = null;
 
 		// Controllers (initialized in connectedCallback)
@@ -112,23 +113,39 @@ export class GameView extends SignalWatcher(LitElement) {
 		}
 
 		// Subscribe to global events via eventBus
-		if (this.app?.eventBus) {
-			this.app.eventBus.on(
-				GameEvents.HERO_MOVE_INPUT,
-				this.#boundHandleMoveInput,
-			);
-		}
+		this.#subscribeToEvents();
 	}
 
 	disconnectedCallback() {
 		super.disconnectedCallback();
-		if (this.app?.eventBus) {
+		this.#unsubscribeFromEvents();
+		this.stopAutoMove();
+	}
+
+	/**
+	 * Subscribe to event bus events
+	 */
+	#subscribeToEvents() {
+		if (this.app?.eventBus && !this._eventsSubscribed) {
+			this.app.eventBus.on(
+				GameEvents.HERO_MOVE_INPUT,
+				this.#boundHandleMoveInput,
+			);
+			this._eventsSubscribed = true;
+		}
+	}
+
+	/**
+	 * Unsubscribe from event bus events
+	 */
+	#unsubscribeFromEvents() {
+		if (this.app?.eventBus && this._eventsSubscribed) {
 			this.app.eventBus.off(
 				GameEvents.HERO_MOVE_INPUT,
 				this.#boundHandleMoveInput,
 			);
+			this._eventsSubscribed = false;
 		}
-		this.stopAutoMove();
 	}
 
 	/**
@@ -145,6 +162,8 @@ export class GameView extends SignalWatcher(LitElement) {
 		) {
 			this.#setupControllers();
 			this._controllersInitialized = true;
+			// Subscribe to events now that app is available
+			this.#subscribeToEvents();
 		}
 	}
 
