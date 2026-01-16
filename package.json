@@ -18,8 +18,17 @@
 		"test:ui": "vitest --ui",
 		"localize:extract": "lit-localize extract",
 		"localize:build": "lit-localize build",
+		"size": "npm run build && size-limit",
+		"analyze": "ANALYZE=true npm run build",
 		"prepare": "husky || true"
 	},
+	"size-limit": [
+		{
+			"path": "dist/assets/*.js",
+			"limit": "200 kB",
+			"gzip": true
+		}
+	],
 	"dependencies": {
 		"@awesome.me/webawesome": "^3.0.0",
 		"@lit-labs/signals": "^0.2.0",
@@ -36,6 +45,7 @@
 		"@commitlint/cli": "^20.2.0",
 		"@commitlint/config-conventional": "^20.2.0",
 		"@lit/localize-tools": "^0.7.2",
+		"@size-limit/file": "^12.0.0",
 		"@types/dom-speech-recognition": "^0.0.7",
 		"@types/node": "^25.0.2",
 		"@vitest/browser": "^4.0.15",
@@ -46,7 +56,9 @@
 		"lint-staged": "^16.2.7",
 		"lit-analyzer": "^2.0.3",
 		"playwright": "^1.57.0",
+		"rollup-plugin-visualizer": "^6.0.5",
 		"sharp": "^0.34.5",
+		"size-limit": "^12.0.0",
 		"svgo": "^4.0.0",
 		"typescript": "^5.9.3",
 		"vite": "^7.2.7",

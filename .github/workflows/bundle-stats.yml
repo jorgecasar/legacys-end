@@ -1,0 +1,49 @@
+name: Bundle Size & Project Metrics
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'bundle-history.jsonl'
+      - 'docs/**'
+      - '**.md'
+
+jobs:
+  track-metrics:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
+
+      - name: Run tests
+        # We run with json reporter to gather metrics
+        run: npm test -- --run --reporter=json --outputFile=test-results.json
+        continue-on-error: true
+
+      - name: Record stats
+        run: node scripts/record-bundle-stats.js
+
+      - name: Commit & Push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add bundle-history.jsonl
+          git commit -m "chore: update bundle-history.jsonl [skip ci]" || echo "No changes to commit"
+          git push origin main

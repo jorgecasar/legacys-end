@@ -1,4 +1,5 @@
 import { playwright } from "@vitest/browser-playwright";
+import { visualizer } from "rollup-plugin-visualizer";
 import { defineConfig, loadEnv } from "vite";
 import { imagetools } from "vite-imagetools";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
@@ -36,6 +37,13 @@ export default defineConfig(({ mode }) => {
 				},
 			}),
 			imagetools(),
+			process.env.ANALYZE === "true" &&
+				visualizer({
+					filename: "stats.html",
+					open: true,
+					gzipSize: true,
+					brotliSize: true,
+				}),
 		],
 		optimizeDeps: {
 			include: ["@awesome.me/webawesome/dist/components/spinner/spinner.js"],
