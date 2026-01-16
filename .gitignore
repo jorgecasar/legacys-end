@@ -28,3 +28,8 @@ src/generated/
 
 # Coverage
 coverage
+
+# Bundle Analysis
+stats.html
+.history-temp
+test-results.json
