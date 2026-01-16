@@ -10,7 +10,9 @@ describe("CollectRewardCommand", () => {
 
 	beforeEach(() => {
 		fakeGameState = new FakeGameStateService();
-		command = new CollectRewardCommand({ gameState: fakeGameState });
+		command = new CollectRewardCommand({
+			questState: fakeGameState.questState,
+		});
 	});
 
 	it("should set reward collected to true", () => {

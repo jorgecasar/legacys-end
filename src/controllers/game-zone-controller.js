@@ -35,8 +35,8 @@ export class GameZoneController {
 	hostDisconnected() {}
 
 	hostUpdate() {
-		const pos = this.context.gameState.heroPos.get();
-		const hasCollectedItem = this.context.gameState.hasCollectedItem.get();
+		const pos = this.context.heroState.pos.get();
+		const hasCollectedItem = this.context.questState.hasCollectedItem.get();
 
 		// Prevent redundant checks if position hasn't changed
 		if (
@@ -89,9 +89,9 @@ export class GameZoneController {
 			(/** @type {any} */ r) => r.type === "CONTEXT_CHANGE",
 		);
 		if (contextChange) {
-			const currentContext = this.context.gameState.hotSwitchState.get();
+			const currentContext = this.context.heroState.hotSwitchState.get();
 			if (currentContext !== contextChange.payload) {
-				this.context.gameState.setHotSwitchState(contextChange.payload);
+				this.context.heroState.setHotSwitchState(contextChange.payload);
 			}
 		}
 	}

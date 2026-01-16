@@ -3,17 +3,17 @@ import { ReturnToHubCommand } from "./return-to-hub-command.js";
 
 describe("ReturnToHubCommand", () => {
 	/** @type {any} */
-	let mockSessionManager;
+	let mockQuestLoader;
 	/** @type {ReturnToHubCommand} */
 	let command;
 
 	beforeEach(() => {
-		mockSessionManager = {
+		mockQuestLoader = {
 			returnToHub: vi.fn().mockResolvedValue({ success: true }),
 		};
 
 		command = new ReturnToHubCommand({
-			sessionManager: mockSessionManager,
+			questLoader: mockQuestLoader,
 		});
 	});
 
@@ -21,22 +21,22 @@ describe("ReturnToHubCommand", () => {
 		expect(command.name).toBe("ReturnToHub");
 	});
 
-	it("should execute session manager", async () => {
+	it("should execute quest loader", async () => {
 		const result = await command.execute();
 
-		expect(mockSessionManager.returnToHub).toHaveBeenCalled();
+		expect(mockQuestLoader.returnToHub).toHaveBeenCalled();
 		expect(result).toEqual({ success: true });
 	});
 
-	it("should throw error if session manager fails", async () => {
+	it("should throw error if quest loader fails", async () => {
 		const error = new Error("Navigation failed");
-		mockSessionManager.returnToHub.mockResolvedValue({ success: false, error });
+		mockQuestLoader.returnToHub.mockResolvedValue({ success: false, error });
 
 		await expect(command.execute()).rejects.toThrow("Navigation failed");
 	});
 
-	it("should throw generic error if session manager fails without error object", async () => {
-		mockSessionManager.returnToHub.mockResolvedValue({ success: false });
+	it("should throw generic error if quest loader fails without error object", async () => {
+		mockQuestLoader.returnToHub.mockResolvedValue({ success: false });
 
 		await expect(command.execute()).rejects.toThrow("Failed to return to hub");
 	});

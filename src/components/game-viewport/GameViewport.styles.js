@@ -86,6 +86,29 @@ export const gameViewportStyles = [
 			pointer-events: none;
 		}
 
+		.locked-message {
+			position: absolute;
+			top: 20%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			background: var(--wa-color-surface-floating);
+			color: var(--wa-color-text-default);
+			padding: var(--wa-space-s) var(--wa-space-m);
+			border-radius: var(--wa-border-radius-m);
+			font-weight: bold;
+			z-index: 100;
+			pointer-events: none;
+			text-align: center;
+			box-shadow: var(--wa-shadow-large);
+			border: 1px solid var(--wa-color-border-default);
+			animation: slideDown 0.3s ease-out;
+		}
+
+		@keyframes slideDown {
+			from { transform: translate(-50%, -100%); opacity: 0; }
+			to { transform: translate(-50%, -50%); opacity: 1; }
+		}
+
 		reward-element {
 			width: 5%;
 			aspect-ratio: 1/1;

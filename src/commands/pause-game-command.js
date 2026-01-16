@@ -7,10 +7,10 @@
 export class PauseGameCommand {
 	/**
 	 * @param {Object} params
-	 * @param {import('../services/game-state-service.js').GameStateService} params.gameState
+	 * @param {import('../game/interfaces.js').IWorldStateService} params.worldState
 	 */
-	constructor({ gameState }) {
-		this.gameState = gameState;
+	constructor({ worldState }) {
+		this.worldState = worldState;
 		/** @type {boolean | null} */
 		this.previousPauseState = null;
 		this.name = "PauseGame";
@@ -21,10 +21,9 @@ export class PauseGameCommand {
 	 * Execute the pause toggle
 	 */
 	execute() {
-		const state = this.gameState.getState();
-		this.previousPauseState = state.isPaused;
-		this.gameState.setPaused(!state.isPaused);
-		this.metadata = { newState: !state.isPaused };
+		this.previousPauseState = this.worldState.isPaused.get();
+		this.worldState.setPaused(!this.previousPauseState);
+		this.metadata = { newState: !this.previousPauseState };
 	}
 
 	/**
@@ -32,7 +31,7 @@ export class PauseGameCommand {
 	 */
 	undo() {
 		if (this.previousPauseState !== null) {
-			this.gameState.setPaused(this.previousPauseState);
+			this.worldState.setPaused(this.previousPauseState);
 		}
 	}
 }

@@ -58,7 +58,7 @@ describe("Quest Journey E2E", () => {
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 		const gameView = app.shadowRoot.querySelector("quest-view");
 		expect(gameView).toBeTruthy();
-		expect(app.sessionManager.isInHub.get()).toBe(false);
+		expect(app.sessionService.isInHub.get()).toBe(false);
 
 		// 4. Move to NPC and Interact
 		app.gameState.setHeroPosition(40, 50); // Close to NPC at {40, 55}
@@ -105,9 +105,9 @@ describe("Quest Journey E2E", () => {
 		expect(app.questController.currentChapter.id).toBe("hall-of-fragments");
 
 		// 7. Return to Hub
-		await app.sessionManager.returnToHub();
+		await app.sessionService.returnToHub();
 		await new Promise((resolve) => setTimeout(resolve, 500));
-		expect(app.sessionManager.isInHub.get()).toBe(true);
+		expect(app.sessionService.isInHub.get()).toBe(true);
 
 		// 8. Re-enter Quest (Continue)
 		const hubReloaded = app.shadowRoot.querySelector("quest-hub");
@@ -154,6 +154,6 @@ describe("Quest Journey E2E", () => {
 		}
 
 		await new Promise((resolve) => setTimeout(resolve, 1000));
-		expect(app.sessionManager.isInHub.get()).toBe(true);
+		expect(app.sessionService.isInHub.get()).toBe(true);
 	}, 30000); // Higher timeout for E2E
 });

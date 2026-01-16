@@ -48,8 +48,8 @@ export class CollisionController {
 	hostDisconnected() {}
 
 	hostUpdate() {
-		const pos = this.context.gameState.heroPos.get();
-		const hasCollectedItem = this.context.gameState.hasCollectedItem.get();
+		const pos = this.context.heroState.pos.get();
+		const hasCollectedItem = this.context.questState.hasCollectedItem.get();
 		const currentChapter = this.context.questController?.currentChapter;
 		if (currentChapter?.exitZone) {
 			this.checkExitZone(

@@ -9,6 +9,75 @@ vi.mock("@awesome.me/webawesome/dist/components/button/button.js", () => ({}));
 vi.mock("@awesome.me/webawesome/dist/components/icon/icon.js", () => ({}));
 vi.mock("../game-viewport/game-viewport.js", () => ({})); // Mock child component
 
+import { ContextProvider } from "@lit/context";
+import { Signal } from "@lit-labs/signals";
+import { html, LitElement } from "lit";
+
+vi.mock("../../core/event-bus.js", () => ({
+	GameEvents: {
+		SLIDE_CHANGED: "slide-changed",
+	},
+}));
+
+import { heroStateContext } from "../../game/contexts/hero-context.js";
+import { questStateContext } from "../../game/contexts/quest-context.js";
+import { worldStateContext } from "../../game/contexts/world-context.js";
+
+class TestContextWrapper extends LitElement {
+	static properties = {
+		heroState: { type: Object },
+		questState: { type: Object },
+		worldState: { type: Object },
+	};
+
+	constructor() {
+		super();
+		this.heroState = {};
+		this.questState = {};
+		this.worldState = {};
+
+		this._heroProvider = new ContextProvider(this, {
+			context: heroStateContext,
+			initialValue: this.heroState,
+		});
+		this._questProvider = new ContextProvider(this, {
+			context: questStateContext,
+			initialValue: this.questState,
+		});
+		this._worldProvider = new ContextProvider(this, {
+			context: worldStateContext,
+			initialValue: this.worldState,
+		});
+	}
+
+	/**
+	 * @param {import("lit").PropertyValues} changedProperties
+	 */
+	update(changedProperties) {
+		super.update(changedProperties);
+	}
+
+	/**
+	 * @param {import("lit").PropertyValues} changedProperties
+	 */
+	updated(changedProperties) {
+		if (changedProperties.has("heroState")) {
+			this._heroProvider.setValue(this.heroState);
+		}
+		if (changedProperties.has("questState")) {
+			this._questProvider.setValue(this.questState);
+		}
+		if (changedProperties.has("worldState")) {
+			this._worldProvider.setValue(this.worldState);
+		}
+	}
+
+	render() {
+		return html`<slot></slot>`;
+	}
+}
+customElements.define("test-context-wrapper", TestContextWrapper);
+
 describe("LevelDialog Interactions", () => {
 	let element;
 	/** @type {any} */
@@ -231,7 +300,41 @@ describe("QuestView Integration", () => {
 
 		// Mock app for handleLevelComplete
 		element.app = getMockApp();
-		container.appendChild(element);
+
+		// Wrap in context provider
+		const wrapper = new TestContextWrapper();
+		wrapper.heroState = element.app.gameState; // Use mock gamestate as service shim since they share props roughly or we just need presence
+		wrapper.heroState = {
+			setPos: vi.fn(),
+			setIsEvolving: vi.fn(),
+			setHotSwitchState: vi.fn(),
+			pos: new Signal.State({ x: 0, y: 0 }),
+			hotSwitchState: new Signal.State(null),
+			isEvolving: new Signal.State(false),
+		};
+		wrapper.questState = {
+			resetQuestState: vi.fn(),
+			resetChapterState: vi.fn(),
+			setHasCollectedItem: vi.fn(),
+			setIsRewardCollected: vi.fn(),
+			setIsQuestCompleted: vi.fn(),
+			setLockedMessage: vi.fn(),
+			hasCollectedItem: new Signal.State(false),
+			isRewardCollected: new Signal.State(false),
+			isQuestCompleted: new Signal.State(false),
+			lockedMessage: new Signal.State(null),
+		};
+		wrapper.worldState = {
+			setPaused: vi.fn(),
+			setShowDialog: vi.fn(),
+			setCurrentDialogText: vi.fn(),
+			isPaused: new Signal.State(false),
+			showDialog: new Signal.State(true),
+			currentDialogText: new Signal.State(""),
+		};
+
+		wrapper.appendChild(element);
+		container.appendChild(wrapper);
 		await element.updateComplete;
 
 		const completeSpy = vi.fn();
@@ -291,7 +394,19 @@ describe("QuestView Integration", () => {
 		});
 		// Mock app for close-dialog
 		element.app = getMockApp();
-		container.appendChild(element);
+
+		const wrapper = new TestContextWrapper();
+		wrapper.worldState = {
+			isPaused: new Signal.State(false),
+			showDialog: new Signal.State(true), // Dialog open
+			setShowDialog: vi.fn(),
+			setCurrentDialogText: vi.fn(),
+		};
+		wrapper.questState = { isQuestCompleted: new Signal.State(false) };
+		wrapper.heroState = {};
+
+		wrapper.appendChild(element);
+		container.appendChild(wrapper);
 		await element.updateComplete;
 
 		const closeSpy = vi.fn();
@@ -313,7 +428,19 @@ describe("QuestView Integration", () => {
 			quest: { levelId: "1" },
 		});
 		element.app = getMockApp();
-		container.appendChild(element);
+
+		const wrapper = new TestContextWrapper();
+		wrapper.worldState = {
+			isPaused: new Signal.State(false),
+			showDialog: new Signal.State(true), // Dialog Open
+			setCurrentDialogText: vi.fn(),
+			setShowDialog: vi.fn(),
+		};
+		wrapper.questState = { isQuestCompleted: new Signal.State(false) };
+		wrapper.heroState = {};
+
+		wrapper.appendChild(element);
+		container.appendChild(wrapper);
 		await element.updateComplete;
 
 		const viewport = /** @type {any} */ (

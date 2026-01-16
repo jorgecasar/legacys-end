@@ -1,49 +1,47 @@
 import { GameController } from "../controllers/game-controller.js";
-import { GameService } from "../services/game-service.js";
 import { logger } from "../services/logger-service.js";
 
-/**
- * Setup GameController with GameService
- * @param {IGameContext} context
- */
 /**
  * @typedef {import('../core/game-context.js').IGameContext} IGameContext
  */
 
 /**
- * Setup GameService
+ * Setup GameService (Facade)
  * @param {IGameContext} context
  */
 export function setupGameService(context) {
-	// Create GameService with all game operation callbacks
-	const gameService = new GameService({
+	// Create GameService facade with all game operation callbacks
+	const gameService = {
+		/** @param {string} chapterId */
 		setLevel: (chapterId) => {
-			// Leverage sessionManager.loadChapter which handles validation
-			context.sessionManager.loadChapter(
-				context.questController.currentQuest?.id || "",
+			// Leverage questLoader which handles validation and state
+			context.questLoader?.loadChapter(
+				context.sessionService.currentQuest.get()?.id || "",
 				chapterId,
 			);
 		},
 		giveItem: () => {
-			context.gameState.setCollectedItem(true);
+			context.questState.setHasCollectedItem(true);
+			context.questState.setIsRewardCollected(true);
 			logger.info(`✨ Item collected!`);
 		},
+		/** @param {number} x @param {number} y */
 		teleport: (x, y) => {
-			context.gameState.setHeroPosition(x, y);
+			context.heroState.setPos(x, y);
 			logger.info(`📍 Teleported to(${x}, ${y})`);
 		},
 		getState: () => {
-			const state = context.gameState.getState();
 			return {
 				level: context.questController.currentChapter?.id || "",
-				hasCollectedItem: state.hasCollectedItem,
-				position: state.heroPos,
+				hasCollectedItem: context.questState.hasCollectedItem.get(),
+				position: context.heroState.pos.get(),
 				themeMode: context.themeService
 					? context.themeService.themeMode.get()
 					: "light",
-				hotSwitchState: state.hotSwitchState,
+				hotSwitchState: context.heroState.hotSwitchState.get(),
 			};
 		},
+		/** @param {string} mode */
 		setTheme: (mode) => {
 			if (context.themeService) {
 				context.themeService.setTheme(
@@ -56,17 +54,18 @@ export function setupGameService(context) {
 			}
 		},
 		// Quest commands
+		/** @param {string} questId */
 		startQuest: (questId) => {
-			context.sessionManager.startQuest(questId);
+			context.questLoader?.startQuest(questId);
 		},
 		completeQuest: () => {
-			context.sessionManager.completeQuest();
+			context.questLoader?.completeQuest();
 		},
 		completeChapter: () => {
-			context.sessionManager.completeChapter();
+			context.questLoader?.completeChapter();
 		},
 		returnToHub: () => {
-			context.sessionManager.returnToHub();
+			context.questLoader?.returnToHub();
 		},
 		listQuests: () => {
 			const available = context.questController.getAvailableQuests();
@@ -85,9 +84,26 @@ export function setupGameService(context) {
 			context.progressService.resetProgress();
 			logger.info("🔄 Progress reset");
 		},
-	});
+		help: () => {
+			logger.info(`
+Available Commands:
+- setLevel(chapterId): Jump to a chapter
+- giveItem(): Collect current chapter item
+- teleport(x, y): Move hero to position
+- getState(): Get current game state
+- setTheme(mode): Change theme ('light'|'dark'|'system')
+- startQuest(id): Start a specific quest
+- completeQuest(): Complete current quest
+- completeChapter(): Complete current chapter
+- returnToHub(): Return to quest hub
+- listQuests(): List all available quests
+- getProgress(): Get overall game progress
+- resetProgress(): Clear all saved progress
+			`);
+		},
+	};
 
-	context.gameService = gameService;
+	context.gameService = /** @type {any} */ (gameService);
 }
 
 /**
@@ -103,11 +119,8 @@ export function setupGameController(host, context) {
 	// Create GameController with GameService
 	/** @type {GameHost & { gameController: GameController }} */ (
 		host
-	).gameController = new GameController(host, {
+	).gameController = new GameController(/** @type {any} */ (host), {
 		...context,
-		gameService:
-			/** @type {import('../services/game-service.js').GameService} */ (
-				context.gameService
-			),
+		gameService: context.gameService,
 	});
 }

@@ -14,7 +14,9 @@ describe("ToggleHotSwitchCommand", () => {
 
 	it("should toggle from legacy to new", () => {
 		fakeGameState.hotSwitchState.set("legacy");
-		command = new ToggleHotSwitchCommand({ gameState: fakeGameState });
+		command = new ToggleHotSwitchCommand({
+			heroState: fakeGameState.heroState,
+		});
 
 		command.execute();
 
@@ -23,7 +25,9 @@ describe("ToggleHotSwitchCommand", () => {
 
 	it("should toggle from new to legacy", () => {
 		fakeGameState.hotSwitchState.set("new");
-		command = new ToggleHotSwitchCommand({ gameState: fakeGameState });
+		command = new ToggleHotSwitchCommand({
+			heroState: fakeGameState.heroState,
+		});
 
 		command.execute();
 
@@ -32,7 +36,9 @@ describe("ToggleHotSwitchCommand", () => {
 
 	it("should undo to previous state", () => {
 		fakeGameState.hotSwitchState.set("legacy");
-		command = new ToggleHotSwitchCommand({ gameState: fakeGameState });
+		command = new ToggleHotSwitchCommand({
+			heroState: fakeGameState.heroState,
+		});
 
 		command.execute();
 		// State is "new"

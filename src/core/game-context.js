@@ -4,10 +4,15 @@
  * @property {import('../services/logger-service.js').LoggerService} logger
  * @property {import('../services/game-state-service.js').GameStateService} gameState
  * @property {import('../commands/command-bus.js').CommandBus} commandBus
- * @property {import('../managers/game-session-manager.js').GameSessionManager} sessionManager
+
  * @property {import('../controllers/quest-controller.js').QuestController} questController
  * @property {import('../services/progress-service.js').ProgressService} progressService
- * @property {import('../services/game-service.js').GameService} [gameService]
+ * @property {import('../services/session-service.js').SessionService} sessionService
+ * @property {import('../services/quest-loader-service.js').QuestLoaderService} [questLoader]
+ * @property {import('../game/interfaces.js').IHeroStateService} heroState
+ * @property {import('../game/interfaces.js').IQuestStateService} questState
+ * @property {import('../game/interfaces.js').IWorldStateService} worldState
+ * @property {any} [gameService]
  * @property {import("../utils/router.js").Router} [router]
  * @property {import("../services/storage-service.js").LocalStorageAdapter} [storageAdapter]
  * @property {import('../controllers/interaction-controller.js').InteractionController} [interaction]

@@ -15,7 +15,8 @@ describe("MoveHeroCommand", () => {
 
 	it("should move hero by delta", () => {
 		command = new MoveHeroCommand({
-			gameState: fakeGameState,
+			heroState: fakeGameState.heroState,
+			worldState: fakeGameState.worldState,
 			dx: 5,
 			dy: 0,
 		});
@@ -27,7 +28,8 @@ describe("MoveHeroCommand", () => {
 
 	it("should save previous position", () => {
 		command = new MoveHeroCommand({
-			gameState: fakeGameState,
+			heroState: fakeGameState.heroState,
+			worldState: fakeGameState.worldState,
 			dx: 5,
 			dy: 3,
 		});
@@ -39,7 +41,8 @@ describe("MoveHeroCommand", () => {
 
 	it("should undo move to previous position", () => {
 		command = new MoveHeroCommand({
-			gameState: fakeGameState,
+			heroState: fakeGameState.heroState,
+			worldState: fakeGameState.worldState,
 			dx: 5,
 			dy: 3,
 		});
@@ -56,7 +59,8 @@ describe("MoveHeroCommand", () => {
 		fakeGameState.isPaused.set(true);
 
 		command = new MoveHeroCommand({
-			gameState: fakeGameState,
+			heroState: fakeGameState.heroState,
+			worldState: fakeGameState.worldState,
 			dx: 5,
 			dy: 0,
 		});
@@ -68,7 +72,8 @@ describe("MoveHeroCommand", () => {
 		fakeGameState.isEvolving.set(true);
 
 		command = new MoveHeroCommand({
-			gameState: fakeGameState,
+			heroState: fakeGameState.heroState,
+			worldState: fakeGameState.worldState,
 			dx: 5,
 			dy: 0,
 		});
@@ -78,7 +83,8 @@ describe("MoveHeroCommand", () => {
 
 	it("should execute when not paused or evolving", () => {
 		command = new MoveHeroCommand({
-			gameState: fakeGameState,
+			heroState: fakeGameState.heroState,
+			worldState: fakeGameState.worldState,
 			dx: 5,
 			dy: 0,
 		});
@@ -88,7 +94,8 @@ describe("MoveHeroCommand", () => {
 
 	it("should set properties correctly", () => {
 		command = new MoveHeroCommand({
-			gameState: fakeGameState,
+			heroState: fakeGameState.heroState,
+			worldState: fakeGameState.worldState,
 			dx: 5,
 			dy: 0,
 		});
@@ -100,7 +107,8 @@ describe("MoveHeroCommand", () => {
 
 	it("should handle negative deltas", () => {
 		command = new MoveHeroCommand({
-			gameState: fakeGameState,
+			heroState: fakeGameState.heroState,
+			worldState: fakeGameState.worldState,
 			dx: -5,
 			dy: -3,
 		});
@@ -113,7 +121,8 @@ describe("MoveHeroCommand", () => {
 	it("should trigger onMove callback during execute", () => {
 		const onMove = vi.fn();
 		command = new MoveHeroCommand({
-			gameState: fakeGameState,
+			heroState: fakeGameState.heroState,
+			worldState: fakeGameState.worldState,
 			dx: 5,
 			dy: 0,
 			onMove,
@@ -127,7 +136,8 @@ describe("MoveHeroCommand", () => {
 	it("should trigger onMove callback during undo", () => {
 		const onMove = vi.fn();
 		command = new MoveHeroCommand({
-			gameState: fakeGameState,
+			heroState: fakeGameState.heroState,
+			worldState: fakeGameState.worldState,
 			dx: 5,
 			dy: 0,
 			onMove,
@@ -144,7 +154,8 @@ describe("MoveHeroCommand", () => {
 	it("should clamp x and y to 0", () => {
 		fakeGameState.heroPos.set({ x: 2, y: 2 });
 		command = new MoveHeroCommand({
-			gameState: fakeGameState,
+			heroState: fakeGameState.heroState,
+			worldState: fakeGameState.worldState,
 			dx: -10,
 			dy: -10,
 		});
@@ -157,7 +168,8 @@ describe("MoveHeroCommand", () => {
 	it("should clamp x and y to 100", () => {
 		fakeGameState.heroPos.set({ x: 98, y: 98 });
 		command = new MoveHeroCommand({
-			gameState: fakeGameState,
+			heroState: fakeGameState.heroState,
+			worldState: fakeGameState.worldState,
 			dx: 10,
 			dy: 10,
 		});

@@ -11,7 +11,7 @@ export class HeroStateService {
 	constructor() {
 		this.pos = new Signal.State({ x: 50, y: 15 });
 		this.hotSwitchState = new Signal.State(
-			/** @type {HotSwitchState} */ ("legacy"),
+			/** @type {HotSwitchState} */ (null),
 		);
 		this.isEvolving = new Signal.State(false);
 		this.imageSrc = new Signal.State("");

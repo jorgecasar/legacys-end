@@ -19,7 +19,7 @@ describe("GameHud Component", () => {
 	});
 
 	it("renders correctly with default props", async () => {
-		render(html`<game-hud></game-hud>`, container);
+		render(html`<game-hud levelTitle="Default Level"></game-hud>`, container);
 		const element = /** @type {GameHud} */ (
 			container.querySelector("game-hud")
 		);

@@ -36,6 +36,12 @@ describe("CollisionController", () => {
 				},
 			},
 			gameState: fakeGameState,
+			heroState: {
+				pos: fakeGameState.heroPos,
+			},
+			questState: {
+				hasCollectedItem: fakeGameState.hasCollectedItem,
+			},
 		};
 
 		controller = new CollisionController(host, context, {

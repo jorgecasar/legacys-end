@@ -7,12 +7,12 @@
 export class AdvanceChapterCommand {
 	/**
 	 * @param {Object} params
-	 * @param {import('../services/game-state-service.js').GameStateService} params.gameState
-	 * @param {import('../managers/game-session-manager.js').GameSessionManager} params.sessionManager
+	 * @param {import('../game/interfaces.js').IHeroStateService} params.heroState
+	 * @param {import('../services/quest-loader-service.js').QuestLoaderService} params.questLoader
 	 */
-	constructor({ gameState, sessionManager }) {
-		this.gameState = gameState;
-		this.sessionManager = sessionManager;
+	constructor({ heroState, questLoader }) {
+		this.heroState = heroState;
+		this.questLoader = questLoader;
 		this.name = "AdvanceChapter";
 		this.metadata = {};
 	}
@@ -21,21 +21,20 @@ export class AdvanceChapterCommand {
 	 * Execute the command
 	 */
 	async execute() {
-		const quest = this.sessionManager.currentQuest.get();
+		const quest = this.questLoader.context.sessionService.currentQuest.get();
 		if (quest) {
-			this.gameState.setEvolving(true);
+			this.heroState.setIsEvolving(true);
 
 			// Simulate evolution animation duration
 			await new Promise((resolve) => setTimeout(resolve, 500));
 
-			const questController = this.sessionManager.questController;
+			const questController = this.questLoader.context.questController;
 			if (questController.isLastChapter()) {
-				await this.sessionManager.completeQuest();
+				await this.questLoader.completeQuest();
 			} else {
-				this.sessionManager.completeChapter();
+				this.questLoader.completeChapter();
 			}
-
-			this.gameState.setEvolving(false);
+			+this.heroState.setIsEvolving(false);
 		}
 	}
 }

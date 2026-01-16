@@ -7,10 +7,10 @@
 export class CollectRewardCommand {
 	/**
 	 * @param {Object} params
-	 * @param {import('../services/game-state-service.js').GameStateService} params.gameState
+	 * @param {import('../game/interfaces.js').IQuestStateService} params.questState
 	 */
-	constructor({ gameState }) {
-		this.gameState = gameState;
+	constructor({ questState }) {
+		this.questState = questState;
 		this.name = "CollectReward";
 		this.metadata = {};
 	}
@@ -19,13 +19,13 @@ export class CollectRewardCommand {
 	 * Execute the command
 	 */
 	execute() {
-		this.gameState.setRewardCollected(true);
+		this.questState.setIsRewardCollected(true);
 	}
 
 	/**
 	 * Undo the command
 	 */
 	undo() {
-		this.gameState.setRewardCollected(false);
+		this.questState.setIsRewardCollected(false);
 	}
 }

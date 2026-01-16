@@ -4,13 +4,17 @@ import {
 	performanceMiddleware,
 	validationMiddleware,
 } from "../commands/middleware.js";
-import { GameSessionManager } from "../managers/game-session-manager.js";
+import { HeroStateService } from "../game/services/hero-state-service.js";
+import { QuestStateService } from "../game/services/quest-state-service.js";
+import { WorldStateService } from "../game/services/world-state-service.js";
 import { aiService } from "../services/ai-service.js";
 import { GameStateService } from "../services/game-state-service.js";
 import { LocalizationService } from "../services/localization-service.js";
 import { logger } from "../services/logger-service.js";
 import { preloader } from "../services/preloader-service.js";
 import { ProgressService } from "../services/progress-service.js";
+import { QuestLoaderService } from "../services/quest-loader-service.js";
+import { SessionService } from "../services/session-service.js";
 import { LocalStorageAdapter } from "../services/storage-service.js";
 import {
 	LegacyUserService,
@@ -25,7 +29,6 @@ import { setupGameService } from "../setup/setup-game.js";
 import { setupInteraction } from "../setup/setup-interaction.js";
 import { setupQuest } from "../setup/setup-quest.js";
 import { setupService } from "../setup/setup-service.js";
-import { setupSessionManager } from "../setup/setup-session-manager.js";
 import { setupVoice } from "../setup/setup-voice.js";
 import { setupZones } from "../setup/setup-zones.js";
 import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-transition.js";
@@ -39,13 +42,18 @@ import { eventBus as centralEventBus } from "./event-bus.js";
  * @property {import('../services/progress-service.js').ProgressService} progressService
  * @property {Object} services
  * @property {import('../commands/command-bus.js').CommandBus} commandBus
- * @property {import('../managers/game-session-manager.js').GameSessionManager} sessionManager
+
  * @property {import('../services/preloader-service.js').PreloaderService} preloader
  * @property {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} evaluateChapterTransition
  * @property {import('../services/ai-service.js').AIService} aiService
  * @property {import('../services/voice-synthesis-service.js').VoiceSynthesisService} voiceSynthesisService
  * @property {import('../services/localization-service.js').LocalizationService} localizationService
  * @property {import('../services/theme-service.js').ThemeService} themeService
+ * @property {import('../services/session-service.js').SessionService} sessionService
+ * @property {import('../services/quest-loader-service.js').QuestLoaderService} questLoader
+ * @property {import('../game/services/hero-state-service.js').HeroStateService} heroState
+ * @property {import('../game/services/quest-state-service.js').QuestStateService} questState
+ * @property {import('../game/services/world-state-service.js').WorldStateService} worldState
  */
 
 /**
@@ -54,11 +62,10 @@ import { eventBus as centralEventBus } from "./event-bus.js";
  * @property {import('../services/logger-service.js').LoggerService} logger
  * @property {import('../services/game-state-service.js').GameStateService} gameState
  * @property {import('../commands/command-bus.js').CommandBus} commandBus
- * @property {import('../managers/game-session-manager.js').GameSessionManager} sessionManager
+
  * @property {import('../services/storage-service.js').LocalStorageAdapter} storageAdapter
  * @property {import('../controllers/quest-controller.js').QuestController} [questController]
  * @property {import('../services/progress-service.js').ProgressService} [progressService]
- * @property {import('../services/game-service.js').GameService} [gameService]
  * @property {import('../utils/router.js').Router} [router]
  * @property {import('../controllers/service-controller.js').ServiceController} [serviceController]
  * @property {import('../controllers/character-context-controller.js').CharacterContextController} [characterContexts]
@@ -69,6 +76,11 @@ import { eventBus as centralEventBus } from "./event-bus.js";
  * @property {import('../services/voice-synthesis-service.js').VoiceSynthesisService} voiceSynthesisService
  * @property {import('../services/localization-service.js').LocalizationService} localizationService
  * @property {import('../services/theme-service.js').ThemeService} themeService
+ * @property {import('../services/session-service.js').SessionService} sessionService
+ * @property {import('../services/quest-loader-service.js').QuestLoaderService} questLoader
+ * @property {import('../game/services/hero-state-service.js').HeroStateService} heroState
+ * @property {import('../game/services/quest-state-service.js').QuestStateService} questState
+ * @property {import('../game/services/world-state-service.js').WorldStateService} worldState
  */
 
 /**
@@ -102,7 +114,7 @@ export class GameBootstrapper {
 		// 4. Setup Routes
 		setupRoutes(
 			router,
-			/** @type {any} */ ({ sessionManager: context.sessionManager }),
+			/** @type {any} */ ({ sessionManager: context.questLoader }),
 		);
 
 		logger.info("GameBootstrapper: Initialization complete.");
@@ -142,24 +154,19 @@ export class GameBootstrapper {
 			new: new NewUserService(),
 		};
 
+		const sessionService = new SessionService();
+		const heroState = new HeroStateService();
+		const questState = new QuestStateService();
+		const worldState = new WorldStateService();
+
+		// Inject dependencies into GameStateService facade
+		gameState.setDomainServices(heroState, questState, worldState);
+
 		// Initialize Command Bus
 		const commandBus = new CommandBus();
 		commandBus.use(validationMiddleware);
 		commandBus.use(loggingMiddleware);
 		commandBus.use(performanceMiddleware);
-
-		// Initialize Session Manager (Preliminary)
-		// Note: Dependencies like questController are injected later in setupControllers
-		const sessionManager = new GameSessionManager({
-			gameState,
-			progressService,
-			commandBus,
-			eventBus: this.eventBus,
-			logger: logger,
-			router: /** @type {any} */ (null),
-			questController: /** @type {any} */ (null),
-			controllers: {},
-		});
 
 		return {
 			storageAdapter,
@@ -167,13 +174,17 @@ export class GameBootstrapper {
 			progressService,
 			services,
 			commandBus,
-			sessionManager,
 			preloader,
 			evaluateChapterTransition: new EvaluateChapterTransitionUseCase(),
 			aiService,
 			voiceSynthesisService,
 			localizationService,
 			themeService,
+			sessionService,
+			questLoader: /** @type {any} */ (null), // Instantiated in setupControllers for now
+			heroState,
+			questState,
+			worldState,
 		};
 	}
 
@@ -187,10 +198,9 @@ export class GameBootstrapper {
 		// This pattern is used by the existing setup helper functions
 		const context = {
 			eventBus: this.eventBus,
-			logger: servicesContext.sessionManager.logger,
+			logger: logger,
 			gameState: servicesContext.gameState,
 			commandBus: servicesContext.commandBus,
-			sessionManager: servicesContext.sessionManager,
 			progressService: servicesContext.progressService,
 			storageAdapter: servicesContext.storageAdapter,
 			projectService: null, // Placeholder if needed
@@ -206,6 +216,11 @@ export class GameBootstrapper {
 			voiceSynthesisService: servicesContext.voiceSynthesisService,
 			localizationService: servicesContext.localizationService,
 			themeService: servicesContext.themeService,
+			sessionService: servicesContext.sessionService,
+			questLoader: servicesContext.questLoader,
+			heroState: servicesContext.heroState,
+			questState: servicesContext.questState,
+			worldState: servicesContext.worldState,
 		};
 
 		// Run existing setup helpers
@@ -213,7 +228,9 @@ export class GameBootstrapper {
 		// and also populate the context object with the created instances.
 
 		await setupQuest(/** @type {any} */ (host), context);
-		setupSessionManager(context);
+		context.questLoader = new QuestLoaderService(context);
+		context.questLoader.setupEventListeners();
+
 		setupGameService(context);
 		setupService(/** @type {any} */ (host), context);
 		setupCharacterContexts(/** @type {any} */ (host), context);

@@ -18,19 +18,18 @@ export function setupInteraction(host, context) {
 		eventBus: context.eventBus,
 		gameState: context.gameState,
 		getState: () => {
-			const state = context.gameState.getState();
 			const currentChapter = context.questController.currentChapter;
 			return {
 				level: currentChapter?.id || "",
 				chapterData: /** @type {any} */ (currentChapter),
-				heroPos: state.heroPos,
-				hotSwitchState: state.hotSwitchState || "legacy",
-				hasCollectedItem: state.hasCollectedItem,
+				heroPos: context.heroState.pos.get(),
+				hotSwitchState: context.heroState.hotSwitchState.get(),
+				hasCollectedItem: context.questState.hasCollectedItem.get(),
 			};
 		},
 		getNpcPosition: () => context.questController.currentChapter?.npc?.position,
 		interactWithNpcUseCase:
-			context.sessionManager?._interactWithNpcUseCase ||
+			context.questLoader?._interactWithNpcUseCase ||
 			new InteractWithNpcUseCase(),
 	});
 }

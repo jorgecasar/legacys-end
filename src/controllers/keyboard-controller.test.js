@@ -37,6 +37,7 @@ describe("KeyboardController", () => {
 			},
 			interaction: {},
 			gameState: {},
+			worldState: {},
 		};
 
 		// Mock window event listeners

@@ -1,3 +1,4 @@
+import { Signal } from "@lit-labs/signals";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FakeGameStateService } from "../services/fakes/fake-game-state-service.js";
 import { GameZoneController } from "./game-zone-controller.js";
@@ -45,6 +46,14 @@ describe("GameZoneController", () => {
 			},
 			gameState: fakeGameState,
 			themeService: mockThemeService,
+			heroState: {
+				pos: fakeGameState.heroPos,
+				hotSwitchState: new Signal.State("legacy"),
+				setHotSwitchState: fakeGameState.setHotSwitchState,
+			},
+			questState: {
+				hasCollectedItem: fakeGameState.hasCollectedItem,
+			},
 		};
 	});
 
@@ -190,7 +199,8 @@ describe("GameZoneController", () => {
 				}),
 			});
 
-			const spy = vi.spyOn(fakeGameState, "setHotSwitchState");
+			// Ensure context uses the spy
+			const spy = vi.spyOn(context.heroState, "setHotSwitchState");
 
 			fakeGameState.heroPos.set({ x: 50, y: 50 });
 			controller.hostUpdate();

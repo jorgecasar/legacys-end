@@ -1,8 +1,10 @@
-import "@awesome.me/webawesome/dist/components/button/button.js";
-import "@awesome.me/webawesome/dist/components/card/card.js";
+import { ContextConsumer } from "@lit/context";
 import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement } from "lit";
 import { PauseGameCommand } from "../../commands/pause-game-command.js";
+import { heroStateContext } from "../../game/contexts/hero-context.js";
+import { questStateContext } from "../../game/contexts/quest-context.js";
+import { worldStateContext } from "../../game/contexts/world-context.js";
 import "../game-viewport/game-viewport.js";
 import "../level-dialog/level-dialog.js";
 import "../pause-menu/pause-menu.js";
@@ -50,6 +52,35 @@ export class QuestView extends SignalWatcher(LitElement) {
 		gameState: { type: Object },
 		app: { type: Object },
 	};
+	/** @type {ContextConsumer<typeof heroStateContext, QuestView>} */
+	heroStateConsumer = new ContextConsumer(this, {
+		context: heroStateContext,
+		subscribe: true,
+	});
+
+	/** @type {ContextConsumer<typeof questStateContext, QuestView>} */
+	questStateConsumer = new ContextConsumer(this, {
+		context: questStateContext,
+		subscribe: true,
+	});
+
+	/** @type {ContextConsumer<typeof worldStateContext, QuestView>} */
+	worldStateConsumer = new ContextConsumer(this, {
+		context: worldStateContext,
+		subscribe: true,
+	});
+
+	get heroState() {
+		return this.heroStateConsumer.value;
+	}
+
+	get questState() {
+		return this.questStateConsumer.value;
+	}
+
+	get worldState() {
+		return this.worldStateConsumer.value;
+	}
 
 	static styles = questViewStyles;
 
@@ -66,19 +97,17 @@ export class QuestView extends SignalWatcher(LitElement) {
 	 * @param {CustomEvent} e - Slide changed event
 	 */
 	#handleSlideChanged(e) {
-		if (this.app?.gameState) {
-			this.app.gameState.setCurrentDialogText(e.detail.text);
-		}
+		this.worldState?.setCurrentDialogText(e.detail.text);
 	}
 
 	/**
 	 * Toggles game pause state
 	 */
 	togglePause() {
-		if (this.app?.commandBus) {
+		if (this.app?.commandBus && this.worldState) {
 			this.app.commandBus.execute(
 				new PauseGameCommand({
-					gameState: this.app.gameState,
+					worldState: this.worldState,
 				}),
 			);
 		}
@@ -86,23 +115,22 @@ export class QuestView extends SignalWatcher(LitElement) {
 
 	render() {
 		const { config, quest } = this.gameState || {};
-		const stateService = this.app?.gameState;
 
-		if (!config || !stateService || !stateService.isPaused) {
+		if (!config || !this.worldState || !this.questState) {
 			return html`<div>Loading level data...</div>`;
 		}
 
 		// Pull current state from signals for rendering
-		const isPaused = stateService.isPaused.get();
-		const isQuestCompleted = stateService.isQuestCompleted.get();
-		const showDialog = stateService.showDialog.get();
+		const isPaused = this.worldState.isPaused.get();
+		const isQuestCompleted = this.questState.isQuestCompleted.get();
+		const showDialog = this.worldState.showDialog.get();
 
 		return html`
 			<pause-menu
 				.open="${isPaused}"
-				@resume="${() => this.app.gameState.setPaused(false)}"
+				@resume="${() => this.worldState.setPaused(false)}"
 				@restart="${() => {
-					this.app.gameState.setPaused(false);
+					this.worldState.setPaused(false);
 					this.dispatchEvent(new CustomEvent("restart"));
 				}}"
 				@quit="${() => {
@@ -173,3 +201,5 @@ export class QuestView extends SignalWatcher(LitElement) {
 		}
 	}
 }
+
+customElements.define("quest-view", QuestView);

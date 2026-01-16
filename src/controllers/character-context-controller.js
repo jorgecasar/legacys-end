@@ -60,13 +60,27 @@ export class CharacterContextController {
 	 * Update all character contexts based on current game state
 	 */
 	hostUpdate() {
-		const state = this.options.gameState.getState();
+		// Access state via domain services on GameStateService facade
+		const gameState = this.options.gameState;
+
+		// Handle both real GameStateService (with .questState) and FakeGameStateService (direct properties or mock)
+		// The FakeGameStateService in tests seems to expose signals directly based on previous test file view
+
+		/** @type {any} */
+		const questState = gameState.questState || gameState;
+		/** @type {any} */
+		const heroState = gameState.heroState || gameState;
+
 		const currentChapter = this.options.questController.currentChapter;
 
 		// Calculate derived values
 		const level = currentChapter?.id || "";
 		const chapterData = currentChapter;
-		const { isRewardCollected, hasCollectedItem, hotSwitchState } = state;
+
+		const isRewardCollected = questState.isRewardCollected?.get() || false;
+		const hasCollectedItem = questState.hasCollectedItem?.get() || false;
+		const hotSwitchState = heroState.hotSwitchState?.get() || "legacy";
+
 		const themeMode = this.options.themeService?.themeMode?.get() || "light";
 
 		const suit = {

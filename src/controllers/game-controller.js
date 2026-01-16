@@ -1,7 +1,6 @@
 /**
  * @typedef {import("lit").ReactiveController} ReactiveController
  * @typedef {import("lit").ReactiveControllerHost} ReactiveControllerHost
- * @typedef {import("../services/game-service.js").GameService} GameService
  * @typedef {import("../core/game-context.js").IGameContext} IGameContext
  */
 
@@ -9,9 +8,14 @@ import { AdvanceChapterCommand } from "../commands/advance-chapter-command.js";
 
 /**
  * @typedef {Object} GameControllerOptions
- * @property {GameService} gameService - Game service instance to use for game commands
  * @property {boolean} [exposeToConsole=true] - Whether to expose game service to console as window.game
  * @property {import('../services/logger-service.js').LoggerService} [logger]
+ * @property {import('../game/interfaces.js').IHeroStateService} [heroState]
+ * @property {import('../game/interfaces.js').IQuestStateService} [questState]
+ * @property {import('../game/interfaces.js').IWorldStateService} [worldState]
+ * @property {import('../controllers/quest-controller.js').QuestController} [questController]
+ * @property {import('../commands/command-bus.js').CommandBus} [commandBus]
+ * @property {import('../services/quest-loader-service.js').QuestLoaderService} [questLoader]
  */
 
 /**
@@ -36,10 +40,6 @@ export class GameController {
 		/** @type {boolean} */
 		this.isTransitioning = false;
 
-		if (!options.gameService) {
-			throw new Error("GameController requires a gameService option");
-		}
-
 		host.addController(this);
 	}
 
@@ -53,15 +53,28 @@ export class GameController {
 		// Prevent multiple triggers
 		if (this.isTransitioning) return;
 
-		const { gameState, questController, commandBus, sessionManager } =
-			this.options;
-		if (commandBus && gameState && questController && sessionManager) {
+		const {
+			heroState,
+			worldState,
+			questState,
+			questController,
+			commandBus,
+			questLoader,
+		} = this.options;
+		if (
+			commandBus &&
+			heroState &&
+			worldState &&
+			questState &&
+			questController &&
+			questLoader
+		) {
 			this.isTransitioning = true;
 			commandBus
 				.execute(
 					new AdvanceChapterCommand({
-						gameState,
-						sessionManager,
+						heroState,
+						questLoader,
 					}),
 				)
 				.finally(() => {
@@ -79,44 +92,50 @@ export class GameController {
 	 * Executes logic to advance chapter or complete quest
 	 */
 	handleLevelCompleted = () => {
-		const { gameState, questController, commandBus, sessionManager } =
-			this.options;
+		const {
+			heroState,
+			worldState,
+			questState,
+			questController,
+			commandBus,
+			questLoader,
+		} = this.options;
 
 		// 1. Hide dialog if open (handled by UI state, but ensures clean slate)
-		gameState?.setShowDialog(false);
+		worldState?.setShowDialog(false);
 
 		// 2. Check if we should advance to next chapter
-		const state = gameState?.getState();
+		const isRewardCollected = questState?.isRewardCollected.get();
 		const hasNext = questController?.hasNextChapter();
 
-		if (state?.isRewardCollected && hasNext) {
+		if (isRewardCollected && hasNext) {
 			this.logger?.info("📖 Advancing to next chapter");
 			// Stop auto-move if any? (Handled by AdvanceChapterCommand presumably or logic)
 
-			if (commandBus && gameState && sessionManager) {
+			if (commandBus && heroState && worldState && questState && questLoader) {
 				commandBus.execute(
 					new AdvanceChapterCommand({
-						gameState,
-						sessionManager,
+						heroState,
+						questLoader,
 					}),
 				);
 			}
 		} else {
 			// Just mark item as collected/level complete state
 			this.logger?.info("✅ Level Goal Reached (Item Collected)");
-			gameState?.setCollectedItem(true);
+			questState?.setHasCollectedItem(true);
 		}
 	};
 
 	enableDebugMode() {
 		this.logger?.info(`
-🎮 DEBUG MODE ENABLED
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Type 'app.gameService.help()' for available commands
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-		`);
+		🎮 DEBUG MODE ENABLED
+		━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+		Type 'app.questLoader.help()' for available commands
+		━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+				`);
 
-		// Show initial state
-		this.options.gameService.getState();
+		// Show initial state (legacy)
+		// this.options.gameService.getState();
 	}
 }

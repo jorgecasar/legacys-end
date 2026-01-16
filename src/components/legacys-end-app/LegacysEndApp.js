@@ -11,6 +11,9 @@ import { ROUTES } from "../../constants/routes.js";
 import { themeContext } from "../../contexts/theme-context.js";
 import { eventBus as centralEventBus } from "../../core/event-bus.js";
 import { GameBootstrapper } from "../../core/game-bootstrapper.js";
+import { heroStateContext } from "../../game/contexts/hero-context.js";
+import { questStateContext } from "../../game/contexts/quest-context.js";
+import { worldStateContext } from "../../game/contexts/world-context.js";
 import { ContextMixin } from "../../mixins/context-mixin.js";
 import { logger } from "../../services/logger-service.js";
 import { legacysEndAppStyles } from "./LegacysEndApp.styles.js";
@@ -39,12 +42,12 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 	gameState = /** @type {any} */ (null);
 	/** @type {import("../../services/storage-service.js").LocalStorageAdapter} */
 	storageAdapter = /** @type {any} */ (null);
-	/** @type {import("../../services/game-service.js").GameService} */
-	gameService = /** @type {any} */ (null);
 	/** @type {Object} */
 	services = {};
-	/** @type {import("../../managers/game-session-manager.js").GameSessionManager} */
-	sessionManager = /** @type {any} */ (null);
+	/** @type {import("../../services/session-service.js").SessionService} */
+	sessionService = /** @type {any} */ (null);
+	/** @type {import("../../services/quest-loader-service.js").QuestLoaderService} */
+	questLoader = /** @type {any} */ (null);
 	/** @type {import("../../commands/command-bus.js").CommandBus} */
 	commandBus = /** @type {any} */ (null);
 	/** @type {import('../../core/event-bus.js').EventBus} */
@@ -59,6 +62,12 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 	aiService = /** @type {any} */ (null);
 	/** @type {import("../../services/voice-synthesis-service.js").VoiceSynthesisService} */
 	voiceSynthesisService = /** @type {any} */ (null);
+	/** @type {import('../../game/interfaces.js').IHeroStateService} */
+	heroState = /** @type {any} */ (null);
+	/** @type {import('../../game/interfaces.js').IQuestStateService} */
+	questState = /** @type {any} */ (null);
+	/** @type {import('../../game/interfaces.js').IWorldStateService} */
+	worldState = /** @type {any} */ (null);
 
 	// Router
 	/** @type {import("../../utils/router.js").Router} */
@@ -135,21 +144,37 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 			);
 		this.gameState = context.gameState;
 		this.storageAdapter = context.storageAdapter;
-		this.gameService =
-			/** @type {import("../../services/game-service.js").GameService} */ (
-				context.gameService
-			);
 		this.services = context.services;
-		this.sessionManager = context.sessionManager;
+		this.sessionService = context.sessionService;
+		this.questLoader = context.questLoader;
 		this.commandBus = context.commandBus;
 		this.aiService = context.aiService;
 		this.voiceSynthesisService = context.voiceSynthesisService;
 		this.localizationService = context.localizationService;
 
+		this.heroState = context.heroState;
+		this.questState = context.questState;
+		this.worldState = context.worldState;
+
 		this.themeService = context.themeService;
 		this.themeProvider = new ContextProvider(this, {
 			context: themeContext,
 			initialValue: this.themeService,
+		});
+
+		this.heroStateProvider = new ContextProvider(this, {
+			context: heroStateContext,
+			initialValue: this.heroState,
+		});
+
+		this.questStateProvider = new ContextProvider(this, {
+			context: questStateContext,
+			initialValue: this.questState,
+		});
+
+		this.worldStateProvider = new ContextProvider(this, {
+			context: worldStateContext,
+			initialValue: this.worldState,
 		});
 
 		this.router = /** @type {import("../../utils/router.js").Router} */ (
@@ -241,17 +266,17 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 		super.willUpdate(changedProperties);
 
 		// React directly to signals
-		if (this.gameState) {
-			const newHotSwitchState = this.gameState.hotSwitchState.get();
+		if (this.heroState) {
+			const newHotSwitchState = this.heroState.hotSwitchState.get();
 			if (this._lastHotSwitchState !== newHotSwitchState) {
 				this._lastHotSwitchState = newHotSwitchState;
 			}
 		}
 
 		// React directly to session signals for routing
-		if (this.sessionManager) {
-			const isInHub = this.sessionManager.isInHub.get();
-			const currentQuest = this.sessionManager.currentQuest.get();
+		if (this.sessionService) {
+			const isInHub = this.sessionService.isInHub.get();
+			const currentQuest = this.sessionService.currentQuest.get();
 
 			// Lazy load components based on route
 			this._ensureComponentLoaded(isInHub ? "quest-hub" : "quest-view");
@@ -278,25 +303,25 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 	}
 
 	getChapterData(/** @type {string} */ levelId) {
-		const currentQuest = this.sessionManager?.currentQuest.get();
+		const currentQuest = this.sessionService?.currentQuest.get();
 		if (!currentQuest || !currentQuest.chapters) return null;
 		return currentQuest.chapters[levelId] || null;
 	}
 
 	togglePause() {
 		if (this.isInHub) return;
-		const isPaused = this.gameState.isPaused.get();
-		this.gameState.setPaused(!isPaused);
+		const isPaused = this.worldState.isPaused.get();
+		this.worldState.setPaused(!isPaused);
 	}
 
 	#handleResume() {
-		this.gameState.setPaused(false);
+		this.worldState.setPaused(false);
 	}
 
 	#handleRestartQuest() {
-		const currentQuest = this.sessionManager?.currentQuest.get();
+		const currentQuest = this.sessionService?.currentQuest.get();
 		if (currentQuest) {
-			this.sessionManager.startQuest(currentQuest.id);
+			this.questLoader.startQuest(currentQuest.id);
 		}
 	}
 
@@ -305,17 +330,17 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 	}
 
 	#handleCloseDialog() {
-		this.gameState.setShowDialog(false);
+		this.worldState.setShowDialog(false);
 		this.hasSeenIntro = true;
 	}
 
 	#handleToggleHotSwitch() {
 		this.#executeCommand(
-			new ToggleHotSwitchCommand({ gameState: this.gameState }),
+			new ToggleHotSwitchCommand({ heroState: this.heroState }),
 			() => {
-				const currentState = this.gameState.hotSwitchState.get();
+				const currentState = this.heroState.hotSwitchState.get();
 				const newState = currentState === "legacy" ? "new" : "legacy";
-				this.gameState.setHotSwitchState(newState);
+				this.heroState.setHotSwitchState(newState);
 				logger.info("🔄 Hot Switch toggled to:", newState);
 			},
 		);
@@ -324,8 +349,8 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 	#handleRewardCollected() {
 		logger.info("🎉 LegacysEndApp received reward-collected event");
 		this.#executeCommand(
-			new CollectRewardCommand({ gameState: this.gameState }),
-			() => this.gameState.setRewardCollected(true),
+			new CollectRewardCommand({ questState: this.questState }),
+			() => this.questState.setIsRewardCollected(true),
 		);
 		this.requestUpdate();
 	}
@@ -336,7 +361,7 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 	}
 
 	#handleResetProgress() {
-		this.gameService.resetProgress();
+		this.progressService.resetProgress();
 		this.requestUpdate();
 	}
 
@@ -372,28 +397,28 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 		const chapterData = this.getChapterData(chapterId || "");
 		return this.serviceController.getActiveService(
 			chapterData?.serviceType,
-			this.gameState.hotSwitchState.get() || null,
+			this.heroState.hotSwitchState.get() || null,
 		);
 	}
 
 	static styles = legacysEndAppStyles;
 
 	get isLoading() {
-		return this.sessionManager?.isLoading.get() || false;
+		return this.sessionService?.isLoading.get() || false;
 	}
 
 	get isInHub() {
-		return this.sessionManager?.isInHub.get() || false;
+		return this.sessionService?.isInHub.get() || false;
 	}
 
 	get currentQuest() {
-		return this.sessionManager?.currentQuest.get() || null;
+		return this.sessionService?.currentQuest.get() || null;
 	}
 
 	render() {
 		// Reactions to isLoading, isInHub, etc., happen via SignalWatcher
-		const isLoading = this.sessionManager?.isLoading.get() || false;
-		const isInHub = this.sessionManager?.isInHub.get() || false;
+		const isLoading = this.sessionService?.isLoading.get() || false;
+		const isInHub = this.sessionService?.isInHub.get() || false;
 		// Track locale change to trigger re-render
 		this.localizationService?.getLocale();
 
@@ -443,28 +468,28 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 		if (this.commandBus) {
 			return this.commandBus.execute(
 				new StartQuestCommand({
-					sessionManager: this.sessionManager,
+					questLoader: this.questLoader,
 					questId,
 				}),
 			);
 		}
-		return this.sessionManager.startQuest(questId);
+		return this.questLoader.startQuest(questId);
 	}
 
 	#handleContinueQuest(/** @type {string} */ questId) {
 		if (this.commandBus) {
 			return this.commandBus.execute(
 				new ContinueQuestCommand({
-					sessionManager: this.sessionManager,
+					questLoader: this.questLoader,
 					questId,
 				}),
 			);
 		}
-		return this.sessionManager.continueQuest(questId);
+		return this.questLoader.continueQuest(questId);
 	}
 
 	renderGame() {
-		const currentQuest = this.sessionManager?.currentQuest.get();
+		const currentQuest = this.sessionService?.currentQuest.get();
 		// Fallback for chapterId: derive from controller or router?
 		// Ideally QuestController is the source of truth for chapterId
 		const chapterId = this.questController?.currentChapter?.id;
@@ -475,7 +500,7 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 		}
 
 		const effectiveConfig = { ...currentConfig };
-		const isRewardCollected = this.gameState.isRewardCollected.get();
+		const isRewardCollected = this.questState.isRewardCollected.get();
 		if (isRewardCollected && currentConfig.postDialogBackgroundStyle) {
 			effectiveConfig.backgroundStyle = currentConfig.postDialogBackgroundStyle;
 		}
@@ -483,31 +508,29 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 		const isCloseToTarget = this.interaction?.isCloseToNpc() || false;
 		const isLastChapter = this.questController?.isLastChapter() || false;
 
-		const stateSnapshot = this.gameState.getState();
-
 		const gameState = {
 			config: effectiveConfig,
 			ui: {
-				isPaused: stateSnapshot.isPaused,
-				showDialog: stateSnapshot.showDialog,
-				isQuestCompleted: stateSnapshot.isQuestCompleted,
-				lockedMessage: stateSnapshot.lockedMessage || "",
+				isPaused: this.worldState.isPaused.get(),
+				showDialog: this.worldState.showDialog.get(),
+				isQuestCompleted: this.questState.isQuestCompleted.get(),
+				lockedMessage: this.questState.lockedMessage.get() || "",
 			},
 			quest: {
 				data: currentQuest,
-				chapterNumber: this.questController?.getCurrentChapterNumber() || 0,
-				totalChapters: this.questController?.getTotalChapters() || 0,
+				chapterNumber: this.questState.currentChapterNumber.get(),
+				totalChapters: this.questState.totalChapters.get(),
 				isLastChapter: isLastChapter,
 				levelId: chapterId,
 			},
 			hero: {
-				pos: stateSnapshot.heroPos,
-				isEvolving: stateSnapshot.isEvolving,
-				hotSwitchState: stateSnapshot.hotSwitchState,
+				pos: this.heroState.pos.get(),
+				isEvolving: this.heroState.isEvolving.get(),
+				hotSwitchState: this.heroState.hotSwitchState.get(),
 			},
 			levelState: {
-				hasCollectedItem: stateSnapshot.hasCollectedItem,
-				isRewardCollected: stateSnapshot.isRewardCollected,
+				hasCollectedItem: this.questState.hasCollectedItem.get(),
+				isRewardCollected: isRewardCollected,
 				isCloseToTarget: isCloseToTarget,
 			},
 		};
@@ -546,9 +569,9 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 	#returnToHub() {
 		this.#executeCommand(
 			new ReturnToHubCommand({
-				sessionManager: this.sessionManager,
+				questLoader: this.questLoader,
 			}),
-			() => this.sessionManager.returnToHub(),
+			() => this.questLoader.returnToHub(),
 		);
 	}
 }

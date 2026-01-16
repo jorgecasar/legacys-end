@@ -11,20 +11,20 @@ import { ROUTES } from "../constants/routes.js";
  */
 export function setupRoutes(router, context) {
 	router.addRoute(ROUTES.HUB, () => {
-		context.sessionManager.returnToHub();
+		context.questLoader?.returnToHub();
 	});
 
 	router.addRoute(
 		ROUTES.QUEST(":id"),
 		(/** @type {Record<string, string>} */ params) => {
-			context.sessionManager.startQuest(params.id);
+			context.questLoader?.startQuest(params.id);
 		},
 	);
 
 	router.addRoute(
 		ROUTES.CHAPTER(":id", ":chapterId"),
 		(/** @type {Record<string, string>} */ params) => {
-			context.sessionManager.loadChapter(params.id, params.chapterId);
+			context.questLoader?.loadChapter(params.id, params.chapterId);
 		},
 	);
 }

@@ -47,9 +47,9 @@ export function setupVoice(host, context) {
 				}
 			},
 			onPause: () => {
-				if (context.commandBus && context.gameState) {
+				if (context.commandBus && context.worldState) {
 					context.commandBus.execute(
-						new PauseGameCommand({ gameState: context.gameState }),
+						new PauseGameCommand({ worldState: context.worldState }),
 					);
 				}
 			},
@@ -68,11 +68,11 @@ export function setupVoice(host, context) {
 				}
 			},
 			onGetDialogText: () => {
-				return context.gameState.getState().currentDialogText || "";
+				return context.worldState.currentDialogText.get() || "";
 			},
 			onGetContext: () => ({
-				isDialogOpen: context.gameState.getState().showDialog,
-				isRewardCollected: context.gameState.getState().hasCollectedItem,
+				isDialogOpen: context.worldState.showDialog.get(),
+				isRewardCollected: context.questState.isRewardCollected.get(),
 			}),
 			onMoveToNpc: () => {
 				const currentChapter = context.questController.currentChapter;
@@ -106,21 +106,12 @@ export function setupVoice(host, context) {
 				}
 			},
 			onDebugAction: (action, value) => {
-				// Debug actions are risky to decouple fully yet, but we can use sessionManager or commands
-				// For now keep using a dynamic check but via context
-				const anyContext = /** @type {any} */ (context);
-				if (
-					anyContext[action] &&
-					typeof anyContext[action].execute === "function"
-				) {
-					// Treat as a command if it looks like one (fake for now)
-				}
 				// Original logic was using app.gameService
 				if (
-					context.sessionManager &&
-					/** @type {any} */ (context.sessionManager)[action]
+					context.questLoader &&
+					/** @type {any} */ (context.questLoader)[action]
 				) {
-					/** @type {any} */ (context.sessionManager)[action](value);
+					/** @type {any} */ (context.questLoader)[action](value);
 				}
 			},
 			isEnabled: () => true, // Voice should generally be enabled if setup

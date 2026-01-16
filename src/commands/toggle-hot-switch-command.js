@@ -7,10 +7,10 @@
 export class ToggleHotSwitchCommand {
 	/**
 	 * @param {Object} params
-	 * @param {import('../services/game-state-service.js').GameStateService} params.gameState
+	 * @param {import('../game/interfaces.js').IHeroStateService} params.heroState
 	 */
-	constructor({ gameState }) {
-		this.gameState = gameState;
+	constructor({ heroState }) {
+		this.heroState = heroState;
 		/** @type {import('../services/game-state-service.js').HotSwitchState} */
 		this.previousState = null;
 		this.name = "ToggleHotSwitch";
@@ -22,10 +22,9 @@ export class ToggleHotSwitchCommand {
 	 * Execute the toggle
 	 */
 	execute() {
-		const state = this.gameState.getState();
-		this.previousState = state.hotSwitchState;
+		this.previousState = this.heroState.hotSwitchState.get();
 		const newState = this.previousState === "legacy" ? "new" : "legacy";
-		this.gameState.setHotSwitchState(newState);
+		this.heroState.setHotSwitchState(newState);
 		this.metadata.newState = newState;
 	}
 
@@ -33,8 +32,8 @@ export class ToggleHotSwitchCommand {
 	 * Undo the toggle
 	 */
 	undo() {
-		if (this.previousState !== undefined) {
-			this.gameState.setHotSwitchState(this.previousState);
+		if (this.previousState !== null) {
+			this.heroState.setHotSwitchState(this.previousState);
 		}
 	}
 }

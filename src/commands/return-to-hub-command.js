@@ -7,10 +7,10 @@
 export class ReturnToHubCommand {
 	/**
 	 * @param {Object} params
-	 * @param {import('../managers/game-session-manager.js').GameSessionManager} params.sessionManager
+	 * @param {import('../services/quest-loader-service.js').QuestLoaderService} params.questLoader
 	 */
-	constructor({ sessionManager }) {
-		this.sessionManager = sessionManager;
+	constructor({ questLoader }) {
+		this.questLoader = questLoader;
 		this.name = "ReturnToHub";
 		this.metadata = {};
 	}
@@ -20,7 +20,7 @@ export class ReturnToHubCommand {
 	 */
 	async execute() {
 		const result = /** @type {{success: boolean, error?: Error}} */ (
-			await this.sessionManager.returnToHub()
+			await this.questLoader.returnToHub()
 		);
 		if (!result.success) {
 			throw result.error || new Error("Failed to return to hub");

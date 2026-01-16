@@ -130,34 +130,10 @@ export class GameViewport extends SignalWatcher(LitElement) {
 			this.#subscribeToEvents();
 		}
 
-		// Sync Domain Services from App (Transition Phase)
-		if (this.app?.gameState) {
-			const state = this.app.gameState;
-			this.heroState.pos.set(state.heroPos.get());
-			this.heroState.hotSwitchState.set(state.hotSwitchState.get());
-			this.heroState.isEvolving.set(state.isEvolving.get());
-
-			this.questState.hasCollectedItem.set(state.hasCollectedItem.get());
-			this.questState.isRewardCollected.set(state.isRewardCollected.get());
-			this.questState.isQuestCompleted.set(state.isQuestCompleted.get());
-			this.questState.lockedMessage.set(state.lockedMessage.get());
-
-			this.worldState.isPaused.set(state.isPaused.get());
-			this.worldState.showDialog.set(state.showDialog.get());
-			this.worldState.currentDialogText.set(state.currentDialogText.get());
-
-			// Sync Quest Metadata
-			const questData = this.app.questController?.currentQuest;
-			const chapterIndex = this.app.questController?.currentChapterIndex ?? 0;
-			const config = /** @type {any} */ (this.gameState)?.config || {};
-
-			this.questState.setCurrentChapterNumber(chapterIndex + 1);
-			this.questState.setTotalChapters(questData?.totalChapters || 0);
-			this.questState.setLevelTitle(config.title || "");
-			this.questState.setQuestTitle(questData?.data?.name || "");
-
-			// Sync Hero Image
-			const isRewardCollected = state.isRewardCollected.get();
+		// Sync Hero Image from current chapter config
+		const config = /** @type {any} */ (this.gameState)?.config;
+		if (config) {
+			const isRewardCollected = this.questState.isRewardCollected.get();
 			const heroImage =
 				isRewardCollected && config.hero?.reward
 					? config.hero.reward
@@ -257,6 +233,20 @@ export class GameViewport extends SignalWatcher(LitElement) {
 		this.app.serviceController = context.serviceController;
 		this.app.characterContexts = context.characterContexts;
 		context.interaction = this.app.interaction;
+
+		// Link domain services if not already
+		if (this.app.heroState) {
+			this.heroState = this.app.heroState;
+			this.heroStateProvider.setValue(this.heroState);
+		}
+		if (this.app.questState) {
+			this.questState = this.app.questState;
+			this.questStateProvider.setValue(this.questState);
+		}
+		if (this.app.worldState) {
+			this.worldState = this.app.worldState;
+			this.worldStateProvider.setValue(this.worldState);
+		}
 	}
 
 	/**
@@ -287,16 +277,19 @@ export class GameViewport extends SignalWatcher(LitElement) {
 			logger: this.app.logger,
 			gameState: this.app.gameState,
 			commandBus: this.app.commandBus,
-			sessionManager: this.app.sessionManager,
 			questController: this.app.questController,
 			progressService: this.app.progressService,
-			gameService: this.app.gameService,
 			router: this.app.router,
 			serviceController: this.app.serviceController,
 			characterContexts: this.app.characterContexts,
 			interaction: this.app.interaction,
 			aiService: this.app.aiService,
 			voiceSynthesisService: this.app.voiceSynthesisService,
+			sessionService: this.app.sessionService,
+			questLoader: this.app.questLoader,
+			heroState: this.app.heroState,
+			questState: this.app.questState,
+			worldState: this.app.worldState,
 		};
 	}
 
@@ -325,7 +318,8 @@ export class GameViewport extends SignalWatcher(LitElement) {
 		if (this.app?.commandBus) {
 			this.app.commandBus.execute(
 				new MoveHeroCommand({
-					gameState: this.app.gameState,
+					heroState: this.heroState,
+					worldState: this.app.worldState,
 					dx,
 					dy,
 				}),
@@ -337,8 +331,7 @@ export class GameViewport extends SignalWatcher(LitElement) {
 	 * Handles interaction with game objects
 	 */
 	handleInteract() {
-		const stateService = this.app?.gameState;
-		const showDialog = stateService?.showDialog?.get();
+		const showDialog = this.worldState?.showDialog?.get();
 		if (showDialog) return;
 
 		if (this.app?.commandBus && this.interaction) {
@@ -360,7 +353,7 @@ export class GameViewport extends SignalWatcher(LitElement) {
 		this.stopAutoMove();
 
 		const move = () => {
-			const heroPos = this.app.gameState.heroPos.get();
+			const heroPos = this.heroState.pos.get();
 			const { x, y } = heroPos;
 
 			const dx = targetX - x;
@@ -368,7 +361,7 @@ export class GameViewport extends SignalWatcher(LitElement) {
 			const distance = Math.sqrt(dx * dx + dy * dy);
 
 			if (distance < step) {
-				this.app.gameState.setHeroPosition(targetX, targetY);
+				this.heroState.setPos(targetX, targetY);
 				this.stopAutoMove();
 				return;
 			}
@@ -401,8 +394,8 @@ export class GameViewport extends SignalWatcher(LitElement) {
 		if (this.app?.commandBus) {
 			this.app.commandBus.execute(
 				new AdvanceChapterCommand({
-					gameState: this.app.gameState,
-					sessionManager: this.app.sessionManager,
+					heroState: this.heroState,
+					questLoader: this.app.questLoader,
 				}),
 			);
 		}
@@ -424,7 +417,7 @@ export class GameViewport extends SignalWatcher(LitElement) {
 		if (this.app?.commandBus) {
 			this.app.commandBus.execute(
 				new PauseGameCommand({
-					gameState: this.app.gameState,
+					worldState: this.worldState,
 				}),
 			);
 		}
@@ -461,8 +454,8 @@ export class GameViewport extends SignalWatcher(LitElement) {
 		super.willUpdate(changedProperties);
 
 		// Handle reward collection animation trigger via signal observation
-		if (this.app?.gameState) {
-			const hasCollectedItem = this.app.gameState.hasCollectedItem.get();
+		if (this.questState) {
+			const hasCollectedItem = this.questState.hasCollectedItem.get();
 			const prevHasCollectedItem = changedProperties.has("app")
 				? false
 				: this._lastHasCollectedItem;
@@ -509,18 +502,19 @@ export class GameViewport extends SignalWatcher(LitElement) {
 
 	render() {
 		const config = /** @type {any} */ (this.gameState)?.config || {};
-		const stateService = this.app?.gameState;
-		if (!config || !stateService) return "";
-
 		const backgroundStyle = config.backgroundStyle || "";
 		const backgroundPath = extractAssetPath(backgroundStyle);
 
-		const hotSwitchState = stateService.hotSwitchState.get();
+		const hotSwitchState = this.heroState.hotSwitchState.get();
 		const themeMode = this.app?.themeService?.themeMode.get() || "light";
-		const hasCollectedItem = stateService.hasCollectedItem.get();
-
+		const hasCollectedItem = this.questState.hasCollectedItem.get();
 		return html`
-			<game-hud></game-hud>
+			<game-hud
+				.currentChapterNumber="${this.app?.questController?.getCurrentChapterNumber()}"
+				.totalChapters="${this.app?.questController?.getTotalChapters()}"
+				.levelTitle="${config?.title}"
+				.questTitle="${this.app?.questController?.currentQuest?.name}"
+			></game-hud>
 
 			<div class="game-area">
 				${
@@ -536,7 +530,10 @@ export class GameViewport extends SignalWatcher(LitElement) {
 				`
 						: ""
 				}
-				<game-controls .isVoiceActive="${this.isVoiceActive}"></game-controls>
+				<game-controls 
+					.isVoiceActive="${this.voice?.enabled || false}"
+					@toggle-voice="${this.#handleToggleVoice}"
+				></game-controls>
 				
 				<game-zone-indicator
 					.type="${"THEME_CHANGE"}"
@@ -547,13 +544,19 @@ export class GameViewport extends SignalWatcher(LitElement) {
 				<game-zone-indicator
 					.type="${"CONTEXT_CHANGE"}"
 					.zones="${config?.zones || []}"
-					.currentState="${hotSwitchState}"
+					.currentState="${hotSwitchState || ""}"
 				></game-zone-indicator>
 
 				<game-exit-zone 
 					.zoneConfig="${config?.exitZone || {}}" 
 					.active="${hasCollectedItem}"
 				></game-exit-zone>
+
+				${
+					this.questState.lockedMessage.get()
+						? html`<div class="locked-message">${this.questState.lockedMessage.get()}</div>`
+						: ""
+				}
 
 
 
@@ -565,10 +568,8 @@ export class GameViewport extends SignalWatcher(LitElement) {
 	}
 
 	_renderNPC() {
-		const state = /** @type {any} */ (this.gameState || {});
-		const config = state.config;
-		const stateService = this.app?.gameState;
-		if (!config?.npc || !stateService) return "";
+		const config = /** @type {any} */ (this.gameState)?.config;
+		if (!config?.npc) return "";
 
 		// Interaction controller state remains external for now
 		const isCloseToTarget = this.app?.interaction?.isCloseToNpc() || false;
@@ -586,12 +587,10 @@ export class GameViewport extends SignalWatcher(LitElement) {
 	}
 
 	_renderReward() {
-		const state = /** @type {any} */ (this.gameState || {});
-		const config = state.config;
-		const stateService = this.app?.gameState;
-		if (!config?.reward || !stateService) return "";
+		const config = /** @type {any} */ (this.gameState)?.config;
+		if (!config?.reward) return "";
 
-		const hasCollectedItem = stateService.hasCollectedItem.get();
+		const hasCollectedItem = this.questState.hasCollectedItem.get();
 
 		if (!this.isAnimatingReward && hasCollectedItem) {
 			return "";
@@ -606,7 +605,7 @@ export class GameViewport extends SignalWatcher(LitElement) {
 				x = 50;
 				y = 50;
 			} else if (this.rewardAnimState === "moving") {
-				const heroPos = stateService.heroPos.get();
+				const heroPos = this.heroState.pos.get();
 				x = heroPos.x;
 				y = heroPos.y;
 			}
@@ -620,6 +619,14 @@ export class GameViewport extends SignalWatcher(LitElement) {
 				class=${classMap({ [this.rewardAnimState]: this.isAnimatingReward })}
 			></reward-element>
 		`;
+	}
+
+	#handleToggleVoice() {
+		if (this.voice) {
+			this.voice.toggle();
+		} else {
+			console.warn("Voice controller not initialized");
+		}
 	}
 
 	_renderHero() {

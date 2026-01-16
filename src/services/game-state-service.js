@@ -1,9 +1,3 @@
-import { Signal } from "@lit-labs/signals";
-import {
-	HotSwitchStateValidator,
-	PositionValidator,
-} from "../utils/validators.js";
-
 /**
  * @typedef {{
  * 	heroPos: {x: number, y: number},
@@ -49,38 +43,15 @@ export class GameStateService {
 	 */
 	constructor(logger = undefined) {
 		this.logger = logger;
-		// Define signals for reactive state
-		this.heroPos = new Signal.State({ x: 50, y: 15 });
-		this.hasCollectedItem = new Signal.State(false);
-		this.isRewardCollected = new Signal.State(false);
-		this.hotSwitchState = new Signal.State(
-			/** @type {HotSwitchState} */ (null),
-		);
-		this.isPaused = new Signal.State(false);
-		this.isEvolving = new Signal.State(false);
-		this.showDialog = new Signal.State(false);
-		this.isQuestCompleted = new Signal.State(false);
-		this.lockedMessage = new Signal.State(/** @type {string|null} */ (null));
-		this.currentDialogText = new Signal.State("");
 	}
 
 	/**
+	 * @deprecated Use specialized services (HeroState, QuestState, WorldState)
 	 * Get a snapshot of the current state for legacy consumers.
-	 * @returns {GameState} The current state object
+	 * @returns {any} The current state object
 	 */
 	getState() {
-		return {
-			heroPos: this.heroPos.get(),
-			hasCollectedItem: this.hasCollectedItem.get(),
-			isRewardCollected: this.isRewardCollected.get(),
-			hotSwitchState: this.hotSwitchState.get(),
-			isPaused: this.isPaused.get(),
-			isEvolving: this.isEvolving.get(),
-			showDialog: this.showDialog.get(),
-			isQuestCompleted: this.isQuestCompleted.get(),
-			lockedMessage: this.lockedMessage.get(),
-			currentDialogText: this.currentDialogText.get(),
-		};
+		return {};
 	}
 
 	// Wrapper for backward compatibility if needed, though we prefer direct setting
@@ -89,18 +60,23 @@ export class GameStateService {
 	// --- Convenience Methods ---
 
 	/**
+	 * @param {import('../game/services/hero-state-service.js').HeroStateService} heroState
+	 * @param {import('../game/services/quest-state-service.js').QuestStateService} questState
+	 * @param {import('../game/services/world-state-service.js').WorldStateService} worldState
+	 */
+	setDomainServices(heroState, questState, worldState) {
+		this.heroState = heroState;
+		this.questState = questState;
+		this.worldState = worldState;
+	}
+
+	/**
 	 * Update the hero's position on the game board.
 	 * @param {number} x - X coordinate percentage (0-100)
 	 * @param {number} y - Y coordinate percentage (0-100)
-	 * @throws {Error} If position is invalid
 	 */
 	setHeroPosition(x, y) {
-		const validation = PositionValidator.validate(x, y);
-		if (!validation.isValid) {
-			const errors = validation.errors.map((e) => e.message).join(", ");
-			throw new Error(`Invalid hero position: ${errors}`);
-		}
-		this.heroPos.set({ x, y });
+		this.heroState?.setPos(x, y);
 	}
 
 	/**
@@ -108,7 +84,7 @@ export class GameStateService {
 	 * @param {boolean} collected - True if collected
 	 */
 	setCollectedItem(collected) {
-		this.hasCollectedItem.set(collected);
+		this.questState?.setHasCollectedItem(collected);
 	}
 
 	/**
@@ -116,22 +92,16 @@ export class GameStateService {
 	 * @param {boolean} collected - True if the reward animation is finished
 	 */
 	setRewardCollected(collected) {
-		this.isRewardCollected.set(collected);
+		this.questState?.setIsRewardCollected(collected);
 	}
 
 	/**
 	 * Change the active Service Context (Demonstrated in Level 6).
 	 * This simulates switching between different backend API implementations.
-	 * @param {HotSwitchState} state - The context identifier
-	 * @throws {Error} If state is invalid
+	 * @param {import('./game-state-service.js').HotSwitchState} state - The context identifier
 	 */
 	setHotSwitchState(state) {
-		const validation = HotSwitchStateValidator.validate(state);
-		if (!validation.isValid) {
-			const errors = validation.errors.map((e) => e.message).join(", ");
-			throw new Error(`Invalid hot switch state: ${errors}`);
-		}
-		this.hotSwitchState.set(state);
+		this.heroState?.setHotSwitchState(state);
 	}
 
 	/**
@@ -139,7 +109,7 @@ export class GameStateService {
 	 * @param {boolean} paused - True to pause
 	 */
 	setPaused(paused) {
-		this.isPaused.set(paused);
+		this.worldState?.setPaused(paused);
 	}
 
 	/**
@@ -147,7 +117,7 @@ export class GameStateService {
 	 * @param {boolean} evolving
 	 */
 	setEvolving(evolving) {
-		this.isEvolving.set(evolving);
+		this.heroState?.setIsEvolving(evolving);
 	}
 
 	/**
@@ -155,7 +125,7 @@ export class GameStateService {
 	 * @param {boolean} show
 	 */
 	setShowDialog(show) {
-		this.showDialog.set(show);
+		this.worldState?.setShowDialog(show);
 	}
 
 	/**
@@ -163,7 +133,7 @@ export class GameStateService {
 	 * @param {boolean} completed
 	 */
 	setQuestCompleted(completed) {
-		this.isQuestCompleted.set(completed);
+		this.questState?.setIsQuestCompleted(completed);
 	}
 
 	/**
@@ -171,7 +141,7 @@ export class GameStateService {
 	 * @param {string|null} message - The message to display, or null to clear
 	 */
 	setLockedMessage(message) {
-		this.lockedMessage.set(message);
+		this.questState?.setLockedMessage(message);
 	}
 
 	/**
@@ -180,11 +150,9 @@ export class GameStateService {
 	 * Does NOT reset hero position or persistent progress.
 	 */
 	resetChapterState() {
-		this.hasCollectedItem.set(false);
-		this.isRewardCollected.set(false);
-		this.lockedMessage.set(null);
-		this.isEvolving.set(false);
-		this.currentDialogText.set("");
+		this.questState?.resetChapterState();
+		this.heroState?.setIsEvolving(false);
+		this.worldState?.setCurrentDialogText("");
 	}
 
 	/**
@@ -192,8 +160,8 @@ export class GameStateService {
 	 * Clears quest completion flags in addition to chapter state.
 	 */
 	resetQuestState() {
-		this.resetChapterState();
-		this.isQuestCompleted.set(false);
+		this.questState?.resetQuestState();
+		this.heroState?.setIsEvolving(false);
 	}
 
 	/**
@@ -201,7 +169,7 @@ export class GameStateService {
 	 * @param {string} text - The dialog text
 	 */
 	setCurrentDialogText(text) {
-		this.currentDialogText.set(text || "");
+		this.worldState?.setCurrentDialogText(text);
 	}
 
 	// Deprecated methods that we might need to keep temporarily for external callers (if any exist beyond those we fix)

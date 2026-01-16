@@ -31,13 +31,14 @@ export class KeyboardController {
 	constructor(host, options = {}) {
 		/** @type {import('lit').ReactiveControllerHost} */
 		this.host = host;
-		/** @type {KeyboardOptions & {interaction: any, commandBus: import('../commands/command-bus.js').CommandBus|undefined, eventBus: any, gameState: any}} */
+		/** @type {KeyboardOptions & {interaction: any, commandBus: import('../commands/command-bus.js').CommandBus|undefined, eventBus: any, gameState: any, worldState: import('../game/interfaces.js').IWorldStateService|undefined}} */
 		this.options = {
 			speed: 2.5,
 			interaction: undefined,
 			commandBus: undefined,
 			eventBus: undefined,
 			gameState: undefined,
+			worldState: undefined,
 			...options,
 		};
 
@@ -58,7 +59,7 @@ export class KeyboardController {
 	 * @param {KeyboardEvent} e
 	 */
 	handleKeyDown(e) {
-		const { commandBus, interaction, gameState } = this.options;
+		const { commandBus, interaction } = this.options;
 
 		// Handle Undo/Redo (Ctrl+Z / Ctrl+Y or Shift+Ctrl+Z)
 		if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
@@ -80,8 +81,9 @@ export class KeyboardController {
 		// Handle Pause (Escape) - Always allowed
 		if (e.code === "Escape") {
 			e.preventDefault();
-			if (commandBus && gameState) {
-				commandBus.execute(new PauseGameCommand({ gameState }));
+			const { worldState } = this.options;
+			if (commandBus && worldState) {
+				commandBus.execute(new PauseGameCommand({ worldState }));
 			}
 			return;
 		}
@@ -89,9 +91,14 @@ export class KeyboardController {
 		// Handle interaction (Space)
 		if (e.code === "Space") {
 			e.preventDefault();
-			if (commandBus && interaction) {
+			const effectiveInteraction =
+				/** @type {any} */ (this.host).interaction || interaction;
+
+			if (commandBus && effectiveInteraction) {
 				commandBus.execute(
-					new InteractCommand({ interactionController: interaction }),
+					new InteractCommand({
+						interactionController: effectiveInteraction,
+					}),
 				);
 			}
 			return;

@@ -11,7 +11,7 @@ describe("PauseGameCommand", () => {
 	beforeEach(() => {
 		fakeGameState = new FakeGameStateService();
 		fakeGameState.isPaused.set(false);
-		command = new PauseGameCommand({ gameState: fakeGameState });
+		command = new PauseGameCommand({ worldState: fakeGameState.worldState });
 	});
 
 	it("should toggle pause state from false to true", () => {
@@ -21,7 +21,7 @@ describe("PauseGameCommand", () => {
 
 	it("should toggle pause state from true to false", () => {
 		fakeGameState.isPaused.set(true);
-		command = new PauseGameCommand({ gameState: fakeGameState });
+		command = new PauseGameCommand({ worldState: fakeGameState.worldState });
 
 		command.execute();
 		expect(fakeGameState.isPaused.get()).toBe(false);
