@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { GameEvents } from "../core/event-bus.js";
 import { CompleteQuestUseCase } from "./complete-quest.js";
 
 describe("CompleteQuestUseCase", () => {
@@ -9,8 +8,6 @@ describe("CompleteQuestUseCase", () => {
 	let mockQuestController;
 	/** @type {any} */
 	let mockQuest;
-	/** @type {any} */
-	let mockEventBus;
 	/** @type {any} */
 	let mockLogger;
 
@@ -30,10 +27,6 @@ describe("CompleteQuestUseCase", () => {
 			},
 		};
 
-		mockEventBus = {
-			emit: vi.fn(),
-		};
-
 		mockLogger = {
 			info: vi.fn(),
 			warn: vi.fn(),
@@ -42,7 +35,6 @@ describe("CompleteQuestUseCase", () => {
 
 		useCase = new CompleteQuestUseCase({
 			questController: mockQuestController,
-			eventBus: mockEventBus,
 			logger: /** @type {any} */ (mockLogger),
 		});
 	});
@@ -55,15 +47,6 @@ describe("CompleteQuestUseCase", () => {
 		expect(
 			mockQuestController.progressService.completeQuest,
 		).toHaveBeenCalledWith("test-quest");
-	});
-
-	it("should emit QUEST_COMPLETE event", () => {
-		useCase.execute();
-
-		expect(mockEventBus.emit).toHaveBeenCalledWith(GameEvents.QUEST_COMPLETE, {
-			questId: "test-quest",
-			quest: mockQuest,
-		});
 	});
 
 	it("should handle no active quest", () => {
@@ -87,21 +70,6 @@ describe("CompleteQuestUseCase", () => {
 
 		expect(result.success).toBe(false);
 		expect(result.error).toBeDefined();
-	});
-
-	it("should emit ERROR event on failure", () => {
-		mockQuestController.progressService.completeQuest.mockImplementation(() => {
-			throw new Error("Completion failed");
-		});
-
-		useCase.execute();
-
-		expect(mockEventBus.emit).toHaveBeenCalledWith(
-			GameEvents.ERROR,
-			expect.objectContaining({
-				message: "Failed to complete quest",
-			}),
-		);
 	});
 
 	it("should log completion", () => {

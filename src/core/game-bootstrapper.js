@@ -24,7 +24,6 @@ import { setupVoice } from "../setup/setup-voice.js";
 import { setupZones } from "../setup/setup-zones.js";
 import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-transition.js";
 import { Router } from "../utils/router.js";
-import { eventBus as centralEventBus } from "./event-bus.js";
 
 /**
  * @typedef {Object} ServicesContext
@@ -48,7 +47,6 @@ import { eventBus as centralEventBus } from "./event-bus.js";
 
 /**
  * @typedef {Object} GameContext
- * @property {import('./event-bus.js').EventBus} eventBus
  * @property {import('../services/logger-service.js').LoggerService} logger
 
  * @property {import('../services/storage-service.js').LocalStorageAdapter} storageAdapter
@@ -79,10 +77,6 @@ import { eventBus as centralEventBus } from "./event-bus.js";
  * Extracts setup logic from the UI component (LegacysEndApp).
  */
 export class GameBootstrapper {
-	constructor() {
-		this.eventBus = centralEventBus;
-	}
-
 	/**
 	 * Bootstrap the game application
 	 * @param {import('lit').ReactiveControllerHost} host - The Lit component host (LegacysEndApp)
@@ -184,7 +178,6 @@ export class GameBootstrapper {
 	 */
 	async #setupControllers(host, servicesContext, router) {
 		const {
-			eventBus,
 			progressService,
 			questState,
 			heroState,
@@ -198,12 +191,11 @@ export class GameBootstrapper {
 			aiService,
 			voiceSynthesisService,
 			storageAdapter,
-		} = { ...servicesContext, eventBus: this.eventBus };
+		} = { ...servicesContext };
 
 		// 1. Setup QuestController
 		const questController = setupQuest(/** @type {any} */ (host), {
 			progressService,
-			eventBus,
 			logger,
 			registry,
 			preloaderService: servicesContext.preloader,
@@ -214,7 +206,6 @@ export class GameBootstrapper {
 		// 2. Setup QuestLoaderService
 		const questLoader = new QuestLoaderService({
 			questController,
-			eventBus,
 			logger,
 			questState,
 			sessionService,
@@ -223,7 +214,6 @@ export class GameBootstrapper {
 			heroState,
 			router,
 		});
-		questLoader.setupEventListeners();
 
 		// 3. Setup GameService (Visual Facade)
 		const gameService = setupGameService({
@@ -291,7 +281,6 @@ export class GameBootstrapper {
 		});
 
 		return {
-			eventBus,
 			logger,
 			storageAdapter,
 			questController,

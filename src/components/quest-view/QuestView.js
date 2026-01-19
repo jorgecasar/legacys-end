@@ -70,6 +70,8 @@ export class QuestView extends SignalWatcher(LitElement) {
 					<game-viewport
 						@next-slide="${() => this.nextDialogSlide()}"
 						@prev-slide="${() => this.prevDialogSlide()}"
+						@request-dialog="${() => this.worldState.setShowDialog(true)}"
+						@show-locked-message="${(/** @type {CustomEvent} */ e) => this.questState.setLockedMessage(e.detail.message)}"
 					></game-viewport>
 				</main>
 			`

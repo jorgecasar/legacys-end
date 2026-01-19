@@ -1,5 +1,3 @@
-import { GameEvents } from "../core/event-bus.js";
-
 /**
  * CompleteQuestUseCase
  *
@@ -10,12 +8,10 @@ export class CompleteQuestUseCase {
 	/**
 	 * @param {Object} dependencies
 	 * @param {import('../controllers/quest-controller.js').QuestController} dependencies.questController
-	 * @param {import('../core/event-bus.js').EventBus} dependencies.eventBus
 	 * @param {import('../services/logger-service.js').LoggerService} dependencies.logger
 	 */
-	constructor({ questController, eventBus, logger }) {
+	constructor({ questController, logger }) {
 		this.questController = questController;
-		this.eventBus = eventBus;
 		this.logger = logger;
 	}
 
@@ -41,19 +37,9 @@ export class CompleteQuestUseCase {
 			// We move it here to be the single source of truth for completion business logic.
 			this.questController.progressService.completeQuest(questId);
 
-			// Emit completion event
-			this.eventBus.emit(GameEvents.QUEST_COMPLETE, {
-				questId,
-				quest: currentQuest,
-			});
-
 			return { success: true, questId };
 		} catch (error) {
 			this.logger.error("Failed to complete quest:", error);
-			this.eventBus.emit(GameEvents.ERROR, {
-				message: "Failed to complete quest",
-				error,
-			});
 			return { success: false, error: /** @type {Error} */ (error) };
 		}
 	}

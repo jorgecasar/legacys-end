@@ -18,13 +18,11 @@ import { InteractWithNpcUseCase } from "../use-cases/interact-with-npc.js";
  */
 export function setupInteraction(
 	host,
-	{ worldState, questState, heroState, questController, questLoader },
+	{ questState, heroState, questController, questLoader },
 ) {
 	/** @type {InteractionHost & { interaction: InteractionController }} */ (
 		host
 	).interaction = new InteractionController(host, {
-		worldState,
-		questState,
 		getState: () => {
 			const currentChapter = questController.currentChapter;
 			return {

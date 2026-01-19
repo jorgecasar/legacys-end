@@ -3,7 +3,6 @@
  */
 
 import { Task, TaskStatus } from "@lit/task";
-import { eventBus, GameEvents } from "../core/event-bus.js";
 import { QuestStateService } from "../game/services/quest-state-service.js";
 
 /**
@@ -13,8 +12,7 @@ import { QuestStateService } from "../game/services/quest-state-service.js";
  * @typedef {Object} QuestControllerOptions
  * @property {import('../services/progress-service.js').ProgressService} progressService - Progress tracking service
  * @property {import('../services/quest-registry-service.js').QuestRegistryService} registry - Quest registry service
-
- * @property {import('../core/event-bus.js').EventBus} [eventBus] - Event bus
+ *
  * @property {import('../services/logger-service.js').LoggerService} logger - Logger
  * @property {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} evaluateChapterTransition - Use case
  * @property {import('../services/preloader-service.js').PreloaderService} [preloaderService] - Preloader
@@ -65,7 +63,6 @@ export class QuestController {
 		this.progressService = this.options.progressService;
 		this.evaluateChapterTransition = this.options.evaluateChapterTransition;
 		this.preloaderService = this.options.preloaderService;
-		this.eventBus = this.options.eventBus || eventBus;
 
 		// Instantiate state service or use injected
 		this.state = this.options.state || new QuestStateService();
@@ -158,8 +155,11 @@ export class QuestController {
 			const chapterId = quest.chapterIds?.[0] ?? null;
 			this.progressService.setCurrentQuest(questId, chapterId);
 
+			// Update state service
+			this._updateState();
+
 			// Emit global event
-			this.#emitQuestEvents({ started: true });
+			// this.#emitQuestEvents({ started: true });
 
 			// Log memory usage if available
 			if (
@@ -222,8 +222,11 @@ export class QuestController {
 
 		this.currentChapter = this.getCurrentChapterData();
 
+		// Update state service
+		this._updateState();
+
 		// IMPORTANT: Do NOT emit 'started' here as this might be part of specific chapter load
-		this.#emitQuestEvents({ loaded: true }, false);
+		// this.#emitQuestEvents({ loaded: true }, false);
 
 		this.host.requestUpdate();
 		return true;
@@ -247,8 +250,11 @@ export class QuestController {
 			return;
 		}
 
+		// Update state service
+		this._updateState();
+
 		// Emit global event
-		this.#emitQuestEvents({ resumed: true });
+		// this.#emitQuestEvents({ resumed: true });
 
 		this.host.requestUpdate();
 	}
@@ -278,8 +284,11 @@ export class QuestController {
 		const chapterId = quest.chapterIds?.[nextChapterIndex] ?? null;
 		this.progressService.setCurrentQuest(questId, chapterId);
 
+		// Update state service
+		this._updateState();
+
 		// Emit global event
-		this.#emitQuestEvents({ continued: true });
+		// this.#emitQuestEvents({ continued: true });
 
 		this.host.requestUpdate();
 	}
@@ -325,8 +334,11 @@ export class QuestController {
 		const targetChapterId = this.currentQuest.chapterIds?.[index] ?? null;
 		this.progressService.setCurrentQuest(this.currentQuest.id, targetChapterId);
 
+		// Update state service
+		this._updateState();
+
 		// Emit global event - NO START EMISSION, ONLY CHAPTER CHANGE
-		this.#emitQuestEvents({ jumped: true }, false);
+		// this.#emitQuestEvents({ jumped: true }, false);
 		this.host.requestUpdate();
 		return true;
 	}
@@ -440,12 +452,17 @@ export class QuestController {
 			chapterId || null,
 		);
 
+		// Update state service
+		this._updateState();
+
 		// Emit global event
+		/*
 		this.eventBus.emit(GameEvents.CHAPTER_CHANGED, {
-			chapter: /** @type {Chapter} */ (this.currentChapter),
+			chapter: (this.currentChapter),
 			index: this.currentChapterIndex,
 			total: this.currentQuest?.chapterIds?.length || 0,
 		});
+		*/
 
 		// Preload next chapter assets
 		if (this.preloaderService) {
@@ -474,7 +491,7 @@ export class QuestController {
 
 		// Notify host - the host is responsible for calling returnToHub after any animations/messages
 		// Emit global event - consumers responsible for UI
-		this.eventBus.emit(GameEvents.QUEST_COMPLETE, { quest: this.currentQuest });
+		// this.eventBus.emit(GameEvents.QUEST_COMPLETE, { quest: this.currentQuest });
 	}
 
 	/**
@@ -493,7 +510,7 @@ export class QuestController {
 
 		// Notify host
 		// Emit global event
-		this.eventBus.emit(GameEvents.RETURN_TO_HUB);
+		// this.eventBus.emit(GameEvents.RETURN_TO_HUB);
 		this.host.requestUpdate();
 	}
 
@@ -633,22 +650,11 @@ export class QuestController {
 	 * @param {Object} additionalData - Additional data to include in events
 	 * @param {boolean} [emitStart=true] - Whether to emit the 'quest-started' event
 	 */
+	/*
 	#emitQuestEvents(additionalData = {}, emitStart = true) {
-		if (this.currentQuest && emitStart) {
-			this.eventBus.emit(GameEvents.QUEST_STARTED, {
-				quest: this.currentQuest,
-				...additionalData,
-			});
-		}
-
-		if (this.currentChapter) {
-			this.eventBus.emit(GameEvents.CHAPTER_CHANGED, {
-				chapter: /** @type {Chapter} */ (this.currentChapter),
-				index: this.currentChapterIndex,
-				total: this.currentQuest?.chapterIds?.length || 0,
-			});
-		}
+		// EventBus removed
 	}
+	*/
 
 	/**
 	 * Finds the first uncompleted chapter in a quest
@@ -668,5 +674,18 @@ export class QuestController {
 		}
 
 		return 0;
+	}
+
+	/**
+	 * Updates the quest state service with current values
+	 */
+	_updateState() {
+		if (this.currentQuest) {
+			this.state.setQuestTitle(this.currentQuest.name);
+			this.state.setTotalChapters(this.currentQuest.chapterIds?.length || 0);
+		}
+		this.state.setCurrentChapterNumber(this.currentChapterIndex + 1);
+		this.state.setCurrentChapterId(this.currentChapter?.id || null);
+		this.state.setLevelTitle(this.currentChapter?.title || "");
 	}
 }

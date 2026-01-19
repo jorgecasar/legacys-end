@@ -1,45 +1,29 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { InteractionController } from "./interaction-controller.js";
 
 describe("InteractionController", () => {
-	/** @type {import("lit").ReactiveControllerHost} */
+	/** @type {any} */
 	let host;
 	/** @type {InteractionController} */
 	let controller;
 
 	// Mock options
 	/** @type {any} */
-	let eventBus;
-	/** @type {any} */
 	let getState;
 	/** @type {any} */
 	let getNpcPosition;
-	/** @type {any} */
-	let worldState;
-	/** @type {any} */
-	let questState;
 
 	beforeEach(() => {
 		host = {
 			addController: vi.fn(),
 			removeController: vi.fn(),
 			requestUpdate: vi.fn(),
+			dispatchEvent: vi.fn(), // Mock dispatchEvent
 			updateComplete: Promise.resolve(true),
 		};
 
-		eventBus = {
-			emit: vi.fn(),
-		};
 		getState = vi.fn();
 		getNpcPosition = vi.fn();
-
-		worldState = {
-			setShowDialog: vi.fn(),
-		};
-
-		questState = {
-			setLockedMessage: vi.fn(),
-		};
 
 		// Default state
 		getState.mockReturnValue({
@@ -104,23 +88,24 @@ describe("InteractionController", () => {
 	});
 
 	describe("Interaction Logic", () => {
-		it("should show dialog if close and item NOT collected", () => {
+		it("should dispatch request-dialog event if close and item NOT collected", () => {
 			controller = new InteractionController(host, {
 				getState,
 				getNpcPosition,
-				eventBus,
-				worldState,
-				questState,
 				interactWithNpcUseCase: /** @type {any} */ ({
 					execute: vi.fn().mockReturnValue({ action: "showDialog" }),
 				}),
 			});
 
 			controller.handleInteract();
-			expect(worldState.setShowDialog).toHaveBeenCalledWith(true);
+			expect(host.dispatchEvent).toHaveBeenCalledWith(
+				expect.objectContaining({
+					type: "request-dialog",
+				}),
+			);
 		});
 
-		it("should NOT show dialog if item already collected", () => {
+		it("should NOT dispatch event if item already collected", () => {
 			getState.mockReturnValue({
 				heroPos: { x: 0, y: 0 },
 				hasCollectedItem: true,
@@ -128,14 +113,13 @@ describe("InteractionController", () => {
 			controller = new InteractionController(host, {
 				getState,
 				getNpcPosition,
-				eventBus,
 				interactWithNpcUseCase: /** @type {any} */ ({
 					execute: vi.fn().mockReturnValue({ action: "none" }),
 				}),
 			});
 
 			controller.handleInteract();
-			expect(eventBus.emit).not.toHaveBeenCalled();
+			expect(host.dispatchEvent).not.toHaveBeenCalled();
 		});
 
 		describe("Final Boss Logic", () => {
@@ -143,12 +127,11 @@ describe("InteractionController", () => {
 				controller = new InteractionController(host, {
 					getState,
 					getNpcPosition,
-					eventBus,
 					interactWithNpcUseCase: /** @type {any} */ ({ execute: vi.fn() }),
 				});
 			});
 
-			it("should BLOCK interaction if API is LEGACY", () => {
+			it("should dispatch show-locked-message event if API is LEGACY", () => {
 				getState.mockReturnValue({
 					heroPos: { x: 0, y: 0 },
 					hotSwitchState: "legacy",
@@ -164,9 +147,6 @@ describe("InteractionController", () => {
 				controller = new InteractionController(host, {
 					getState,
 					getNpcPosition,
-					eventBus,
-					worldState,
-					questState,
 					interactWithNpcUseCase: /** @type {any} */ ({
 						execute: vi.fn().mockReturnValue({
 							action: "showLocked",
@@ -177,12 +157,15 @@ describe("InteractionController", () => {
 
 				controller.handleInteract();
 
-				expect(questState.setLockedMessage).toHaveBeenCalledWith(
-					"REQ: NEW API",
+				expect(host.dispatchEvent).toHaveBeenCalledWith(
+					expect.objectContaining({
+						type: "show-locked-message",
+						detail: { message: "REQ: NEW API" },
+					}),
 				);
 			});
 
-			it("should ALLOW interaction if API is NEW", () => {
+			it("should dispatch request-dialog event if API is NEW", () => {
 				getState.mockReturnValue({
 					heroPos: { x: 0, y: 0 },
 					hotSwitchState: "new",
@@ -198,9 +181,6 @@ describe("InteractionController", () => {
 				controller = new InteractionController(host, {
 					getState,
 					getNpcPosition,
-					eventBus,
-					worldState,
-					questState,
 					interactWithNpcUseCase: /** @type {any} */ ({
 						execute: vi.fn().mockReturnValue({ action: "showDialog" }),
 					}),
@@ -208,7 +188,11 @@ describe("InteractionController", () => {
 
 				controller.handleInteract();
 
-				expect(worldState.setShowDialog).toHaveBeenCalledWith(true);
+				expect(host.dispatchEvent).toHaveBeenCalledWith(
+					expect.objectContaining({
+						type: "request-dialog",
+					}),
+				);
 			});
 		});
 	});
@@ -227,55 +211,6 @@ describe("InteractionController", () => {
 				interactWithNpcUseCase: /** @type {any} */ ({ execute: vi.fn() }),
 			});
 			expect(() => controller.handleInteract()).not.toThrow();
-		});
-	});
-
-	describe("Message Timeout Logic", () => {
-		beforeEach(() => {
-			vi.useFakeTimers();
-		});
-
-		afterEach(() => {
-			vi.useRealTimers();
-		});
-
-		it("should clear locked message after delay", () => {
-			// Setup for locked state
-			getState.mockReturnValue({
-				heroPos: { x: 0, y: 0 },
-				hotSwitchState: "legacy",
-				chapterData: {
-					npc: {
-						requirements: {
-							hotSwitchState: { value: "new", message: "REQ: NEW API" },
-						},
-					},
-				},
-			});
-
-			controller = new InteractionController(host, {
-				getState,
-				getNpcPosition,
-				eventBus,
-				worldState,
-				questState,
-				interactWithNpcUseCase: /** @type {any} */ ({
-					execute: vi
-						.fn()
-						.mockReturnValue({ action: "showLocked", message: "REQ: NEW API" }),
-				}),
-			});
-
-			controller.handleInteract();
-
-			// Verify initial locked message
-			expect(questState.setLockedMessage).toHaveBeenCalledWith("REQ: NEW API");
-
-			// Fast-forward time
-			vi.advanceTimersByTime(1000);
-
-			// Verify message clear
-			expect(questState.setLockedMessage).toHaveBeenCalledWith(null);
 		});
 	});
 });

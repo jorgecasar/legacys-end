@@ -1,4 +1,3 @@
-import { GameEvents } from "../core/event-bus.js";
 import { CompleteQuestUseCase } from "../use-cases/complete-quest.js";
 import { ContinueQuestUseCase } from "../use-cases/continue-quest.js";
 import { InteractWithNpcUseCase } from "../use-cases/interact-with-npc.js";
@@ -15,7 +14,6 @@ export class QuestLoaderService {
 	/**
 	 * @param {Object} dependencies
 	 * @param {import('../controllers/quest-controller.js').QuestController} dependencies.questController
-	 * @param {import('../core/event-bus.js').EventBus} dependencies.eventBus
 	 * @param {import('../services/logger-service.js').LoggerService} dependencies.logger
 	 * @param {import('../game/services/quest-state-service.js').QuestStateService} dependencies.questState
 	 * @param {import('../services/session-service.js').SessionService} dependencies.sessionService
@@ -26,7 +24,6 @@ export class QuestLoaderService {
 	 */
 	constructor({
 		questController,
-		eventBus,
 		logger,
 		questState,
 		sessionService,
@@ -36,7 +33,6 @@ export class QuestLoaderService {
 		router,
 	}) {
 		this.questController = questController;
-		this.eventBus = eventBus;
 		this.logger = logger;
 		this.questState = questState;
 		this.sessionService = sessionService;
@@ -51,13 +47,11 @@ export class QuestLoaderService {
 		// Use Cases
 		this._startQuestUseCase = new StartQuestUseCase({
 			questController,
-			eventBus,
 			logger,
 		});
 
 		this._continueQuestUseCase = new ContinueQuestUseCase({
 			questController,
-			eventBus,
 			logger,
 		});
 
@@ -68,22 +62,10 @@ export class QuestLoaderService {
 
 		this._completeQuestUseCase = new CompleteQuestUseCase({
 			questController,
-			eventBus,
 			logger,
 		});
 
 		this._interactWithNpcUseCase = new InteractWithNpcUseCase();
-	}
-
-	/**
-	 * Setup event listeners
-	 */
-	setupEventListeners() {
-		if (!this.eventBus) return;
-
-		this.eventBus.on(GameEvents.CHAPTER_CHANGED, (payload) =>
-			this.#handleChapterChange(payload),
-		);
 	}
 
 	/**
@@ -105,7 +87,17 @@ export class QuestLoaderService {
 			if (this.router) {
 				const chapterId = result.quest.chapterIds[0];
 				this.router.navigate(`/quest/${questId}/chapter/${chapterId}`);
+
+				// Sync hero state for the first chapter
+				if (this.questController.currentChapter) {
+					this._syncHeroState(
+						/** @type {any} */ (this.questController.currentChapter),
+					);
+				}
 			}
+		} else if (result.error) {
+			// Handle error manually since we removed the event emission in UseCase
+			// Maybe show a toast or log
 		}
 
 		this.#setLoadingState(false);
@@ -123,15 +115,26 @@ export class QuestLoaderService {
 		const result = await this._continueQuestUseCase.execute(questId);
 
 		if (result.success) {
-			this.sessionService.setCurrentQuest(result.quest);
+			const quest = result.quest;
+			this.sessionService.setCurrentQuest(quest);
 			this.sessionService.setIsInHub(false);
-			this.questState.setQuestTitle(result.quest.name);
-			this.logger.info(`🎮 Continues quest: ${result.quest.name}`);
+			this.questState.setQuestTitle(quest.name);
+			this.logger.info(`🎮 Continues quest: ${quest.name}`);
 
 			if (this.router) {
 				const currentChapterId = this.questState.currentChapterId.get();
 				if (currentChapterId) {
-					this.router.navigate(`/quest/${questId}/chapter/${currentChapterId}`);
+					// QuestController already updated currentChapter in continueQuest()
+					/** @type {any} */
+					const chapter = this.questController.currentChapter;
+
+					if (chapter && chapter.id === currentChapterId) {
+						this._syncHeroState(chapter);
+					} else {
+						this.router.navigate(
+							`/quest/${questId}/chapter/${currentChapterId}`,
+						);
+					}
 				}
 			}
 		}
@@ -173,6 +176,13 @@ export class QuestLoaderService {
 
 			this.sessionService.setCurrentQuest(this.questController.currentQuest);
 			this.sessionService.setIsInHub(false);
+
+			// Sync hero state for the loaded chapter
+			if (this.questController.currentChapter) {
+				this._syncHeroState(
+					/** @type {any} */ (this.questController.currentChapter),
+				);
+			}
 		} catch (error) {
 			this.logger.error("Failed to load chapter:", error);
 		} finally {
@@ -199,6 +209,12 @@ export class QuestLoaderService {
 					await this.completeQuest();
 				} else {
 					this.completeChapter();
+					// Sync hero state for the new chapter
+					if (this.questController.currentChapter) {
+						this._syncHeroState(
+							/** @type {any} */ (this.questController.currentChapter),
+						);
+					}
 				}
 				this.heroState.setIsEvolving(false);
 			}
@@ -261,11 +277,10 @@ export class QuestLoaderService {
 	}
 
 	/**
-	 * Handle chapter change event
-	 * @param {any} payload
+	 * Syncs hero state with chapter configuration
+	 * @param {import('../controllers/quest-controller.js').Chapter} chapter
 	 */
-	#handleChapterChange(payload) {
-		const { chapter, index } = payload;
+	_syncHeroState(chapter) {
 		if (chapter?.startPos) {
 			this.heroState.setPos(chapter.startPos.x, chapter.startPos.y);
 
@@ -277,9 +292,6 @@ export class QuestLoaderService {
 			}
 		}
 
-		this.questState.setCurrentChapterId(chapter.id);
-		this.questState.resetChapterState();
-
 		// Restore state if available
 		const state = /** @type {any} */ (
 			this.progressService.getChapterState(chapter.id)
@@ -287,23 +299,14 @@ export class QuestLoaderService {
 		if (state?.hasCollectedItem) {
 			this.questState.setHasCollectedItem(true);
 			this.questState.setIsRewardCollected(true);
+		} else {
+			// Ensure we reset if not collected
+			this.questState.setHasCollectedItem(false);
+			this.questState.setIsRewardCollected(false);
 		}
 
-		this.questState.setLevelTitle(chapter.title || chapter.id);
-		this.questState.setCurrentChapterNumber(index + 1);
-		this.questState.setTotalChapters(payload.total);
-
-		this.logger.info(
-			`📖 Chapter ${index + 1}/${payload.total}: ${chapter.title}`,
-		);
-
-		// Update URL
-		if (this.router) {
-			const questId = this.sessionService.currentQuest.get()?.id;
-			if (questId) {
-				this.router.navigate(`/quest/${questId}/chapter/${chapter.id}`);
-			}
-		}
+		// URL update is handled by the caller or router reaction if needed
+		// Logging is handled by the caller
 	}
 
 	/**

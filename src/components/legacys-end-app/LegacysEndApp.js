@@ -2,6 +2,10 @@ import { ContextProvider } from "@lit/context";
 import { msg } from "@lit/localize";
 import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement } from "lit";
+import "../quest-hub/quest-hub.js";
+import "../game-viewport/game-viewport.js";
+import "../pause-menu/pause-menu.js";
+import "@awesome.me/webawesome/dist/components/spinner/spinner.js";
 import { ROUTES } from "../../constants/routes.js";
 import { aiContext } from "../../contexts/ai-context.js";
 import { localizationContext } from "../../contexts/localization-context.js";
@@ -11,20 +15,14 @@ import { questLoaderContext } from "../../contexts/quest-loader-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
 import { themeContext } from "../../contexts/theme-context.js";
 import { voiceContext } from "../../contexts/voice-context.js";
-import { eventBus as centralEventBus } from "../../core/event-bus.js";
 import { GameBootstrapper } from "../../core/game-bootstrapper.js";
 import { heroStateContext } from "../../game/contexts/hero-context.js";
 import { questStateContext } from "../../game/contexts/quest-context.js";
 import { worldStateContext } from "../../game/contexts/world-context.js";
 import { ContextMixin } from "../../mixins/context-mixin.js";
 import { legacysEndAppStyles } from "./LegacysEndApp.styles.js";
-import "@awesome.me/webawesome/dist/components/spinner/spinner.js";
 import "@awesome.me/webawesome/dist/styles/webawesome.css";
 import "../../pixel.css";
-import "../quest-hub/quest-hub.js";
-// Dynamic import for QuestView to reduce initial bundle size
-// import "../quest-view/quest-view.js";
-
 /**
  * @typedef {import("@awesome.me/webawesome/dist/components/dialog/dialog.js").default} DialogElement
  */
@@ -32,12 +30,12 @@ import "../quest-hub/quest-hub.js";
 /**
  * @element legacys-end-app
  */
+
 export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 	// Services
 	progressService = /** @type {any} */ (null);
 	storageAdapter = /** @type {any} */ (null);
 	services = {};
-	eventBus = centralEventBus;
 	logger = /** @type {any} */ (null);
 	themeProvider = /** @type {any} */ (null);
 	aiService = /** @type {any} */ (null);
@@ -101,7 +99,6 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 	async initGame() {
 		const context = await this.bootstrapper.bootstrap(this);
 
-		this.eventBus = context.eventBus;
 		this.logger = context.logger;
 		this.progressService = context.progressService;
 		this.storageAdapter = context.storageAdapter;
@@ -272,16 +269,14 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 
 	getEnrichedQuests() {
 		if (!this.questController) return [];
-		return this.questController
-			.getAvailableQuests()
-			.map((/** @type {any} */ quest) => ({
-				...quest,
-				progress: this.questController.getQuestProgress(quest.id),
-				isCompleted: this.questController.isQuestCompleted(quest.id),
-				isLocked: !this.progressService.isQuestAvailable(quest.id),
-				inProgress:
-					this.progressService.getProgress().currentQuest === quest.id,
-			}));
+		const quests = this.questController.getAvailableQuests();
+		return quests.map((/** @type {any} */ quest) => ({
+			...quest,
+			progress: this.questController.getQuestProgress(quest.id),
+			isCompleted: this.questController.isQuestCompleted(quest.id),
+			isLocked: !this.progressService.isQuestAvailable(quest.id),
+			inProgress: this.progressService.getProgress().currentQuest === quest.id,
+		}));
 	}
 
 	renderHub() {

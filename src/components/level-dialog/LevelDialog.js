@@ -8,7 +8,7 @@ import "@awesome.me/webawesome/dist/components/dialog/dialog.js";
 import "@awesome.me/webawesome/dist/components/icon/icon.js";
 import "syntax-highlight-element";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
-import { GameEvents } from "../../core/event-bus.js";
+
 import { questStateContext } from "../../game/contexts/quest-context.js";
 import { escapeHtml } from "../../utils/html-utils.js";
 import {
@@ -80,7 +80,7 @@ export class LevelDialog extends LitElement {
 			changedProperties.has("questController")
 		) {
 			this.dispatchEvent(
-				new CustomEvent(GameEvents.SLIDE_CHANGED, {
+				new CustomEvent("slide-changed", {
 					detail: { text: this.#getCurrentSlideText() },
 					bubbles: true,
 					composed: true,

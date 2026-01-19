@@ -7,7 +7,7 @@ import { gameConfig } from "../config/game-configuration.js";
 /**
  * @typedef {import('../game/interfaces.js').HotSwitchState} HotSwitchState
  * @typedef {import('../content/quests/quest-types.js').LevelConfig} LevelConfig
- * @typedef {import('../core/event-bus.js').EventBus} EventBus
+
  * @typedef {import('../game/interfaces.js').IWorldStateService} WorldStateService
  * @typedef {import('../game/interfaces.js').IQuestStateService} QuestStateService
  */
@@ -23,7 +23,7 @@ import { gameConfig } from "../config/game-configuration.js";
 
 /**
  * @typedef {Object} InteractionOptions
- * @property {EventBus} [eventBus] - Event bus for emitting events
+
  * @property {WorldStateService} [worldState] - World state service (UI, Pause)
  * @property {QuestStateService} [questState] - Quest state service (Locked messages)
  * @property {number} [interactionDistance] - Max distance to interact (default: from config)
@@ -53,9 +53,6 @@ export class InteractionController {
 		this.host = host;
 		/** @type {InteractionOptions} */
 		this.options = {
-			eventBus: /** @type {any} */ (null),
-			worldState: /** @type {any} */ (null),
-			questState: /** @type {any} */ (null),
 			interactionDistance: gameConfig.gameplay.interactionDistance,
 			getState: () => ({
 				level: "",
@@ -133,20 +130,24 @@ export class InteractionController {
 		});
 
 		if (result.action === "showDialog") {
-			if (this.options.worldState) {
-				this.options.worldState.setShowDialog(true);
-			}
+			/** @type {HTMLElement} */ (
+				/** @type {unknown} */ (this.host)
+			).dispatchEvent(
+				new CustomEvent("request-dialog", {
+					bubbles: true,
+					composed: true,
+				}),
+			);
 		} else if (result.action === "showLocked") {
-			if (this.options.questState) {
-				this.options.questState.setLockedMessage(result.message || null);
-			}
-
-			// Auto clear message after delay
-			setTimeout(() => {
-				if (this.options.questState) {
-					this.options.questState.setLockedMessage(null);
-				}
-			}, 1000);
+			/** @type {HTMLElement} */ (
+				/** @type {unknown} */ (this.host)
+			).dispatchEvent(
+				new CustomEvent("show-locked-message", {
+					detail: { message: result.message || null },
+					bubbles: true,
+					composed: true,
+				}),
+			);
 		}
 	}
 }

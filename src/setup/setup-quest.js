@@ -9,7 +9,6 @@ import { QuestController } from "../controllers/quest-controller.js";
  * @param {import('lit').LitElement} host
  * @param {Object} dependencies
  * @param {import('../services/progress-service.js').ProgressService} dependencies.progressService
- * @param {import('../core/event-bus.js').EventBus} dependencies.eventBus
  * @param {import('../services/logger-service.js').LoggerService} dependencies.logger
  * @param {import('../services/quest-registry-service.js').QuestRegistryService} dependencies.registry
  * @param {import('../services/preloader-service.js').PreloaderService} [dependencies.preloaderService]
@@ -21,7 +20,6 @@ export function setupQuest(
 	host,
 	{
 		progressService,
-		eventBus,
 		logger,
 		registry,
 		preloaderService,
@@ -31,7 +29,6 @@ export function setupQuest(
 ) {
 	return new QuestController(host, {
 		progressService,
-		eventBus,
 		logger,
 		registry,
 		preloaderService,

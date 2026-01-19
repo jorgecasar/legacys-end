@@ -482,12 +482,6 @@ export class GameViewport extends SignalWatcher(LitElement) {
 
 				<game-exit-zone></game-exit-zone>
 
-				${
-					this.questState.lockedMessage.get()
-						? html`<div class="locked-message">${this.questState.lockedMessage.get()}</div>`
-						: ""
-				}
-
 				${this._renderNPC()}
 				${this._renderReward()}
 				${this._renderHero()}

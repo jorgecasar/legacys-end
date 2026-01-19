@@ -1,6 +1,5 @@
 /**
  * @typedef {Object} IGameContext
- * @property {import('./event-bus.js').EventBus} eventBus
  * @property {import('../services/logger-service.js').LoggerService} logger
 
  * @property {import('../controllers/quest-controller.js').QuestController} questController
