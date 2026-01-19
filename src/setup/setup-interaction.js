@@ -10,21 +10,19 @@ import { InteractWithNpcUseCase } from "../use-cases/interact-with-npc.js";
  * Setup InteractionController
  * @param {InteractionHost} host
  * @param {Object} dependencies
- * @param {import('../core/event-bus.js').EventBus} dependencies.eventBus
- * @param {import('../game/services/world-state-service.js').WorldStateService} dependencies.worldState
- * @param {import('../game/services/quest-state-service.js').QuestStateService} dependencies.questState
- * @param {import('../game/services/hero-state-service.js').HeroStateService} dependencies.heroState
+ * @param {import('../game/interfaces.js').IWorldStateService} dependencies.worldState
+ * @param {import('../game/interfaces.js').IQuestStateService} dependencies.questState
+ * @param {import('../game/interfaces.js').IHeroStateService} dependencies.heroState
  * @param {import('../controllers/quest-controller.js').QuestController} dependencies.questController
  * @param {import('../services/quest-loader-service.js').QuestLoaderService} [dependencies.questLoader]
  */
 export function setupInteraction(
 	host,
-	{ eventBus, worldState, questState, heroState, questController, questLoader },
+	{ worldState, questState, heroState, questController, questLoader },
 ) {
 	/** @type {InteractionHost & { interaction: InteractionController }} */ (
 		host
 	).interaction = new InteractionController(host, {
-		eventBus,
 		worldState,
 		questState,
 		getState: () => {

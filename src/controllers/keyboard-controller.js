@@ -2,8 +2,6 @@
  * @typedef {import('lit').ReactiveController} ReactiveController
  */
 
-import { GameEvents } from "../core/event-bus.js";
-
 /**
  * @typedef {Object} KeyboardOptions
  * @property {number} [speed] - Movement speed multiplier (default: 2.5)
@@ -27,12 +25,10 @@ export class KeyboardController {
 	constructor(host, options = {}) {
 		/** @type {import('lit').ReactiveControllerHost} */
 		this.host = host;
-		/** @type {KeyboardOptions & {interaction: any, eventBus: any, gameState: any, worldState: import('../game/interfaces.js').IWorldStateService|undefined}} */
+		/** @type {KeyboardOptions & {interaction: any, worldState: import('../game/interfaces.js').IWorldStateService|undefined}} */
 		this.options = {
 			speed: 2.5,
 			interaction: undefined,
-			eventBus: undefined,
-			gameState: undefined,
 			worldState: undefined,
 			...options,
 		};
@@ -102,11 +98,8 @@ export class KeyboardController {
 		}
 
 		if (moveX !== 0 || moveY !== 0) {
-			if (this.options.eventBus) {
-				this.options.eventBus.emit(GameEvents.HERO_MOVE_INPUT, {
-					dx: moveX,
-					dy: moveY,
-				});
+			if (typeof (/** @type {any} */ (this.host).handleMove) === "function") {
+				/** @type {any} */ (this.host).handleMove(moveX, moveY);
 			}
 		}
 	}

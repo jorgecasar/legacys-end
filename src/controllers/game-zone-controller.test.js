@@ -1,6 +1,5 @@
 import { Signal } from "@lit-labs/signals";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { FakeGameStateService } from "../services/fakes/fake-game-state-service.js";
 import { GameZoneController } from "./game-zone-controller.js";
 
 describe("GameZoneController", () => {
@@ -10,8 +9,10 @@ describe("GameZoneController", () => {
 	let controller;
 	/** @type {any} */
 	let context;
-	/** @type {FakeGameStateService} */
-	let fakeGameState;
+	/** @type {Signal.State<{x: number, y: number}>} */
+	let heroPos;
+	/** @type {Signal.State<boolean>} */
+	let hasCollectedItem;
 	/** @type {any} */
 	let mockThemeService;
 
@@ -23,9 +24,8 @@ describe("GameZoneController", () => {
 			updateComplete: Promise.resolve(true),
 		};
 
-		fakeGameState = new FakeGameStateService();
-		// Initial state
-		fakeGameState.hasCollectedItem.set(false);
+		heroPos = new Signal.State({ x: 50, y: 50 });
+		hasCollectedItem = new Signal.State(false);
 
 		mockThemeService = {
 			themeMode: {
@@ -44,15 +44,14 @@ describe("GameZoneController", () => {
 			questController: {
 				currentChapter: {},
 			},
-			gameState: fakeGameState,
 			themeService: mockThemeService,
 			heroState: {
-				pos: fakeGameState.heroPos,
+				pos: heroPos,
 				hotSwitchState: new Signal.State("legacy"),
-				setHotSwitchState: fakeGameState.setHotSwitchState,
+				setHotSwitchState: vi.fn(),
 			},
 			questState: {
-				hasCollectedItem: fakeGameState.hasCollectedItem,
+				hasCollectedItem: hasCollectedItem,
 			},
 		};
 	});
@@ -76,7 +75,7 @@ describe("GameZoneController", () => {
 		const spy = vi.spyOn(controller, "checkZones");
 
 		// Initial state
-		fakeGameState.heroPos.set({ x: 50, y: 50 });
+		heroPos.set({ x: 50, y: 50 });
 		controller.hostConnected();
 		controller.hostUpdate();
 
@@ -85,7 +84,7 @@ describe("GameZoneController", () => {
 
 		// Update position
 		spy.mockClear();
-		fakeGameState.heroPos.set({ x: 55, y: 55 });
+		heroPos.set({ x: 55, y: 55 });
 		controller.hostUpdate();
 
 		expect(spy).toHaveBeenCalledWith(55, 55, false);
@@ -133,7 +132,7 @@ describe("GameZoneController", () => {
 			});
 
 			// Update state to have collected item
-			fakeGameState.hasCollectedItem.set(true);
+			hasCollectedItem.set(true);
 			mockThemeService.themeMode.get.mockReturnValue("light");
 
 			// Trigger check
@@ -173,7 +172,7 @@ describe("GameZoneController", () => {
 				}),
 			});
 
-			fakeGameState.heroPos.set({ x: 10, y: 10 });
+			heroPos.set({ x: 10, y: 10 });
 			controller.hostUpdate();
 			expect(processSpy).toHaveBeenCalledTimes(1);
 
@@ -182,7 +181,7 @@ describe("GameZoneController", () => {
 			expect(processSpy).toHaveBeenCalledTimes(1);
 
 			// Change position
-			fakeGameState.heroPos.set({ x: 20, y: 20 });
+			heroPos.set({ x: 20, y: 20 });
 			controller.hostUpdate();
 			expect(processSpy).toHaveBeenCalledTimes(2);
 		});
@@ -202,7 +201,7 @@ describe("GameZoneController", () => {
 			// Ensure context uses the spy
 			const spy = vi.spyOn(context.heroState, "setHotSwitchState");
 
-			fakeGameState.heroPos.set({ x: 50, y: 50 });
+			heroPos.set({ x: 50, y: 50 });
 			controller.hostUpdate();
 
 			expect(spy).toHaveBeenCalledWith("new");

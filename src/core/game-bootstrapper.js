@@ -1,7 +1,6 @@
 import { HeroStateService } from "../game/services/hero-state-service.js";
 import { QuestStateService } from "../game/services/quest-state-service.js";
 import { WorldStateService } from "../game/services/world-state-service.js";
-import { GameStateService } from "../services/game-state-service.js";
 import { LocalizationService } from "../services/localization-service.js";
 import { logger } from "../services/logger-service.js";
 import { preloader } from "../services/preloader-service.js";
@@ -30,7 +29,6 @@ import { eventBus as centralEventBus } from "./event-bus.js";
 /**
  * @typedef {Object} ServicesContext
  * @property {import('../services/storage-service.js').LocalStorageAdapter} storageAdapter
- * @property {import('../services/game-state-service.js').GameStateService} gameState
  * @property {import('../services/progress-service.js').ProgressService} progressService
  * @property {import('../services/quest-registry-service.js').QuestRegistryService} registry
  * @property {Object} services
@@ -52,7 +50,6 @@ import { eventBus as centralEventBus } from "./event-bus.js";
  * @typedef {Object} GameContext
  * @property {import('./event-bus.js').EventBus} eventBus
  * @property {import('../services/logger-service.js').LoggerService} logger
- * @property {import('../services/game-state-service.js').GameStateService} gameState
 
  * @property {import('../services/storage-service.js').LocalStorageAdapter} storageAdapter
  * @property {import('../controllers/quest-controller.js').QuestController} [questController]
@@ -135,8 +132,6 @@ export class GameBootstrapper {
 			await import("../services/voice-synthesis-service.js")
 		).VoiceSynthesisService();
 
-		const gameState = new GameStateService(loggerService);
-
 		const progressService = new ProgressService(
 			storageAdapter,
 			registry,
@@ -164,12 +159,8 @@ export class GameBootstrapper {
 		const questState = new QuestStateService();
 		const worldState = new WorldStateService();
 
-		// Inject dependencies into GameStateService facade
-		gameState.setDomainServices(heroState, questState, worldState);
-
 		return {
 			storageAdapter,
-			gameState,
 			progressService,
 			services,
 			preloader,
@@ -195,7 +186,6 @@ export class GameBootstrapper {
 		const {
 			eventBus,
 			progressService,
-			gameState,
 			questState,
 			heroState,
 			worldState,
@@ -227,7 +217,6 @@ export class GameBootstrapper {
 			eventBus,
 			logger,
 			questState,
-			gameState,
 			sessionService,
 			progressService,
 			worldState,
@@ -249,7 +238,6 @@ export class GameBootstrapper {
 
 		// 4. Setup Other Controllers
 		setupGameController(/** @type {any} */ (host), {
-			gameService,
 			logger,
 			heroState,
 			questState,
@@ -266,7 +254,8 @@ export class GameBootstrapper {
 		const characterContexts = setupCharacterContexts(
 			/** @type {any} */ (host),
 			{
-				gameState,
+				heroState,
+				questState,
 				questController,
 				themeService,
 			},
@@ -279,7 +268,6 @@ export class GameBootstrapper {
 			themeService,
 		});
 		setupInteraction(/** @type {any} */ (host), {
-			eventBus,
 			worldState,
 			questState,
 			heroState,
@@ -296,7 +284,6 @@ export class GameBootstrapper {
 			localizationService,
 			aiService,
 			voiceSynthesisService,
-			eventBus,
 			worldState,
 			questState,
 			questController,
@@ -306,7 +293,6 @@ export class GameBootstrapper {
 		return {
 			eventBus,
 			logger,
-			gameState,
 			storageAdapter,
 			questController,
 			progressService,

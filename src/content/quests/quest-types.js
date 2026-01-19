@@ -101,6 +101,7 @@ export const Difficulty = {
  * @property {RewardConfig} [reward]
  * @property {HeroConfig} [hero]
  * @property {Zone[]} [zones]
+ * @property {Rect[]} [obstacles]
  */
 
 /**

@@ -1,6 +1,6 @@
 import { Signal } from "@lit-labs/signals";
 
-/** @typedef {import('../../services/game-state-service.js').HotSwitchState} HotSwitchState */
+/** @typedef {import('../interfaces.js').HotSwitchState} HotSwitchState */
 /** @typedef {import('../interfaces.js').IHeroStateService} IHeroStateService */
 
 /**

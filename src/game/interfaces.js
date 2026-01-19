@@ -2,7 +2,9 @@
  * Game Domain Service Interfaces
  */
 
-/** @typedef {import('../services/game-state-service.js').HotSwitchState} HotSwitchState */
+/**
+ * @typedef {"legacy" | "mock" | "new" | null} HotSwitchState
+ */
 
 /**
  * @typedef {Object} IHeroStateService

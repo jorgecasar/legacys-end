@@ -7,9 +7,6 @@
  */
 
 // Import types from their source files
-/** @typedef {import('./game-state-service.js').GameState} GameState */
-
-/** @typedef {import('./game-state-service.js').HotSwitchState} HotSwitchState */
 
 /** @typedef {import('./progress-service.js').ProgressState} ProgressState */
 /** @typedef {import('./quest-registry-service.js').Quest} Quest */
@@ -19,22 +16,6 @@
 /** @typedef {import('../config/game-configuration.js').FeaturesConfig} FeaturesConfig */
 /** @typedef {import('../config/game-configuration.js').ViewportConfig} ViewportConfig */
 /** @typedef {import('../config/game-configuration.js').GameConfig} GameConfig */
-
-/**
- * @typedef {Object} IGameStateService
- * @property {() => GameState} getState - Get current game state
-
- * @property {(x: number, y: number) => void} setHeroPosition - Update hero position
- * @property {(collected: boolean) => void} setCollectedItem - Set item collection status
- * @property {(collected: boolean) => void} setRewardCollected - Set reward collection status
- * @property {(state: HotSwitchState) => void} setHotSwitchState - Set API context state
- * @property {(paused: boolean) => void} setPaused - Set pause state
- * @property {(evolving: boolean) => void} setEvolving - Set evolution state
- * @property {(message: string|null) => void} setLockedMessage - Set locked message
-
- * @property {() => void} resetChapterState - Reset chapter-specific state
- * @property {(callback: (state: GameState, oldState: GameState) => void) => Function} subscribe - Subscribe to state changes
- */
 
 /**
  * @typedef {Object} IProgressService

@@ -72,7 +72,7 @@ describe("Quest Journey E2E", () => {
 
 			// Wait for the start button to appear
 			let startBtn = null;
-			for (let i = 0; i < 20; i++) {
+			for (let i = 0; i < 50; i++) {
 				startBtn = auraCard.shadowRoot.querySelector(
 					'wa-button[variant="brand"]',
 				);

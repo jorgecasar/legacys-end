@@ -35,7 +35,6 @@ import "../quest-hub/quest-hub.js";
 export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 	// Services
 	progressService = /** @type {any} */ (null);
-	gameState = /** @type {any} */ (null);
 	storageAdapter = /** @type {any} */ (null);
 	services = {};
 	eventBus = centralEventBus;
@@ -105,7 +104,6 @@ export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 		this.eventBus = context.eventBus;
 		this.logger = context.logger;
 		this.progressService = context.progressService;
-		this.gameState = context.gameState;
 		this.storageAdapter = context.storageAdapter;
 		this.services = context.services;
 		this.sessionService = context.sessionService;

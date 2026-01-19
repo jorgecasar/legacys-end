@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { GameEvents } from "../core/event-bus.js";
 import { KeyboardController } from "./keyboard-controller.js";
 
 describe("KeyboardController", () => {
@@ -17,20 +16,15 @@ describe("KeyboardController", () => {
 		host = {
 			addController: vi.fn(),
 			requestUpdate: vi.fn(),
+			handleMove: vi.fn(),
 			interaction: {
 				handleInteract: vi.fn(),
 			},
 		};
 
-		// Mock context
+		// Mock context (now explicit dependencies)
 		context = {
-			eventBus: {
-				emit: vi.fn(),
-			},
-			interaction: {
-				handleInteract: vi.fn(),
-			},
-			gameState: {},
+			interaction: host.interaction,
 			worldState: {
 				isPaused: { get: () => false },
 				setPaused: vi.fn(),
@@ -46,7 +40,6 @@ describe("KeyboardController", () => {
 		});
 
 		// Initialize controller
-		// Passing context as 2nd argument (matching implementation)
 		controller = new KeyboardController(host, { ...context });
 		controller.hostConnected();
 	});
@@ -64,32 +57,20 @@ describe("KeyboardController", () => {
 		);
 	});
 
-	it("should emit HERO_MOVE_INPUT for arrow keys", () => {
+	it("should call host.handleMove for arrow keys", () => {
 		const event = { key: "ArrowUp", preventDefault: vi.fn() };
 		eventMap.keydown(event);
 
 		expect(event.preventDefault).toHaveBeenCalled();
-		expect(context.eventBus.emit).toHaveBeenCalledWith(
-			GameEvents.HERO_MOVE_INPUT,
-			{
-				dx: 0,
-				dy: -2.5,
-			},
-		);
+		expect(host.handleMove).toHaveBeenCalledWith(0, -2.5);
 	});
 
-	it("should emit HERO_MOVE_INPUT for WASD keys", () => {
+	it("should call host.handleMove for WASD keys", () => {
 		const event = { key: "d", preventDefault: vi.fn() };
 		eventMap.keydown(event);
 
 		expect(event.preventDefault).toHaveBeenCalled();
-		expect(context.eventBus.emit).toHaveBeenCalledWith(
-			GameEvents.HERO_MOVE_INPUT,
-			{
-				dx: 2.5,
-				dy: 0,
-			},
-		);
+		expect(host.handleMove).toHaveBeenCalledWith(2.5, 0);
 	});
 
 	it("should call interaction.handleInteract() on Space", () => {
@@ -97,8 +78,6 @@ describe("KeyboardController", () => {
 		eventMap.keydown(event);
 
 		expect(event.preventDefault).toHaveBeenCalled();
-		// It checks host.interaction first, then option.interaction
-		// host.interaction is set in beforeEach
 		expect(host.interaction.handleInteract).toHaveBeenCalled();
 	});
 
@@ -121,13 +100,7 @@ describe("KeyboardController", () => {
 		const event = { key: "d", preventDefault: vi.fn() };
 		eventMap.keydown(event);
 
-		expect(context.eventBus.emit).toHaveBeenCalledWith(
-			GameEvents.HERO_MOVE_INPUT,
-			{
-				dx: 5.0,
-				dy: 0,
-			},
-		);
+		expect(host.handleMove).toHaveBeenCalledWith(5.0, 0);
 	});
 
 	it("should remove event listener on disconnect", () => {

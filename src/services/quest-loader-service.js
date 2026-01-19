@@ -18,7 +18,6 @@ export class QuestLoaderService {
 	 * @param {import('../core/event-bus.js').EventBus} dependencies.eventBus
 	 * @param {import('../services/logger-service.js').LoggerService} dependencies.logger
 	 * @param {import('../game/services/quest-state-service.js').QuestStateService} dependencies.questState
-	 * @param {import('../services/game-state-service.js').GameStateService} dependencies.gameState
 	 * @param {import('../services/session-service.js').SessionService} dependencies.sessionService
 	 * @param {import('../services/progress-service.js').ProgressService} dependencies.progressService
 	 * @param {import('../game/services/world-state-service.js').WorldStateService} dependencies.worldState
@@ -30,7 +29,6 @@ export class QuestLoaderService {
 		eventBus,
 		logger,
 		questState,
-		gameState,
 		sessionService,
 		progressService,
 		worldState,
@@ -41,12 +39,10 @@ export class QuestLoaderService {
 		this.eventBus = eventBus;
 		this.logger = logger;
 		this.questState = questState;
-		this.gameState = gameState;
 		this.sessionService = sessionService;
 		this.progressService = progressService;
 		this.worldState = worldState;
 		this.heroState = heroState;
-		this.questState = questState;
 		/** @type {import('../utils/router.js').Router | undefined} */
 		this.router = router;
 
@@ -97,7 +93,6 @@ export class QuestLoaderService {
 	async startQuest(questId) {
 		this.#setLoadingState(true);
 		this.questState.resetQuestState();
-		this.gameState.resetQuestState();
 
 		const result = await this._startQuestUseCase.execute(questId);
 
@@ -124,7 +119,6 @@ export class QuestLoaderService {
 	async continueQuest(questId) {
 		this.#setLoadingState(true);
 		this.questState.resetQuestState();
-		this.gameState.resetQuestState();
 
 		const result = await this._continueQuestUseCase.execute(questId);
 
@@ -228,7 +222,6 @@ export class QuestLoaderService {
 
 		if (result.success) {
 			this.questState.setIsQuestCompleted(true);
-			this.gameState.setQuestCompleted(true);
 		}
 	}
 
@@ -238,9 +231,7 @@ export class QuestLoaderService {
 	 */
 	async returnToHub(replace = false) {
 		this.questState.setIsQuestCompleted(false);
-		this.gameState.setQuestCompleted(false);
 		this.worldState.setPaused(false);
-		this.gameState.setPaused(false);
 
 		if (
 			this.sessionService.isInHub.get() &&
@@ -288,7 +279,6 @@ export class QuestLoaderService {
 
 		this.questState.setCurrentChapterId(chapter.id);
 		this.questState.resetChapterState();
-		this.gameState.resetChapterState();
 
 		// Restore state if available
 		const state = /** @type {any} */ (
@@ -330,7 +320,7 @@ export class QuestLoaderService {
 		};
 
 		return (
-			/** @type {import('../services/game-state-service').HotSwitchState} */ (
+			/** @type {import('../game/interfaces.js').HotSwitchState} */ (
 				mapping[serviceType]
 			) || null
 		);
@@ -343,9 +333,7 @@ export class QuestLoaderService {
 		this.sessionService.setLoading(isLoading);
 		if (isLoading) {
 			this.questState.setIsQuestCompleted(false);
-			this.gameState.setQuestCompleted(false);
 			this.worldState.setPaused(false);
-			this.gameState.setPaused(false);
 		}
 	}
 }

@@ -47,15 +47,15 @@ describe("LegacysEndApp Integration", () => {
 		expect(GameBootstrapper.prototype.bootstrap).toHaveBeenCalledWith(element);
 
 		// 2. Verify Services are attached to the App (host)
-		expect(element.gameState).toBeDefined();
+		expect(element.heroState).toBeDefined();
+		expect(element.questState).toBeDefined();
+		expect(element.worldState).toBeDefined();
 		expect(element.progressService).toBeDefined();
 		expect(element.questLoader).toBeDefined();
 		expect(element.router).toBeDefined();
 		expect(element.questController).toBeDefined();
 
 		// 3. Verify specific wiring state
-		// e.g. GameState should have access to logger via DI (not easily checkable from outside unless we spy logger)
-		expect(element.gameState.logger).toBeDefined(); // Since we added it to public property in step 4792
 		expect(element.progressService.logger).toBeDefined();
 
 		// 4. Verify initial state

@@ -1,5 +1,5 @@
+import { Signal } from "@lit-labs/signals";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { FakeGameStateService } from "../services/fakes/fake-game-state-service.js";
 import { CollisionController } from "./collision-controller.js";
 
 describe("CollisionController", () => {
@@ -9,8 +9,10 @@ describe("CollisionController", () => {
 	let controller;
 	/** @type {any} */
 	let context;
-	/** @type {FakeGameStateService} */
-	let fakeGameState;
+	/** @type {Signal.State<{x: number, y: number}>} */
+	let heroPos;
+	/** @type {Signal.State<boolean>} */
+	let hasCollectedItem;
 
 	beforeEach(() => {
 		host = {
@@ -20,9 +22,8 @@ describe("CollisionController", () => {
 			updateComplete: Promise.resolve(true),
 		};
 
-		fakeGameState = new FakeGameStateService();
-		fakeGameState.heroPos.set({ x: 50, y: 50 });
-		fakeGameState.hasCollectedItem.set(true);
+		heroPos = new Signal.State({ x: 50, y: 50 });
+		hasCollectedItem = new Signal.State(true);
 
 		context = {
 			eventBus: {
@@ -35,12 +36,11 @@ describe("CollisionController", () => {
 					exitZone: { x: 50, y: 50, width: 10, height: 10 },
 				},
 			},
-			gameState: fakeGameState,
 			heroState: {
-				pos: fakeGameState.heroPos,
+				pos: heroPos,
 			},
 			questState: {
-				hasCollectedItem: fakeGameState.hasCollectedItem,
+				hasCollectedItem: hasCollectedItem,
 			},
 		};
 
@@ -53,8 +53,8 @@ describe("CollisionController", () => {
 		const spy = vi.spyOn(controller, "checkExitZone");
 
 		// Set initial state
-		fakeGameState.heroPos.set({ x: 50, y: 50 });
-		fakeGameState.hasCollectedItem.set(true);
+		heroPos.set({ x: 50, y: 50 });
+		hasCollectedItem.set(true);
 
 		controller.hostUpdate();
 
@@ -67,7 +67,7 @@ describe("CollisionController", () => {
 
 		// Update signal and call hostUpdate again
 		spy.mockClear();
-		fakeGameState.heroPos.set({ x: 52, y: 52 });
+		heroPos.set({ x: 52, y: 52 });
 		controller.hostUpdate();
 
 		expect(spy).toHaveBeenCalledWith(

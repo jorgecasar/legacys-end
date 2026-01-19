@@ -2,9 +2,6 @@ import { ContextProvider } from "@lit/context";
 import { Signal } from "@lit-labs/signals";
 import { html, LitElement } from "lit";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { GameEvents } from "../../core/event-bus.js";
-import { logger } from "../../services/logger-service.js";
-import "./game-viewport.js";
 import { aiContext } from "../../contexts/ai-context.js";
 import { localizationContext } from "../../contexts/localization-context.js";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
@@ -12,23 +9,15 @@ import { questLoaderContext } from "../../contexts/quest-loader-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
 import { themeContext } from "../../contexts/theme-context.js";
 import { voiceContext } from "../../contexts/voice-context.js";
-
-// Mock child components with explicit factories to avoid automock errors
-vi.mock("../game-hud/game-hud.js", () => ({}));
-vi.mock("../hero-profile/hero-profile.js", () => ({}));
-vi.mock("../npc-element/npc-element.js", () => ({}));
-vi.mock("../reward-element/reward-element.js", () => ({}));
-vi.mock("../viewport-elements/game-controls/game-controls.js", () => ({}));
-vi.mock("../viewport-elements/game-exit-zone/game-exit-zone.js", () => ({}));
-vi.mock(
-	"../viewport-elements/game-zone-indicator/game-zone-indicator.js",
-	() => ({}),
-);
-
 import { heroStateContext } from "../../game/contexts/hero-context.js";
 import { questStateContext } from "../../game/contexts/quest-context.js";
 import { worldStateContext } from "../../game/contexts/world-context.js";
+import { GameViewport } from "./GameViewport.js";
+import "./game-viewport.js";
 
+/**
+ * Test wrapper to provide contexts
+ */
 class TestContextWrapper extends LitElement {
 	static properties = {
 		heroState: { type: Object },
@@ -37,111 +26,117 @@ class TestContextWrapper extends LitElement {
 		questController: { type: Object },
 		questLoader: { type: Object },
 		sessionService: { type: Object },
-		themeService: { type: Object },
 		localizationService: { type: Object },
+		themeService: { type: Object },
 		aiService: { type: Object },
 		voiceSynthesisService: { type: Object },
 	};
 
 	constructor() {
 		super();
-		this.heroState = {};
-		this.questState = {};
-		this.worldState = {};
-		this.questController = {};
-		this.questLoader = {};
-		this.sessionService = {};
-		this.themeService = {};
-		this.localizationService = { getLocale: () => "en-US" };
-		this.aiService = {
-			checkAvailability: vi.fn().mockResolvedValue("no"),
-			destroySession: vi.fn(),
-		};
-		this.voiceSynthesisService = {};
+		/** @type {any} */
+		this.heroState = null;
+		/** @type {any} */
+		this.questState = null;
+		/** @type {any} */
+		this.worldState = null;
+		/** @type {any} */
+		this.questController = null;
+		/** @type {any} */
+		this.questLoader = null;
+		/** @type {any} */
+		this.sessionService = null;
+		/** @type {any} */
+		this.localizationService = null;
+		/** @type {any} */
+		this.themeService = null;
+		/** @type {any} */
+		this.aiService = null;
+		/** @type {any} */
+		this.voiceSynthesisService = null;
 
-		this._heroProvider = new ContextProvider(this, {
+		/** @type {any} */
+		this.heroProvider = new ContextProvider(this, {
 			context: heroStateContext,
-			initialValue: /** @type {any} */ (this.heroState),
+			initialValue: undefined,
 		});
-		this._questProvider = new ContextProvider(this, {
+		/** @type {any} */
+		this.questStateProvider = new ContextProvider(this, {
 			context: questStateContext,
-			initialValue: /** @type {any} */ (this.questState),
+			initialValue: undefined,
 		});
-		this._worldProvider = new ContextProvider(this, {
+		/** @type {any} */
+		this.worldStateProvider = new ContextProvider(this, {
 			context: worldStateContext,
-			initialValue: /** @type {any} */ (this.worldState),
+			initialValue: undefined,
 		});
-		this._qcProvider = new ContextProvider(this, {
+		/** @type {any} */
+		this.questControllerProvider = new ContextProvider(this, {
 			context: questControllerContext,
-			initialValue: /** @type {any} */ (this.questController),
+			initialValue: undefined,
 		});
-		this._loaderProvider = new ContextProvider(this, {
+		/** @type {any} */
+		this.questLoaderProvider = new ContextProvider(this, {
 			context: questLoaderContext,
-			initialValue: /** @type {any} */ (this.questLoader),
+			initialValue: undefined,
 		});
-		this._sessionProvider = new ContextProvider(this, {
+		/** @type {any} */
+		this.sessionProvider = new ContextProvider(this, {
 			context: sessionContext,
-			initialValue: /** @type {any} */ (this.sessionService),
+			initialValue: undefined,
 		});
-		this._themeProvider = new ContextProvider(this, {
-			context: themeContext,
-			initialValue: /** @type {any} */ (this.themeService),
-		});
-		this._locProvider = new ContextProvider(this, {
+		/** @type {any} */
+		this.localizationProvider = new ContextProvider(this, {
 			context: localizationContext,
-			initialValue: /** @type {any} */ (this.localizationService),
+			initialValue: undefined,
 		});
-		this._aiProvider = new ContextProvider(this, {
+		/** @type {any} */
+		this.themeProvider = new ContextProvider(this, {
+			context: themeContext,
+			initialValue: undefined,
+		});
+		/** @type {any} */
+		this.aiProvider = new ContextProvider(this, {
 			context: aiContext,
-			initialValue: /** @type {any} */ (this.aiService),
+			initialValue: undefined,
 		});
-		this._voiceProvider = new ContextProvider(this, {
+		/** @type {any} */
+		this.voiceProvider = new ContextProvider(this, {
 			context: voiceContext,
-			initialValue: /** @type {any} */ (this.voiceSynthesisService),
+			initialValue: undefined,
 		});
 	}
 
-	/** @param {Map<PropertyKey, unknown>} changedProperties */
+	/** @param {import("lit").PropertyValues} changedProperties */
 	updated(changedProperties) {
-		if (changedProperties.has("heroState")) {
-			this._heroProvider.setValue(/** @type {any} */ (this.heroState));
-		}
-		if (changedProperties.has("questState")) {
-			this._questProvider.setValue(/** @type {any} */ (this.questState));
-		}
-		if (changedProperties.has("worldState")) {
-			this._worldProvider.setValue(/** @type {any} */ (this.worldState));
-		}
-		if (changedProperties.has("questController")) {
-			this._qcProvider.setValue(/** @type {any} */ (this.questController));
-		}
-		if (changedProperties.has("questLoader")) {
-			this._loaderProvider.setValue(/** @type {any} */ (this.questLoader));
-		}
-		if (changedProperties.has("sessionService")) {
-			this._sessionProvider.setValue(/** @type {any} */ (this.sessionService));
-		}
-		if (changedProperties.has("themeService")) {
-			this._themeProvider.setValue(/** @type {any} */ (this.themeService));
-		}
-		if (changedProperties.has("localizationService")) {
-			this._locProvider.setValue(/** @type {any} */ (this.localizationService));
-		}
-		if (changedProperties.has("aiService")) {
-			this._aiProvider.setValue(/** @type {any} */ (this.aiService));
-		}
-		if (changedProperties.has("voiceSynthesisService")) {
-			this._voiceProvider.setValue(
-				/** @type {any} */ (this.voiceSynthesisService),
-			);
-		}
+		if (changedProperties.has("heroState"))
+			this.heroProvider.setValue(this.heroState);
+		if (changedProperties.has("questState"))
+			this.questStateProvider.setValue(this.questState);
+		if (changedProperties.has("worldState"))
+			this.worldStateProvider.setValue(this.worldState);
+		if (changedProperties.has("questController"))
+			this.questControllerProvider.setValue(this.questController);
+		if (changedProperties.has("questLoader"))
+			this.questLoaderProvider.setValue(this.questLoader);
+		if (changedProperties.has("sessionService"))
+			this.sessionProvider.setValue(this.sessionService);
+		if (changedProperties.has("localizationService"))
+			this.localizationProvider.setValue(this.localizationService);
+		if (changedProperties.has("themeService"))
+			this.themeProvider.setValue(this.themeService);
+		if (changedProperties.has("aiService"))
+			this.aiProvider.setValue(this.aiService);
+		if (changedProperties.has("voiceSynthesisService"))
+			this.voiceProvider.setValue(this.voiceSynthesisService);
 	}
 
 	render() {
 		return html`<slot></slot>`;
 	}
 }
-customElements.define("test-context-wrapper-gv", TestContextWrapper);
+
+customElements.define("test-context-wrapper", TestContextWrapper);
 
 describe("GameViewport", () => {
 	/** @type {HTMLElement} */
@@ -150,7 +145,6 @@ describe("GameViewport", () => {
 	beforeEach(() => {
 		container = document.createElement("div");
 		document.body.appendChild(container);
-		vi.spyOn(logger, "warn").mockImplementation(() => {});
 	});
 
 	afterEach(() => {
@@ -158,73 +152,73 @@ describe("GameViewport", () => {
 		vi.clearAllMocks();
 	});
 
-	it("should render without crashing", async () => {
-		const wrapper = new TestContextWrapper();
-		container.appendChild(wrapper);
-
-		// Mock minimal required services
-		wrapper.heroState = {
-			pos: new Signal.State({ x: 0, y: 0 }),
-			setImageSrc: vi.fn(),
-			imageSrc: new Signal.State(""),
-		};
-		wrapper.questState = {
-			hasCollectedItem: new Signal.State(false),
-			isRewardCollected: new Signal.State(false),
-			lockedMessage: new Signal.State(null),
-		};
-		wrapper.worldState = {
-			isPaused: new Signal.State(false),
-			showDialog: new Signal.State(false),
-		};
-		wrapper.themeService = { themeMode: new Signal.State("light") };
-		wrapper.aiService = {
-			checkAvailability: vi.fn().mockResolvedValue("no"),
-			destroySession: vi.fn(),
-		};
-		wrapper.voiceSynthesisService = { speak: vi.fn(), cancel: vi.fn() };
-
-		await wrapper.updateComplete;
-
-		const element = document.createElement("game-viewport");
-		wrapper.appendChild(element);
-
-		await /** @type {any} */ (element).updateComplete;
-
-		expect(element).toBeTruthy();
+	const createHeroStateMock = () => ({
+		pos: new Signal.State({ x: 0, y: 0 }),
+		setImageSrc: vi.fn(),
+		imageSrc: new Signal.State(""),
+		isEvolving: new Signal.State(false),
+		hotSwitchState: new Signal.State("legacy"),
 	});
 
-	it("should initialize keyboard controller", async () => {
-		const wrapper = new TestContextWrapper();
-		container.appendChild(wrapper);
+	const createQuestStateMock = () => ({
+		hasCollectedItem: new Signal.State(false),
+		isRewardCollected: new Signal.State(false),
+		lockedMessage: new Signal.State(null),
+		currentChapterNumber: new Signal.State(1),
+		totalChapters: new Signal.State(10),
+		levelTitle: new Signal.State("Test Level"),
+		questTitle: new Signal.State("Test Quest"),
+	});
 
-		// Mock services
-		const eventBus = { on: vi.fn(), off: vi.fn(), emit: vi.fn() };
+	const createWorldStateMock = () => ({
+		isPaused: new Signal.State(false),
+		showDialog: new Signal.State(false),
+	});
+
+	const setupBasicServices = (/** @type {TestContextWrapper} */ wrapper) => {
 		wrapper.questController = {
-			options: { eventBus, speed: 2.5 },
-			currentChapter: {},
+			currentChapter: { id: "ch1" },
+			options: {
+				logger: {
+					info: vi.fn(),
+					warn: vi.fn(),
+					debug: vi.fn(),
+					error: vi.fn(),
+				},
+			},
 		};
-		wrapper.heroState = {
-			pos: new Signal.State({ x: 0, y: 0 }),
-			setImageSrc: vi.fn(),
-			imageSrc: new Signal.State(""),
-		};
-		wrapper.questState = {
-			hasCollectedItem: new Signal.State(false),
-			isRewardCollected: new Signal.State(false),
-			lockedMessage: new Signal.State(null),
-		};
-		wrapper.worldState = {
-			isPaused: new Signal.State(false),
-			showDialog: new Signal.State(false),
-		};
+		wrapper.heroState = createHeroStateMock();
+		wrapper.questState = createQuestStateMock();
+		wrapper.worldState = createWorldStateMock();
 		wrapper.sessionService = {};
 		wrapper.themeService = { themeMode: new Signal.State("light") };
 		wrapper.aiService = {
-			checkAvailability: vi.fn().mockResolvedValue("no"),
+			isEnabled: new Signal.State(false),
+			checkAvailability: vi.fn().mockResolvedValue("available"),
+			createSession: vi.fn().mockResolvedValue(undefined),
+			getSession: vi
+				.fn()
+				.mockReturnValue({ prompt: vi.fn(), destroy: vi.fn() }),
 			destroySession: vi.fn(),
+			getChatResponse: vi.fn(),
 		};
-		wrapper.voiceSynthesisService = { speak: vi.fn(), cancel: vi.fn() };
+		wrapper.voiceSynthesisService = {
+			speak: vi.fn(),
+			cancel: vi.fn(),
+		};
+		wrapper.localizationService = {
+			t: (/** @type {string} */ key) => key,
+			getLocale: () => "en-US",
+		};
+	};
+
+	it("should render initial state correctly", async () => {
+		const wrapper = new TestContextWrapper();
+		container.appendChild(wrapper);
+		setupBasicServices(wrapper);
+
+		wrapper.questController.currentChapter.backgroundStyle =
+			"url('/assets/default-bg.png')";
 
 		await wrapper.updateComplete;
 
@@ -233,96 +227,27 @@ describe("GameViewport", () => {
 
 		await /** @type {any} */ (element).updateComplete;
 
-		const el = /** @type {any} */ (element);
-		expect(el.keyboard).toBeDefined();
-		expect(el.keyboard?.options.eventBus).toBe(eventBus);
+		expect(element.shadowRoot?.querySelector(".game-area")).toBeTruthy();
 	});
 
-	it("should subscribe to HERO_MOVE_INPUT with app provided", async () => {
+	it("should initialize controllers on update when services are ready", async () => {
 		const wrapper = new TestContextWrapper();
 		container.appendChild(wrapper);
 
-		const eventBus = { on: vi.fn(), off: vi.fn(), emit: vi.fn() };
-		wrapper.questController = { options: { eventBus }, currentChapter: {} };
-		wrapper.heroState = {
-			pos: new Signal.State({ x: 0, y: 0 }),
-			setImageSrc: vi.fn(),
-			imageSrc: new Signal.State(""),
-		};
-		wrapper.questState = {
-			hasCollectedItem: new Signal.State(false),
-			isRewardCollected: new Signal.State(false),
-			lockedMessage: new Signal.State(null),
-		};
-		wrapper.worldState = {
-			isPaused: new Signal.State(false),
-			showDialog: new Signal.State(false),
-		};
-		wrapper.sessionService = {};
-		wrapper.themeService = { themeMode: new Signal.State("light") };
-		wrapper.aiService = {
-			checkAvailability: vi.fn().mockResolvedValue("no"),
-			destroySession: vi.fn(),
-		};
-		wrapper.voiceSynthesisService = { speak: vi.fn(), cancel: vi.fn() };
-
-		await wrapper.updateComplete;
-
 		const element = document.createElement("game-viewport");
 		wrapper.appendChild(element);
 
-		await /** @type {any} */ (element).updateComplete;
+		// Initially not initialized
+		expect(/** @type {any} */ (element)._controllersInitialized).toBe(false);
 
-		expect(eventBus.on).toHaveBeenCalledWith(
-			GameEvents.HERO_MOVE_INPUT,
-			expect.any(Function),
-		);
-	});
-
-	it("should unsubscribe from events on disconnect", async () => {
-		const wrapper = new TestContextWrapper();
-		container.appendChild(wrapper);
-
-		const eventBus = { on: vi.fn(), off: vi.fn(), emit: vi.fn() };
-		wrapper.questController = { options: { eventBus }, currentChapter: {} };
-		wrapper.heroState = {
-			pos: new Signal.State({ x: 0, y: 0 }),
-			setImageSrc: vi.fn(),
-			imageSrc: new Signal.State(""),
-		};
-		wrapper.questState = {
-			hasCollectedItem: new Signal.State(false),
-			isRewardCollected: new Signal.State(false),
-			lockedMessage: new Signal.State(null),
-		};
-		wrapper.worldState = {
-			isPaused: new Signal.State(false),
-			showDialog: new Signal.State(false),
-		};
-		wrapper.sessionService = {};
-		wrapper.themeService = { themeMode: new Signal.State("light") };
-		wrapper.aiService = {
-			checkAvailability: vi.fn().mockResolvedValue("no"),
-			destroySession: vi.fn(),
-		};
-		wrapper.voiceSynthesisService = { speak: vi.fn(), cancel: vi.fn() };
+		// Provide services
+		setupBasicServices(wrapper);
 
 		await wrapper.updateComplete;
-
-		const element = document.createElement("game-viewport");
-		wrapper.appendChild(element);
-
 		await /** @type {any} */ (element).updateComplete;
 
-		expect(eventBus.on).toHaveBeenCalled();
-
-		// Disconnect element
-		element.remove();
-
-		expect(eventBus.off).toHaveBeenCalledWith(
-			GameEvents.HERO_MOVE_INPUT,
-			expect.any(Function),
-		);
+		expect(/** @type {any} */ (element)._controllersInitialized).toBe(true);
+		expect(/** @type {any} */ (element).keyboard).toBeTruthy();
 	});
 
 	it("should pass zones from current chapter to indicators", async () => {
@@ -332,32 +257,8 @@ describe("GameViewport", () => {
 		const zones = [
 			{ type: "THEME_CHANGE", x: 10, y: 10, width: 100, height: 100 },
 		];
-		wrapper.questController = {
-			currentChapter: { zones },
-			options: { eventBus: { on: vi.fn(), off: vi.fn(), emit: vi.fn() } },
-		};
-		// ... other required mocks ...
-		// reusing setup from other tests implicitly or explicitly
-		wrapper.heroState = {
-			pos: new Signal.State({ x: 0, y: 0 }),
-			setImageSrc: vi.fn(),
-			imageSrc: new Signal.State(""),
-		};
-		wrapper.questState = {
-			hasCollectedItem: new Signal.State(false),
-			isRewardCollected: new Signal.State(false),
-			lockedMessage: new Signal.State(null),
-		};
-		wrapper.worldState = {
-			isPaused: new Signal.State(false),
-			showDialog: new Signal.State(false),
-		};
-		wrapper.themeService = { themeMode: new Signal.State("light") };
-		wrapper.aiService = {
-			checkAvailability: vi.fn().mockResolvedValue("no"),
-			destroySession: vi.fn(),
-		};
-		wrapper.voiceSynthesisService = { speak: vi.fn(), cancel: vi.fn() };
+		setupBasicServices(wrapper);
+		wrapper.questController.currentChapter.zones = zones;
 
 		await wrapper.updateComplete;
 
@@ -379,62 +280,51 @@ describe("GameViewport", () => {
 		const wrapper = new TestContextWrapper();
 		container.appendChild(wrapper);
 
-		wrapper.questController = {
-			currentChapter: {
-				id: "ch1",
-				backgroundStyle: "default-bg",
-				backgroundStyleReward: "reward-bg",
-			},
-			options: { eventBus: { on: vi.fn(), off: vi.fn(), emit: vi.fn() } },
-		};
+		setupBasicServices(wrapper);
+		wrapper.questController.currentChapter.backgroundStyle =
+			"url('/assets/default-bg.png')";
+		wrapper.questController.currentChapter.backgroundStyleReward =
+			"url('/assets/reward-bg.png')";
 
-		const isRewardCollected = new Signal.State(false);
-		wrapper.questState = {
-			hasCollectedItem: new Signal.State(false),
-			isRewardCollected: isRewardCollected,
-			lockedMessage: new Signal.State(null),
-		};
-		// Reset other required mocks
-		wrapper.heroState = {
-			pos: new Signal.State({ x: 0, y: 0 }),
-			setImageSrc: vi.fn(),
-			imageSrc: new Signal.State(""),
-		};
-		wrapper.worldState = {
-			isPaused: new Signal.State(false),
-			showDialog: new Signal.State(false),
-		};
-		wrapper.themeService = { themeMode: new Signal.State("light") };
-		wrapper.aiService = {
-			checkAvailability: vi.fn().mockResolvedValue("no"),
-			destroySession: vi.fn(),
-		};
-		wrapper.voiceSynthesisService = { speak: vi.fn(), cancel: vi.fn() };
+		const questState = wrapper.questState;
 
 		await wrapper.updateComplete;
+
 		const element = document.createElement("game-viewport");
 		wrapper.appendChild(element);
 		await /** @type {any} */ (element).updateComplete;
 
-		// Initial state
-		const bg1 = element.shadowRoot?.querySelector(".game-area-bg");
-		expect(bg1).toBeFalsy(); // Assuming default-bg needs processing or mock return
-		// We expect backgroundStyle processing. Assuming "default-bg" translates to a src path or we can check logic.
-		// Since processAsset is mocked or used, let's just check if it re-renders.
-		// Actually, GameViewport uses processImagePath helper.
+		// Initial background
+		let bg = element.shadowRoot?.querySelector(".game-area-bg");
+		expect(bg?.getAttribute("src")).toContain("default-bg");
 
-		// Change state
-		isRewardCollected.set(true);
+		// Collect reward
+		questState.isRewardCollected.set(true);
 		await /** @type {any} */ (element).updateComplete;
 
-		// We assume logic uses backgroundStyleReward.
-		// Since we can't easily check internal variable 'backgroundStyle', checking shadow DOM img src is best.
-		// But helpers might transform "reward-bg".
-		// Verify via spy? No, logic is internal.
-		// We verified visually it works.
-		// In unit test, strict checking might be fragile if assets aren't mocked precisely.
+		bg = element.shadowRoot?.querySelector(".game-area-bg");
+		expect(bg?.getAttribute("src")).toContain("reward-bg");
+	});
 
-		// But we can check that it didn't crash and potentially check usage if we could spy on helper?
-		// or just trust the previous fix and minimal test.
+	it("should trigger reward animation when item is collected", async () => {
+		const spy = vi.spyOn(GameViewport.prototype, "startRewardAnimation");
+
+		const wrapper = new TestContextWrapper();
+		container.appendChild(wrapper);
+		setupBasicServices(wrapper);
+
+		const questState = wrapper.questState;
+
+		await wrapper.updateComplete;
+
+		const element = document.createElement("game-viewport");
+		wrapper.appendChild(element);
+		await /** @type {any} */ (element).updateComplete;
+
+		questState.hasCollectedItem.set(true);
+		await /** @type {any} */ (element).updateComplete;
+
+		expect(spy).toHaveBeenCalled();
+		spy.mockRestore();
 	});
 });

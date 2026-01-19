@@ -332,9 +332,17 @@ export class VoiceController {
 	}
 
 	stop() {
-		if (this.recognition && this.isListening) {
-			this.recognition.stop();
-			this.isListening = false;
+		try {
+			if (
+				this.recognition &&
+				this.isListening &&
+				typeof this.recognition.stop === "function"
+			) {
+				this.recognition.stop();
+				this.isListening = false;
+			}
+		} catch (e) {
+			this.logger?.debug?.(`🎤 Error stopping recognition: ${e}`);
 		}
 	}
 

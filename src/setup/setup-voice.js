@@ -1,7 +1,6 @@
 // Commands removed
 import { gameConfig } from "../config/game-configuration.js";
 import { VoiceController } from "../controllers/voice-controller.js";
-import { GameEvents } from "../core/event-bus.js";
 
 /**
  * @typedef {import('lit').LitElement} LitElement
@@ -26,7 +25,6 @@ import { GameEvents } from "../core/event-bus.js";
  * @param {import('../services/localization-service.js').LocalizationService} dependencies.localizationService
  * @param {import('../services/ai-service.js').AIService} [dependencies.aiService]
  * @param {import('../services/voice-synthesis-service.js').VoiceSynthesisService} [dependencies.voiceSynthesisService]
- * @param {import('../core/event-bus.js').EventBus} dependencies.eventBus
  * @param {import('../game/services/world-state-service.js').WorldStateService} dependencies.worldState
  * @param {import('../game/services/quest-state-service.js').QuestStateService} dependencies.questState
  * @param {import('../controllers/quest-controller.js').QuestController} dependencies.questController
@@ -39,7 +37,6 @@ export function setupVoice(
 		localizationService,
 		aiService,
 		voiceSynthesisService,
-		eventBus,
 		worldState,
 		questState,
 		questController,
@@ -55,8 +52,8 @@ export function setupVoice(
 			// @ts-expect-error
 			voiceSynthesisService,
 			onMove: (dx, dy) => {
-				if (eventBus) {
-					eventBus.emit(GameEvents.HERO_MOVE_INPUT, { dx, dy });
+				if (typeof (/** @type {any} */ (host).handleMove) === "function") {
+					/** @type {any} */ (host).handleMove(dx, dy);
 				}
 			},
 			onInteract: () => {

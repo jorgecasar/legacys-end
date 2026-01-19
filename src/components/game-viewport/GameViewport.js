@@ -14,18 +14,13 @@ import { sessionContext } from "../../contexts/session-context.js";
 import { themeContext } from "../../contexts/theme-context.js";
 import { voiceContext } from "../../contexts/voice-context.js";
 import { KeyboardController } from "../../controllers/keyboard-controller.js";
-import { GameEvents } from "../../core/event-bus.js";
 import { heroStateContext } from "../../game/contexts/hero-context.js";
 import { questStateContext } from "../../game/contexts/quest-context.js";
 import { worldStateContext } from "../../game/contexts/world-context.js";
 import { setupCharacterContexts } from "../../setup/setup-character-contexts.js";
 import { setupCollision } from "../../setup/setup-collision.js";
-import {
-	setupGameController,
-	setupGameService,
-} from "../../setup/setup-game.js";
+import { setupGameController } from "../../setup/setup-game.js";
 import { setupInteraction } from "../../setup/setup-interaction.js";
-import { setupService } from "../../setup/setup-service.js";
 import { setupVoice } from "../../setup/setup-voice.js";
 import { setupZones } from "../../setup/setup-zones.js";
 import {
@@ -44,8 +39,6 @@ import { gameViewportStyles } from "./GameViewport.styles.js";
 
 /**
  * @element game-viewport
- * @property {any} gameState - Configuration derived state
- * @property {import('../legacys-end-app/LegacysEndApp.js').LegacysEndApp} app - Reference to Main App for direct signal access
  */
 export class GameViewport extends SignalWatcher(LitElement) {
 	@consume({ context: heroStateContext, subscribe: true })
@@ -105,7 +98,6 @@ export class GameViewport extends SignalWatcher(LitElement) {
 
 		// Controllers
 		this._controllersInitialized = false;
-		this._eventsSubscribed = false;
 		this._autoMoveRequestId = null;
 
 		/** @type {import('../../controllers/collision-controller.js').CollisionController | null} */
@@ -120,12 +112,7 @@ export class GameViewport extends SignalWatcher(LitElement) {
 		this.voice = null;
 		/** @type {import('../../controllers/game-controller.js').GameController | null} */
 		this.gameController = null;
-
-		this.#boundHandleMoveInput = this.#handleMoveInput.bind(this);
 	}
-
-	/** @type {(data: any) => void} */
-	#boundHandleMoveInput;
 
 	/**
 	 * @param {import("lit").PropertyValues} changedProperties
@@ -145,7 +132,6 @@ export class GameViewport extends SignalWatcher(LitElement) {
 		if (allServicesReady && !this._controllersInitialized) {
 			this.#setupControllers();
 			this._controllersInitialized = true;
-			this.#subscribeToEvents();
 		}
 
 		// Sync Hero Image from current chapter config
@@ -162,134 +148,107 @@ export class GameViewport extends SignalWatcher(LitElement) {
 
 	disconnectedCallback() {
 		super.disconnectedCallback();
-		this.#unsubscribeFromEvents();
-		this.stopAutoMove();
-	}
-
-	/**
-	 * Subscribe to event bus events
-	 */
-	#subscribeToEvents() {
-		if (this.questController?.options?.eventBus && !this._eventsSubscribed) {
-			this.questController.options.eventBus.on(
-				GameEvents.HERO_MOVE_INPUT,
-				this.#boundHandleMoveInput,
-			);
-			this._eventsSubscribed = true;
+		if (typeof this.stopAutoMove === "function") {
+			this.stopAutoMove();
 		}
 	}
 
 	/**
-	 * Unsubscribe from event bus events
-	 */
-	#unsubscribeFromEvents() {
-		if (this.questController?.options?.eventBus && this._eventsSubscribed) {
-			this.questController.options.eventBus.off(
-				GameEvents.HERO_MOVE_INPUT,
-				this.#boundHandleMoveInput,
-			);
-			this._eventsSubscribed = false;
-		}
-	}
-
-	/**
-	 * Setup game controllers using the application context
+	 * Setup game controllers using explicit dependency injection.
 	 */
 	#setupControllers() {
-		const context = this.#getGameContext();
-
-		this.#setupGameMechanics(context);
-		// Update context with newly created controllers
-		context.interaction = this.interaction || undefined;
-		/** @type {any} */ (context).collision = this.collision;
-		/** @type {any} */ (context).zones = this.zones;
-
-		this.#setupInputHandlers(context);
-		this.#setupGameFlow(context);
+		this.#setupGameMechanics();
+		this.#setupInputHandlers();
+		this.#setupGameFlow();
 		this.requestUpdate();
 	}
 
 	/**
 	 * Setup fundamental game mechanics controllers
-	 * @param {import('../../core/game-context.js').IGameContext} context
 	 */
-	#setupGameMechanics(context) {
-		setupZones(/** @type {any} */ (this), /** @type {any} */ (context));
-		setupCollision(/** @type {any} */ (this), /** @type {any} */ (context));
-		setupService(/** @type {any} */ (this), /** @type {any} */ (context));
-		setupCharacterContexts(
-			/** @type {any} */ (this),
-			/** @type {any} */ (context),
+	#setupGameMechanics() {
+		setupZones(
+			this,
+			/** @type {any} */ ({
+				heroState: this.heroState,
+				questState: this.questState,
+				questController: this.questController,
+				themeService: this.themeService,
+			}),
 		);
-		setupInteraction(/** @type {any} */ (this), /** @type {any} */ (context));
+		setupCollision(
+			this,
+			/** @type {any} */ ({
+				heroState: this.heroState,
+				questState: this.questState,
+				questController: this.questController,
+			}),
+		);
+		setupCharacterContexts(
+			this,
+			/** @type {any} */ ({
+				heroState: this.heroState,
+				questState: this.questState,
+				questController: this.questController,
+				themeService: this.themeService,
+			}),
+		);
+		setupInteraction(
+			this,
+			/** @type {any} */ ({
+				worldState: this.worldState,
+				questState: this.questState,
+				heroState: this.heroState,
+				questController: this.questController,
+				questLoader: this.questLoader,
+			}),
+		);
 	}
 
 	/**
 	 * Setup input handling controllers
-	 * @param {import('../../core/game-context.js').IGameContext} context
 	 */
-	#setupInputHandlers(context) {
-		this.#setupKeyboard(context);
-		setupVoice(/** @type {any} */ (this), /** @type {any} */ (context));
-	}
-
-	/**
-	 * Setup high-level game flow controllers
-	 * @param {import('../../core/game-context.js').IGameContext} context
-	 */
-	#setupGameFlow(context) {
-		setupGameService(/** @type {any} */ (context));
-		setupGameController(
+	#setupInputHandlers() {
+		this.#setupKeyboard();
+		setupVoice(
 			/** @type {any} */ (this),
-			/** @type {any} */ (context),
+			/** @type {any} */ ({
+				logger: this.questController?.options?.logger,
+				localizationService: this.localizationService,
+				aiService: this.aiService,
+				voiceSynthesisService: this.voiceSynthesisService,
+				worldState: this.worldState,
+				questState: this.questState,
+				questController: this.questController,
+				questLoader: this.questLoader,
+			}),
 		);
 	}
 
 	/**
-	 * @returns {import('../../core/game-context.js').IGameContext}
+	 * Setup high-level game flow controllers
 	 */
-	#getGameContext() {
-		const context = {
-			eventBus: this.questController?.options?.eventBus,
-			logger: this.questController?.options?.logger,
-			gameState: /** @type {any} */ (null), // This will be populated by setupGameService
-			questController: this.questController,
-			progressService: this.questController?.progressService,
-			router: undefined, // Not directly available here, but part of IGameContext
-			sessionService: this.sessionService,
-			questLoader: this.questLoader,
-			heroState: this.heroState,
-			questState: this.questState,
-			worldState: this.worldState,
-			themeService: this.themeService,
-			localizationService: this.localizationService,
-			gameService: this,
-			services: {
-				questLoader: this.questLoader,
-				sessionService: this.sessionService,
-				questState: this.questState,
+	#setupGameFlow() {
+		setupGameController(
+			this,
+			/** @type {any} */ ({
+				logger: this.questController?.options?.logger,
 				heroState: this.heroState,
+				questState: this.questState,
+				worldState: this.worldState,
 				questController: this.questController,
-				themeService: this.themeService,
-				localizationService: this.localizationService,
-				aiService: this.aiService,
-				voiceSynthesisService: this.voiceSynthesisService,
-			},
-			aiService: this.aiService,
-			voiceSynthesisService: this.voiceSynthesisService,
-		};
-		return /** @type {import('../../core/game-context.js').IGameContext} */ (
-			/** @type {any} */ (context)
+				questLoader: this.questLoader,
+			}),
 		);
 	}
 
 	/**
 	 * Setup keyboard controller
-	 * @param {import('../../core/game-context.js').IGameContext} context
 	 */
-	#setupKeyboard(context) {
+	#setupKeyboard() {
 		this.keyboard = new KeyboardController(this, {
-			...context,
+			interaction: this.interaction,
+			worldState: this.worldState,
 			speed: 2.5,
 		});
 	}
@@ -305,12 +264,27 @@ export class GameViewport extends SignalWatcher(LitElement) {
 			this.stopAutoMove();
 		}
 
-		// Direct state update (bypass CommandBus)
+		if (!this.heroState) return;
+
 		const current = this.heroState.pos.get();
 		const nextX = Math.max(0, Math.min(100, current.x + dx));
 		const nextY = Math.max(0, Math.min(100, current.y + dy));
 
-		this.heroState.setPos(nextX, nextY);
+		// Handle collision detection
+		const chapter = this.questController?.currentChapter;
+		const isColliding = chapter?.obstacles?.some(
+			(
+				/** @type {import('../../content/quests/quest-types.js').Rect} */ obstacle,
+			) =>
+				this.collision?.checkAABB(
+					{ x: nextX, y: nextY, width: 5, height: 5 },
+					obstacle,
+				),
+		);
+
+		if (!isColliding) {
+			this.heroState.setPos(nextX, nextY);
+		}
 	}
 
 	/**
@@ -398,7 +372,6 @@ export class GameViewport extends SignalWatcher(LitElement) {
 	 * Advances to the next dialog slide
 	 */
 	nextDialogSlide() {
-		// Dialog is not in GameViewport yet, need to manage this or event
 		this.dispatchEvent(new CustomEvent("next-slide"));
 	}
 
@@ -410,15 +383,6 @@ export class GameViewport extends SignalWatcher(LitElement) {
 	}
 
 	/**
-	 * Handles move input events
-	 * @param {{dx: number, dy: number}} data - Movement delta
-	 */
-	#handleMoveInput(data) {
-		const { dx, dy } = data;
-		this.handleMove(dx, dy);
-	}
-
-	/**
 	 * @param {import("lit").PropertyValues} changedProperties
 	 */
 	willUpdate(changedProperties) {
@@ -427,11 +391,8 @@ export class GameViewport extends SignalWatcher(LitElement) {
 		// Handle reward collection animation trigger via signal observation
 		if (this.questState) {
 			const hasCollectedItem = this.questState.hasCollectedItem.get();
-			const prevHasCollectedItem = changedProperties.has("app")
-				? false
-				: this._lastHasCollectedItem;
 
-			if (!prevHasCollectedItem && hasCollectedItem) {
+			if (!this._lastHasCollectedItem && hasCollectedItem) {
 				this.startRewardAnimation();
 			} else if (!hasCollectedItem) {
 				this.isRewardCollected = false;
@@ -526,8 +487,6 @@ export class GameViewport extends SignalWatcher(LitElement) {
 						? html`<div class="locked-message">${this.questState.lockedMessage.get()}</div>`
 						: ""
 				}
-
-
 
 				${this._renderNPC()}
 				${this._renderReward()}

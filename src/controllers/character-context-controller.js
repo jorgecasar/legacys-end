@@ -16,12 +16,9 @@
 
 /**
  * @typedef {Object} CharacterContextOptions
- * @property {Object} [suitProvider]
- * @property {Object} [gearProvider]
- * @property {Object} [powerProvider]
- * @property {Object} [masteryProvider]
  * @property {import('@lit/context').ContextProvider<any>} [characterProvider] - Combined provider if used
- * @property {import('../services/game-state-service.js').GameStateService} gameState
+ * @property {import('../game/interfaces.js').IHeroStateService} heroState
+ * @property {import('../game/interfaces.js').IQuestStateService} questState
  * @property {import('../controllers/quest-controller.js').QuestController} questController
  * @property {import('../services/theme-service.js').ThemeService} themeService
  */
@@ -60,19 +57,10 @@ export class CharacterContextController {
 	 * Update all character contexts based on current game state
 	 */
 	hostUpdate() {
-		// Access state via domain services on GameStateService facade
-		const gameState = this.options.gameState;
-		if (!gameState) return;
+		const { heroState, questState, questController } = this.options;
+		if (!heroState || !questState || !questController) return;
 
-		// Handle both real GameStateService (with .questState) and FakeGameStateService (direct properties or mock)
-		// The FakeGameStateService in tests seems to expose signals directly based on previous test file view
-
-		/** @type {any} */
-		const questState = gameState.questState || gameState;
-		/** @type {any} */
-		const heroState = gameState.heroState || gameState;
-
-		const currentChapter = this.options.questController.currentChapter;
+		const currentChapter = questController.currentChapter;
 
 		// Calculate derived values
 		const level = currentChapter?.id || "";

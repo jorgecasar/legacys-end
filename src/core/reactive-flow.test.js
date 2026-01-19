@@ -1,10 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { HeroStateService } from "../game/services/hero-state-service.js";
 import { QuestStateService } from "../game/services/quest-state-service.js";
 import { WorldStateService } from "../game/services/world-state-service.js";
 import { FakeProgressService } from "../services/fakes/fake-progress-service.js";
-import { GameStateService } from "../services/game-state-service.js";
 import { QuestLoaderService } from "../services/quest-loader-service.js";
 import { SessionService } from "../services/session-service.js";
 
@@ -23,17 +21,13 @@ describe("Reactive Flow Integration", () => {
 	let context;
 	/** @type {QuestLoaderService} */
 	let questLoader;
-	/** @type {GameStateService} */
-	let gameState;
 
 	beforeEach(() => {
-		gameState = new GameStateService();
 		const heroState = new HeroStateService();
 		const questState = new QuestStateService();
 		const worldState = new WorldStateService();
 
 		context = {
-			gameState,
 			heroState,
 			questState,
 			worldState,

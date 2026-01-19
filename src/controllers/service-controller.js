@@ -87,7 +87,7 @@ export class ServiceController {
 	/**
 	 * Get active service based on service type and hot switch state
 	 * @param {ServiceType} serviceType - ServiceType from chapter data
-	 * @param {import('../services/game-state-service.js').HotSwitchState} hotSwitchState - Current zone state (for dynamic injection)
+	 * @param {import('../game/interfaces.js').HotSwitchState} hotSwitchState - Current zone state (for dynamic injection)
 	 * @returns {IUserApiClient|null} Active service or null
 	 */
 	getActiveService(serviceType, hotSwitchState) {
