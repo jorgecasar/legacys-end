@@ -163,21 +163,21 @@ new ContextConsumer(this, { context: worldStateContext, ... });
 
 ## Recommendation
 
-**Use Option C (Hybrid)** for now:
-- Current keyboard fix is complete and tested
-- This architecture doc provides clarity
-- Future work can use contexts from the start
-- Existing code can be refactored when touched
-- No rush to rewrite everything
+**Use Option C (Hybrid)** - **STATUS: COMPLETED ✅**
+- The hybrid approach was successfully executed.
+- Core architecture (Contexts + Domain Services) is in place.
+- Legacy `GameSessionManager` has been decomposed.
+- Validation of new patterns is complete.
 
 ## Next Steps
 
-1. ✅ Document architecture (this doc)
-2. Review and approve architecture with team
-3. Create contexts for core services (if approved)
-4. Update GameView to consume contexts (if approved)
-5. Update tests to provide contexts (if approved)
-6. Remove app prop dependency (final step)
+1. ✅ **Extract Theme**: `ThemeService` created and provided.
+2. ✅ **Define Session**: `SessionService` created. `QuestLoaderService` handles orchestration.
+3. ✅ **Standardize Classes**: `QuestRegistryService`, `AIService` implemented as injectable classes.
+4. ✅ **Wiring**: `LegacysEndApp` fully converted to Context Provider root.
+5. 🔄 **EventBus Refactoring**: `EventBus` still exists. Plan to refactor `QuestController` signals or direct service calls to remove it.
+6. 🔄 **Quest Registry**: Ensure `QuestRegistryService` is fully utilized across the app and legacy data access is minimized.
+7. 🗑️ **Cleanup**: Remove properly deprecated files/code (e.g. any remaining `CommandBus` references if any).
 
 ## Service Interfaces (Draft)
 
@@ -285,30 +285,31 @@ interface QuestLoader {
 
 This detailed review ensures every service has a single responsibility and correct scope.
 
-| Service | Current Scope | Responsibility | Issues | Proposed Action |
+| Service | Current Scope | Responsibility | Issues | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **GameStateService** | **Legacy** | Mixed State | **God Object** | **Split**: Into Domain Services below. |
-| **HeroStateService** | **Game** | Hero Pos/Status | New | **Create**: Extract from GameState. |
-| **QuestStateService** | **Game** | Progression/Flags | New | **Create**: Extract from GameState. |
-| **WorldStateService** | **Game** | Pause/Env/Dialog | New | **Create**: Extract from GameState. |
-| **ThemeService** | N/A | (New) | Does not exist yet | **Create**: Global service for `themeMode`. |
-| **GameSessionManager** | **God Class** | Everything | Duplicate state | **Delete**: Logic -> `QuestLoader`. State -> Domain Services. |
-| **SessionService** | N/A | (Merged) | - | **Skip**: Merged into `GameStateService`. |
-| **GameService** | Global | Facade | Redundant | **Delete**: Use `GameStateService` or Controllers directly. |
-| **ProgressService** | Global | Persistence | Well designed | **Keep**: Provide globally. |
-| **QuestRegistry** | Global | Static Quest Data | Module exports functions (Not a Class) | **Refactor**: Convert to `QuestRegistryService` class for consistent DI. |
-| **LocalizationService** | Global | i18n & Locale State | Well designed | **Keep**: Provide globally. |
-| **AIService** | Global | Chrome AI Wrapper | Exports Singleton | **Refactor**: Export Class, Instantiate in App, Provide via Context. |
-| **VoiceSynthesis** | Global | Speech API Wrapper | Exports Singleton | **Refactor**: Export Class, Instantiate in App, Provide via Context. |
-| **EventBus** | Global | Global Events | Redundant with direct DI | **Remove**: Refactor to direct service calls. |
-| **CommandBus** | Global | Command Execution | Complexity Glue | **Remove**: Controllers call services directly. |
-| **GameService** | Global | Console Command Facade | Redundant Wrapper? | **Remove**: Or keep purely for DevTools console API. |
-| **UserServices** | Global | API Client | Simple Data Fetcher | **Rename**: `UserApiClient` for clarity. |
-| **PreloaderService** | Global | Asset Preloading | Simple Utility | **Keep**: Can remain a utility or service. |
+| **GameStateService** | **Legacy** | Mixed State | **God Object** | ✅ **Split**: Decomposed into Hero/Quest/World State services. |
+| **HeroStateService** | **Game** | Hero Pos/Status | New | ✅ **Created**: Fully implemented & provided. |
+| **QuestStateService** | **Game** | Progression/Flags | New | ✅ **Created**: Fully implemented & provided. |
+| **WorldStateService** | **Game** | Pause/Env/Dialog | New | ✅ **Created**: Fully implemented & provided. |
+| **ThemeService** | Global | Visual Theme | New | ✅ **Created**: Fully implemented & provided. |
+| **GameSessionManager** | **God Class** | Orchestration | **God Object** | ✅ **Removed**: Replaced by `QuestLoaderService` + `SessionService`. |
+| **QuestLoaderService** | Global | Lifecycle Manager | New | ✅ **Created**: Orchestrates Start/Continue/Complete flows. |
+| **SessionService** | Global | User Session | New | ✅ **Created**: Manages current quest/view state. |
+| **GameService** | Global | Facade | Redundant | ✅ **Removed**: Logic moved to controllers/services. |
+| **ProgressService** | Global | Persistence | Well designed | ✅ **Keep**: Provided globally. |
+| **QuestRegistryService** | Global | Quest Data | Data Access | ✅ **Created**: Replaces legacy static registry functions. |
+| **LocalizationService** | Global | i18n & Locale State | Well designed | ✅ **Keep**: Provided globally. |
+| **AIService** | Global | Chrome AI Wrapper | Singleton | ✅ **Refactored**: Injected via Context. |
+| **VoiceSynthesisService** | Global | Speech API Wrapper | Singleton | ✅ **Refactored**: Injected via Context. |
+| **EventBus** | Global | Global Events | Redundant | ⚠️ **Pending**: Still heavily used. Target for future refactoring. |
+| **CommandBus** | Global | Command Execution | Complexity Glue | ✅ **Removed**: Controllers call services directly. |
+| **UserServices** | Global | API Client | Data Fetcher | ✅ **Renamed**: `UserApiClient` implemented. |
+| **PreloaderService** | Global | Asset Preloading | Utility | ✅ **Keep**: Remains a utility. |
 
-## Refactoring Order
-1.  **Extract Theme**: Create `ThemeService` and remove from `GameState`.
-2.  **Define Session**: Create `SessionService` (State) and replace `GameSessionManager` state.
-3.  **Standardize Classes**: Convert `QuestRegistry`, `AI`, `Voice` to injectable classes.
-4.  **Wiring**: Update `LegacysEndApp` to instantiate and provide these services.
+## Refactoring Order (Completed)
+1.  ✅ **Extract Theme**: `ThemeService` created.
+2.  ✅ **Define Session**: `SessionService` & `QuestLoaderService` created.
+3.  ✅ **Standardize Classes**: Core services converted to Classes.
+4.  ✅ **Wiring**: `LegacysEndApp` provides all contexts.
+5.  ✅ **Decommission**: `GameSessionManager`, `GameService`, `CommandBus` removed.
 
