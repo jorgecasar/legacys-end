@@ -20,7 +20,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-__screenshots__
+# Visual Regression Failures
+.vitest-attachments/
+**/__screenshots__/**/*-[0-9].png
 
 # Localization
 # Localization
@@ -32,4 +34,7 @@ coverage
 # Bundle Analysis
 stats.html
 .history-temp
+# Playwright
+test-results/
+playwright-report/
 test-results.json

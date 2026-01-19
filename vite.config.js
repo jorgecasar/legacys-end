@@ -62,6 +62,7 @@ export default defineConfig(({ mode }) => {
 			},
 		},
 		test: {
+			exclude: ["**/e2e/**", "**/node_modules/**", "**/dist/**"],
 			silent: false,
 			browser: {
 				enabled: true,

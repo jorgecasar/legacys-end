@@ -5,6 +5,9 @@ import {
 	targetLocales,
 } from "../generated/locales/locale-codes.js";
 
+/** @type {ReturnType<typeof configureLocalization>} */
+let localizationConfig;
+
 /**
  * LocalizationService
  * Manages application locale and translation loading.
@@ -21,19 +24,23 @@ export class LocalizationService {
 		/** @type {Set<() => void>} */
 		this.listeners = new Set();
 
-		// Initialize @lit/localize
-		const { getLocale, setLocale } = configureLocalization({
-			sourceLocale,
-			targetLocales,
-			loadLocale: (locale) => {
-				/** @type {Record<string, () => Promise<import('@lit/localize').LocaleModule>>} */
-				const loaders = {
-					es: () => import("../generated/locales/es.js"),
-				};
-				const loader = loaders[locale];
-				return loader ? loader() : Promise.resolve(/** @type {any} */ ({}));
-			},
-		});
+		// Initialize @lit/localize (only once)
+		if (!localizationConfig) {
+			localizationConfig = configureLocalization({
+				sourceLocale,
+				targetLocales,
+				loadLocale: (locale) => {
+					/** @type {Record<string, () => Promise<import('@lit/localize').LocaleModule>>} */
+					const loaders = {
+						es: () => import("../generated/locales/es.js"),
+					};
+					const loader = loaders[locale];
+					return loader ? loader() : Promise.resolve(/** @type {any} */ ({}));
+				},
+			});
+		}
+
+		const { getLocale, setLocale } = localizationConfig;
 
 		this._getLocale = getLocale;
 		this._setLocale = setLocale;

@@ -33,6 +33,9 @@ jobs:
       - name: Run Tests with Coverage
         run: npm run test:coverage
 
+      - name: Run E2E Tests
+        run: npm run test:e2e
+
       - name: Request Coverage Report
         if: github.event_name == 'pull_request'
         uses: davelosert/vitest-coverage-report-action@v2
