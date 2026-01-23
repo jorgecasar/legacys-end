@@ -43,6 +43,6 @@ export class HeroStateService {
 	 * @param {string} src
 	 */
 	setImageSrc(src) {
-		this.imageSrc.set(src || "");
+		this.imageSrc.set(src ?? "");
 	}
 }

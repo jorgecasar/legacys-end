@@ -64,16 +64,16 @@ export class CharacterContextController {
 		const currentChapter = questController.currentChapter;
 
 		// Calculate derived values
-		const level = currentChapter?.id || "";
+		const level = currentChapter?.id ?? "";
 		const chapterData = currentChapter;
 
-		const isRewardCollected = questState.isRewardCollected?.get() || false;
-		const hasCollectedItem = questState.hasCollectedItem?.get() || false;
+		const isRewardCollected = questState.isRewardCollected?.get() ?? false;
+		const hasCollectedItem = questState.hasCollectedItem?.get() ?? false;
 		const hotSwitchState =
-			heroState.hotSwitchState?.get() || HotSwitchStates.LEGACY;
+			heroState.hotSwitchState?.get() ?? HotSwitchStates.LEGACY;
 
 		const themeMode =
-			this.options.themeService?.themeMode?.get() || ThemeModes.LIGHT;
+			this.options.themeService?.themeMode?.get() ?? ThemeModes.LIGHT;
 
 		const suit = {
 			image: chapterData?.hero

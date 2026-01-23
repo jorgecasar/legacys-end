@@ -38,7 +38,7 @@ export class ProcessGameZoneInteractionUseCase {
 				y <= zone.y + zone.height
 			) {
 				results.push({
-					type: zone.type || ZoneTypes.NONE,
+					type: zone.type ?? ZoneTypes.NONE,
 					payload: zone.payload,
 				});
 			}

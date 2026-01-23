@@ -59,12 +59,12 @@ export class QuestStateService {
 
 	/** @param {string} title */
 	setLevelTitle(title) {
-		this.levelTitle.set(title || "");
+		this.levelTitle.set(title ?? "");
 	}
 
 	/** @param {string} title */
 	setQuestTitle(title) {
-		this.questTitle.set(title || "");
+		this.questTitle.set(title ?? "");
 	}
 
 	/** @param {string|null} id */

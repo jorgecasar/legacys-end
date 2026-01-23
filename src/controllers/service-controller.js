@@ -54,7 +54,7 @@ export class ServiceController {
 				// ID is hardcoded to 1 as noted by user, currently only single user context exists.
 				return service.fetchUserData(1);
 			},
-			args: () => [this.options.getActiveService?.()],
+			args: () => [this.options.getActiveService?.() ?? null],
 		});
 
 		host.addController(this);
@@ -95,7 +95,7 @@ export class ServiceController {
 	 * Get active service based on service type and hot switch state
 	 * @param {import('../services/user-api-client.js').ServiceType | string | null} serviceType - ServiceType from chapter data
 	 * @param {import('../game/interfaces.js').HotSwitchState} hotSwitchState - Current zone state (for dynamic injection)
-	 * @returns {IUserApiClient|null} Active service or null
+	 * @returns {IUserApiClient | null} Active service or null
 	 */
 	getActiveService(serviceType, hotSwitchState) {
 		if (!serviceType) return null;
@@ -103,17 +103,17 @@ export class ServiceController {
 		// If service type is NEW (dynamic), check hotSwitchState
 		if (serviceType === ServiceType.NEW) {
 			if (hotSwitchState === HotSwitchStates.LEGACY)
-				return this.options.services?.legacy || null;
+				return this.options.services?.legacy ?? null;
 			if (hotSwitchState === HotSwitchStates.NEW)
-				return this.options.services?.new || null;
+				return this.options.services?.new ?? null;
 			return null; // Neutral zone - no service active
 		}
 
 		// Static service mapping
 		if (serviceType === ServiceType.LEGACY)
-			return this.options.services?.legacy || null;
+			return this.options.services?.legacy ?? null;
 		if (serviceType === ServiceType.MOCK)
-			return this.options.services?.mock || null;
+			return this.options.services?.mock ?? null;
 
 		return null;
 	}

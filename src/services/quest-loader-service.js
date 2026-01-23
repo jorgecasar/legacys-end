@@ -81,32 +81,34 @@ export class QuestLoaderService {
 
 		const result = await this._startQuestUseCase.execute(questId);
 
-		if (result.success && result.quest) {
-			this.sessionService.setCurrentQuest(result.quest);
-			this.sessionService.setIsInHub(false);
-			this.questState.setQuestTitle(result.quest.name);
-			this.logger.info(`🎮 Started quest: ${result.quest.name}`);
-
-			if (this.router) {
-				const chapterId = result.quest.chapterIds
-					? result.quest.chapterIds[0]
-					: "";
-				if (chapterId) {
-					this.router.navigate(`/quest/${questId}/chapter/${chapterId}`);
-				}
-
-				// Sync hero state for the first chapter
-				if (this.questController.currentChapter) {
-					this._syncHeroState(
-						/** @type {any} */ (this.questController.currentChapter),
-					);
-				}
+		if (!result.success || !result.quest) {
+			if (result.error) {
+				this.logger.error("Failed to start quest:", result.error);
 			}
-		} else if (result.error) {
-			// Handle error manually since we removed the event emission in UseCase
-			// Maybe show a toast or log
+			this.#setLoadingState(false);
+			return result;
 		}
 
+		this.sessionService.setCurrentQuest(result.quest);
+		this.sessionService.setIsInHub(false);
+		this.questState.setQuestTitle(result.quest.name);
+		this.logger.info(`🎮 Started quest: ${result.quest.name}`);
+
+		if (this.router) {
+			const chapterId = result.quest.chapterIds
+				? result.quest.chapterIds[0]
+				: "";
+			if (chapterId) {
+				this.router.navigate(`/quest/${questId}/chapter/${chapterId}`);
+			}
+
+			// Sync hero state for the first chapter
+			if (this.questController.currentChapter) {
+				this._syncHeroState(
+					/** @type {any} */ (this.questController.currentChapter),
+				);
+			}
+		}
 		this.#setLoadingState(false);
 		return result;
 	}
@@ -335,10 +337,8 @@ export class QuestLoaderService {
 			[ServiceType.MOCK]: HotSwitchStates.MOCK,
 		};
 
-		return (
-			/** @type {import('../game/interfaces.js').HotSwitchState} */ (
-				mapping[serviceType]
-			) || null
+		return /** @type {import('../game/interfaces.js').HotSwitchState} */ (
+			mapping[serviceType] ?? null
 		);
 	}
 
