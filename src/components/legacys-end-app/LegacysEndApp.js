@@ -34,45 +34,119 @@ import "../../pixel.css";
 
 export class LegacysEndApp extends SignalWatcher(ContextMixin(LitElement)) {
 	// Services
-	progressService = /** @type {any} */ (null);
-	storageAdapter = /** @type {any} */ (null);
+	// Services
+	/** @type {import('../../services/progress-service.js').ProgressService} */
+	progressService =
+		/** @type {import('../../services/progress-service.js').ProgressService} */ (
+			/** @type {unknown} */ (null)
+		);
+	/** @type {import('../../services/interfaces.js').IStorageAdapter} */
+	storageAdapter =
+		/** @type {import('../../services/interfaces.js').IStorageAdapter} */ (
+			/** @type {unknown} */ (null)
+		);
 	services = {};
-	logger = /** @type {any} */ (null);
-	themeProvider = /** @type {any} */ (null);
-	aiService = /** @type {any} */ (null);
-	voiceSynthesisService = /** @type {any} */ (null);
+	/** @type {import('../../services/interfaces.js').ILoggerService} */
+	logger =
+		/** @type {import('../../services/interfaces.js').ILoggerService} */ (
+			/** @type {unknown} */ (null)
+		);
+	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	themeProvider = null;
+	/** @type {import('../../services/interfaces.js').IAIService} */
+	aiService = /** @type {import('../../services/interfaces.js').IAIService} */ (
+		/** @type {unknown} */ (null)
+	);
+	/** @type {import('../../services/interfaces.js').IVoiceSynthesisService} */
+	voiceSynthesisService =
+		/** @type {import('../../services/interfaces.js').IVoiceSynthesisService} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	// Context Providers
-	progressProvider = /** @type {any} */ (null);
-	questControllerProvider = /** @type {any} */ (null);
-	questLoaderProvider = /** @type {any} */ (null);
-	localizationProvider = /** @type {any} */ (null);
-	aiProvider = /** @type {any} */ (null);
-	voiceProvider = /** @type {any} */ (null);
-	heroStateProvider = /** @type {any} */ (null);
-	questStateProvider = /** @type {any} */ (null);
-	worldStateProvider = /** @type {any} */ (null);
-	sessionProvider = /** @type {any} */ (null);
+	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	progressProvider = null;
+	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	questControllerProvider = null;
+	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	questLoaderProvider = null;
+	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	localizationProvider = null;
+	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	aiProvider = null;
+	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	voiceProvider = null;
+	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	heroStateProvider = null;
+	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	questStateProvider = null;
+	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	worldStateProvider = null;
+	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	sessionProvider = null;
 
 	// Router
-	router = /** @type {any} */ (null);
+	/** @type {import('../../utils/router.js').Router} */
+	router = /** @type {import('../../utils/router.js').Router} */ (
+		/** @type {unknown} */ (null)
+	);
 
 	// Controllers
-	questController = /** @type {any} */ (null);
-	serviceController = /** @type {any} */ (null);
-	characterContexts = /** @type {any} */ (null);
-	interaction = /** @type {any} */ (null);
-	keyboard = /** @type {any} */ (null);
-	gameController = /** @type {any} */ (null);
-	voice = /** @type {any} */ (null);
-	zones = /** @type {any} */ (null);
-	collision = /** @type {any} */ (null);
+	/** @type {import('../../controllers/quest-controller.js').QuestController} */
+	questController =
+		/** @type {import('../../controllers/quest-controller.js').QuestController} */ (
+			/** @type {unknown} */ (null)
+		);
+	/** @type {import('../../controllers/service-controller.js').ServiceController} */
+	serviceController =
+		/** @type {import('../../controllers/service-controller.js').ServiceController} */ (
+			/** @type {unknown} */ (null)
+		);
+	/** @type {import('../../controllers/character-context-controller.js').CharacterContextController} */
+	characterContexts =
+		/** @type {import('../../controllers/character-context-controller.js').CharacterContextController} */ (
+			/** @type {unknown} */ (null)
+		);
+	/** @type {import('../../controllers/interaction-controller.js').InteractionController} */
+	interaction =
+		/** @type {import('../../controllers/interaction-controller.js').InteractionController} */ (
+			/** @type {unknown} */ (null)
+		);
+	/** @type {import('../../controllers/keyboard-controller.js').KeyboardController} */
+	keyboard =
+		/** @type {import('../../controllers/keyboard-controller.js').KeyboardController} */ (
+			/** @type {unknown} */ (null)
+		);
+	/** @type {import('../../controllers/game-controller.js').GameController} */
+	gameController =
+		/** @type {import('../../controllers/game-controller.js').GameController} */ (
+			/** @type {unknown} */ (null)
+		);
+	/** @type {import('../../controllers/voice-controller.js').VoiceController} */
+	voice =
+		/** @type {import('../../controllers/voice-controller.js').VoiceController} */ (
+			/** @type {unknown} */ (null)
+		);
+	/** @type {import('../../controllers/game-zone-controller.js').GameZoneController} */
+	zones =
+		/** @type {import('../../controllers/game-zone-controller.js').GameZoneController} */ (
+			/** @type {unknown} */ (null)
+		);
+	/** @type {import('../../controllers/collision-controller.js').CollisionController} */
+	collision =
+		/** @type {import('../../controllers/collision-controller.js').CollisionController} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	// Additional providers
-	suitProvider = /** @type {any} */ (null);
-	gearProvider = /** @type {any} */ (null);
-	powerProvider = /** @type {any} */ (null);
-	masteryProvider = /** @type {any} */ (null);
+	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	suitProvider = null;
+	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	gearProvider = null;
+	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	powerProvider = null;
+	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	masteryProvider = null;
 
 	/** @override */
 	static properties = {

@@ -25,6 +25,11 @@ import "./game-viewport.js";
 /** @typedef {import('../../game/interfaces.js').IWorldStateService} IWorldStateService */
 /** @typedef {import('../../services/interfaces.js').IQuestController} IQuestController */
 /** @typedef {import('../../services/interfaces.js').IQuestLoaderService} IQuestLoaderService */
+/** @typedef {import('../../services/interfaces.js').ISessionService} ISessionService */
+/** @typedef {import('../../services/interfaces.js').ILocalizationService} ILocalizationService */
+/** @typedef {import('../../services/interfaces.js').IThemeService} IThemeService */
+/** @typedef {import('../../services/interfaces.js').IAIService} IAIService */
+/** @typedef {import('../../services/interfaces.js').IVoiceSynthesisService} IVoiceSynthesisService */
 /** @typedef {import('../../services/quest-loader-service.js').QuestLoaderService} QuestLoaderService */
 /** @typedef {import('../../services/session-service.js').SessionService} SessionService */
 /** @typedef {import('../../services/localization-service.js').LocalizationService} LocalizationService */
@@ -52,77 +57,51 @@ class TestContextWrapper extends LitElement {
 
 	constructor() {
 		super();
-		/** @type {IHeroStateService | null} */
-		this.heroState = null;
-		/** @type {IQuestStateService | null} */
-		this.questState = null;
-		/** @type {IWorldStateService | null} */
-		this.worldState = null;
-		/** @type {IQuestController | null} */
-		this.questController = null;
-		/** @type {IQuestLoaderService | null} */
-		this.questLoader = null;
-		/** @type {SessionService | null} */
-		this.sessionService = null;
-		/** @type {LocalizationService | null} */
-		this.localizationService = null;
-		/** @type {ThemeService | null} */
-		this.themeService = null;
-		/** @type {AIService | null} */
-		this.aiService = null;
-		/** @type {VoiceSynthesisService | null} */
-		this.voiceSynthesisService = null;
+		/** @type {IHeroStateService | undefined} */
+		this.heroState = undefined;
+		/** @type {IQuestStateService | undefined} */
+		this.questState = undefined;
+		/** @type {IWorldStateService | undefined} */
+		this.worldState = undefined;
+		/** @type {IQuestController | undefined} */
+		this.questController = undefined;
+		/** @type {IQuestLoaderService | undefined} */
+		this.questLoader = undefined;
+		/** @type {ISessionService | undefined} */
+		this.sessionService = undefined;
+		/** @type {ILocalizationService | undefined} */
+		this.localizationService = undefined;
+		/** @type {IThemeService | undefined} */
+		this.themeService = undefined;
+		/** @type {IAIService | undefined} */
+		this.aiService = undefined;
+		/** @type {IVoiceSynthesisService | undefined} */
+		this.voiceSynthesisService = undefined;
 
-		/** @type {ContextProvider<typeof heroStateContext>} */
 		this.heroProvider = new ContextProvider(this, {
 			context: heroStateContext,
-			initialValue: /** @type {any} */ (null),
 		});
-		/** @type {ContextProvider<typeof questStateContext>} */
 		this.questStateProvider = new ContextProvider(this, {
 			context: questStateContext,
-			initialValue: /** @type {any} */ (null),
 		});
-		/** @type {ContextProvider<typeof worldStateContext>} */
 		this.worldStateProvider = new ContextProvider(this, {
 			context: worldStateContext,
-			initialValue: /** @type {any} */ (null),
 		});
-		/** @type {ContextProvider<typeof questControllerContext>} */
 		this.questControllerProvider = new ContextProvider(this, {
 			context: questControllerContext,
-			initialValue: /** @type {any} */ (null),
 		});
-		/** @type {ContextProvider<typeof questLoaderContext>} */
 		this.questLoaderProvider = new ContextProvider(this, {
 			context: questLoaderContext,
-			initialValue: /** @type {any} */ (null),
 		});
-		/** @type {ContextProvider<typeof sessionContext>} */
 		this.sessionProvider = new ContextProvider(this, {
 			context: sessionContext,
-			initialValue: /** @type {any} */ (null),
 		});
-		/** @type {ContextProvider<typeof localizationContext>} */
 		this.localizationProvider = new ContextProvider(this, {
 			context: localizationContext,
-			initialValue: /** @type {any} */ (null),
 		});
-		/** @type {ContextProvider<typeof themeContext>} */
-		this.themeProvider = new ContextProvider(this, {
-			context: themeContext,
-			initialValue: /** @type {any} */ (null),
-		});
-		/** @type {ContextProvider<typeof aiContext>} */
-		this.aiProvider = new ContextProvider(this, {
-			context: aiContext,
-			initialValue: /** @type {any} */ (null),
-		});
-		/** @type {ContextProvider<typeof voiceContext>} */
-		this.voiceProvider = new ContextProvider(this, {
-			context: voiceContext,
-			initialValue: /** @type {any} */ (null),
-		});
+		this.themeProvider = new ContextProvider(this, { context: themeContext });
+		this.aiProvider = new ContextProvider(this, { context: aiContext });
+		this.voiceProvider = new ContextProvider(this, { context: voiceContext });
 	}
 
 	/**
@@ -130,32 +109,66 @@ class TestContextWrapper extends LitElement {
 	 * @override
 	 */
 	updated(changedProperties) {
-		if (changedProperties.has("heroState") && this.heroState)
-			this.heroProvider.setValue(this.heroState);
-		if (changedProperties.has("questState") && this.questState)
-			this.questStateProvider.setValue(this.questState);
-		if (changedProperties.has("worldState") && this.worldState)
-			this.worldStateProvider.setValue(this.worldState);
-		if (changedProperties.has("questController") && this.questController)
-			this.questControllerProvider.setValue(this.questController);
-		if (changedProperties.has("questLoader") && this.questLoader)
-			this.questLoaderProvider.setValue(this.questLoader);
-		if (changedProperties.has("sessionService") && this.sessionService)
-			this.sessionProvider.setValue(this.sessionService);
+		if (changedProperties.has("heroState") && this.heroState != null) {
+			this.heroProvider.setValue(
+				/** @type {IHeroStateService} */ (this.heroState),
+			);
+		}
+		if (changedProperties.has("questState") && this.questState != null) {
+			this.questStateProvider.setValue(
+				/** @type {IQuestStateService} */ (this.questState),
+			);
+		}
+		if (changedProperties.has("worldState") && this.worldState != null) {
+			this.worldStateProvider.setValue(
+				/** @type {IWorldStateService} */ (this.worldState),
+			);
+		}
+		if (
+			changedProperties.has("questController") &&
+			this.questController != null
+		) {
+			this.questControllerProvider.setValue(
+				/** @type {IQuestController} */ (this.questController),
+			);
+		}
+		if (changedProperties.has("questLoader") && this.questLoader != null) {
+			this.questLoaderProvider.setValue(
+				/** @type {IQuestLoaderService} */ (this.questLoader),
+			);
+		}
+		if (
+			changedProperties.has("sessionService") &&
+			this.sessionService != null
+		) {
+			this.sessionProvider.setValue(
+				/** @type {ISessionService} */ (this.sessionService),
+			);
+		}
 		if (
 			changedProperties.has("localizationService") &&
-			this.localizationService
-		)
-			this.localizationProvider.setValue(this.localizationService);
-		if (changedProperties.has("themeService") && this.themeService)
-			this.themeProvider.setValue(this.themeService);
-		if (changedProperties.has("aiService") && this.aiService)
-			this.aiProvider.setValue(this.aiService);
+			this.localizationService != null
+		) {
+			this.localizationProvider.setValue(
+				/** @type {ILocalizationService} */ (this.localizationService),
+			);
+		}
+		if (changedProperties.has("themeService") && this.themeService != null) {
+			this.themeProvider.setValue(
+				/** @type {IThemeService} */ (this.themeService),
+			);
+		}
+		if (changedProperties.has("aiService") && this.aiService != null) {
+			this.aiProvider.setValue(/** @type {IAIService} */ (this.aiService));
+		}
 		if (
 			changedProperties.has("voiceSynthesisService") &&
-			this.voiceSynthesisService
-		)
-			this.voiceProvider.setValue(this.voiceSynthesisService);
+			this.voiceSynthesisService != null
+		) {
+			this.voiceProvider.setValue(
+				/** @type {IVoiceSynthesisService} */ (this.voiceSynthesisService),
+			);
+		}
 	}
 
 	/** @override */
@@ -261,53 +274,70 @@ describe("GameViewport", () => {
 	};
 
 	const setupBasicServices = (/** @type {TestContextWrapper} */ wrapper) => {
-		wrapper.questController = /** @type {any} */ ({
-			currentChapter: {
-				id: "ch1",
-				title: "Chapter 1",
-				description: "Desc",
-				problemTitle: "Problem",
-				problemDesc: "Problem Desc",
-				startPos: { x: 0, y: 0 },
-			},
-			options: {
-				logger: {
-					info: vi.fn(),
-					warn: vi.fn(),
-					debug: vi.fn(),
-					error: vi.fn(),
+		wrapper.questController = /** @type {IQuestController} */ (
+			/** @type {unknown} */ ({
+				currentChapter: {
+					id: "ch1",
+					title: "Chapter 1",
+					description: "Desc",
+					problemTitle: "Problem",
+					problemDesc: "Problem Desc",
+					startPos: { x: 0, y: 0 },
 				},
-			},
-		});
+				options: {
+					logger: {
+						info: vi.fn(),
+						warn: vi.fn(),
+						debug: vi.fn(),
+						error: vi.fn(),
+					},
+				},
+			})
+		);
 		wrapper.heroState = createHeroStateMock();
 		wrapper.questState = createQuestStateMock();
 		wrapper.worldState = createWorldStateMock();
-		wrapper.sessionService = /** @type {any} */ ({
-			isLoading: new Signal.State(false),
-			isInHub: new Signal.State(false),
-			currentQuest: new Signal.State(null),
-		});
-		wrapper.themeService = /** @type {any} */ ({
-			themeMode: new Signal.State(ThemeModes.LIGHT),
-		});
-		wrapper.aiService = /** @type {any} */ ({
-			isEnabled: new Signal.State(false),
-			checkAvailability: vi.fn().mockResolvedValue("available"),
-			createSession: vi.fn().mockResolvedValue(undefined),
-			getSession: vi
-				.fn()
-				.mockReturnValue({ prompt: vi.fn(), destroy: vi.fn() }),
-			destroySession: vi.fn(),
-			getChatResponse: vi.fn(),
-		});
-		wrapper.voiceSynthesisService = /** @type {any} */ ({
-			speak: vi.fn(),
-			cancel: vi.fn(),
-		});
-		wrapper.localizationService = /** @type {any} */ ({
-			t: (/** @type {string} */ key) => key,
-			getLocale: () => "en-US",
-		});
+		wrapper.sessionService =
+			/** @type {import('../../services/interfaces.js').ISessionService} */ (
+				/** @type {unknown} */ ({
+					isLoading: new Signal.State(false),
+					isInHub: new Signal.State(false),
+					currentQuest: new Signal.State(null),
+				})
+			);
+		wrapper.themeService =
+			/** @type {import('../../services/interfaces.js').IThemeService} */ (
+				/** @type {unknown} */ ({
+					themeMode: new Signal.State(ThemeModes.LIGHT),
+				})
+			);
+		wrapper.aiService =
+			/** @type {import('../../services/interfaces.js').IAIService} */ (
+				/** @type {unknown} */ ({
+					isEnabled: new Signal.State(false),
+					checkAvailability: vi.fn().mockResolvedValue("available"),
+					createSession: vi.fn().mockResolvedValue(undefined),
+					getSession: vi
+						.fn()
+						.mockReturnValue({ prompt: vi.fn(), destroy: vi.fn() }),
+					destroySession: vi.fn(),
+					getChatResponse: vi.fn(),
+				})
+			);
+		wrapper.voiceSynthesisService =
+			/** @type {import('../../services/interfaces.js').IVoiceSynthesisService} */ (
+				/** @type {unknown} */ ({
+					speak: vi.fn(),
+					cancel: vi.fn(),
+				})
+			);
+		wrapper.localizationService =
+			/** @type {import('../../services/interfaces.js').ILocalizationService} */ (
+				/** @type {unknown} */ ({
+					t: (/** @type {string} */ key) => key,
+					getLocale: () => "en-US",
+				})
+			);
 	};
 
 	it("should render initial state correctly", async () => {
@@ -336,7 +366,7 @@ describe("GameViewport", () => {
 		const wrapper = new TestContextWrapper();
 		container.appendChild(wrapper);
 
-		const element = /** @type {any} */ (
+		const element = /** @type {GameViewport} */ (
 			document.createElement("game-viewport")
 		);
 		wrapper.appendChild(element);
@@ -358,16 +388,18 @@ describe("GameViewport", () => {
 		const wrapper = new TestContextWrapper();
 		container.appendChild(wrapper);
 
-		/** @type {import('../../services/interfaces.js').Chapter['zones']} */
+		/** @type {import('../../content/quests/quest-types.js').Chapter['zones']} */
 		const zones = [
-			/** @type {any} */ ({
-				type: ZoneTypes.CONTEXT_CHANGE,
-				payload: HotSwitchStates.LEGACY,
-				x: 10,
-				y: 10,
-				width: 100,
-				height: 100,
-			}),
+			/** @type {import('../../content/quests/quest-types.js').Zone} */ (
+				/** @type {unknown} */ ({
+					type: ZoneTypes.CONTEXT_CHANGE,
+					payload: HotSwitchStates.LEGACY,
+					x: 10,
+					y: 10,
+					width: 100,
+					height: 100,
+				})
+			),
 		];
 		setupBasicServices(wrapper);
 		if (wrapper.questController?.currentChapter) {

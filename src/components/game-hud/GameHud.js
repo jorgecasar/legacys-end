@@ -12,7 +12,10 @@ import { gameHudStyles } from "./GameHud.styles.js";
  */
 export class GameHud extends SignalWatcher(LitElement) {
 	@consume({ context: questStateContext, subscribe: true })
-	accessor questState = /** @type {any} */ (null);
+	accessor questState =
+		/** @type {import('../../game/interfaces.js').IQuestStateService} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @override */
 	static styles = gameHudStyles;

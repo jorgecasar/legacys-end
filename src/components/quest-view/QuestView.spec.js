@@ -10,6 +10,14 @@ import { worldStateContext } from "../../game/contexts/world-context.js";
 import { logger } from "../../services/logger-service.js";
 import "./quest-view.js";
 
+/** @typedef {import("../../game/interfaces.js").IHeroStateService} IHeroStateService */
+/** @typedef {import("../../game/interfaces.js").IQuestStateService} IQuestStateService */
+/** @typedef {import("../../game/interfaces.js").IWorldStateService} IWorldStateService */
+/** @typedef {import("../../services/interfaces.js").IQuestLoaderService} IQuestLoaderService */
+/** @typedef {import("../../services/interfaces.js").ISessionService} ISessionService */
+/** @typedef {import("./QuestView.js").QuestView} QuestView */
+/** @typedef {import("../../services/quest-registry-service.js").Quest} Quest */
+
 // Mock child components
 vi.mock("../game-viewport/game-viewport.js", () => ({}));
 vi.mock("../level-dialog/level-dialog.js", () => ({}));
@@ -28,44 +36,74 @@ class TestContextWrapper extends LitElement {
 
 	constructor() {
 		super();
-		/** @type {any} */
+		/** @type {IHeroStateService | undefined} */
 		this.heroState = undefined;
-		/** @type {any} */
+		/** @type {IQuestStateService | undefined} */
 		this.questState = undefined;
-		/** @type {any} */
+		/** @type {IWorldStateService | undefined} */
 		this.worldState = undefined;
-		/** @type {any} */
+		/** @type {IQuestLoaderService | undefined} */
 		this.questLoader = undefined;
-		/** @type {any} */
+		/** @type {ISessionService | undefined} */
 		this.sessionService = undefined;
+
+		this.heroProvider = new ContextProvider(this, {
+			context: heroStateContext,
+		});
+		this.questStateProvider = new ContextProvider(this, {
+			context: questStateContext,
+		});
+		this.worldStateProvider = new ContextProvider(this, {
+			context: worldStateContext,
+		});
+		this.qlProvider = new ContextProvider(this, {
+			context: questLoaderContext,
+		});
+		this.sessionProvider = new ContextProvider(this, {
+			context: sessionContext,
+		});
 	}
 
 	/** @override */
 	connectedCallback() {
 		super.connectedCallback();
-		new ContextProvider(this, {
-			context: heroStateContext,
-			initialValue: /** @type {any} */ (this.heroState),
-		});
-		new ContextProvider(this, {
-			context: questStateContext,
-			initialValue: /** @type {any} */ (this.questState),
-		});
-		new ContextProvider(this, {
-			context: worldStateContext,
-			initialValue: /** @type {any} */ (this.worldState),
-		});
-		new ContextProvider(this, {
-			context: questLoaderContext,
-			initialValue: /** @type {any} */ (this.questLoader),
-		});
-		new ContextProvider(this, {
-			context: sessionContext,
-			initialValue: /** @type {any} */ (this.sessionService),
-		});
 	}
 
-	/** @override */
+	/**
+	 * @param {import('lit').PropertyValues} changedProperties
+	 * @override
+	 */
+	updated(changedProperties) {
+		if (changedProperties.has("heroState") && this.heroState != null) {
+			this.heroProvider.setValue(
+				/** @type {IHeroStateService} */ (this.heroState),
+			);
+		}
+		if (changedProperties.has("questState") && this.questState != null) {
+			this.questStateProvider.setValue(
+				/** @type {IQuestStateService} */ (this.questState),
+			);
+		}
+		if (changedProperties.has("worldState") && this.worldState != null) {
+			this.worldStateProvider.setValue(
+				/** @type {IWorldStateService} */ (this.worldState),
+			);
+		}
+		if (changedProperties.has("questLoader") && this.questLoader != null) {
+			this.qlProvider.setValue(
+				/** @type {IQuestLoaderService} */ (this.questLoader),
+			);
+		}
+		if (
+			changedProperties.has("sessionService") &&
+			this.sessionService != null
+		) {
+			this.sessionProvider.setValue(
+				/** @type {ISessionService} */ (this.sessionService),
+			);
+		}
+	}
+
 	/** @override */
 	render() {
 		return html`<slot></slot>`;
@@ -89,49 +127,79 @@ describe("QuestView", () => {
 	});
 
 	it("renders loading state when services are missing", async () => {
-		const element = document.createElement("quest-view");
+		const element = /** @type {QuestView} */ (
+			document.createElement("quest-view")
+		);
 		container.appendChild(element);
-		await /** @type {any} */ (element).updateComplete;
+		await element.updateComplete;
 
 		expect(element.shadowRoot?.textContent).toContain("Loading services...");
 	});
 
 	it("renders no active quest when session has no quest", async () => {
 		const wrapper = new TestContextWrapper();
-		wrapper.worldState = { showDialog: new Signal.State(false) };
-		wrapper.questState = { isQuestCompleted: new Signal.State(false) };
-		wrapper.sessionService = { currentQuest: new Signal.State(null) };
-		wrapper.heroState = {};
-		wrapper.questLoader = {};
+		wrapper.worldState = /** @type {IWorldStateService} */ (
+			/** @type {unknown} */ ({
+				showDialog: new Signal.State(false),
+			})
+		);
+		wrapper.questState = /** @type {IQuestStateService} */ (
+			/** @type {unknown} */ ({
+				isQuestCompleted: new Signal.State(false),
+			})
+		);
+		wrapper.sessionService = /** @type {ISessionService} */ (
+			/** @type {unknown} */ ({
+				currentQuest: new Signal.State(null),
+			})
+		);
+		wrapper.heroState = /** @type {IHeroStateService} */ ({});
+		wrapper.questLoader = /** @type {IQuestLoaderService} */ ({});
 
-		const element = document.createElement("quest-view");
+		const element = /** @type {QuestView} */ (
+			document.createElement("quest-view")
+		);
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
 
 		await wrapper.updateComplete;
-		await /** @type {any} */ (element).updateComplete;
+		await element.updateComplete;
 
 		expect(element.shadowRoot?.textContent).toContain("No active quest");
 	});
 
 	it("renders game-viewport when active quest exists", async () => {
 		const wrapper = new TestContextWrapper();
-		wrapper.worldState = {
-			showDialog: new Signal.State(false),
-			isPaused: new Signal.State(false),
-			setCurrentDialogText: vi.fn(),
-		};
-		wrapper.questState = { isQuestCompleted: new Signal.State(false) };
-		wrapper.sessionService = { currentQuest: new Signal.State({ id: "q1" }) };
-		wrapper.heroState = {};
-		wrapper.questLoader = {};
+		wrapper.worldState = /** @type {IWorldStateService} */ (
+			/** @type {unknown} */ ({
+				showDialog: new Signal.State(false),
+				isPaused: new Signal.State(false),
+				setCurrentDialogText: vi.fn(),
+			})
+		);
+		wrapper.questState = /** @type {IQuestStateService} */ (
+			/** @type {unknown} */ ({
+				isQuestCompleted: new Signal.State(false),
+			})
+		);
+		wrapper.sessionService = /** @type {ISessionService} */ (
+			/** @type {unknown} */ ({
+				currentQuest: new Signal.State(
+					/** @type {Quest} */ (/** @type {unknown} */ ({ id: "q1" })),
+				),
+			})
+		);
+		wrapper.heroState = /** @type {IHeroStateService} */ ({});
+		wrapper.questLoader = /** @type {IQuestLoaderService} */ ({});
 
-		const element = document.createElement("quest-view");
+		const element = /** @type {QuestView} */ (
+			document.createElement("quest-view")
+		);
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
 
 		await wrapper.updateComplete;
-		await /** @type {any} */ (element).updateComplete;
+		await element.updateComplete;
 
 		const viewport = element.shadowRoot?.querySelector("game-viewport");
 		expect(viewport).toBeTruthy();
@@ -139,18 +207,34 @@ describe("QuestView", () => {
 
 	it("renders victory-screen when quest is completed", async () => {
 		const wrapper = new TestContextWrapper();
-		wrapper.worldState = { showDialog: new Signal.State(false) };
-		wrapper.questState = { isQuestCompleted: new Signal.State(true) };
-		wrapper.sessionService = { currentQuest: new Signal.State({ id: "q1" }) };
-		wrapper.heroState = {};
-		wrapper.questLoader = {};
+		wrapper.worldState = /** @type {IWorldStateService} */ (
+			/** @type {unknown} */ ({
+				showDialog: new Signal.State(false),
+			})
+		);
+		wrapper.questState = /** @type {IQuestStateService} */ (
+			/** @type {unknown} */ ({
+				isQuestCompleted: new Signal.State(true),
+			})
+		);
+		wrapper.sessionService = /** @type {ISessionService} */ (
+			/** @type {unknown} */ ({
+				currentQuest: new Signal.State(
+					/** @type {Quest} */ (/** @type {unknown} */ ({ id: "q1" })),
+				),
+			})
+		);
+		wrapper.heroState = /** @type {IHeroStateService} */ ({});
+		wrapper.questLoader = /** @type {IQuestLoaderService} */ ({});
 
-		const element = document.createElement("quest-view");
+		const element = /** @type {QuestView} */ (
+			document.createElement("quest-view")
+		);
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
 
 		await wrapper.updateComplete;
-		await /** @type {any} */ (element).updateComplete;
+		await element.updateComplete;
 
 		const victory = element.shadowRoot?.querySelector("victory-screen");
 		expect(victory).toBeTruthy();
@@ -158,22 +242,36 @@ describe("QuestView", () => {
 
 	it("renders level-dialog when showDialog is true", async () => {
 		const wrapper = new TestContextWrapper();
-		wrapper.worldState = {
-			showDialog: new Signal.State(true),
-			isPaused: new Signal.State(false),
-			setCurrentDialogText: vi.fn(),
-		};
-		wrapper.questState = { isQuestCompleted: new Signal.State(false) };
-		wrapper.sessionService = { currentQuest: new Signal.State({ id: "q1" }) };
-		wrapper.heroState = {};
-		wrapper.questLoader = {};
+		wrapper.worldState = /** @type {IWorldStateService} */ (
+			/** @type {unknown} */ ({
+				showDialog: new Signal.State(true),
+				isPaused: new Signal.State(false),
+				setCurrentDialogText: vi.fn(),
+			})
+		);
+		wrapper.questState = /** @type {IQuestStateService} */ (
+			/** @type {unknown} */ ({
+				isQuestCompleted: new Signal.State(false),
+			})
+		);
+		wrapper.sessionService = /** @type {ISessionService} */ (
+			/** @type {unknown} */ ({
+				currentQuest: new Signal.State(
+					/** @type {Quest} */ (/** @type {unknown} */ ({ id: "q1" })),
+				),
+			})
+		);
+		wrapper.heroState = /** @type {IHeroStateService} */ ({});
+		wrapper.questLoader = /** @type {IQuestLoaderService} */ ({});
 
-		const element = document.createElement("quest-view");
+		const element = /** @type {QuestView} */ (
+			document.createElement("quest-view")
+		);
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
 
 		await wrapper.updateComplete;
-		await /** @type {any} */ (element).updateComplete;
+		await element.updateComplete;
 
 		const dialog = element.shadowRoot?.querySelector("level-dialog");
 		expect(dialog).toBeTruthy();

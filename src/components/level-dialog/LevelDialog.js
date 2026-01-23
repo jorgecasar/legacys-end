@@ -41,11 +41,17 @@ import { levelDialogStyles } from "./LevelDialog.styles.js";
 export class LevelDialog extends LitElement {
 	/** @type {import('../../services/interfaces.js').IQuestController} */
 	@consume({ context: questControllerContext, subscribe: true })
-	accessor questController = /** @type {any} */ (null);
+	accessor questController =
+		/** @type {import('../../services/interfaces.js').IQuestController} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @type {import('../../game/interfaces.js').IQuestStateService} */
 	@consume({ context: questStateContext, subscribe: true })
-	accessor questState = /** @type {any} */ (null);
+	accessor questState =
+		/** @type {import('../../game/interfaces.js').IQuestStateService} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @override */
 	static properties = {

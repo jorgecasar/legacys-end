@@ -7,6 +7,10 @@ import axe from "axe-core";
 import { questControllerContext } from "../../../contexts/quest-controller-context.js";
 import { questStateContext } from "../../../game/contexts/quest-context.js";
 
+/** @typedef {import("../../../services/interfaces.js").IQuestController} IQuestController */
+/** @typedef {import("../../../game/interfaces.js").IQuestStateService} IQuestStateService */
+/** @typedef {import("./GameExitZone.js").GameExitZone} GameExitZone */
+
 class TestContextWrapper extends LitElement {
 	/** @override */
 	static properties = {
@@ -16,26 +20,16 @@ class TestContextWrapper extends LitElement {
 
 	constructor() {
 		super();
-		/** @type {any} */
+		/** @type {IQuestController | undefined} */
 		this.questController = undefined;
-		/** @type {any} */
+		/** @type {IQuestStateService | undefined} */
 		this.questState = undefined;
-		/** @type {ContextProvider<any>|undefined} */
-		this.qcProvider = undefined;
-		/** @type {ContextProvider<any>|undefined} */
-		this.qsProvider = undefined;
-	}
 
-	/** @override */
-	connectedCallback() {
-		super.connectedCallback();
 		this.qcProvider = new ContextProvider(this, {
 			context: questControllerContext,
-			initialValue: /** @type {any} */ (this.questController),
 		});
 		this.qsProvider = new ContextProvider(this, {
 			context: questStateContext,
-			initialValue: /** @type {any} */ (this.questState),
 		});
 	}
 
@@ -44,11 +38,18 @@ class TestContextWrapper extends LitElement {
 	 * @override
 	 */
 	updated(changedProperties) {
-		if (changedProperties.has("questController")) {
-			this.qcProvider?.setValue(this.questController);
+		if (
+			changedProperties.has("questController") &&
+			this.questController != null
+		) {
+			this.qcProvider.setValue(
+				/** @type {IQuestController} */ (this.questController),
+			);
 		}
-		if (changedProperties.has("questState")) {
-			this.qsProvider?.setValue(this.questState);
+		if (changedProperties.has("questState") && this.questState != null) {
+			this.qsProvider.setValue(
+				/** @type {IQuestStateService} */ (this.questState),
+			);
 		}
 	}
 
@@ -74,14 +75,20 @@ describe("GameExitZone Component", () => {
 
 	it("renders nothing when inactive", async () => {
 		const wrapper = new TestContextWrapper();
-		wrapper.questController = {
-			currentChapter: { exitZone: null },
-		};
-		wrapper.questState = {
-			hasCollectedItem: new Signal.State(false),
-		};
+		wrapper.questController =
+			/** @type {import("../../../services/interfaces.js").IQuestController} */ (
+				/** @type {unknown} */ ({
+					currentChapter: { exitZone: null },
+				})
+			);
+		wrapper.questState =
+			/** @type {import("../../../game/interfaces.js").IQuestStateService} */ (
+				/** @type {unknown} */ ({
+					hasCollectedItem: new Signal.State(false),
+				})
+			);
 
-		const element = /** @type {any} */ (
+		const element = /** @type {GameExitZone} */ (
 			document.createElement("game-exit-zone")
 		);
 		wrapper.appendChild(element);
@@ -103,14 +110,20 @@ describe("GameExitZone Component", () => {
 		};
 
 		const wrapper = new TestContextWrapper();
-		wrapper.questController = {
-			currentChapter: { exitZone: config },
-		};
-		wrapper.questState = {
-			hasCollectedItem: new Signal.State(true),
-		};
+		wrapper.questController =
+			/** @type {import("../../../services/interfaces.js").IQuestController} */ (
+				/** @type {unknown} */ ({
+					currentChapter: { exitZone: config },
+				})
+			);
+		wrapper.questState =
+			/** @type {import("../../../game/interfaces.js").IQuestStateService} */ (
+				/** @type {unknown} */ ({
+					hasCollectedItem: new Signal.State(true),
+				})
+			);
 
-		const element = /** @type {any} */ (
+		const element = /** @type {GameExitZone} */ (
 			document.createElement("game-exit-zone")
 		);
 		wrapper.appendChild(element);
@@ -136,14 +149,20 @@ describe("GameExitZone Component", () => {
 		};
 
 		const wrapper = new TestContextWrapper();
-		wrapper.questController = {
-			currentChapter: { exitZone: config },
-		};
-		wrapper.questState = {
-			hasCollectedItem: new Signal.State(true),
-		};
+		wrapper.questController =
+			/** @type {import("../../../services/interfaces.js").IQuestController} */ (
+				/** @type {unknown} */ ({
+					currentChapter: { exitZone: config },
+				})
+			);
+		wrapper.questState =
+			/** @type {import("../../../game/interfaces.js").IQuestStateService} */ (
+				/** @type {unknown} */ ({
+					hasCollectedItem: new Signal.State(true),
+				})
+			);
 
-		const element = /** @type {any} */ (
+		const element = /** @type {GameExitZone} */ (
 			document.createElement("game-exit-zone")
 		);
 		wrapper.appendChild(element);

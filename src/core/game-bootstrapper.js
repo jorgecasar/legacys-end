@@ -50,14 +50,14 @@ import { Router } from "../utils/router.js";
  * @property {import('../services/logger-service.js').LoggerService} logger
 
  * @property {import('../services/storage-service.js').LocalStorageAdapter} storageAdapter
- * @property {import('../controllers/quest-controller.js').QuestController} [questController]
- * @property {import('../services/progress-service.js').ProgressService} [progressService]
- * @property {import('../utils/router.js').Router} [router]
- * @property {import('../controllers/service-controller.js').ServiceController} [serviceController]
- * @property {import('../controllers/character-context-controller.js').CharacterContextController} [characterContexts]
+ * @property {import('../controllers/quest-controller.js').QuestController} questController
+ * @property {import('../services/progress-service.js').ProgressService} progressService
+ * @property {import('../utils/router.js').Router} router
+ * @property {import('../controllers/service-controller.js').ServiceController} serviceController
+ * @property {import('../controllers/character-context-controller.js').CharacterContextController} characterContexts
  * @property {Object} services
- * @property {import('../services/preloader-service.js').PreloaderService} [preloaderService]
- * @property {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} [evaluateChapterTransition]
+ * @property {import('../services/preloader-service.js').PreloaderService} preloaderService
+ * @property {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} evaluateChapterTransition
  * @property {import('../services/ai-service.js').AIService} aiService
  * @property {import('../services/voice-synthesis-service.js').VoiceSynthesisService} voiceSynthesisService
  * @property {import('../services/localization-service.js').LocalizationService} localizationService

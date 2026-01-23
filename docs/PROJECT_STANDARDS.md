@@ -46,7 +46,9 @@ This document outlines the mandatory architectural and coding standards for "Leg
     ```javascript
     /** @type {import('../../services/interfaces.js').IQuestLoaderService} */
     @consume({ context: questLoaderContext, subscribe: true })
-    accessor questLoader = /** @type {any} */ (null);
+    accessor questLoader = /** @type {import('../../services/interfaces.js').IQuestLoaderService} */ (
+        /** @type {unknown} */ (null)
+    );
     ```
 *   **Private Methods**: Document private methods with JSDoc but mark them as internal.
 

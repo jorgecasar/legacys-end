@@ -15,6 +15,18 @@ import {
 import { heroProfileStyles } from "./HeroProfile.styles.js";
 
 /**
+ * @typedef {Object} ProfileData
+ * @property {string} [name]
+ * @property {boolean} [loading]
+ * @property {string} [error]
+ */
+
+/**
+ * @typedef {Object} SuitData
+ * @property {string} [image]
+ */
+
+/**
  * Main hero profile component.
  * Displays the hero's image, gear, weapon, and nameplate.
  * Connects to profile, theme, and character contexts.
@@ -27,19 +39,27 @@ import { heroProfileStyles } from "./HeroProfile.styles.js";
 export class HeroProfile extends SignalWatcher(LitElement) {
 	/** @type {import('../../game/interfaces.js').IHeroStateService} */
 	@consume({ context: heroStateContext, subscribe: true })
-	accessor heroState = /** @type {any} */ (null);
+	accessor heroState =
+		/** @type {import('../../game/interfaces.js').IHeroStateService} */ (
+			/** @type {unknown} */ (null)
+		);
 
-	/** @type {any} */
+	/** @type {ProfileData} */
 	@consume({ context: profileContext, subscribe: true })
-	accessor profileData = /** @type {any} */ (null);
+	accessor profileData = /** @type {ProfileData} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../services/theme-service.js').ThemeService} */
+	/** @type {import('../../services/interfaces.js').IThemeService} */
 	@consume({ context: themeContext, subscribe: true })
-	accessor themeService = /** @type {any} */ (null);
+	accessor themeService =
+		/** @type {import('../../services/interfaces.js').IThemeService} */ (
+			/** @type {unknown} */ (null)
+		);
 
-	/** @type {any} */
+	/** @type {SuitData} */
 	@consume({ context: characterContext, subscribe: true })
-	accessor suitData = /** @type {any} */ (null);
+	accessor suitData = /** @type {SuitData} */ (/** @type {unknown} */ (null));
 
 	/** @override */
 	static properties = {

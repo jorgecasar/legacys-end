@@ -5,6 +5,7 @@ import { Difficulty } from "../../content/quests/quest-types.js";
 import "./quest-hub.js";
 
 /** @typedef {import("./QuestHub.js").QuestHub} QuestHub */
+/** @typedef {import("./components/quest-card/QuestCard.js").QuestCard} QuestCard */
 
 describe("QuestHub Component", () => {
 	/** @type {HTMLElement} */
@@ -57,8 +58,8 @@ describe("QuestHub Component", () => {
 		expect(cards?.length).toBe(2);
 
 		// Verify quest data is passed to cards
-		const firstCard = /** @type {any} */ (cards?.[0]);
-		const secondCard = /** @type {any} */ (cards?.[1]);
+		const firstCard = /** @type {QuestCard} */ (cards?.[0]);
+		const secondCard = /** @type {QuestCard} */ (cards?.[1]);
 		expect(firstCard?.quest?.id).toBe("q1");
 		expect(secondCard?.quest?.id).toBe("q2");
 	});
@@ -89,7 +90,7 @@ describe("QuestHub Component", () => {
 		// Verify quest-card component is rendered with isComingSoon
 		const cards = el.shadowRoot?.querySelectorAll("quest-card");
 		expect(cards?.length).toBe(1);
-		const card = /** @type {any} */ (cards?.[0]);
+		const card = /** @type {QuestCard} */ (cards?.[0]);
 		expect(card?.quest?.id).toBe("q3");
 		expect(card?.isComingSoon).toBe(true);
 	});

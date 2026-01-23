@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import "./game-zone-indicator.js";
 import { HotSwitchStates, ThemeModes } from "../../../core/constants.js";
 import { GameZoneIndicator } from "./GameZoneIndicator.js";
+import "./game-zone-indicator.js";
+
+/** @typedef {import("../../../content/quests/quest-types.js").Zone} Zone */
 
 describe("GameZoneIndicator", () => {
 	/** @type {HTMLElement} */
@@ -22,31 +24,38 @@ describe("GameZoneIndicator", () => {
 	});
 
 	it("should render nothing when no zones provided", async () => {
-		const el = document.createElement("game-zone-indicator");
+		const el = /** @type {GameZoneIndicator} */ (
+			document.createElement("game-zone-indicator")
+		);
 		container.appendChild(el);
-		await /** @type {any} */ (el).updateComplete;
+		await el.updateComplete;
 
 		expect(el.shadowRoot?.querySelectorAll(".zone").length).toBe(0);
 	});
 
 	it("should render zones matching the type provided", async () => {
+		/** @type {Zone[]} */
 		const zones = [
-			{
-				type: "THEME_CHANGE",
-				x: 10,
-				y: 10,
-				width: 50,
-				height: 50,
-				payload: ThemeModes.DARK,
-			},
-			{
-				type: "CONTEXT_CHANGE",
-				x: 60,
-				y: 10,
-				width: 50,
-				height: 50,
-				payload: HotSwitchStates.LEGACY,
-			},
+			/** @type {Zone} */ (
+				/** @type {unknown} */ ({
+					type: "THEME_CHANGE",
+					x: 10,
+					y: 10,
+					width: 50,
+					height: 50,
+					payload: ThemeModes.DARK,
+				})
+			),
+			/** @type {Zone} */ (
+				/** @type {unknown} */ ({
+					type: "CONTEXT_CHANGE",
+					x: 60,
+					y: 10,
+					width: 50,
+					height: 50,
+					payload: HotSwitchStates.LEGACY,
+				})
+			),
 		];
 
 		const el = /** @type {GameZoneIndicator} */ (

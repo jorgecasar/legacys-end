@@ -20,15 +20,24 @@ import { pauseMenuStyles } from "./PauseMenu.styles.js";
 export class PauseMenu extends SignalWatcher(LitElement) {
 	/** @type {import('../../game/interfaces.js').IWorldStateService} */
 	@consume({ context: worldStateContext, subscribe: true })
-	accessor worldState = /** @type {any} */ (null);
+	accessor worldState =
+		/** @type {import('../../game/interfaces.js').IWorldStateService} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @type {import('../../services/interfaces.js').IQuestLoaderService} */
 	@consume({ context: questLoaderContext, subscribe: true })
-	accessor questLoader = /** @type {any} */ (null);
+	accessor questLoader =
+		/** @type {import('../../services/interfaces.js').IQuestLoaderService} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @type {import('../../services/session-service.js').SessionService} */
 	@consume({ context: sessionContext, subscribe: true })
-	accessor sessionService = /** @type {any} */ (null);
+	accessor sessionService =
+		/** @type {import('../../services/session-service.js').SessionService} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @override */
 	static styles = pauseMenuStyles;

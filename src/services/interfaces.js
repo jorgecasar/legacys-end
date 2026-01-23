@@ -157,6 +157,16 @@
  */
 
 /**
+ * @typedef {Object} ISessionService
+ * @property {import('@lit-labs/signals').State<boolean>} isLoading
+ * @property {import('@lit-labs/signals').State<boolean>} isInHub
+ * @property {import('@lit-labs/signals').State<Quest|null>} currentQuest
+ * @property {(loading: boolean) => void} setLoading
+ * @property {(inHub: boolean) => void} setIsInHub
+ * @property {(quest: Quest|null) => void} setCurrentQuest
+ */
+
+/**
  * @typedef {import('../content/quests/quest-types.js').Quest | null} QuestOrNull
  */
 

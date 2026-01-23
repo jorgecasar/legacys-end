@@ -8,6 +8,11 @@ import { questLoaderContext } from "../../contexts/quest-loader-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
 import { worldStateContext } from "../../game/contexts/world-context.js";
 
+/** @typedef {import("../../game/interfaces.js").IWorldStateService} IWorldStateService */
+/** @typedef {import("../../services/interfaces.js").IQuestLoaderService} IQuestLoaderService */
+/** @typedef {import("../../services/interfaces.js").ISessionService} ISessionService */
+/** @typedef {import("./PauseMenu.js").PauseMenu} PauseMenu */
+
 class TestContextWrapper extends LitElement {
 	/** @override */
 	static properties = {
@@ -18,24 +23,21 @@ class TestContextWrapper extends LitElement {
 
 	constructor() {
 		super();
-		/** @type {any} */
+		/** @type {IWorldStateService | undefined} */
 		this.worldState = undefined;
-		/** @type {any} */
+		/** @type {IQuestLoaderService | undefined} */
 		this.questLoader = undefined;
-		/** @type {any} */
+		/** @type {ISessionService | undefined} */
 		this.sessionService = undefined;
 
 		this.wsProvider = new ContextProvider(this, {
 			context: worldStateContext,
-			initialValue: /** @type {any} */ (this.worldState),
 		});
 		this.qlProvider = new ContextProvider(this, {
 			context: questLoaderContext,
-			initialValue: /** @type {any} */ (this.questLoader),
 		});
 		this.sessionProvider = new ContextProvider(this, {
 			context: sessionContext,
-			initialValue: /** @type {any} */ (this.sessionService),
 		});
 	}
 
@@ -50,13 +52,25 @@ class TestContextWrapper extends LitElement {
 	 */
 	updated(changedProperties) {
 		if (changedProperties.has("worldState")) {
-			this.wsProvider.setValue(this.worldState);
+			this.wsProvider.setValue(
+				/** @type {import("../../game/interfaces.js").IWorldStateService} */ (
+					this.worldState ?? null
+				),
+			);
 		}
 		if (changedProperties.has("questLoader")) {
-			this.qlProvider.setValue(this.questLoader);
+			this.qlProvider.setValue(
+				/** @type {import("../../services/interfaces.js").IQuestLoaderService} */ (
+					this.questLoader ?? null
+				),
+			);
 		}
 		if (changedProperties.has("sessionService")) {
-			this.sessionProvider.setValue(this.sessionService);
+			this.sessionProvider.setValue(
+				/** @type {import("../../services/interfaces.js").ISessionService} */ (
+					this.sessionService ?? null
+				),
+			);
 		}
 	}
 
@@ -83,19 +97,23 @@ describe("PauseMenu", () => {
 
 	it("renders when open (via worldState)", async () => {
 		const wrapper = new TestContextWrapper();
-		wrapper.worldState = {
-			isPaused: new Signal.State(true),
-			setPaused: vi.fn(),
-		};
-		wrapper.questLoader = {};
-		wrapper.sessionService = {};
+		wrapper.worldState = /** @type {IWorldStateService} */ (
+			/** @type {unknown} */ ({
+				isPaused: new Signal.State(true),
+				setPaused: vi.fn(),
+			})
+		);
+		wrapper.questLoader = /** @type {IQuestLoaderService} */ ({});
+		wrapper.sessionService = /** @type {ISessionService} */ ({});
 
-		const element = document.createElement("pause-menu");
+		const element = /** @type {PauseMenu} */ (
+			document.createElement("pause-menu")
+		);
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
 
 		await wrapper.updateComplete;
-		await /** @type {any} */ (element).updateComplete;
+		await element.updateComplete;
 
 		const dialog = element.shadowRoot?.querySelector("wa-dialog");
 		if (dialog) {
@@ -106,23 +124,28 @@ describe("PauseMenu", () => {
 	it("calls setPaused(false) on resume button click", async () => {
 		const setPausedSpy = vi.fn();
 		const wrapper = new TestContextWrapper();
-		wrapper.worldState = {
-			isPaused: new Signal.State(true),
-			setPaused: setPausedSpy,
-		};
-		wrapper.questLoader = {};
-		wrapper.sessionService = {};
+		wrapper.worldState = /** @type {IWorldStateService} */ (
+			/** @type {unknown} */ ({
+				isPaused: new Signal.State(true),
+				setPaused: setPausedSpy,
+			})
+		);
+		wrapper.questLoader = /** @type {IQuestLoaderService} */ ({});
+		wrapper.sessionService = /** @type {ISessionService} */ ({});
 
-		const element = document.createElement("pause-menu");
+		const element = /** @type {PauseMenu} */ (
+			document.createElement("pause-menu")
+		);
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
 
 		await wrapper.updateComplete;
-		await /** @type {any} */ (element).updateComplete;
+		await element.updateComplete;
 
-		const resumeBtn = /** @type {HTMLElement} */ (
-			element.shadowRoot?.querySelector("wa-button[variant='brand']")
-		);
+		const resumeBtn =
+			/** @type {import('@awesome.me/webawesome/dist/components/button/button.js').default} */ (
+				element.shadowRoot?.querySelector("wa-button[variant='brand']")
+			);
 		if (resumeBtn) {
 			resumeBtn.click();
 			expect(setPausedSpy).toHaveBeenCalledWith(false);
@@ -134,25 +157,32 @@ describe("PauseMenu", () => {
 		const setPausedSpy = vi.fn();
 
 		const wrapper = new TestContextWrapper();
-		wrapper.worldState = {
-			isPaused: new Signal.State(true),
-			setPaused: setPausedSpy,
-		};
-		wrapper.questLoader = {
-			returnToHub: returnToHubSpy,
-		};
-		wrapper.sessionService = {};
+		wrapper.worldState = /** @type {IWorldStateService} */ (
+			/** @type {unknown} */ ({
+				isPaused: new Signal.State(true),
+				setPaused: setPausedSpy,
+			})
+		);
+		wrapper.questLoader = /** @type {IQuestLoaderService} */ (
+			/** @type {unknown} */ ({
+				returnToHub: returnToHubSpy,
+			})
+		);
+		wrapper.sessionService = /** @type {ISessionService} */ ({});
 
-		const element = document.createElement("pause-menu");
+		const element = /** @type {PauseMenu} */ (
+			document.createElement("pause-menu")
+		);
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
 
 		await wrapper.updateComplete;
-		await /** @type {any} */ (element).updateComplete;
+		await element.updateComplete;
 
-		const quitBtn = /** @type {HTMLElement} */ (
-			element.shadowRoot?.querySelector("wa-button[variant='danger']")
-		);
+		const quitBtn =
+			/** @type {import('@awesome.me/webawesome/dist/components/button/button.js').default} */ (
+				element.shadowRoot?.querySelector("wa-button[variant='danger']")
+			);
 		if (quitBtn) {
 			quitBtn.click();
 			expect(setPausedSpy).toHaveBeenCalledWith(false);
@@ -162,19 +192,23 @@ describe("PauseMenu", () => {
 
 	it("should have no accessibility violations", async () => {
 		const wrapper = new TestContextWrapper();
-		wrapper.worldState = {
-			isPaused: new Signal.State(true),
-			setPaused: vi.fn(),
-		};
-		wrapper.questLoader = {};
-		wrapper.sessionService = {};
+		wrapper.worldState = /** @type {IWorldStateService} */ (
+			/** @type {unknown} */ ({
+				isPaused: new Signal.State(true),
+				setPaused: vi.fn(),
+			})
+		);
+		wrapper.questLoader = /** @type {IQuestLoaderService} */ ({});
+		wrapper.sessionService = /** @type {ISessionService} */ ({});
 
-		const element = document.createElement("pause-menu");
+		const element = /** @type {PauseMenu} */ (
+			document.createElement("pause-menu")
+		);
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
 
 		await wrapper.updateComplete;
-		await /** @type {any} */ (element).updateComplete;
+		await element.updateComplete;
 
 		const results = await axe.run(element);
 		expect(results.violations).toEqual([]);

@@ -478,10 +478,6 @@
   <source>Oracle</source>
   <target>Oráculo</target>
 </trans-unit>
-<trans-unit id="s59cd91fe10ef55dd">
-  <source>REQ: NEW API</source>
-  <target>REQ: NUEVA API</target>
-</trans-unit>
 <trans-unit id="s506b6a19d12f414c">
   <source>Key</source>
   <target>Llave</target>
@@ -1385,6 +1381,10 @@
 <trans-unit id="sfc982e2a1b3ccece">
   <source>Loading View...</source>
   <target>Cargando Vista...</target>
+</trans-unit>
+<trans-unit id="sa2a2e981da13dd3d">
+  <source>REQ: <x id="0" equiv-text="${ServiceBrandMap[HotSwitchStates.NEW]}"/></source>
+  <target>REQ: <x id="0" equiv-text="${ServiceBrandMap[HotSwitchStates.NEW]}"/></target>
 </trans-unit>
 </body>
 </file>

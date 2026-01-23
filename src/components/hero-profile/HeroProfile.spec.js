@@ -6,6 +6,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { profileContext } from "../../contexts/profile-context.js";
 import "./hero-profile.js";
 
+/** @typedef {import("./HeroProfile.js").HeroProfile} HeroProfile */
+/** @typedef {import("./HeroProfile.js").ProfileData} ProfileData */
+
 describe("HeroProfile", () => {
 	/** @type {HTMLElement} */
 	let container;
@@ -42,13 +45,17 @@ describe("HeroProfile", () => {
 		const providerContainer = /** @type {HTMLElement} */ (
 			container.querySelector("#provider-container")
 		);
-		new ContextProvider(providerContainer, {
-			context: profileContext,
-			initialValue: profileData,
-		});
+		/** @type {{context: import('@lit/context').Context<any, any>, initialValue?: ProfileData }} */
+		const options = { context: profileContext };
+		if (profileData != null) {
+			options.initialValue = /** @type {ProfileData} */ (
+				/** @type {unknown} */ (profileData)
+			);
+		}
+		new ContextProvider(providerContainer, options);
 
 		render(html`<hero-profile></hero-profile>`, providerContainer);
-		const element = /** @type {import("./HeroProfile.js").HeroProfile} */ (
+		const element = /** @type {HeroProfile} */ (
 			providerContainer.querySelector("hero-profile")
 		);
 		await element.updateComplete;
@@ -69,13 +76,17 @@ describe("HeroProfile", () => {
 		const providerContainer = /** @type {HTMLElement} */ (
 			container.querySelector("#provider-container")
 		);
-		new ContextProvider(providerContainer, {
-			context: profileContext,
-			initialValue: profileData,
-		});
+		/** @type {{context: import('@lit/context').Context<any, any>, initialValue?: ProfileData }} */
+		const options = { context: profileContext };
+		if (profileData != null) {
+			options.initialValue = /** @type {ProfileData} */ (
+				/** @type {unknown} */ (profileData)
+			);
+		}
+		new ContextProvider(providerContainer, options);
 
 		render(html`<hero-profile></hero-profile>`, providerContainer);
-		const element = /** @type {import("./HeroProfile.js").HeroProfile} */ (
+		const element = /** @type {HeroProfile} */ (
 			providerContainer.querySelector("hero-profile")
 		);
 		await element.updateComplete;
@@ -98,13 +109,17 @@ describe("HeroProfile", () => {
 		const providerContainer = /** @type {HTMLElement} */ (
 			container.querySelector("#provider-container")
 		);
-		new ContextProvider(providerContainer, {
-			context: profileContext,
-			initialValue: profileData,
-		});
+		/** @type {{context: import('@lit/context').Context<any, any>, initialValue?: ProfileData }} */
+		const options = { context: profileContext };
+		if (profileData != null) {
+			options.initialValue = /** @type {ProfileData} */ (
+				/** @type {unknown} */ (profileData)
+			);
+		}
+		new ContextProvider(providerContainer, options);
 
 		render(html`<hero-profile></hero-profile>`, providerContainer);
-		const element = /** @type {import("./HeroProfile.js").HeroProfile} */ (
+		const element = /** @type {HeroProfile} */ (
 			providerContainer.querySelector("hero-profile")
 		);
 		await element.updateComplete;

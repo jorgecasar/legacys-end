@@ -4,6 +4,7 @@ import "./about-slides.js";
 import axe from "axe-core";
 
 /** @typedef {import("./AboutSlides.js").AboutSlides} AboutSlides */
+/** @typedef {import('@awesome.me/webawesome/dist/components/dialog/dialog.js').default} Dialog */
 
 describe("AboutSlides Component", () => {
 	/** @type {HTMLElement} */
@@ -38,7 +39,7 @@ describe("AboutSlides Component", () => {
 		await el.updateComplete;
 
 		el.show();
-		const dialog = /** @type {any} */ (
+		const dialog = /** @type {Dialog} */ (
 			el.shadowRoot?.querySelector("wa-dialog")
 		);
 		expect(dialog.open).toBe(true);

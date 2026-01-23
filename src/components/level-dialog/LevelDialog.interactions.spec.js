@@ -18,6 +18,13 @@ import { heroStateContext } from "../../game/contexts/hero-context.js";
 import { questStateContext } from "../../game/contexts/quest-context.js";
 import { worldStateContext } from "../../game/contexts/world-context.js";
 
+/** @typedef {import("../../game/interfaces.js").IHeroStateService} IHeroStateService */
+/** @typedef {import("../../game/interfaces.js").IQuestStateService} IQuestStateService */
+/** @typedef {import("../../game/interfaces.js").IWorldStateService} IWorldStateService */
+/** @typedef {import("../../services/interfaces.js").IQuestController} IQuestController */
+/** @typedef {import("../../services/interfaces.js").ISessionService} ISessionService */
+/** @typedef {import("../../services/quest-registry-service.js").Quest} Quest */
+
 class TestContextWrapper extends LitElement {
 	/** @override */
 	static properties = {
@@ -30,31 +37,31 @@ class TestContextWrapper extends LitElement {
 
 	constructor() {
 		super();
-		this.heroState = {};
-		this.questState = {};
-		this.worldState = {};
-		this.questController = {};
-		this.sessionService = {};
+		/** @type {IHeroStateService | undefined} */
+		this.heroState = undefined;
+		/** @type {IQuestStateService | undefined} */
+		this.questState = undefined;
+		/** @type {IWorldStateService | undefined} */
+		this.worldState = undefined;
+		/** @type {IQuestController | undefined} */
+		this.questController = undefined;
+		/** @type {ISessionService | undefined} */
+		this.sessionService = undefined;
 
 		this._heroProvider = new ContextProvider(this, {
 			context: heroStateContext,
-			initialValue: this.heroState,
 		});
 		this._questProvider = new ContextProvider(this, {
 			context: questStateContext,
-			initialValue: this.questState,
 		});
 		this._worldProvider = new ContextProvider(this, {
 			context: worldStateContext,
-			initialValue: this.worldState,
 		});
 		this._qcProvider = new ContextProvider(this, {
 			context: questControllerContext,
-			initialValue: /** @type {any} */ (this.questController),
 		});
 		this._sessionProvider = new ContextProvider(this, {
 			context: sessionContext,
-			initialValue: this.sessionService,
 		});
 	}
 
@@ -71,20 +78,36 @@ class TestContextWrapper extends LitElement {
 	 * @override
 	 */
 	updated(changedProperties) {
-		if (changedProperties.has("heroState")) {
-			this._heroProvider.setValue(this.heroState);
+		if (changedProperties.has("heroState") && this.heroState != null) {
+			this._heroProvider.setValue(
+				/** @type {IHeroStateService} */ (this.heroState),
+			);
 		}
-		if (changedProperties.has("questState")) {
-			this._questProvider.setValue(this.questState);
+		if (changedProperties.has("questState") && this.questState != null) {
+			this._questProvider.setValue(
+				/** @type {IQuestStateService} */ (this.questState),
+			);
 		}
-		if (changedProperties.has("worldState")) {
-			this._worldProvider.setValue(this.worldState);
+		if (changedProperties.has("worldState") && this.worldState != null) {
+			this._worldProvider.setValue(
+				/** @type {IWorldStateService} */ (this.worldState),
+			);
 		}
-		if (changedProperties.has("questController")) {
-			this._qcProvider.setValue(/** @type {any} */ (this.questController));
+		if (
+			changedProperties.has("questController") &&
+			this.questController != null
+		) {
+			this._qcProvider.setValue(
+				/** @type {IQuestController} */ (this.questController),
+			);
 		}
-		if (changedProperties.has("sessionService")) {
-			this._sessionProvider.setValue(this.sessionService);
+		if (
+			changedProperties.has("sessionService") &&
+			this.sessionService != null
+		) {
+			this._sessionProvider.setValue(
+				/** @type {ISessionService} */ (this.sessionService),
+			);
 		}
 	}
 
@@ -98,8 +121,9 @@ class TestContextWrapper extends LitElement {
 customElements.define("test-context-wrapper", TestContextWrapper);
 
 describe("LevelDialog Interactions", () => {
+	/** @type {LevelDialog} */
 	let element;
-	/** @type {any} */
+	/** @type {HTMLElement} */
 	let container;
 
 	beforeEach(async () => {
@@ -126,7 +150,9 @@ describe("LevelDialog Interactions", () => {
 
 		element = new LevelDialog();
 		const wrapper = new TestContextWrapper();
-		wrapper.questController = { currentChapter: config };
+		wrapper.questController = /** @type {IQuestController} */ (
+			/** @type {unknown} */ ({ currentChapter: config })
+		);
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
 		await wrapper.updateComplete;
@@ -157,7 +183,9 @@ describe("LevelDialog Interactions", () => {
 
 		element = new LevelDialog();
 		const wrapper = new TestContextWrapper();
-		wrapper.questController = { currentChapter: config };
+		wrapper.questController = /** @type {IQuestController} */ (
+			/** @type {unknown} */ ({ currentChapter: config })
+		);
 		element.slideIndex = 1; // Start at second slide
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
@@ -187,7 +215,9 @@ describe("LevelDialog Interactions", () => {
 
 		element = new LevelDialog();
 		const wrapper = new TestContextWrapper();
-		wrapper.questController = { currentChapter: config };
+		wrapper.questController = /** @type {IQuestController} */ (
+			/** @type {unknown} */ ({ currentChapter: config })
+		);
 		// Narrative is index 0. Confirmation is index 1 (last).
 		element.slideIndex = 1;
 		wrapper.appendChild(element);
@@ -272,8 +302,9 @@ function getMockApp(overrides = {}) {
 }
 
 describe("QuestView Integration", () => {
+	/** @type {QuestView} */
 	let element;
-	/** @type {any} */
+	/** @type {HTMLElement} */
 	let container;
 
 	beforeEach(() => {
@@ -292,94 +323,113 @@ describe("QuestView Integration", () => {
 	it("should re-dispatch 'complete' event from level-dialog", async () => {
 		element = new QuestView();
 		// @ts-expect-error
-		element.gameState = /** @type {any} */ ({
-			config: {
-				zones: [
-					{
-						x: 50,
-						y: 40,
-						width: 50,
-						height: 60,
-						type: "CONTEXT_CHANGE",
-						payload: "legacy",
-					},
-				],
-			},
-			hero: { pos: { x: 0, y: 0 }, isEvolving: false, hotSwitchState: null },
-			ui: {
-				showDialog: true,
-				isPaused: false,
-				isQuestCompleted: false,
-				lockedMessage: "",
-			},
-			quest: {
-				data: { name: "Test Quest" },
-				chapterNumber: 1,
-				totalChapters: 3,
-				isLastChapter: false,
-				levelId: "1",
-			},
-			levelState: {
-				hasCollectedItem: false,
-				isRewardCollected: false,
-				isCloseToTarget: false,
-			},
-		});
+		element.gameState = /** @type {IQuestStateService} */ (
+			/** @type {unknown} */ ({
+				config: {
+					zones: [
+						{
+							x: 50,
+							y: 40,
+							width: 50,
+							height: 60,
+							type: "CONTEXT_CHANGE",
+							payload: "legacy",
+						},
+					],
+				},
+				hero: {
+					pos: { x: 0, y: 0 },
+					isEvolving: false,
+					hotSwitchState: null,
+				},
+				ui: {
+					showDialog: true,
+					isPaused: false,
+					isQuestCompleted: false,
+					lockedMessage: "",
+				},
+				quest: {
+					data: { name: "Test Quest" },
+					chapterNumber: 1,
+					totalChapters: 3,
+					isLastChapter: false,
+					levelId: "1",
+				},
+				levelState: {
+					hasCollectedItem: false,
+					isRewardCollected: false,
+					isCloseToTarget: false,
+				},
+			})
+		);
 
 		// Mock app for handleLevelComplete
 		/** @type {any} */ (element).app = getMockApp();
 
 		// Wrap in context provider
 		const wrapper = new TestContextWrapper();
-		wrapper.heroState = /** @type {any} */ (element).app.gameState; // Use mock gamestate as service shim since they share props roughly or we just need presence
-		wrapper.heroState = {
-			setPos: vi.fn(),
-			setIsEvolving: vi.fn(),
-			setHotSwitchState: vi.fn(),
-			pos: { get: vi.fn(() => ({ x: 0, y: 0 })) },
-			hotSwitchState: { get: vi.fn(() => HotSwitchStates.NEW) },
-			isEvolving: { get: vi.fn(() => false) },
-			imageSrc: { get: vi.fn(() => "") },
-		};
-		wrapper.questState = {
-			resetQuestState: vi.fn(),
-			resetChapterState: vi.fn(),
-			setHasCollectedItem: vi.fn(),
-			setIsRewardCollected: vi.fn(),
-			setIsQuestCompleted: vi.fn(),
-			setLockedMessage: vi.fn(),
-			setCurrentChapterNumber: vi.fn(),
-			setTotalChapters: vi.fn(),
-			setLevelTitle: vi.fn(),
-			setQuestTitle: vi.fn(),
-			setCurrentChapterId: vi.fn(),
-			hasCollectedItem: { get: vi.fn(() => false) },
-			isRewardCollected: { get: vi.fn(() => false) },
-			isQuestCompleted: { get: vi.fn(() => false) },
-			lockedMessage: { get: vi.fn(() => null) },
-			currentChapterNumber: { get: vi.fn(() => 1) },
-			totalChapters: { get: vi.fn(() => 10) },
-			levelTitle: { get: vi.fn(() => "Test Level") },
-			questTitle: { get: vi.fn(() => "Test Quest") },
-			currentChapterId: { get: vi.fn(() => "ch1") },
-		};
-		wrapper.worldState = {
-			setPaused: vi.fn(),
-			setShowDialog: vi.fn(),
-			setCurrentDialogText: vi.fn(),
-			setNextDialogText: vi.fn(),
-			isPaused: { get: vi.fn(() => false) },
-			showDialog: { get: vi.fn(() => true) },
-			currentDialogText: { get: vi.fn(() => "") },
-			nextDialogText: { get: vi.fn(() => "") },
-		};
-		wrapper.sessionService = {
-			currentQuest: new Signal.State({ id: "q1" }),
-		};
+		wrapper.heroState = /** @type {IHeroStateService} */ (
+			/** @type {unknown} */ ({
+				setPos: vi.fn(),
+				setIsEvolving: vi.fn(),
+				setHotSwitchState: vi.fn(),
+				pos: { get: vi.fn(() => ({ x: 0, y: 0 })) },
+				hotSwitchState: { get: vi.fn(() => HotSwitchStates.NEW) },
+				isEvolving: { get: vi.fn(() => false) },
+				imageSrc: { get: vi.fn(() => "") },
+			})
+		);
+		wrapper.questState =
+			/** @type {import("../../game/interfaces.js").IQuestStateService} */ (
+				/** @type {unknown} */ ({
+					resetQuestState: vi.fn(),
+					resetChapterState: vi.fn(),
+					setHasCollectedItem: vi.fn(),
+					setIsRewardCollected: vi.fn(),
+					setIsQuestCompleted: vi.fn(),
+					setLockedMessage: vi.fn(),
+					setCurrentChapterNumber: vi.fn(),
+					setTotalChapters: vi.fn(),
+					setLevelTitle: vi.fn(),
+					setQuestTitle: vi.fn(),
+					setCurrentChapterId: vi.fn(),
+					hasCollectedItem: { get: vi.fn(() => false) },
+					isRewardCollected: { get: vi.fn(() => false) },
+					isQuestCompleted: { get: vi.fn(() => false) },
+					lockedMessage: { get: vi.fn(() => null) },
+					currentChapterNumber: { get: vi.fn(() => 1) },
+					totalChapters: { get: vi.fn(() => 10) },
+					levelTitle: { get: vi.fn(() => "Test Level") },
+					questTitle: { get: vi.fn(() => "Test Quest") },
+					currentChapterId: { get: vi.fn(() => "ch1") },
+				})
+			);
+		wrapper.worldState =
+			/** @type {import("../../game/interfaces.js").IWorldStateService} */ (
+				/** @type {unknown} */ ({
+					setPaused: vi.fn(),
+					setShowDialog: vi.fn(),
+					setCurrentDialogText: vi.fn(),
+					setNextDialogText: vi.fn(),
+					isPaused: { get: vi.fn(() => false) },
+					showDialog: { get: vi.fn(() => true) },
+					currentDialogText: { get: vi.fn(() => "") },
+					nextDialogText: { get: vi.fn(() => "") },
+				})
+			);
+		wrapper.sessionService = /** @type {ISessionService} */ (
+			/** @type {unknown} */ ({
+				currentQuest: new Signal.State(
+					/** @type {Quest} */ (/** @type {unknown} */ ({ id: "q1" })),
+				),
+			})
+		);
 		// Needed by LevelDialog inside QuestView
-		wrapper.questController = {
-			currentChapter: { description: "Test" },
-		};
+		wrapper.questController = /** @type {IQuestController} */ (
+			/** @type {unknown} */ ({
+				currentChapter: { description: "Test" },
+			})
+		);
 
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
@@ -429,7 +479,9 @@ describe("QuestView Integration", () => {
 				lockedMessage: "",
 			},
 			quest: {
-				data: { name: "Test Quest", id: "quest-1" },
+				data: /** @type {Quest} */ (
+					/** @type {unknown} */ ({ name: "Test Quest", id: "quest-1" })
+				),
 				chapterNumber: 1,
 				totalChapters: 3,
 				isLastChapter: false,
@@ -445,18 +497,33 @@ describe("QuestView Integration", () => {
 		/** @type {any} */ (element).app = getMockApp();
 
 		const wrapper = new TestContextWrapper();
-		wrapper.worldState = {
-			isPaused: new Signal.State(false),
-			showDialog: new Signal.State(true), // Dialog open
-			setCurrentDialogText: vi.fn(),
-			setNextDialogText: vi.fn(),
-		};
-		wrapper.questState = { isQuestCompleted: new Signal.State(false) };
-		wrapper.heroState = {};
-		wrapper.sessionService = {
-			currentQuest: new Signal.State({ id: "q1" }),
-		};
-		wrapper.questController = { currentChapter: {} };
+		wrapper.worldState =
+			/** @type {import("../../game/interfaces.js").IWorldStateService} */ (
+				/** @type {unknown} */ ({
+					isPaused: new Signal.State(false),
+					showDialog: new Signal.State(true), // Dialog open
+					setCurrentDialogText: vi.fn(),
+					setNextDialogText: vi.fn(),
+				})
+			);
+		wrapper.questState =
+			/** @type {import("../../game/interfaces.js").IQuestStateService} */ (
+				/** @type {unknown} */ ({ isQuestCompleted: new Signal.State(false) })
+			);
+		wrapper.heroState =
+			/** @type {import("../../game/interfaces.js").IHeroStateService} */ (
+				/** @type {unknown} */ ({})
+			);
+		wrapper.sessionService = /** @type {ISessionService} */ (
+			/** @type {unknown} */ ({
+				currentQuest: new Signal.State(
+					/** @type {Quest} */ (/** @type {unknown} */ ({ id: "q1" })),
+				),
+			})
+		);
+		wrapper.questController = /** @type {IQuestController} */ ({
+			currentChapter: {},
+		});
 
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
@@ -484,18 +551,31 @@ describe("QuestView Integration", () => {
 		/** @type {any} */ (element).app = getMockApp();
 
 		const wrapper = new TestContextWrapper();
-		wrapper.worldState = {
-			isPaused: new Signal.State(false),
-			showDialog: new Signal.State(true), // Dialog Open
-			setCurrentDialogText: vi.fn(),
-			setNextDialogText: vi.fn(),
-			setShowDialog: vi.fn(),
-		};
-		wrapper.questState = { isQuestCompleted: new Signal.State(false) };
-		wrapper.heroState = {};
-		wrapper.sessionService = {
-			currentQuest: new Signal.State({ id: "q1" }),
-		};
+		wrapper.worldState =
+			/** @type {import("../../game/interfaces.js").IWorldStateService} */ (
+				/** @type {unknown} */ ({
+					isPaused: new Signal.State(false),
+					showDialog: new Signal.State(true), // Dialog Open
+					setCurrentDialogText: vi.fn(),
+					setNextDialogText: vi.fn(),
+					setShowDialog: vi.fn(),
+				})
+			);
+		wrapper.questState =
+			/** @type {import("../../game/interfaces.js").IQuestStateService} */ (
+				/** @type {unknown} */ ({ isQuestCompleted: new Signal.State(false) })
+			);
+		wrapper.heroState =
+			/** @type {import("../../game/interfaces.js").IHeroStateService} */ (
+				/** @type {unknown} */ ({})
+			);
+		wrapper.sessionService = /** @type {ISessionService} */ (
+			/** @type {unknown} */ ({
+				currentQuest: new Signal.State(
+					/** @type {Quest} */ (/** @type {unknown} */ ({ id: "q1" })),
+				),
+			})
+		);
 
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);

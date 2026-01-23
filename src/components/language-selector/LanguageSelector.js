@@ -51,10 +51,10 @@ export class LanguageSelector extends SignalWatcher(LitElement) {
 	}
 
 	/**
-	 * @param {any} event
+	 * @param {Event} event
 	 */
 	#handleParamsChange(event) {
-		const newLocale = event.target.value;
+		const newLocale = /** @type {HTMLSelectElement} */ (event.target).value;
 		if (this.localizationService) {
 			this.localizationService.setLocale(newLocale);
 		}

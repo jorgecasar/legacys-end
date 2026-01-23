@@ -31,7 +31,10 @@ import { npcElementStyles } from "./NpcElement.styles.js";
 export class NpcElement extends SignalWatcher(LitElement) {
 	/** @type {import('../../game/interfaces.js').IQuestStateService} */
 	@consume({ context: questStateContext, subscribe: true })
-	accessor questState = /** @type {any} */ (null);
+	accessor questState =
+		/** @type {import('../../game/interfaces.js').IQuestStateService} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @override */
 	static properties = {
@@ -49,6 +52,14 @@ export class NpcElement extends SignalWatcher(LitElement) {
 		isClose: { type: Boolean },
 		/** @type {import('lit').PropertyDeclaration} */
 		action: { type: String },
+		/**
+		 * Force collected state (mostly for testing).
+		 */
+		hasCollectedItem: { type: Boolean },
+		/**
+		 * Force reward collected state (mostly for testing).
+		 */
+		isRewardCollected: { type: Boolean },
 	};
 
 	/** @override */
@@ -65,6 +76,10 @@ export class NpcElement extends SignalWatcher(LitElement) {
 		this.isClose = false;
 		/** @type {string|undefined} */
 		this.action = undefined;
+		/** @type {boolean|undefined} */
+		this.hasCollectedItem = undefined;
+		/** @type {boolean|undefined} */
+		this.isRewardCollected = undefined;
 	}
 
 	/** @override */
@@ -73,8 +88,12 @@ export class NpcElement extends SignalWatcher(LitElement) {
 		this.style.left = `${this.x}%`;
 		this.style.top = `${this.y}%`;
 
-		const hasCollectedItem = this.questState?.hasCollectedItem.get() ?? false;
-		const isRewardCollected = this.questState?.isRewardCollected.get() ?? false;
+		const hasCollectedItem =
+			this.hasCollectedItem ?? this.questState?.hasCollectedItem.get() ?? false;
+		const isRewardCollected =
+			this.isRewardCollected ??
+			this.questState?.isRewardCollected.get() ??
+			false;
 		const action = this.action ?? this.questState?.lockedMessage.get();
 
 		const open = this.isClose && !hasCollectedItem;

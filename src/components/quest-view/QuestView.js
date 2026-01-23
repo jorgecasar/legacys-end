@@ -21,23 +21,38 @@ import { questViewStyles } from "./quest-view.css.js";
 export class QuestView extends SignalWatcher(LitElement) {
 	/** @type {import('../../game/interfaces.js').IHeroStateService} */
 	@consume({ context: heroStateContext, subscribe: true })
-	accessor heroState = /** @type {any} */ (null);
+	accessor heroState =
+		/** @type {import('../../game/interfaces.js').IHeroStateService} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @type {import('../../game/interfaces.js').IQuestStateService} */
 	@consume({ context: questStateContext, subscribe: true })
-	accessor questState = /** @type {any} */ (null);
+	accessor questState =
+		/** @type {import('../../game/interfaces.js').IQuestStateService} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @type {import('../../game/interfaces.js').IWorldStateService} */
 	@consume({ context: worldStateContext, subscribe: true })
-	accessor worldState = /** @type {any} */ (null);
+	accessor worldState =
+		/** @type {import('../../game/interfaces.js').IWorldStateService} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @type {import('../../services/interfaces.js').IQuestLoaderService} */
 	@consume({ context: questLoaderContext, subscribe: true })
-	accessor questLoader = /** @type {any} */ (null);
+	accessor questLoader =
+		/** @type {import('../../services/interfaces.js').IQuestLoaderService} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @type {import('../../services/session-service.js').SessionService} */
 	@consume({ context: sessionContext, subscribe: true })
-	accessor sessionService = /** @type {any} */ (null);
+	accessor sessionService =
+		/** @type {import('../../services/session-service.js').SessionService} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @override */
 	static styles = questViewStyles;

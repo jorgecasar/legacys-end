@@ -54,11 +54,12 @@ describe("NpcElement", () => {
 		await element.updateComplete;
 
 		expect(element.isClose).toBe(true);
-		expect(/** @type {any} */ (element).hasCollectedItem).toBe(false);
+		expect(element.hasCollectedItem).toBe(false);
 
-		const tooltip = /** @type {any} */ (
-			element.shadowRoot?.querySelector("wa-tooltip")
-		);
+		const tooltip =
+			/** @type {import('@awesome.me/webawesome/dist/components/tooltip/tooltip.js').default} */ (
+				element.shadowRoot?.querySelector("wa-tooltip")
+			);
 		await tooltip.updateComplete;
 
 		expect(tooltip?.open).toBe(true);

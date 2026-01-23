@@ -7,6 +7,11 @@ import "./victory-screen.js";
 import { questLoaderContext } from "../../contexts/quest-loader-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
 
+/** @typedef {import("../../services/interfaces.js").ISessionService} ISessionService */
+/** @typedef {import("../../services/interfaces.js").IQuestLoaderService} IQuestLoaderService */
+/** @typedef {import("../../services/quest-registry-service.js").Quest} Quest */
+/** @typedef {import("./VictoryScreen.js").VictoryScreen} VictoryScreen */
+
 class TestContextWrapper extends LitElement {
 	/** @override */
 	static properties = {
@@ -16,27 +21,22 @@ class TestContextWrapper extends LitElement {
 
 	constructor() {
 		super();
-		/** @type {any} */
+		/** @type {ISessionService | undefined} */
 		this.sessionService = undefined;
-		/** @type {any} */
+		/** @type {IQuestLoaderService | undefined} */
 		this.questLoader = undefined;
-		/** @type {ContextProvider<any>|undefined} */
-		this.sessionProvider = undefined;
-		/** @type {ContextProvider<any>|undefined} */
-		this.qlProvider = undefined;
+
+		this.sessionProvider = new ContextProvider(this, {
+			context: sessionContext,
+		});
+		this.qlProvider = new ContextProvider(this, {
+			context: questLoaderContext,
+		});
 	}
 
 	/** @override */
 	connectedCallback() {
 		super.connectedCallback();
-		this.sessionProvider = new ContextProvider(this, {
-			context: sessionContext,
-			initialValue: /** @type {any} */ (this.sessionService),
-		});
-		this.qlProvider = new ContextProvider(this, {
-			context: questLoaderContext,
-			initialValue: /** @type {any} */ (this.questLoader),
-		});
 	}
 
 	/**
@@ -44,11 +44,18 @@ class TestContextWrapper extends LitElement {
 	 * @override
 	 */
 	updated(changedProperties) {
-		if (changedProperties.has("sessionService")) {
-			this.sessionProvider?.setValue(this.sessionService);
+		if (
+			changedProperties.has("sessionService") &&
+			this.sessionService != null
+		) {
+			this.sessionProvider?.setValue(
+				/** @type {ISessionService} */ (this.sessionService),
+			);
 		}
-		if (changedProperties.has("questLoader")) {
-			this.qlProvider?.setValue(this.questLoader);
+		if (changedProperties.has("questLoader") && this.questLoader != null) {
+			this.qlProvider?.setValue(
+				/** @type {IQuestLoaderService} */ (this.questLoader),
+			);
 		}
 	}
 
@@ -87,19 +94,25 @@ describe("VictoryScreen", () => {
 		};
 
 		const wrapper = new TestContextWrapper();
-		wrapper.sessionService = {
-			currentQuest: new Signal.State(questData),
-		};
-		wrapper.questLoader = {
-			returnToHub: () => {},
-		};
+		wrapper.sessionService = /** @type {ISessionService} */ (
+			/** @type {unknown} */ ({
+				currentQuest: new Signal.State(
+					/** @type {Quest} */ (/** @type {unknown} */ (questData)),
+				),
+			})
+		);
+		wrapper.questLoader = /** @type {IQuestLoaderService} */ ({
+			returnToHub: () => Promise.resolve({ success: true }),
+		});
 
-		const element = document.createElement("victory-screen");
+		const element = /** @type {VictoryScreen} */ (
+			document.createElement("victory-screen")
+		);
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
 
 		await wrapper.updateComplete;
-		await /** @type {any} */ (element).updateComplete;
+		await element.updateComplete;
 
 		expect(element.shadowRoot?.textContent).toContain("Epic Quest");
 		expect(element.shadowRoot?.textContent).toContain("Hero Badge");
@@ -114,25 +127,33 @@ describe("VictoryScreen", () => {
 		const questData = { name: "Quest" };
 
 		const wrapper = new TestContextWrapper();
-		wrapper.sessionService = {
-			currentQuest: new Signal.State(questData),
-		};
-		wrapper.questLoader = {
+		wrapper.sessionService = /** @type {ISessionService} */ (
+			/** @type {unknown} */ ({
+				currentQuest: new Signal.State(
+					/** @type {Quest} */ (/** @type {unknown} */ (questData)),
+				),
+			})
+		);
+		wrapper.questLoader = /** @type {IQuestLoaderService} */ ({
 			returnToHub: () => {
 				returnCalled = true;
+				return Promise.resolve({ success: true });
 			},
-		};
+		});
 
-		const element = document.createElement("victory-screen");
+		const element = /** @type {VictoryScreen} */ (
+			document.createElement("victory-screen")
+		);
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
 
 		await wrapper.updateComplete;
-		await /** @type {any} */ (element).updateComplete;
+		await element.updateComplete;
 
-		const btn = /** @type {HTMLElement} */ (
-			element.shadowRoot?.querySelector("wa-button")
-		);
+		const btn =
+			/** @type {import('@awesome.me/webawesome/dist/components/button/button.js').default} */ (
+				element.shadowRoot?.querySelector("wa-button")
+			);
 		btn.click();
 
 		expect(returnCalled).toBe(true);
@@ -151,19 +172,25 @@ describe("VictoryScreen", () => {
 		};
 
 		const wrapper = new TestContextWrapper();
-		wrapper.sessionService = {
-			currentQuest: new Signal.State(questData),
-		};
-		wrapper.questLoader = {
-			returnToHub: () => {},
-		};
+		wrapper.sessionService = /** @type {ISessionService} */ (
+			/** @type {unknown} */ ({
+				currentQuest: new Signal.State(
+					/** @type {Quest} */ (/** @type {unknown} */ (questData)),
+				),
+			})
+		);
+		wrapper.questLoader = /** @type {IQuestLoaderService} */ ({
+			returnToHub: () => Promise.resolve({ success: true }),
+		});
 
-		const element = document.createElement("victory-screen");
+		const element = /** @type {VictoryScreen} */ (
+			document.createElement("victory-screen")
+		);
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
 
 		await wrapper.updateComplete;
-		await /** @type {any} */ (element).updateComplete;
+		await element.updateComplete;
 
 		const results = await axe.run(element);
 		expect(results.violations).toEqual([]);

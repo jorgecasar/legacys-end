@@ -25,15 +25,24 @@ import { gameZoneIndicatorStyles } from "./GameZoneIndicator.styles.js";
 export class GameZoneIndicator extends SignalWatcher(LitElement) {
 	/** @type {import('../../../services/interfaces.js').IQuestController} */
 	@consume({ context: questControllerContext, subscribe: true })
-	accessor questController = /** @type {any} */ (null);
+	accessor questController =
+		/** @type {import('../../../services/interfaces.js').IQuestController} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @type {import('../../../services/interfaces.js').IThemeService} */
 	@consume({ context: themeContext, subscribe: true })
-	accessor themeService = /** @type {any} */ (null);
+	accessor themeService =
+		/** @type {import('../../../services/interfaces.js').IThemeService} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @type {import('../../../game/interfaces.js').IHeroStateService} */
 	@consume({ context: heroStateContext, subscribe: true })
-	accessor heroState = /** @type {any} */ (null);
+	accessor heroState =
+		/** @type {import('../../../game/interfaces.js').IHeroStateService} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @override */
 	static styles = gameZoneIndicatorStyles;
@@ -47,7 +56,7 @@ export class GameZoneIndicator extends SignalWatcher(LitElement) {
 	constructor() {
 		super();
 		this.type = "";
-		/** @type {any[]} */
+		/** @type {Zone[]} */
 		this.zones = [];
 	}
 
@@ -124,7 +133,7 @@ export class GameZoneIndicator extends SignalWatcher(LitElement) {
 
 	/** @override */
 	render() {
-		/** @type {any[]} */
+		/** @type {Zone[]} */
 		const zones = this.zones || [];
 		if (zones.length === 0) return "";
 

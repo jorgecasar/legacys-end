@@ -23,11 +23,17 @@ import { victoryScreenStyles } from "./VictoryScreen.styles.js";
 export class VictoryScreen extends SignalWatcher(LitElement) {
 	/** @type {import('../../services/session-service.js').SessionService} */
 	@consume({ context: sessionContext, subscribe: true })
-	accessor sessionService = /** @type {any} */ (null);
+	accessor sessionService =
+		/** @type {import('../../services/session-service.js').SessionService} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @type {import('../../services/interfaces.js').IQuestLoaderService} */
 	@consume({ context: questLoaderContext, subscribe: true })
-	accessor questLoader = /** @type {any} */ (null);
+	accessor questLoader =
+		/** @type {import('../../services/interfaces.js').IQuestLoaderService} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @override */
 	static styles = victoryScreenStyles;
