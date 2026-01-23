@@ -266,7 +266,7 @@ export class GameViewport extends SignalWatcher(LitElement) {
 	 */
 	#setupKeyboard() {
 		this.keyboard = new KeyboardController(this, {
-			interaction: this.interaction || undefined,
+			interaction: this.interaction ?? null,
 			worldState: this.worldState,
 			speed: 2.5,
 		});

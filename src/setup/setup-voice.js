@@ -110,16 +110,16 @@ export function setupVoice(
 				return worldState.currentDialogText.get() || "";
 			},
 			onGetNextDialogText: () => {
-				return worldState.nextDialogText?.get() || "";
+				return worldState.nextDialogText?.get() ?? "";
 			},
 			onGetContext: () => {
 				const chapter = questController.currentChapter;
 				return {
 					isDialogOpen: worldState.showDialog.get(),
 					isRewardCollected: questState.isRewardCollected.get(),
-					npcName: chapter?.npc?.name || null,
+					npcName: chapter?.npc?.name ?? null,
 					exitZoneName: chapter?.exitZone ? "exit" : null,
-					chapterTitle: chapter?.title || null,
+					chapterTitle: chapter?.title ?? null,
 				};
 			},
 			onMoveToNpc: () => {

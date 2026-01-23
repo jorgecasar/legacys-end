@@ -18,7 +18,7 @@ import { QuestStateService } from "../game/services/quest-state-service.js";
  *
  * @property {ILoggerService} logger - Logger
  * @property {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} evaluateChapterTransition - Use case
- * @property {import('../services/preloader-service.js').PreloaderService | undefined} [preloaderService] - Preloader
+ * @property {import('../services/preloader-service.js').PreloaderService | null} [preloaderService] - Preloader
  * @property {IQuestStateService} [state] - Quest state service
  */
 
@@ -37,9 +37,10 @@ import { QuestStateService } from "../game/services/quest-state-service.js";
  * @property {IProgressService} progressService
  * @property {import('../services/quest-registry-service.js').QuestRegistryService} registry
  * @property {IQuestStateService} state
- * @property {Object|null} currentQuest
- * @property {Object|null} currentChapter
+ * @property {import('../content/quests/quest-types.js').Quest | null} currentQuest
+ * @property {import('../content/quests/quest-types.js').Chapter | null} currentChapter
  * @property {number} currentChapterIndex
+ * @property {import('../services/preloader-service.js').PreloaderService | null} preloaderService
  */
 export class QuestController {
 	/**
@@ -65,7 +66,7 @@ export class QuestController {
 		this.registry = this.options.registry;
 		this.progressService = this.options.progressService;
 		this.evaluateChapterTransition = this.options.evaluateChapterTransition;
-		this.preloaderService = this.options.preloaderService;
+		this.preloaderService = this.options.preloaderService ?? null;
 
 		// Instantiate state service or use injected
 		this.state = this.options.state || new QuestStateService();

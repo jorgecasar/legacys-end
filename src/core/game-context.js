@@ -12,7 +12,7 @@
  * @property {any} [gameService]
  * @property {import("../utils/router.js").Router} [router]
  * @property {import("../services/storage-service.js").LocalStorageAdapter} [storageAdapter]
- * @property {import('../services/interfaces.js').IInteractionController | undefined} [interaction]
+ * @property {import('../services/interfaces.js').IInteractionController | null} [interaction]
  * @property {any} [serviceController]
  * @property {any} [characterContexts]
  * @property {Record<string, any>} [services]

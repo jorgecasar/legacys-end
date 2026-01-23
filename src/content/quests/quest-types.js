@@ -157,7 +157,7 @@ export const ServiceBrandMap = {
  * @property {string[]} [concepts]
  * @property {string[]} [chapterIds]
  * @property {Record<string, Chapter>} [chapters]
- * @property {QuestStatus | undefined} [status]
+ * @property {QuestStatus} [status]
  * @property {{ badge: string; ability: string; description?: string; }} [reward]
  */
 

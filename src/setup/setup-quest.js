@@ -31,7 +31,7 @@ export function setupQuest(
 		progressService,
 		logger,
 		registry,
-		preloaderService: preloaderService || undefined,
+		preloaderService: preloaderService ?? null,
 		evaluateChapterTransition,
 		state: questState,
 	});

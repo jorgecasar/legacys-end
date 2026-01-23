@@ -29,7 +29,7 @@ import { UIEvents } from "../core/events.js";
  * @property {QuestStateService} [questState] - Quest state service (Locked messages)
  * @property {number} [interactionDistance] - Max distance to interact (default: from config)
  * @property {() => InteractionState} [getState] - Accessor for game state
- * @property {() => ({x: number, y: number}|null|undefined)} [getNpcPosition] - Accessor for NPC coordinates
+ * @property {() => ({x: number, y: number} | null)} [getNpcPosition] - Accessor for NPC coordinates
  * @property {import('../use-cases/interact-with-npc.js').InteractWithNpcUseCase} interactWithNpcUseCase
  */
 

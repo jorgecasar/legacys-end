@@ -240,7 +240,7 @@ export class VoiceController {
 
 		await this.voiceSynthesisService.speak(text, {
 			lang: targetLang,
-			voice: voice || undefined,
+			voice: voice ?? null,
 			rate: profile.rate,
 			pitch,
 			queue: queue || false,

@@ -33,7 +33,7 @@ export function setupInteraction(
 				hasCollectedItem: questState.hasCollectedItem.get(),
 			};
 		},
-		getNpcPosition: () => questController.currentChapter?.npc?.position,
+		getNpcPosition: () => questController.currentChapter?.npc?.position ?? null,
 		interactWithNpcUseCase:
 			questLoader?.interactWithNpcUseCase || new InteractWithNpcUseCase(),
 	});

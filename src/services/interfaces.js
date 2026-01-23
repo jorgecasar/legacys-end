@@ -76,9 +76,9 @@
  * @typedef {Object} IQuestController
  * @property {import('lit').ReactiveControllerHost} [host]
  * @property {any} [options]
- * @property {import('./interfaces.js').ILoggerService | undefined} [logger]
- * @property {import('./quest-registry-service.js').QuestRegistryService | undefined} [registry]
- * @property {import('./preloader-service.js').PreloaderService | undefined} [preloaderService]
+ * @property {import('./interfaces.js').ILoggerService | null} [logger]
+ * @property {import('./quest-registry-service.js').QuestRegistryService | null} [registry]
+ * @property {import('./preloader-service.js').PreloaderService | null} [preloaderService]
  * @property {Quest|null} currentQuest - Currently active quest
  * @property {Chapter|null} currentChapter - Currently active chapter
  * @property {number} currentChapterIndex - Index of current chapter
@@ -109,15 +109,15 @@
  * @property {StorageConfig} storage - Storage settings
  * @property {FeaturesConfig} features - Feature flags
  * @property {ViewportConfig} viewport - Viewport settings
- * @property {(path: string) => JsonValue | undefined} get - Get config value by path
+ * @property {(path: string) => JsonValue | null} get - Get config value by path
  * @property {(feature: keyof FeaturesConfig) => boolean} isFeatureEnabled - Check if feature enabled
  * @property {() => GameConfig} getAll - Get all configuration
  */
 
 /**
  * @typedef {Object} IThemeService
- * @property {import('./interfaces.js').ILoggerService | undefined} [logger]
- * @property {IStorageAdapter | undefined} [storage]
+ * @property {import('./interfaces.js').ILoggerService | null} [logger]
+ * @property {IStorageAdapter | null} [storage]
  * @property {import('@lit-labs/signals').State<import('./theme-service.js').ThemeMode>} themeMode
  * @property {(mode: import('./theme-service.js').ThemeMode) => void} setTheme
  * @property {() => void} toggleTheme
@@ -125,8 +125,8 @@
 
 /**
  * @typedef {Object} ILocalizationService
- * @property {import('./interfaces.js').ILoggerService | undefined} [logger]
- * @property {IStorageAdapter | undefined} [storage]
+ * @property {import('./interfaces.js').ILoggerService | null} [logger]
+ * @property {IStorageAdapter | null} [storage]
  * @property {(key: string) => string} t
  * @property {() => string} getLocale
  * @property {(locale: string) => Promise<void>} setLocale
@@ -134,13 +134,13 @@
 
 /**
  * @typedef {Object} IAIService
- * @property {string | undefined} [availabilityStatus]
- * @property {boolean | undefined} [isAvailable]
- * @property {Map<string, AIModelSession> | undefined} [sessions]
+ * @property {string | null} [availabilityStatus]
+ * @property {boolean} [isAvailable]
+ * @property {Map<string, AIModelSession> | null} [sessions]
  * @property {import('@lit-labs/signals').State<boolean>} isEnabled
  * @property {() => Promise<string>} checkAvailability
  * @property {(key: string, options: import('./ai-service.js').AIOptions) => Promise<any>} createSession
- * @property {(key: string) => AIModelSession | null | undefined} getSession
+ * @property {(key: string) => AIModelSession | null} getSession
  * @property {(key: string) => void} destroySession
  * @property {() => void} destroyAllSessions
  * @property {(key: string, prompt: string) => Promise<string>} getChatResponse
@@ -148,10 +148,10 @@
 
 /**
  * @typedef {Object} IVoiceSynthesisService
- * @property {SpeechSynthesis | undefined} [synthesis]
- * @property {SpeechSynthesisVoice[] | undefined} [voices]
+ * @property {SpeechSynthesis | null} [synthesis]
+ * @property {SpeechSynthesisVoice[] | null} [voices]
  * @property {boolean} [isSpeaking]
- * @property {(text: string, options?: { lang?: string, voice?: SpeechSynthesisVoice | null | undefined, rate?: number, pitch?: number, queue?: boolean, onStart?: () => void, onEnd?: () => void, onError?: (e: unknown) => void }) => Promise<void>} speak
+ * @property {(text: string, options?: { lang?: string, voice?: SpeechSynthesisVoice | null, rate?: number, pitch?: number, queue?: boolean, onStart?: () => void, onEnd?: () => void, onError?: (e: unknown) => void }) => Promise<void>} speak
  * @property {() => void} cancel
  * @property {(lang: string, preferredNames?: string[]) => SpeechSynthesisVoice|null} getBestVoice
  */
@@ -169,10 +169,10 @@
 
 /**
  * @typedef {Object} IQuestLoaderService
- * @property {import('./logger-service.js').LoggerService | undefined} [logger]
- * @property {import('../game/interfaces.js').IQuestStateService | undefined} [questState]
- * @property {import('./session-service.js').SessionService | undefined} [sessionService]
- * @property {IProgressService | undefined} [progressService]
+ * @property {import('./logger-service.js').LoggerService | null} [logger]
+ * @property {import('../game/interfaces.js').IQuestStateService | null} [questState]
+ * @property {import('./session-service.js').SessionService | null} [sessionService]
+ * @property {IProgressService | null} [progressService]
  * @property {(questId: string) => Promise<QuestResult>} startQuest
  * @property {(questId: string) => Promise<QuestResult>} continueQuest
  * @property {(questId: string, chapterId: string) => Promise<void>} loadChapter

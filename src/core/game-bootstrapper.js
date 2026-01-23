@@ -198,7 +198,7 @@ export class GameBootstrapper {
 			progressService,
 			logger,
 			registry,
-			preloaderService: servicesContext.preloader,
+			preloaderService: servicesContext.preloader ?? null,
 			evaluateChapterTransition,
 			questState,
 		});
@@ -278,7 +278,7 @@ export class GameBootstrapper {
 			serviceController,
 			characterContexts,
 			services,
-			preloaderService: servicesContext.preloader,
+			preloaderService: servicesContext.preloader ?? null,
 			evaluateChapterTransition,
 			aiService,
 			voiceSynthesisService,
