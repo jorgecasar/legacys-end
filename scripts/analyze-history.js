@@ -137,7 +137,60 @@ async function analyzeCommit(hash) {
 
 		// Build
 		console.log("Installing dependencies...");
+
+		// Merge current build-related devDependencies for consistent builds
+		const currentPkg = JSON.parse(
+			fs.readFileSync(path.join(ROOT, "package.json"), "utf8"),
+		);
+		const tempPkgPath = path.join(TEMP_DIR, "package.json");
+		const tempPkg = JSON.parse(fs.readFileSync(tempPkgPath, "utf8"));
+
+		// Build-related packages to merge
+		const buildPackages = [
+			"vite",
+			"@lit-labs/rollup-plugin-minify-html-literals",
+			"rollup-plugin-visualizer",
+			"vite-imagetools",
+			"vite-plugin-babel",
+			"vite-plugin-image-optimizer",
+			"@babel/plugin-proposal-decorators",
+		];
+
+		for (const pkg of buildPackages) {
+			if (currentPkg.devDependencies?.[pkg]) {
+				tempPkg.devDependencies = tempPkg.devDependencies || {};
+				tempPkg.devDependencies[pkg] = currentPkg.devDependencies[pkg];
+			}
+		}
+
+		fs.writeFileSync(tempPkgPath, JSON.stringify(tempPkg, null, 2));
+
 		exec("npm install --prefer-offline --no-audit --no-fund", TEMP_DIR);
+
+		// Merge current vite.config.js build settings while preserving test config
+		const currentViteConfig = path.join(ROOT, "vite.config.js");
+		const tempViteConfig = path.join(TEMP_DIR, "vite.config.js");
+
+		if (fs.existsSync(currentViteConfig)) {
+			// Read both configs
+			const currentConfig = fs.readFileSync(currentViteConfig, "utf8");
+
+			// If temp doesn't have vite.config, just copy it
+			if (!fs.existsSync(tempViteConfig)) {
+				fs.copyFileSync(currentViteConfig, tempViteConfig);
+				console.log("Using current vite.config.js for build");
+			} else {
+				// Preserve original test config by removing test section from current config
+				const configWithoutTests = currentConfig.replace(
+					/test:\s*\{[\s\S]*?\},\s*(?=\};\s*\}\);)/,
+					"",
+				);
+				fs.writeFileSync(tempViteConfig, configWithoutTests);
+				console.log(
+					"Using current build config, preserving original test config",
+				);
+			}
+		}
 
 		console.log("Building...");
 		exec("npm run build", TEMP_DIR);
@@ -338,7 +391,6 @@ async function main() {
 
 	// Track which commits we're updating for --force
 	const updatedHashes = new Set();
-	const updateSummary = new Map(); // Track old vs new metrics
 
 	for (const hash of targets) {
 		// Skip if already analyzed and not forcing
@@ -360,10 +412,39 @@ async function main() {
 				);
 				if (existingIndex !== -1) {
 					const oldMetrics = validHistory[existingIndex];
-					updateSummary.set(hash, { old: oldMetrics, new: metrics });
 					validHistory[existingIndex] = metrics;
+
+					// Show summary immediately for this commit
+					const changes = [];
+
+					// Bundle size changes
+					if (
+						oldMetrics.bundle?.totalGzipSize !== metrics.bundle?.totalGzipSize
+					) {
+						const oldSize = oldMetrics.bundle?.totalGzipSize || 0;
+						const newSize = metrics.bundle?.totalGzipSize || 0;
+						const diff = newSize - oldSize;
+						const pct = oldSize ? ((diff / oldSize) * 100).toFixed(1) : "N/A";
+						changes.push(
+							`bundle: ${oldSize} → ${newSize} (${diff > 0 ? "+" : ""}${pct}%)`,
+						);
+					}
+
+					// Test changes
+					if (oldMetrics.tests?.total !== metrics.tests?.total) {
+						changes.push(
+							`tests: ${oldMetrics.tests?.total || 0} → ${metrics.tests?.total || 0}`,
+						);
+					}
+
+					if (changes.length > 0) {
+						console.log(`📊 ${hash}: ${changes.join(", ")}`);
+					} else {
+						console.log(`📊 ${hash}: no changes detected`);
+					}
 				} else {
 					validHistory.push(metrics);
+					console.log(`📊 ${hash}: newly analyzed`);
 				}
 			} else {
 				// Append immediately for new commits
@@ -385,37 +466,7 @@ async function main() {
 
 		const ndjson = validHistory.map((item) => JSON.stringify(item)).join("\n");
 		fs.writeFileSync(outputPath, `${ndjson}\n`);
-		console.log(`\nUpdated ${updatedHashes.size} commits`);
-
-		// Show summary of changes
-		if (updateSummary.size > 0) {
-			console.log("\n📊 Summary of changes:");
-			for (const [hash, { old, new: newMetrics }] of updateSummary) {
-				const changes = [];
-
-				// Bundle size changes
-				if (old.bundle?.totalGzipSize !== newMetrics.bundle?.totalGzipSize) {
-					const oldSize = old.bundle?.totalGzipSize || 0;
-					const newSize = newMetrics.bundle?.totalGzipSize || 0;
-					const diff = newSize - oldSize;
-					const pct = oldSize ? ((diff / oldSize) * 100).toFixed(1) : "N/A";
-					changes.push(
-						`bundle: ${oldSize} → ${newSize} (${diff > 0 ? "+" : ""}${pct}%)`,
-					);
-				}
-
-				// Test changes
-				if (old.tests?.total !== newMetrics.tests?.total) {
-					changes.push(
-						`tests: ${old.tests?.total || 0} → ${newMetrics.tests?.total || 0}`,
-					);
-				}
-
-				if (changes.length > 0) {
-					console.log(`  ${hash}: ${changes.join(", ")}`);
-				}
-			}
-		}
+		console.log(`\nUpdated ${updatedHashes.size} commits in total`);
 	}
 
 	console.log(`\nDone! History updated in ${outputPath}`);
