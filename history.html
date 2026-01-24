@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Project Evolution | Legacy's End</title>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<style>
+		:root {
+			--bg-color: #0f172a;
+			--card-bg: rgba(30, 41, 59, 0.7);
+			--text-color: #f1f5f9;
+			--accent-color: #38bdf8;
+			--success-color: #10b981;
+			--error-color: #ef4444;
+			--border-color: rgba(255, 255, 255, 0.1);
+		}
+
+		body {
+			margin: 0;
+			padding: 2rem;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			background-color: var(--bg-color);
+			color: var(--text-color);
+			line-height: 1.5;
+		}
+
+		.container {
+			max-width: 1200px;
+			margin: 0 auto;
+		}
+
+		header {
+			margin-bottom: 3rem;
+			text-align: center;
+		}
+
+		h1 {
+			font-size: 2.5rem;
+			font-weight: 800;
+			margin-bottom: 0.5rem;
+			background: linear-gradient(to right, #38bdf8, #818cf8);
+			-webkit-background-clip: text;
+			background-clip: text;
+			-webkit-text-fill-color: transparent;
+		}
+
+		p.subtitle {
+			color: #94a3b8;
+			font-size: 1.1rem;
+		}
+
+		.charts-grid {
+			display: grid;
+			grid-template-columns: 1fr;
+			gap: 2rem;
+		}
+
+		.card {
+			background: var(--card-bg);
+			backdrop-filter: blur(12px);
+			border: 1px solid var(--border-color);
+			border-radius: 1rem;
+			padding: 1.5rem;
+			box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+		}
+
+		.card h2 {
+			margin-top: 0;
+			font-size: 1.25rem;
+			font-weight: 600;
+			margin-bottom: 1.5rem;
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
+
+		.canvas-container {
+			position: relative;
+			height: 400px;
+			width: 100%;
+		}
+
+		footer {
+			margin-top: 4rem;
+			text-align: center;
+			color: #64748b;
+			font-size: 0.875rem;
+		}
+
+		/* Custom Tooltip Styling */
+		#chart-tooltip {
+			background: rgba(15, 23, 42, 0.9);
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			border-radius: 0.5rem;
+			padding: 0.75rem;
+			pointer-events: none;
+			position: absolute;
+			z-index: 100;
+			font-size: 0.8rem;
+			box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<header>
+			<h1>Project Evolution</h1>
+			<p class="subtitle">Visualizing bundle size and test history</p>
+		</header>
+
+		<div class="charts-grid">
+			<section class="card">
+				<h2>📦 Bundle Size Evolution</h2>
+				<div class="canvas-container">
+					<canvas id="bundleSizeChart"></canvas>
+				</div>
+			</section>
+
+			<section class="card">
+				<h2>🧪 Test Results History</h2>
+				<div class="canvas-container">
+					<canvas id="testResultsChart"></canvas>
+				</div>
+			</section>
+
+			<section class="card">
+				<h2>📈 Project Growth (LOC)</h2>
+				<div class="canvas-container">
+					<canvas id="projectLocChart"></canvas>
+				</div>
+			</section>
+
+			<section class="card">
+				<h2>📁 File Distribution</h2>
+				<div class="canvas-container">
+					<canvas id="fileDistributionChart"></canvas>
+				</div>
+			</section>
+
+			<section class="card">
+				<h2>⚙️ Dependencies Trend</h2>
+				<div class="canvas-container">
+					<canvas id="dependenciesChart"></canvas>
+				</div>
+			</section>
+		</div>
+
+		<footer>
+			Built for Legacy's End • Data source: bundle-history.jsonl
+		</footer>
+	</div>
+
+	<script type="module" src="/scripts/history.js"></script>
+</body>
+
+</html>

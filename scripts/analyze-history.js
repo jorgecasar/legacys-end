@@ -7,6 +7,7 @@ import zlib from "node:zlib";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const TEMP_DIR = path.join(ROOT, ".history-temp");
+const BUN = "/Users/jorgecasar/.bun/bin/bun";
 
 const HELP_TEXT = `
 Usage: node scripts/analyze-history.js [options]
@@ -70,36 +71,20 @@ function getGzipSize(filePath) {
 }
 
 function getLoC(dir) {
-	const result = exec(`find ${dir} -name "*.js" | xargs wc -l`);
+	// More robust way to get total lines of code for JS files
+	const result = exec(`find ${dir} -name "*.js" -exec cat {} + | wc -l`);
 	if (!result) return 0;
-	const match = result
-		.trim()
-		.split("\n")
-		.pop()
-		.match(/^\s*(\d+)\s+total/);
-	return match ? parseInt(match[1], 10) : 0;
+	return parseInt(result.trim(), 10) || 0;
 }
 
-async function analyzeCommit(hash) {
+async function analyzeCommit(hash, tempDir) {
 	console.log(`\n--- Analyzing commit: ${hash} ---`);
 
-	// Cleanup previous
+	// Checkout the specific commit in the temp directory
 	try {
-		exec(`git worktree remove -f ${TEMP_DIR}`);
-	} catch {}
-
-	// Force remove directory if it still exists (e.g. not a valid worktree)
-	if (fs.existsSync(TEMP_DIR)) {
-		fs.rmSync(TEMP_DIR, { recursive: true, force: true });
-	}
-
-	// Always prune stale worktrees to avoid "already registered" errors
-	exec("git worktree prune");
-
-	// Create worktree
-	const result = exec(`git worktree add ${TEMP_DIR} ${hash}`);
-	if (result === null && !fs.existsSync(TEMP_DIR)) {
-		console.error(`Failed to create worktree for ${hash}`);
+		exec(`git checkout -f ${hash}`, tempDir);
+	} catch (err) {
+		console.error(`Failed to checkout ${hash}: ${err.message}`);
 		return { hash };
 	}
 
@@ -113,7 +98,7 @@ async function analyzeCommit(hash) {
 	};
 
 	try {
-		const pkgPath = path.join(TEMP_DIR, "package.json");
+		const pkgPath = path.join(tempDir, "package.json");
 		if (!fs.existsSync(pkgPath)) {
 			throw new Error("No package.json found");
 		}
@@ -124,14 +109,14 @@ async function analyzeCommit(hash) {
 		metrics.project.devDependencies = Object.keys(
 			pkg.devDependencies || {},
 		).length;
-		metrics.project.loc = getLoC(path.join(TEMP_DIR, "src"));
+		metrics.project.loc = getLoC(path.join(tempDir, "src"));
 
 		// Count files
-		const srcFiles = exec(`find ${path.join(TEMP_DIR, "src")} -type f | wc -l`);
+		const srcFiles = exec(`find ${path.join(tempDir, "src")} -type f | wc -l`);
 		metrics.project.totalFiles = srcFiles ? parseInt(srcFiles.trim(), 10) : 0;
 
 		const testFiles = exec(
-			`find ${path.join(TEMP_DIR, "src")} -name "*.test.js" -o -name "*.spec.js" | wc -l`,
+			`find ${path.join(tempDir, "src")} -name "*.test.js" -o -name "*.spec.js" | wc -l`,
 		);
 		metrics.project.testFiles = testFiles ? parseInt(testFiles.trim(), 10) : 0;
 
@@ -142,7 +127,7 @@ async function analyzeCommit(hash) {
 		const currentPkg = JSON.parse(
 			fs.readFileSync(path.join(ROOT, "package.json"), "utf8"),
 		);
-		const tempPkgPath = path.join(TEMP_DIR, "package.json");
+		const tempPkgPath = path.join(tempDir, "package.json");
 		const tempPkg = JSON.parse(fs.readFileSync(tempPkgPath, "utf8"));
 
 		// Build-related packages to merge
@@ -165,40 +150,26 @@ async function analyzeCommit(hash) {
 
 		fs.writeFileSync(tempPkgPath, JSON.stringify(tempPkg, null, 2));
 
-		exec("npm install --prefer-offline --no-audit --no-fund", TEMP_DIR);
+		exec(`${BUN} install`, tempDir);
 
-		// Merge current vite.config.js build settings while preserving test config
+		// Use current vite.config.js only if commit doesn't have one
 		const currentViteConfig = path.join(ROOT, "vite.config.js");
-		const tempViteConfig = path.join(TEMP_DIR, "vite.config.js");
+		const tempViteConfig = path.join(tempDir, "vite.config.js");
 
-		if (fs.existsSync(currentViteConfig)) {
-			// Read both configs
-			const currentConfig = fs.readFileSync(currentViteConfig, "utf8");
-
-			// If temp doesn't have vite.config, just copy it
-			if (!fs.existsSync(tempViteConfig)) {
-				fs.copyFileSync(currentViteConfig, tempViteConfig);
-				console.log("Using current vite.config.js for build");
-			} else {
-				// Preserve original test config by removing test section from current config
-				const configWithoutTests = currentConfig.replace(
-					/test:\s*\{[\s\S]*?\},\s*(?=\};\s*\}\);)/,
-					"",
-				);
-				fs.writeFileSync(tempViteConfig, configWithoutTests);
-				console.log(
-					"Using current build config, preserving original test config",
-				);
-			}
+		if (!fs.existsSync(tempViteConfig) && fs.existsSync(currentViteConfig)) {
+			fs.copyFileSync(currentViteConfig, tempViteConfig);
+			console.log("Using current vite.config.js for build (missing in commit)");
+		} else if (fs.existsSync(tempViteConfig)) {
+			console.log("Using commit's original vite.config.js");
 		}
 
 		console.log("Building...");
-		exec("npm run build", TEMP_DIR);
+		exec(`${BUN} run build`, tempDir);
 
 		// Bundle metrics
-		const distDir = path.join(TEMP_DIR, "dist");
+		const distDir = path.join(tempDir, "dist");
 		if (fs.existsSync(distDir)) {
-			const jsFilesRaw = exec(`find ${distDir} -name "*.js"`, TEMP_DIR);
+			const jsFilesRaw = exec(`find ${distDir} -name "*.js"`, tempDir);
 			const jsFiles = jsFilesRaw
 				? jsFilesRaw.trim().split("\n").filter(Boolean)
 				: [];
@@ -216,11 +187,11 @@ async function analyzeCommit(hash) {
 		// Tests (if script exists)
 		if (pkg.scripts?.test) {
 			console.log("Running tests...");
-			const testResultPath = path.join(TEMP_DIR, "test-results.json");
+			const testResultPath = path.join(tempDir, "test-results.json");
 			// We try to use vitest json reporter if possible
 			exec(
-				`npm test -- --reporter=json --outputFile=${testResultPath} --run`,
-				TEMP_DIR,
+				`${BUN} run test -- --reporter=json --outputFile=${testResultPath} --run`,
+				tempDir,
 			);
 
 			if (fs.existsSync(testResultPath)) {
@@ -242,8 +213,6 @@ async function analyzeCommit(hash) {
 		}
 	} catch (err) {
 		console.error(`Error analyzing ${hash}:`, err.message);
-	} finally {
-		exec(`git worktree remove -f ${TEMP_DIR}`);
 	}
 
 	return metrics;
@@ -290,20 +259,30 @@ function parseArgs() {
  * Get commits in a range (inclusive of both start and end)
  */
 function getCommitsInRange(range) {
-	// Convert "start..end" to "start^..end" to include start commit
-	// Handle both "start..end" and "start^..end" formats
-	let gitRange = range;
-	if (range.includes("..") && !range.includes("^")) {
-		const [start, end] = range.split("..");
-		gitRange = `${start}^..${end}`;
+	const parts = range.split(/\.{2,3}/);
+	if (parts.length < 2) return [range];
+
+	const start = parts[0].trim().replace(/\^$/, "");
+	const end = parts[1].trim();
+
+	// Check if commits exist
+	const startValid = exec(`git rev-parse --verify ${start}`);
+	const endValid = exec(`git rev-parse --verify ${end}`);
+
+	if (!startValid || !endValid) {
+		console.error(`Invalid commits in range: ${range}`);
+		return [];
 	}
 
-	const result = exec(`git log --format=%h --reverse ${gitRange}`);
-	if (!result) {
+	const result = exec(`git log --format=%h --reverse ${start}..${end}`);
+	if (result === null) {
 		console.error(`Failed to get commits in range: ${range}`);
 		return [];
 	}
-	return result.trim().split("\n").filter(Boolean);
+
+	const commits = result.trim().split("\n").filter(Boolean);
+	// Inclusively add the start commit
+	return [start, ...commits];
 }
 
 /**
@@ -389,84 +368,115 @@ async function main() {
 
 	console.log(`Analyzing ${targets.length} commits...`);
 
+	// Setup persistent worktree
+	console.log(`\nSetting up persistent worktree in ${TEMP_DIR}...`);
+	try {
+		exec(`git worktree remove -f ${TEMP_DIR}`);
+	} catch {}
+	if (fs.existsSync(TEMP_DIR)) {
+		fs.rmSync(TEMP_DIR, { recursive: true, force: true });
+	}
+	exec("git worktree prune");
+	exec(`git worktree add ${TEMP_DIR} HEAD`);
+
 	// Track which commits we're updating for --force
 	const updatedHashes = new Set();
 
-	for (const hash of targets) {
-		// Skip if already analyzed and not forcing
-		if (!options.force && analyzedHashes.has(hash)) {
-			console.log(
-				`Skipping ${hash} (already analyzed, use --force to re-analyze)`,
-			);
-			continue;
-		}
-
-		const metrics = await analyzeCommit(hash);
-		if (metrics?.timestamp) {
-			if (options.force) {
-				// Track for batch rewrite at the end
-				updatedHashes.add(hash);
-				// Store in validHistory for final rewrite
-				const existingIndex = validHistory.findIndex(
-					(item) => item.hash === hash,
+	try {
+		for (const hash of targets) {
+			// Skip if already analyzed and not forcing
+			if (!options.force && analyzedHashes.has(hash)) {
+				console.log(
+					`Skipping ${hash} (already analyzed, use --force to re-analyze)`,
 				);
-				if (existingIndex !== -1) {
-					const oldMetrics = validHistory[existingIndex];
-					validHistory[existingIndex] = metrics;
+				continue;
+			}
 
-					// Show summary immediately for this commit
-					const changes = [];
+			const metrics = await analyzeCommit(hash, TEMP_DIR);
+			if (metrics?.timestamp) {
+				if (options.force) {
+					// Track for batch rewrite at the end
+					updatedHashes.add(hash);
+					// Store in validHistory for final rewrite
+					const existingIndex = validHistory.findIndex(
+						(item) => item.hash === hash,
+					);
+					if (existingIndex !== -1) {
+						const oldMetrics = validHistory[existingIndex];
+						validHistory[existingIndex] = metrics;
 
-					// Bundle size changes
-					if (
-						oldMetrics.bundle?.totalGzipSize !== metrics.bundle?.totalGzipSize
-					) {
-						const oldSize = oldMetrics.bundle?.totalGzipSize || 0;
-						const newSize = metrics.bundle?.totalGzipSize || 0;
-						const diff = newSize - oldSize;
-						const pct = oldSize ? ((diff / oldSize) * 100).toFixed(1) : "N/A";
-						changes.push(
-							`bundle: ${oldSize} → ${newSize} (${diff > 0 ? "+" : ""}${pct}%)`,
-						);
-					}
+						// Show summary immediately for this commit
+						const changes = [];
 
-					// Test changes
-					if (oldMetrics.tests?.total !== metrics.tests?.total) {
-						changes.push(
-							`tests: ${oldMetrics.tests?.total || 0} → ${metrics.tests?.total || 0}`,
-						);
-					}
+						// Bundle size changes
+						if (
+							oldMetrics.bundle?.totalGzipSize !== metrics.bundle?.totalGzipSize
+						) {
+							const oldSize = oldMetrics.bundle?.totalGzipSize || 0;
+							const newSize = metrics.bundle?.totalGzipSize || 0;
+							const diff = newSize - oldSize;
+							const pct = oldSize ? ((diff / oldSize) * 100).toFixed(1) : "N/A";
+							changes.push(
+								`bundle: ${oldSize} → ${newSize} (${diff > 0 ? "+" : ""}${pct}%)`,
+							);
+						}
 
-					if (changes.length > 0) {
-						console.log(`📊 ${hash}: ${changes.join(", ")}`);
+						// Test changes
+						if (oldMetrics.tests?.total !== metrics.tests?.total) {
+							changes.push(
+								`tests: ${oldMetrics.tests?.total || 0} → ${metrics.tests?.total || 0}`,
+							);
+						}
+
+						if (changes.length > 0) {
+							console.log(`📊 ${hash}: ${changes.join(", ")}`);
+						} else {
+							console.log(`📊 ${hash}: no changes detected`);
+						}
 					} else {
-						console.log(`📊 ${hash}: no changes detected`);
+						validHistory.push(metrics);
+						console.log(`📊 ${hash}: newly analyzed`);
 					}
 				} else {
+					// Append immediately for new commits
 					validHistory.push(metrics);
-					console.log(`📊 ${hash}: newly analyzed`);
+					fs.appendFileSync(outputPath, `${JSON.stringify(metrics)}\n`);
+					console.log(`Saved metrics for ${hash}`);
 				}
-			} else {
-				// Append immediately for new commits
-				fs.appendFileSync(outputPath, `${JSON.stringify(metrics)}\n`);
-				console.log(`Saved metrics for ${hash}`);
+
+				// Always update the .json file for the UI after each commit
+				const jsonPath = path.join(ROOT, "bundle-history.json");
+				fs.writeFileSync(jsonPath, JSON.stringify(validHistory, null, 2));
+
+				// If using --force, rewrite the .jsonl after each update to keep it consistent
+				if (options.force) {
+					// Sort by original commit order (chronological)
+					const commitOrder = new Map(allCommits.map((h, i) => [h, i]));
+					validHistory.sort((a, b) => {
+						const orderA = commitOrder.get(a.hash) ?? Number.MAX_SAFE_INTEGER;
+						const orderB = commitOrder.get(b.hash) ?? Number.MAX_SAFE_INTEGER;
+						return orderA - orderB;
+					});
+
+					const ndjson = validHistory
+						.map((item) => JSON.stringify(item))
+						.join("\n");
+					fs.writeFileSync(outputPath, `${ndjson}\n`);
+				}
 			}
 		}
-	}
 
-	// If using --force, rewrite the entire file once at the end
-	if (options.force && updatedHashes.size > 0) {
-		// Sort by original commit order (chronological)
-		const commitOrder = new Map(allCommits.map((h, i) => [h, i]));
-		validHistory.sort((a, b) => {
-			const orderA = commitOrder.get(a.hash) ?? Number.MAX_SAFE_INTEGER;
-			const orderB = commitOrder.get(b.hash) ?? Number.MAX_SAFE_INTEGER;
-			return orderA - orderB;
-		});
+		if (options.force && updatedHashes.size > 0) {
+			console.log(`\nUpdated ${updatedHashes.size} commits in total`);
+		}
+	} finally {
+		console.log(`\nCleaning up worktree...`);
+		exec(`git worktree remove -f ${TEMP_DIR}`);
 
-		const ndjson = validHistory.map((item) => JSON.stringify(item)).join("\n");
-		fs.writeFileSync(outputPath, `${ndjson}\n`);
-		console.log(`\nUpdated ${updatedHashes.size} commits in total`);
+		// Also update a standard .json file (array) for the UI
+		const jsonPath = path.join(ROOT, "bundle-history.json");
+		fs.writeFileSync(jsonPath, JSON.stringify(validHistory, null, 2));
+		console.log(`Updated UI data in ${jsonPath}`);
 	}
 
 	console.log(`\nDone! History updated in ${outputPath}`);
