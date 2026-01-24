@@ -321,7 +321,7 @@ async function main() {
 	const allCommits = logRaw.trim().split("\n");
 	const allCommitsSet = new Set(allCommits);
 
-	const outputPath = path.join(ROOT, "bundle-history.jsonl");
+	const outputPath = path.join(ROOT, "public", "bundle-history.jsonl");
 
 	// Load existing history and Prune stale entries
 	let history = [];
@@ -445,7 +445,7 @@ async function main() {
 				}
 
 				// Always update the .json file for the UI after each commit
-				const jsonPath = path.join(ROOT, "bundle-history.json");
+				const jsonPath = path.join(ROOT, "public", "bundle-history.json");
 				fs.writeFileSync(jsonPath, JSON.stringify(validHistory, null, 2));
 
 				// If using --force, rewrite the .jsonl after each update to keep it consistent

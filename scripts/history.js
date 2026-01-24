@@ -1,6 +1,6 @@
 async function loadData() {
 	try {
-		const response = await fetch("/bundle-history.json");
+		const response = await fetch("./bundle-history.json");
 		if (!response.ok) {
 			throw new Error(`Failed to fetch: ${response.statusText}`);
 		}

@@ -59,6 +59,14 @@ export default defineConfig(({ mode }) => {
 					brotliSize: true,
 				}),
 		],
+		build: {
+			rollupOptions: {
+				input: {
+					main: "index.html",
+					history: "history.html",
+				},
+			},
+		},
 		optimizeDeps: {
 			include: ["@awesome.me/webawesome/dist/components/spinner/spinner.js"],
 			esbuildOptions: {
