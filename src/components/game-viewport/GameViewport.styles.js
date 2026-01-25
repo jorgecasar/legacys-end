@@ -4,32 +4,11 @@ import { sharedStyles } from "../../styles/shared.js";
 export const gameViewportStyles = [
 	...sharedStyles,
 	css`
-		.controls-details {
-			position: absolute;
-			bottom: var(--wa-space-m);
-			right: var(--wa-space-m);
-			z-index: 10;
-			background-color: var(--wa-color-surface-default);
-			border-radius: 0;
-			box-shadow: var(--wa-shadow-medium);
-			max-width: 200px;
-		}
-
-		.controls-details::part(content) {
-			padding: var(--wa-space-s) var(--wa-space-m);
-		}
-
-		.controls-details::part(summary) {
-			font-weight: bold;
-			font-size: var(--wa-font-size-xs);
-			padding: var(--wa-space-s) var(--wa-space-m);
-			text-transform: uppercase;
-		}
-
-		/* Force content to expand upwards */
-		.controls-details[open] {
-			display: flex;
-			flex-direction: column-reverse;
+		:host {
+			position: relative;
+			display: block;
+			width: 100%;
+			height: 100%;
 		}
 
 		.game-area {
@@ -45,14 +24,23 @@ export const gameViewportStyles = [
 
 		.game-area-bg {
 			position: absolute;
-			top: 0;
-			left: 0;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
 			width: 100%;
 			height: 100%;
-			object-fit: cover;
-			z-index: 0;
+			object-fit: contain;
 			pointer-events: none;
-			transition: opacity 1s ease-in-out;
+			image-rendering: pixelated;
+		}
+
+		@media (max-width: 600px) {
+			.game-area {
+				width: 100vw;
+				height: 100vw;
+				max-width: 100vw;
+				max-height: 100vw;
+			}
 		}
 
 		/* Zone Overlays */

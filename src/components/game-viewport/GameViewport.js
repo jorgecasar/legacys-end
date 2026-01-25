@@ -14,6 +14,7 @@ import { sessionContext } from "../../contexts/session-context.js";
 import { themeContext } from "../../contexts/theme-context.js";
 import { voiceContext } from "../../contexts/voice-context.js";
 import { KeyboardController } from "../../controllers/keyboard-controller.js";
+import { TouchController } from "../../controllers/touch-controller.js";
 import { heroStateContext } from "../../game/contexts/hero-context.js";
 import { questStateContext } from "../../game/contexts/quest-context.js";
 import { worldStateContext } from "../../game/contexts/world-context.js";
@@ -150,6 +151,8 @@ export class GameViewport extends SignalWatcher(
 		this.keyboard = null;
 		/** @type {import('../../controllers/voice-controller.js').VoiceController | null} */
 		this.voice = null;
+		/** @type {import('../../controllers/touch-controller.js').TouchController | null} */
+		this.touch = new TouchController(this);
 		/** @type {import('../../controllers/game-controller.js').GameController | null} */
 		this.gameController = null;
 	}
@@ -491,11 +494,6 @@ export class GameViewport extends SignalWatcher(
 				`
 						: ""
 				}
-				<game-controls 
-					.isVoiceActive="${this.voice?.enabled || false}"
-					@toggle-voice="${this.#handleToggleVoice}"
-				></game-controls>
-				
 				<game-zone-indicator 
 					.type="${ZoneTypes.THEME_CHANGE}"
 					.zones="${config.zones || []}"
@@ -512,6 +510,11 @@ export class GameViewport extends SignalWatcher(
 				${this._renderReward()}
 				${this._renderHero()}
 			</div>
+			<game-controls 
+				.isVoiceActive="${this.voice?.enabled || false}"
+				.touch="${this.touch}"
+				@toggle-voice="${this.#handleToggleVoice}"
+			></game-controls>
 		`;
 	}
 
