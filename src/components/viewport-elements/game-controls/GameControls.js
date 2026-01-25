@@ -22,7 +22,8 @@ export class GameControls extends SignalWatcher(LitElement) {
 		touch: { type: Object },
 	};
 
-	#hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+	#hasTouch = window.matchMedia("(pointer: coarse)").matches;
+	#hasKeyboard = window.matchMedia("(any-pointer: fine)").matches;
 	#viewMode = new Signal.State(this.#hasTouch ? "touch" : "keyboard");
 
 	constructor() {
@@ -76,8 +77,8 @@ export class GameControls extends SignalWatcher(LitElement) {
 	}
 
 	#renderModeToggle() {
-		// Only show toggle if it's a hybrid device or for debugging
-		if (!this.#hasTouch) return html``;
+		// Only show toggle if it's a hybrid device (both touch and keyboard/mouse)
+		if (!(this.#hasTouch && this.#hasKeyboard)) return html``;
 
 		return html`
 			<wa-button-group class="mode-toggle" @click="${(/** @type {Event} */ e) => e.stopPropagation()}">
