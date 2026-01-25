@@ -1,6 +1,6 @@
 import { msg, updateWhenLocaleChanges } from "@lit/localize";
 import { Signal, SignalWatcher } from "@lit-labs/signals";
-import { html, LitElement } from "lit";
+import { html, LitElement, nothing } from "lit";
 import { UIEvents } from "../../../core/events.js";
 import { gameControlsStyles } from "./GameControls.styles.js";
 import "@awesome.me/webawesome/dist/components/button/button.js";
@@ -40,7 +40,7 @@ export class GameControls extends SignalWatcher(LitElement) {
 
 		return html`
 			<div class="controls-container">
-				${mode === "touch" ? this.touch?.render() : ""}
+				${mode === "touch" ? this.touch?.render() : nothing}
 				
 				<div class="instructions-wrapper">
 					<wa-details class="controls-details" open>
@@ -78,7 +78,7 @@ export class GameControls extends SignalWatcher(LitElement) {
 
 	#renderModeToggle() {
 		// Only show toggle if it's a hybrid device (both touch and keyboard/mouse)
-		if (!(this.#hasTouch && this.#hasKeyboard)) return html``;
+		if (!(this.#hasTouch && this.#hasKeyboard)) return nothing;
 
 		return html`
 			<wa-button-group class="mode-toggle" @click="${(/** @type {Event} */ e) => e.stopPropagation()}">

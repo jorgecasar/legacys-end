@@ -1,5 +1,5 @@
 import { Signal } from "@lit-labs/signals";
-import { css, html } from "lit";
+import { css, html, nothing } from "lit";
 
 /**
  * @typedef {import('lit').ReactiveController} ReactiveController
@@ -89,7 +89,7 @@ export class TouchController {
 		/** @type {import('lit').ReactiveControllerHost} */
 		this.host = host;
 		this.options = {
-			speed: 2.5,
+			speed: 1.2,
 			interaction: null,
 			...options,
 		};
@@ -195,7 +195,7 @@ export class TouchController {
 
 	/**
 	 * Renders the touch controls
-	 * @returns {import('lit').TemplateResult | string}
+	 * @returns {import('lit').TemplateResult | typeof nothing}
 	 */
 	render() {
 		// Use a local variable to help the analyzer/human and avoid repeating this.touch

@@ -754,14 +754,6 @@
   <source>Master of Centralized Security</source>
   <target>Maestro de la Seguridad Centralizada</target>
 </trans-unit>
-<trans-unit id="sb8beb64ab5b1f7c6">
-  <source>Build the Ultimate Anti-Regression Shield</source>
-  <target>Construye el Escudo Anti-Regresión Definitivo</target>
-</trans-unit>
-<trans-unit id="sfacc6566128b46fa">
-  <source>Dominate the art of Verification. Create a defense system against regressions and future bugs using the Mirror of Veracity.</source>
-  <target>Domina el arte de la Verificación. Crea un sistema de defensa contra regresiones y errores futuros usando el Espejo de la Veracidad.</target>
-</trans-unit>
 <trans-unit id="sc0d727720d69c483">
   <source>Code is fragile, prone to regression bugs, and lacks automated verification.</source>
   <target>El código es frágil, propenso a errores de regresión y carece de verificación automatizada.</target>
@@ -1385,6 +1377,14 @@
 <trans-unit id="sa2a2e981da13dd3d">
   <source>REQ: <x id="0" equiv-text="${ServiceBrandMap[HotSwitchStates.NEW]}"/></source>
   <target>REQ: <x id="0" equiv-text="${ServiceBrandMap[HotSwitchStates.NEW]}"/></target>
+</trans-unit>
+<trans-unit id="sbd814146ebccf2b5">
+  <source>DRAG JOYSTICK TO MOVE</source>
+  <target>ARRRASTRA EL JOYSTICK PARA MOVERTE</target>
+</trans-unit>
+<trans-unit id="s7e3c3b04fd6fd6b9">
+  <source>TAP JOYSTICK TO INTERACT</source>
+  <target>TOCA EL JOYSTICK PARA INTERACTUAR</target>
 </trans-unit>
 </body>
 </file>

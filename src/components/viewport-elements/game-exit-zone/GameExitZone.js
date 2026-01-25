@@ -1,6 +1,6 @@
 import { consume } from "@lit/context";
 import { SignalWatcher } from "@lit-labs/signals";
-import { html, LitElement } from "lit";
+import { html, LitElement, nothing } from "lit";
 import { questControllerContext } from "../../../contexts/quest-controller-context.js";
 import { questStateContext } from "../../../game/contexts/quest-context.js";
 
@@ -45,7 +45,7 @@ export class GameExitZone extends SignalWatcher(
 		const zoneConfig = this.questController?.currentChapter?.exitZone;
 		const active = this.questState?.hasCollectedItem.get() || false;
 
-		if (!active || !zoneConfig) return "";
+		if (!active || !zoneConfig) return nothing;
 
 		const { x, y, width, height, label } = zoneConfig;
 		this.style.left = `${x}%`;

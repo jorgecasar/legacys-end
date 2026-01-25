@@ -1,6 +1,6 @@
 import { consume } from "@lit/context";
 import { SignalWatcher } from "@lit-labs/signals";
-import { html, LitElement } from "lit";
+import { html, LitElement, nothing } from "lit";
 import { styleMap } from "lit/directives/style-map.js";
 import { questControllerContext } from "../../../contexts/quest-controller-context.js";
 import { themeContext } from "../../../contexts/theme-context.js";
@@ -94,7 +94,7 @@ export class GameZoneIndicator extends SignalWatcher(
 	 * @param {Zone} zone
 	 */
 	renderContextZone(zone) {
-		if (zone.payload === null) return "";
+		if (zone.payload === null) return nothing;
 
 		const isLegacy = zone.payload === HotSwitchStates.LEGACY;
 		const baseClass = isLegacy ? "zone-context-legacy" : "zone-context-new";
@@ -138,7 +138,7 @@ export class GameZoneIndicator extends SignalWatcher(
 	render() {
 		/** @type {Zone[]} */
 		const zones = this.zones || [];
-		if (zones.length === 0) return "";
+		if (zones.length === 0) return nothing;
 
 		const relevantZones = zones.filter((z) => z.type === this.type);
 
@@ -148,7 +148,7 @@ export class GameZoneIndicator extends SignalWatcher(
 					return this.renderThemeZone(zone);
 				if (this.type === ZoneTypes.CONTEXT_CHANGE)
 					return this.renderContextZone(zone);
-				return "";
+				return nothing;
 			})}
 		`;
 	}

@@ -1,6 +1,6 @@
 import { consume } from "@lit/context";
 import { SignalWatcher } from "@lit-labs/signals";
-import { html, LitElement } from "lit";
+import { html, LitElement, nothing } from "lit";
 import { questStateContext } from "../../game/contexts/quest-context.js";
 import { gameHudStyles } from "./GameHud.styles.js";
 
@@ -24,7 +24,7 @@ export class GameHud extends SignalWatcher(
 
 	/** @override */
 	render() {
-		if (!this.questState) return html``;
+		if (!this.questState) return nothing;
 
 		const currentChapterNumber = this.questState.currentChapterNumber.get();
 		const totalChapters = this.questState.totalChapters.get();
@@ -33,8 +33,8 @@ export class GameHud extends SignalWatcher(
 
 		return html`
       <div class="wa-stack">
-	  	${levelTitle ? html`<h5>${levelTitle}</h5>` : ""}
-	  	${questTitle ? html`<h6>${questTitle}</h6>` : ""}
+	  	${levelTitle ? html`<h5>${levelTitle}</h5>` : nothing}
+	  	${questTitle ? html`<h6>${questTitle}</h6>` : nothing}
       </div>
 
       <h3 class="chapter-counter">

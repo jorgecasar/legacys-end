@@ -2,7 +2,7 @@ import "@awesome.me/webawesome/dist/components/card/card.js";
 import "@awesome.me/webawesome/dist/components/details/details.js";
 import { consume } from "@lit/context";
 import { SignalWatcher } from "@lit-labs/signals";
-import { html, LitElement } from "lit";
+import { html, LitElement, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { gameConfig } from "../../config/game-configuration.js";
@@ -462,7 +462,7 @@ export class GameViewport extends SignalWatcher(
 
 	/** @override */
 	render() {
-		if (!this.questState || !this.questController) return html``;
+		if (!this.questState || !this.questController) return nothing;
 
 		/** @type {any} */
 		const config = this.questController.currentChapter || {};
@@ -492,7 +492,7 @@ export class GameViewport extends SignalWatcher(
 						alt="Background"
 					/>
 				`
-						: ""
+						: nothing
 				}
 				<game-zone-indicator 
 					.type="${ZoneTypes.THEME_CHANGE}"
@@ -520,7 +520,7 @@ export class GameViewport extends SignalWatcher(
 
 	_renderNPC() {
 		const config = this.questController.currentChapter;
-		if (!config?.npc) return "";
+		if (!config?.npc) return nothing;
 
 		const isCloseToTarget = this.interaction?.isCloseToNpc() || false;
 
@@ -538,12 +538,12 @@ export class GameViewport extends SignalWatcher(
 
 	_renderReward() {
 		const config = this.questController.currentChapter;
-		if (!config?.reward) return "";
+		if (!config?.reward) return nothing;
 
 		const hasCollectedItem = this.questState.hasCollectedItem.get();
 
 		if (!this.isAnimatingReward && hasCollectedItem) {
-			return "";
+			return nothing;
 		}
 
 		// Calculations for animation or static position

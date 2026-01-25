@@ -1,6 +1,6 @@
 import { consume } from "@lit/context";
 import { msg, str, updateWhenLocaleChanges } from "@lit/localize";
-import { html, LitElement } from "lit";
+import { html, LitElement, nothing } from "lit";
 import { ifDefined } from "lit/directives/if-defined.js";
 import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/dialog/dialog.js";
@@ -349,7 +349,7 @@ export class LevelDialog extends LitElement {
 								</div>
 							</div>
 						`
-							: ""
+							: nothing
 					}
 				</div>
 				<div class="spacer-top"></div>
@@ -360,7 +360,7 @@ export class LevelDialog extends LitElement {
 	/**
 	 * Override this method in subclasses to add custom slide types
 	 * @param {string} _type - The slide type
-	 * @returns {import("lit").TemplateResult|null} The rendered slide or null
+	 * @returns {import("lit").TemplateResult | null | typeof nothing} The rendered slide, nothing, or null if not handled
 	 */
 	renderCustomSlide(_type) {
 		return null;
@@ -382,7 +382,7 @@ export class LevelDialog extends LitElement {
 	/**
 	 * Renders the content of a slide
 	 * @param {string} type - The type of the slide
-	 * @returns {import("lit").TemplateResult|Iterable<import("lit").TemplateResult>|null} The rendered slide content
+	 * @returns {import("lit").TemplateResult|Iterable<import("lit").TemplateResult>|typeof nothing} The rendered slide content
 	 */
 	#renderSlideContent(type) {
 		// Try custom slides first (for extensibility)
@@ -391,7 +391,7 @@ export class LevelDialog extends LitElement {
 
 		// Fall back to built-in slides
 		const renderer = this.#SLIDE_RENDERERS[type];
-		return renderer ? renderer() : null;
+		return renderer ? renderer() : nothing;
 	}
 
 	/** @override */
@@ -400,7 +400,7 @@ export class LevelDialog extends LitElement {
 		const currentSlideType = slides[this.slideIndex];
 		const config = this.questController?.currentChapter;
 
-		if (!currentSlideType) return html``;
+		if (!currentSlideType) return nothing;
 
 		return html`
 			<wa-dialog 
