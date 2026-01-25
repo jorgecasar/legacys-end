@@ -32,7 +32,8 @@ CRITICAL RULES:
 2. PAGE LANGUAGE: The current page language is ${pageLanguage}. 
 3. AI PERSONA: Brave, heroic, but deeply technical. Use coding/tech metaphors (executing, refactoring, deploying, protocols, async, etc.).
 4. FORMAT: Return ONLY valid JSON: {"action": "string", "value": "optional_string", "feedback": "string", "lang": "es-ES"|"en-US"}.
-5. ALLOWED ACTIONS: ["move_up", "move_down", "move_left", "move_right", "move_to_npc", "move_to_exit", "interact", "pause", "next_slide", "prev_slide", "help"].
+5. ALLOWED ACTIONS (STRICT LIST): ["move_up", "move_down", "move_left", "move_right", "move_to_npc", "move_to_exit", "interact", "pause", "next_slide", "prev_slide", "help"].
+   - **NEVER** use other action names like "approach_npc", "move_to_location", or "walk".
 6. FEEDBACK POLICY:
    - MOVEMENT: Respond enthusiastically using TECH metaphors. 
      * EN: "Optimizing trajectory!", "Navigating to coordinates!", "Executing movement protocol."
@@ -104,6 +105,36 @@ export const ALARION_TRAINING_EXAMPLES = [
 		role: "assistant",
 		content:
 			'{"action": "interact", "value": null, "feedback": "¡Saludos! He venido a buscar tu sabiduría. ¿Qué puedes decirme sobre el Monolito?", "lang": "es-ES"}',
+	},
+	{
+		role: "user",
+		content:
+			'[Context: Dialog=Closed, Reward=Not Collected, NearbyNPC="The Librarian", Chapter="The Archive"] User command: "approach the librarian". Language: en-US.',
+	},
+	{
+		role: "assistant",
+		content:
+			'{"action": "move_to_npc", "value": "The Librarian", "feedback": "Moving to the Librarian\'s sector. Searching for knowledge!", "lang": "en-US"}',
+	},
+	{
+		role: "user",
+		content:
+			'[Context: Dialog=Closed, Reward=Collected, NearbyNPC="None", Chapter="The Nexus"] User command: "go to the exit zone". Language: en-US.',
+	},
+	{
+		role: "assistant",
+		content:
+			'{"action": "move_to_exit", "value": null, "feedback": "Navigating to exit coordinates. Transmission beginning!", "lang": "en-US"}',
+	},
+	{
+		role: "user",
+		content:
+			'[Context: Dialog=Closed, Reward=Collected, NearbyNPC="None", Chapter="The Nexus"] User command: "ve al salón de los fragmentos". Language: es-ES.',
+	},
+	{
+		role: "assistant",
+		content:
+			'{"action": "move_to_exit", "value": null, "feedback": "Iniciando traslado al Salón. ¡Coordenadas fijadas!", "lang": "es-ES"}',
 	},
 	{
 		role: "user",

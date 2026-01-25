@@ -8,7 +8,6 @@ import { css, html, nothing } from "lit";
 /**
  * @typedef {Object} TouchOptions
  * @property {number} [speed] - Movement speed multiplier (default: 2.5)
- * @property {import('../services/interfaces.js').IInteractionController | null} [interaction] - Interaction controller
  */
 
 export const touchStyles = css`
@@ -90,7 +89,6 @@ export class TouchController {
 		this.host = host;
 		this.options = {
 			speed: 1.2,
-			interaction: null,
 			...options,
 		};
 
@@ -177,11 +175,7 @@ export class TouchController {
 	 * Handle interaction tap
 	 */
 	handleInteractTap() {
-		if (this.options.interaction) {
-			this.options.interaction.handleInteract();
-		} else if (
-			typeof (/** @type {any} */ (this.host).handleInteract) === "function"
-		) {
+		if (typeof (/** @type {any} */ (this.host).handleInteract) === "function") {
 			/** @type {any} */ (this.host).handleInteract();
 		}
 	}

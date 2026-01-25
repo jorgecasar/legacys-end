@@ -9,6 +9,7 @@ import "@awesome.me/webawesome/dist/components/spinner/spinner.js";
 import { ROUTES } from "../../constants/routes.js";
 import { aiContext } from "../../contexts/ai-context.js";
 import { localizationContext } from "../../contexts/localization-context.js";
+import { loggerContext } from "../../contexts/logger-context.js";
 import { progressContext } from "../../contexts/progress-context.js";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { questLoaderContext } from "../../contexts/quest-loader-context.js";
@@ -24,6 +25,8 @@ import { ContextMixin } from "../../mixins/context-mixin.js";
 import { legacysEndAppStyles } from "./LegacysEndApp.styles.js";
 import "@awesome.me/webawesome/dist/styles/webawesome.css";
 import "../../pixel.css";
+import { AIService } from "../../services/ai-service.js";
+import { VoiceSynthesisService } from "../../services/voice-synthesis-service.js";
 /**
  * @typedef {import("@awesome.me/webawesome/dist/components/dialog/dialog.js").default} DialogElement
  */
@@ -82,6 +85,8 @@ export class LegacysEndApp extends SignalWatcher(
 	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
 	voiceProvider = null;
 	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	loggerProvider = null;
+	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
 	heroStateProvider = null;
 	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
 	questStateProvider = null;
@@ -125,11 +130,6 @@ export class LegacysEndApp extends SignalWatcher(
 	/** @type {import('../../controllers/game-controller.js').GameController} */
 	gameController =
 		/** @type {import('../../controllers/game-controller.js').GameController} */ (
-			/** @type {unknown} */ (null)
-		);
-	/** @type {import('../../controllers/voice-controller.js').VoiceController} */
-	voice =
-		/** @type {import('../../controllers/voice-controller.js').VoiceController} */ (
 			/** @type {unknown} */ (null)
 		);
 	/** @type {import('../../controllers/game-zone-controller.js').GameZoneController} */
@@ -186,8 +186,8 @@ export class LegacysEndApp extends SignalWatcher(
 		this.services = context.services;
 		this.sessionService = context.sessionService;
 		this.questLoader = context.questLoader;
-		this.aiService = context.aiService;
-		this.voiceSynthesisService = context.voiceSynthesisService;
+		this.aiService = new AIService();
+		this.voiceSynthesisService = new VoiceSynthesisService();
 		this.localizationService = context.localizationService;
 		this.heroState = context.heroState;
 		this.questState = context.questState;
@@ -245,6 +245,11 @@ export class LegacysEndApp extends SignalWatcher(
 		this.voiceProvider = new ContextProvider(this, {
 			context: voiceContext,
 			initialValue: this.voiceSynthesisService,
+		});
+
+		this.loggerProvider = new ContextProvider(this, {
+			context: loggerContext,
+			initialValue: this.logger,
 		});
 
 		this.sessionProvider = new ContextProvider(this, {

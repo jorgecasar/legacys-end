@@ -20,15 +20,13 @@
 export class KeyboardController {
 	/**
 	 * @param {import('lit').ReactiveControllerHost} host
-	 * @param {Partial<KeyboardOptions & import('../core/game-context.js').IGameContext & {interaction: import('../services/interfaces.js').IInteractionController | null}>} [options]
+	 * @param {Partial<KeyboardOptions>} [options]
 	 */
 	constructor(host, options = {}) {
 		/** @type {import('lit').ReactiveControllerHost} */
 		this.host = host;
 		this.options = {
 			speed: 2.5,
-			interaction: null,
-			worldState: null,
 			...options,
 		};
 
@@ -38,7 +36,6 @@ export class KeyboardController {
 	hostConnected() {
 		this.handleKeyDown = this.handleKeyDown.bind(this);
 		window.addEventListener("keydown", this.handleKeyDown);
-		console.log("KeyboardController connected, listener added");
 	}
 
 	hostDisconnected() {
@@ -50,28 +47,22 @@ export class KeyboardController {
 	 * @param {KeyboardEvent} e
 	 */
 	handleKeyDown(e) {
-		const { interaction, worldState } = this.options;
-
 		// Handle Pause (Escape) - Always allowed
 		if (e.code === "Escape") {
 			e.preventDefault();
-			if (worldState) {
-				worldState.setPaused(!worldState.isPaused.get());
+			if (typeof (/** @type {any} */ (this.host).handlePause) === "function") {
+				/** @type {any} */ (this.host).handlePause();
 			}
 			return;
 		}
 
 		// Handle interaction (Space)
 		if (e.code === "Space" || e.key === " ") {
-			// throw new Error("DEBUG: KeyDownSpace REACHED");
 			e.preventDefault();
-			const effectiveInteraction =
-				/** @type {import('lit').ReactiveControllerHost & { interaction?: import('../services/interfaces.js').IInteractionController }} */ (
-					this.host
-				).interaction || interaction;
-
-			if (effectiveInteraction) {
-				effectiveInteraction.handleInteract();
+			if (
+				typeof (/** @type {any} */ (this.host).handleInteract) === "function"
+			) {
+				/** @type {any} */ (this.host).handleInteract();
 			}
 			return;
 		}

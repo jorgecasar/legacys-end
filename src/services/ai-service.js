@@ -51,14 +51,14 @@ export class AIService {
 	async checkAvailability() {
 		try {
 			// @ts-expect-error - Chrome Built-in AI experimental API
-			if (typeof LanguageModel === "undefined") {
+			const ai = window.ai?.languageModel || window.LanguageModel;
+			if (!ai) {
 				logger.warn("Chrome Built-in AI not supported in this browser");
 				this.availabilityStatus = "no";
 				return "no";
 			}
 
-			// @ts-expect-error
-			const status = await LanguageModel.availability();
+			const status = await ai.availability();
 			this.availabilityStatus = status;
 			this.isAvailable = status === "readily" || status === "available";
 
@@ -122,10 +122,27 @@ export class AIService {
 		}
 
 		try {
+			logger.debug(
+				`🤖 Creating AI session "${sessionId}" with language: ${options.language}`,
+			);
 			// @ts-expect-error - experimental API LanguageModel
-			const session = await LanguageModel.create({
+			const ai = window.ai?.languageModel || window.LanguageModel;
+
+			const { initialPrompts = [], ...rest } = options;
+			const systemPromptObj = initialPrompts.find((p) => p.role === "system");
+			const systemPrompt = systemPromptObj
+				? systemPromptObj.content
+				: undefined;
+			const remainingPrompts = initialPrompts.filter(
+				(p) => p.role !== "system",
+			);
+
+			const session = await ai.create({
+				...rest,
+				systemPrompt,
+				initialPrompts: remainingPrompts,
 				language: options.language,
-				initialPrompts: options.initialPrompts,
+				expectedOutputLanguage: options.language,
 			});
 
 			this.sessions.set(
@@ -153,8 +170,10 @@ export class AIService {
 
 		try {
 			// @ts-expect-error - experimental API LanguageModel
-			const session = await LanguageModel.create({
+			const ai = window.ai?.languageModel || window.LanguageModel;
+			const session = await ai.create({
 				language: options.language,
+				expectedOutputLanguage: options.language,
 				monitor: (/** @type {any} */ m) => {
 					m.addEventListener(
 						"downloadprogress",

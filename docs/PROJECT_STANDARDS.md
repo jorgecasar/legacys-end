@@ -136,11 +136,12 @@ flowchart TD
     2.  **Props/Events**: Reactivity and dispatch check.
     3.  **A11y**: `axe-core` injection (0 violations).
     4.  **Interaction**: `page.locator(...)`.
-*   Use **Lit Context** (`@lit/context`) to provide Services to Components.
-*   Use **Constructor Injection** for plain classes, Managers, and Controllers.
-    *   Pass dependencies in an `options` object.
-    *   Do not instantiate services inside other classes.
-*   **Reactive Controller Pattern**: Mandatory for controllers consuming services. The host component provides dependencies, and the controller observes them reactively. Refer to `docs/TECHNICAL_REFERENCE.md` for detailed implementation guidelines.
+*   Use **Lit Context** (`@lit/context`) to provide Services to Components and Controllers.
+*   **Controller Dependency Strategy**:
+    *   Controllers are responsible for requesting the services they need via `ContextConsumer`.
+    *   Avoid passing long lists of services via constructor `options`.
+    *   Use constructor injection only for plain classes that do not have access to the Lit lifecycle or host.
+*   **Reactive Controller Pattern**: Mandatory for controllers consuming services or state. The host component provides dependencies (via its own context or properties), and the controller consumes them. Refer to `docs/TECHNICAL_REFERENCE.md` for detailed implementation guidelines.
 *   Do not import and instantiate Services inside components directly (except for the Root App).
 
 ---
@@ -150,11 +151,14 @@ flowchart TD
 *   **No Console Logs**: Do not use `console.log`, `console.warn`, etc. directly in production code.
 *   **Use LoggerService**: Inject the logger instance.
     *   **Components**: Use `@consume({ context: loggerContext })`.
-    *   **Classes/Controllers**: Pass via constructor options.
+    *   **Controllers**: Use `ContextConsumer` to request the logger.
     ```javascript
-    // In a class/controller
-    this.logger = options.logger;
-    this.logger.info("Quest started", { questId });
+    // In a controller constructor
+    this._loggerConsumer = new ContextConsumer(host, {
+      context: loggerContext,
+      subscribe: true,
+      callback: (logger) => { this.logger = logger; }
+    });
     ```
     *   **Global Import**: Only allowed in `GameBootstrapper` (Composition Root).
 *   **Env Awareness**: The logger automatically silences debug logs in production/test unless forced.

@@ -2,6 +2,7 @@
  * @typedef {import('lit').ReactiveController} ReactiveController
  */
 
+import { ContextConsumer } from "@lit/context";
 import { executeVoiceAction } from "../config/voice-command-actions.js";
 import { VOICE_PROFILES } from "../config/voice-profiles.js";
 import {
@@ -11,21 +12,29 @@ import {
 	getNPCDialoguePrompt,
 	NPC_SYSTEM_PROMPT,
 } from "../config/voice-training-prompts.js";
+import { aiContext } from "../contexts/ai-context.js";
+import { dialogStateContext } from "../contexts/dialog-context.js";
+import { localizationContext } from "../contexts/localization-context.js";
+import { loggerContext } from "../contexts/logger-context.js";
+import { voiceContext } from "../contexts/voice-context.js";
+import { UIEvents } from "../core/events.js";
 import { DialogueGenerationService } from "../services/dialogue-generation-service.js";
 
 /**
  * @typedef {import('../services/interfaces.js').IAIService} AIService
  * @typedef {import('../services/interfaces.js').IVoiceSynthesisService} VoiceSynthesisService
+ * @typedef {import('../contexts/dialog-context.js').DialogState} DialogState
  * @typedef {Object} AISession
  * @property {function(string): Promise<string>} prompt
  * @property {function(): void} destroy
  *
- * @typedef {Object} SpeechRecognitionResult
+ * @typedef {Object} SpeechRecognitionAlternative
  * @property {string} transcript
+ * @property {number} confidence
  *
- * @typedef {Object} SpeechRecognitionResultList
- * @property {number} length
- * @property {Object.<number, {0: SpeechRecognitionResult}>} [results]
+ * @typedef {{ [index: number]: SpeechRecognitionAlternative, length: number, item(index: number): SpeechRecognitionAlternative, isFinal: boolean }} SpeechRecognitionResult
+ *
+ * @typedef {{ [index: number]: SpeechRecognitionResult, length: number, item(index: number): SpeechRecognitionResult }} SpeechRecognitionResultList
  *
  * @typedef {Object} SpeechRecognitionEvent
  * @property {SpeechRecognitionResultList} results
@@ -33,37 +42,18 @@ import { DialogueGenerationService } from "../services/dialogue-generation-servi
  * @typedef {Object} SpeechRecognitionErrorEvent
  * @property {string} error
  * @property {string} message
- */
-
-/**
- * @typedef {Object} VoiceContext
- * @property {boolean} isDialogOpen
- * @property {boolean} isRewardCollected
- * @property {string|null} [npcName]
- * @property {string|null} [exitZoneName]
- * @property {string|null} [chapterTitle]
- */
-
-/**
- * @typedef {Object} VoiceControllerOptions
- * @property {import('../services/interfaces.js').ILoggerService} logger - Logger service
- * @property {AIService} aiService - AI Service
- * @property {VoiceSynthesisService} voiceSynthesisService - Voice Synthesis Service
- * @property {(dx: number, dy: number) => void} [onMove] - Movement callback
- * @property {() => Promise<void>|void} [onInteract] - Interaction callback
- * @property {() => void} [onPause] - Pause callback
- * @property {() => Promise<void>|void} [onNextSlide] - Next slide callback
- * @property {() => Promise<void>|void} [onPrevSlide] - Previous slide callback
- * @property {() => void} [onMoveToNpc] - Move to NPC callback
- * @property {() => void} [onMoveToExit] - Move to exit callback
- * @property {() => string} [onGetDialogText] - Get current dialog text
- * @property {() => string} [onGetNextDialogText] - Get next dialog text for prefetching
- * @property {() => VoiceContext} [onGetContext] - Get game context for AI
- * @property {(action: string, value: import('../services/interfaces.js').JsonValue) => void} [onDebugAction] - Debug action callback
- * @property {() => boolean} [isEnabled] - Callback to check if voice control is enabled from host
- * @property {string} [language] - Language code (e.g., 'en-US', 'es-ES')
- * @property {import('../services/interfaces.js').ILocalizationService} [localizationService] - Localization service
- * @property {() => void} [onCompleteLevel] - Complete level callback
+ *
+ * @typedef {Object} SpeechRecognition
+ * @property {boolean} continuous
+ * @property {boolean} interimResults
+ * @property {string} lang
+ * @property {function(): void} start
+ * @property {function(): void} stop
+ * @property {function(): void} abort
+ * @property {((this: SpeechRecognition, ev: Event) => any) | null} onstart
+ * @property {((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null} onresult
+ * @property {((this: SpeechRecognition, ev: Event) => any) | null} onend
+ * @property {((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null} onerror
  */
 
 /**
@@ -77,44 +67,52 @@ import { DialogueGenerationService } from "../services/dialogue-generation-servi
  * @implements {ReactiveController}
  */
 export class VoiceController {
-	/**
-	 * Get the current language code
-	 * @returns {string}
-	 */
 	#getLanguage() {
 		return (
 			this.localizationService?.getLocale() ||
-			this.options.language ||
 			document.documentElement.lang ||
 			"en-US"
 		);
 	}
 
 	/**
-	 * @param {import('lit').ReactiveControllerHost} host
-	 * @param {VoiceControllerOptions} options
+	 * Get the short language code (ISO 639-1)
+	 * @returns {string}
 	 */
-	constructor(host, options) {
+	#getShortLanguage() {
+		return this.#getLanguage().split("-")[0] || "";
+	}
+
+	/**
+	 * @param {import('lit').ReactiveControllerHost} host
+	 */
+	constructor(host) {
 		this.host = host;
-		this.options = options;
 
-		if (!this.options.aiService)
-			throw new Error("VoiceController requires aiService");
-		if (!this.options.voiceSynthesisService)
-			throw new Error("VoiceController requires voiceSynthesisService");
+		/** @type {AIService | null} */
+		this.aiService = null;
+		/** @type {VoiceSynthesisService | null} */
+		this.voiceSynthesisService = null;
+		/** @type {import('../services/interfaces.js').ILocalizationService | null} */
+		this.localizationService = null;
 
-		this.aiService = this.options.aiService;
-		this.voiceSynthesisService = this.options.voiceSynthesisService;
-		this.logger = this.options.logger;
-		this.localizationService = this.options.localizationService;
+		/** @type {import('../services/interfaces.js').ILoggerService | undefined} */
+		this.logger = undefined;
 
-		/** @type {DialogueGenerationService} */
-		this.dialogueService = new DialogueGenerationService(
-			this.aiService,
-			this.logger,
-		);
+		this._aiInitialized = false;
+		this.dialogueService = null;
 
-		/** @type {SpeechRecognition|null} */
+		/** @type {DialogState} */
+		this._dialogContext = {
+			isDialogOpen: false,
+			isRewardCollected: false,
+			npcName: null,
+			exitZoneName: null,
+			chapterTitle: null,
+			currentDialogText: null,
+		};
+
+		/** @type {SpeechRecognition | null} */
 		this.recognition = null;
 		/** @type {boolean} */
 		this.isSpeaking = false;
@@ -130,37 +128,132 @@ export class VoiceController {
 		this.lastStartTime = 0;
 		/** @type {string|null} */
 		this.lastUserCommand = null;
+		/** @type {boolean} */
+		this.isInitializing = false;
+		/** @type {boolean} */
+		this._contextsInitialized = false;
+		/** @type {string|null} */
+		this.lastNarratedText = null;
+
+		host.addController(this);
+	}
+
+	initContexts() {
+		if (this._contextsInitialized) return;
+		this._contextsInitialized = true;
+
+		const hostElement = /** @type {import('lit').ReactiveElement} */ (
+			/** @type {unknown} */ (this.host)
+		);
+
+		// Setup Context Consumers
+		/** @type {ContextConsumer<typeof aiContext, import('lit').ReactiveElement>} */
+		this._aiConsumer = new ContextConsumer(hostElement, {
+			context: aiContext,
+			subscribe: true,
+			callback: (service) => {
+				this.aiService = service;
+				this.#updateDialogueService();
+				if (
+					this.aiService &&
+					this.enabled &&
+					!this._aiInitialized &&
+					!this.isInitializing
+				) {
+					this.initAI();
+				}
+			},
+		});
+
+		/** @type {ContextConsumer<typeof localizationContext, import('lit').ReactiveElement>} */
+		this._localizationConsumer = new ContextConsumer(hostElement, {
+			context: localizationContext,
+			subscribe: true,
+			callback: (service) => {
+				this.localizationService = service;
+			},
+		});
+
+		/** @type {ContextConsumer<typeof loggerContext, import('lit').ReactiveElement>} */
+		this._loggerConsumer = new ContextConsumer(hostElement, {
+			context: loggerContext,
+			subscribe: true,
+			callback: (service) => {
+				this.logger =
+					/** @type {import('../services/interfaces.js').ILoggerService} */ (
+						service
+					);
+				this.#updateDialogueService();
+			},
+		});
+
+		/** @type {ContextConsumer<typeof dialogStateContext, import('lit').ReactiveElement>} */
+		this._dialogConsumer = new ContextConsumer(hostElement, {
+			context: dialogStateContext,
+			subscribe: true,
+			callback: (value) => {
+				const state = /** @type {DialogState} */ (value);
+				const oldState = this._dialogContext;
+				this._dialogContext = state;
+
+				if (state) {
+					// Auto-narrate if dialog text changed and it's open
+					if (
+						this.enabled &&
+						state.isDialogOpen &&
+						state.currentDialogText &&
+						state.currentDialogText !== oldState?.currentDialogText
+					) {
+						this.narrateDialogue(state.currentDialogText);
+					}
+				}
+			},
+		});
+
+		/** @type {ContextConsumer<typeof voiceContext, import('lit').ReactiveElement>} */
+		this._voiceConsumer = new ContextConsumer(hostElement, {
+			context: voiceContext,
+			subscribe: true,
+			callback: (service) => {
+				this.voiceSynthesisService = service;
+			},
+		});
+	}
+
+	#setupRecognition() {
+		if (this.recognition) return;
 
 		const SpeechRecognition =
-			window.SpeechRecognition ||
-			// @ts-expect-error - webkitSpeechRecognition is a vendor prefix
-			window.webkitSpeechRecognition;
+			// @ts-expect-error
+			window.SpeechRecognition || window.webkitSpeechRecognition;
 
 		if (SpeechRecognition) {
-			this.recognition = new SpeechRecognition();
-			this.recognition.continuous = true;
-			this.recognition.interimResults = false;
-			this.recognition.lang = this.#getLanguage();
+			/** @type {SpeechRecognition} */
+			const recognition = new SpeechRecognition();
+			this.recognition = recognition;
 
-			this.recognition.onstart = () => {
+			recognition.continuous = true;
+			recognition.interimResults = false;
+			recognition.lang = this.#getLanguage();
+
+			recognition.onstart = () => {
 				this.isListening = true;
 				this.lastStartTime = Date.now();
-				this.logger.debug(
-					`🎤 Voice active (${this.recognition?.lang || "unknown"}).`,
+				this.logger?.debug?.(
+					`🎤 Voice active (${recognition.lang || "unknown"}).`,
 				);
 				this.host.requestUpdate();
 			};
 
-			this.recognition.onresult = (
-				/** @type {SpeechRecognitionEvent} */ event,
-			) => this.handleResult(event);
+			recognition.onresult = (/** @type {SpeechRecognitionEvent} */ event) =>
+				this.handleResult(event);
 
-			this.recognition.onend = () => {
+			recognition.onend = () => {
 				this.isListening = false;
 				this.host.requestUpdate();
 
-				if (this.enabled && this.options.isEnabled?.() && !this.isSpeaking) {
-					if (this.recognition) this.recognition.lang = this.#getLanguage();
+				if (this.enabled && !this.isSpeaking) {
+					recognition.lang = this.#getLanguage();
 					const duration = Date.now() - this.lastStartTime;
 					if (duration < 2000) {
 						this.restartAttempts++;
@@ -175,11 +268,11 @@ export class VoiceController {
 				}
 			};
 
-			this.recognition.onerror = (
+			recognition.onerror = (
 				/** @type {SpeechRecognitionErrorEvent} */ event,
 			) => {
 				const errorEvent = /** @type {SpeechRecognitionErrorEvent} */ (event);
-				this.logger.error(`❌ Voice recognition error: ${errorEvent.error}`);
+				this.logger?.error?.(`❌ Voice recognition error: ${errorEvent.error}`);
 				if (errorEvent.error === "not-allowed") {
 					this.isListening = false;
 					this.enabled = false;
@@ -187,36 +280,185 @@ export class VoiceController {
 				}
 			};
 		}
+	}
 
-		this.initAI();
-		host.addController(this);
+	hostConnected() {}
+
+	hostDisconnected() {
+		this.stop();
+		this.voiceSynthesisService?.cancel();
+		this.aiService?.destroySession("alarion");
+		this.aiService?.destroySession("npc");
+		this.dialogueService?.clearCache();
+	}
+
+	start() {
+		this.initContexts();
+		this.#setupRecognition();
+		if (!this.recognition) return;
+
+		this.enabled = true;
+
+		if (this._aiInitialized) {
+			if (!this.isListening) {
+				try {
+					this.recognition.start();
+				} catch (_e) {
+					this.logger?.error?.("❌ Error starting recognition");
+				}
+			}
+		} else {
+			if (this.aiService) {
+				this.initAI();
+			}
+		}
+	}
+
+	stop() {
+		try {
+			if (this.recognition && this.isListening) {
+				this.recognition.stop();
+				this.isListening = false;
+			}
+		} catch (e) {
+			this.logger?.debug?.(`🎤 Error stopping recognition: ${e}`);
+		}
+	}
+
+	async toggle() {
+		this.initContexts();
+
+		if (this.enabled) {
+			this.enabled = false;
+			this.stop();
+		} else {
+			this.enabled = true;
+			await this.initAI();
+			this.start();
+		}
+		this.host.requestUpdate();
+	}
+
+	handleResult(/** @type {SpeechRecognitionEvent} */ event) {
+		const last = event.results.length - 1;
+		if (last < 0) return;
+
+		const result = event.results[last];
+		if (!result || !result[0]) return;
+
+		const transcript = result[0].transcript.toLowerCase().trim();
+		this.logger?.info?.(`🗣️ Voice command: "${transcript}"`);
+		this.processCommand(transcript).catch((err) =>
+			this.logger?.error?.(`Error processing command: ${err}`),
+		);
+	}
+
+	/**
+	 * Smarter command processing using DialogueGenerationService
+	 * @param {string} command - Raw voice input
+	 */
+	async processCommand(command) {
+		const lang = this.#getLanguage();
+		const context = this._dialogContext;
+		const prompt = getAlarionCommandPrompt(command, context, lang);
+
+		try {
+			const cleanedResponse = await this.dialogueService?.generate(
+				"alarion",
+				prompt,
+				true,
+			);
+			if (!cleanedResponse) return;
+			const result = JSON.parse(cleanedResponse);
+
+			if (result.feedback) {
+				// We don't await feedback to start actions quickly if possible
+				this.speak(result.feedback, result.lang);
+			}
+
+			if (result.action && result.action !== "unknown") {
+				this.lastUserCommand = command; // Store for NPC context
+				await this.executeAction(result.action, result.lang);
+			}
+		} catch (error) {
+			this.logger?.error?.(`❌ Command processing error: ${error}`);
+		}
+	}
+
+	async executeAction(/** @type {string} */ action, lang = null) {
+		const targetLang = lang || this.#getLanguage();
+
+		// Handle NPC narration if the host provides context
+		if (action === "interact") {
+			const text = this._dialogContext.currentDialogText;
+			if (text) {
+				await this.narrateDialogue(text, targetLang);
+			}
+		}
+
+		// Handle Slide Navigation with prefetching
+		if (action === "next_slide") {
+			const nextText = this._dialogContext.nextDialogText;
+			if (nextText) {
+				const context = this._dialogContext;
+				// Prefetch NPC response for next slide in background
+				const prefetchPrompt = getNPCDialoguePrompt(
+					nextText,
+					context,
+					targetLang,
+					this.lastUserCommand,
+				);
+				this.dialogueService?.prefetch("npc", prefetchPrompt);
+			}
+		}
+
+		executeVoiceAction(action, this, targetLang);
 	}
 
 	async initAI() {
+		if (this._aiInitialized || this.isInitializing) return;
+		this.isInitializing = true;
+		this.host.requestUpdate();
+
 		try {
+			if (!this.aiService) {
+				throw new Error("AI Service not available");
+			}
+
 			const status = await this.aiService.checkAvailability();
 			if (status === "readily" || status === "available") {
 				const lang = this.#getLanguage();
+				const shortLang = this.#getShortLanguage();
 
-				// Alarion Session
-				await this.aiService.createSession("alarion", {
-					language: lang,
-					initialPrompts: [
-						{ role: "system", content: getAlarionSystemPrompt(lang) },
-						...ALARION_TRAINING_EXAMPLES,
-					],
-				});
+				// Create sessions in parallel
+				await Promise.all([
+					this.aiService.createSession("alarion", {
+						language: shortLang,
+						initialPrompts: [
+							{ role: "system", content: getAlarionSystemPrompt(lang) },
+							...ALARION_TRAINING_EXAMPLES,
+						],
+					}),
+					this.aiService.createSession("npc", {
+						language: shortLang,
+						initialPrompts: [{ role: "system", content: NPC_SYSTEM_PROMPT }],
+					}),
+				]);
 
-				// NPC Session
-				await this.aiService.createSession("npc", {
-					language: lang,
-					initialPrompts: [{ role: "system", content: NPC_SYSTEM_PROMPT }],
-				});
+				this.logger?.info("🤖 AI sessions initialized (Alarion & NPC).");
+				this._aiInitialized = true;
 
-				this.logger.info("🤖 AI sessions initialized (Alarion & NPC).");
+				// Start listening if enabled
+				if (this.enabled && !this.isListening && this.recognition) {
+					this.recognition.start();
+				}
 			}
 		} catch (error) {
-			this.logger.warn(`⚠️ Could not initialize AI context: ${error}`);
+			this.logger?.warn(`⚠️ Could not initialize AI context: ${error}`);
+			this.enabled = false; // Disable if initialization fails
+		} finally {
+			this.isInitializing = false;
+			this.host.requestUpdate();
 		}
 	}
 
@@ -236,6 +478,7 @@ export class VoiceController {
 		queue = false,
 		onSpeakStart = undefined,
 	) {
+		if (!this.voiceSynthesisService) return;
 		this.isSpeaking = true;
 		this.stop();
 
@@ -267,13 +510,12 @@ export class VoiceController {
 			onEnd: () => {
 				this.isSpeaking = false;
 				setTimeout(() => {
-					if (this.enabled && this.options.isEnabled?.() && !this.isSpeaking)
-						this.start();
+					if (this.enabled && !this.isSpeaking) this.start();
 				}, 500);
 			},
 			onError: () => {
 				this.isSpeaking = false;
-				if (this.enabled && this.options.isEnabled?.()) this.start();
+				if (this.enabled) this.start();
 			},
 		});
 	}
@@ -286,12 +528,11 @@ export class VoiceController {
 	 */
 	async narrateDialogue(text, lang = null) {
 		if (!text) return;
+		if (text === this.lastNarratedText) return;
+		this.lastNarratedText = text;
 
 		const targetLang = lang || this.#getLanguage();
-		const context = this.options.onGetContext?.() || {
-			isDialogOpen: false,
-			isRewardCollected: false,
-		};
+		const context = this._dialogContext;
 		const prompt = getNPCDialoguePrompt(
 			text,
 			context,
@@ -299,126 +540,13 @@ export class VoiceController {
 			this.lastUserCommand,
 		);
 
-		const narration = await this.dialogueService.generate("npc", prompt);
+		const narration = await this.dialogueService?.generate("npc", prompt);
 		if (narration) {
 			await this.speak(narration, targetLang, "npc", true);
 		} else {
 			// Fallback to literal narration if AI fails
 			await this.speak(text, targetLang, "npc", true);
 		}
-	}
-
-	hostConnected() {}
-
-	hostDisconnected() {
-		this.stop();
-		this.voiceSynthesisService.cancel();
-		this.aiService.destroySession("alarion");
-		this.aiService.destroySession("npc");
-		this.dialogueService.clearCache();
-	}
-
-	start() {
-		if (this.recognition && !this.isListening) {
-			try {
-				this.recognition.start();
-				this.enabled = true;
-			} catch (_e) {}
-		}
-	}
-
-	stop() {
-		try {
-			if (this.recognition && this.isListening) {
-				this.recognition.stop();
-				this.isListening = false;
-			}
-		} catch (e) {
-			this.logger?.debug?.(`🎤 Error stopping recognition: ${e}`);
-		}
-	}
-
-	toggle() {
-		if (this.enabled) {
-			this.enabled = false;
-			this.stop();
-		} else {
-			this.enabled = true;
-			this.start();
-		}
-		this.host.requestUpdate();
-	}
-
-	handleResult(/** @type {any} */ event) {
-		const last = event.results.length - 1;
-		const transcript = event.results[last][0].transcript.toLowerCase().trim();
-		this.logger.info(`🗣️ Voice command: "${transcript}"`);
-		this.processCommand(transcript).catch((err) =>
-			this.logger.error(`Error processing command: ${err}`),
-		);
-	}
-
-	/**
-	 * Smarter command processing using DialogueGenerationService
-	 * @param {string} command - Raw voice input
-	 */
-	async processCommand(command) {
-		const lang = this.#getLanguage();
-		const context = this.options.onGetContext?.() || {
-			isDialogOpen: false,
-			isRewardCollected: false,
-		};
-		const prompt = getAlarionCommandPrompt(command, context, lang);
-
-		try {
-			const cleanedResponse = await this.dialogueService.generate(
-				"alarion",
-				prompt,
-				true,
-			);
-			const result = JSON.parse(cleanedResponse);
-
-			if (result.feedback) {
-				// We don't await feedback to start actions quickly if possible
-				this.speak(result.feedback, result.lang);
-			}
-
-			if (result.action && result.action !== "unknown") {
-				this.lastUserCommand = command; // Store for NPC context
-				await this.executeAction(result.action, result.value, result.lang);
-			}
-		} catch (error) {
-			this.logger.error(`❌ Command processing error: ${error}`);
-		}
-	}
-
-	async executeAction(
-		/** @type {string} */ action,
-		/** @type {import('../services/interfaces.js').JsonValue} */ value,
-		lang = null,
-	) {
-		const targetLang = lang || this.#getLanguage();
-
-		// Handle Slide Navigation with prefetching
-		if (action === "next_slide") {
-			const nextText = this.options.onGetNextDialogText?.();
-			if (nextText) {
-				const context = this.options.onGetContext?.() || {
-					isDialogOpen: false,
-					isRewardCollected: false,
-				};
-				// Prefetch NPC response for next slide in background
-				const prefetchPrompt = getNPCDialoguePrompt(
-					nextText,
-					context,
-					targetLang,
-					this.lastUserCommand,
-				);
-				this.dialogueService.prefetch("npc", prefetchPrompt);
-			}
-		}
-
-		executeVoiceAction(action, value, this, targetLang);
 	}
 
 	/**
@@ -442,11 +570,16 @@ export class VoiceController {
 
 		const phrase = phrases[Math.floor(Math.random() * phrases.length)] || "";
 		await this.speak(phrase, lang, "hero", true);
-		this.options.onCompleteLevel?.();
+		/** @type {import('lit').ReactiveElement} */ (this.host).dispatchEvent(
+			new CustomEvent("next-chapter", {
+				bubbles: true,
+				composed: true,
+			}),
+		);
 	}
 
 	showHelp() {
-		this.logger.info(`
+		this.logger?.info?.(`
 🎤 VOICE COMMANDS:
 MOVE: Up, Down, Left, Right
 APPROACH: Approach, Talk to
@@ -454,5 +587,98 @@ DIALOGUE: Next, Back
 ACTIONS: Interact, Pause, Help
 🤖 AI Persona Active (Alarion & Keeper of Secrets)
 		`);
+	}
+
+	/**
+	 * @param {number} x
+	 * @param {number} y
+	 */
+	move(x, y) {
+		/** @type {HTMLElement} */ (
+			/** @type {unknown} */ (this.host)
+		).dispatchEvent(
+			new CustomEvent(UIEvents.MOVE, {
+				detail: { dx: x, dy: y },
+				bubbles: true,
+				composed: true,
+			}),
+		);
+	}
+
+	moveToNpc() {
+		/** @type {HTMLElement} */ (
+			/** @type {unknown} */ (this.host)
+		).dispatchEvent(
+			new CustomEvent(UIEvents.MOVE_TO_NPC, {
+				bubbles: true,
+				composed: true,
+			}),
+		);
+	}
+
+	moveToExit() {
+		/** @type {HTMLElement} */ (
+			/** @type {unknown} */ (this.host)
+		).dispatchEvent(
+			new CustomEvent(UIEvents.MOVE_TO_EXIT, {
+				bubbles: true,
+				composed: true,
+			}),
+		);
+	}
+
+	pause() {
+		/** @type {HTMLElement} */ (
+			/** @type {unknown} */ (this.host)
+		).dispatchEvent(
+			new CustomEvent(UIEvents.TOGGLE_PAUSE, {
+				bubbles: true,
+				composed: true,
+			}),
+		);
+	}
+
+	nextSlide() {
+		/** @type {HTMLElement} */ (
+			/** @type {unknown} */ (this.host)
+		).dispatchEvent(
+			new CustomEvent(UIEvents.NEXT_SLIDE, {
+				bubbles: true,
+				composed: true,
+			}),
+		);
+	}
+
+	prevSlide() {
+		/** @type {HTMLElement} */ (
+			/** @type {unknown} */ (this.host)
+		).dispatchEvent(
+			new CustomEvent(UIEvents.PREV_SLIDE, {
+				bubbles: true,
+				composed: true,
+			}),
+		);
+	}
+
+	interact() {
+		/** @type {HTMLElement} */ (
+			/** @type {unknown} */ (this.host)
+		).dispatchEvent(
+			new CustomEvent(UIEvents.INTERACT, {
+				bubbles: true,
+				composed: true,
+			}),
+		);
+	}
+
+	#updateDialogueService() {
+		if (this.aiService && this.logger) {
+			this.dialogueService = new DialogueGenerationService(
+				this.aiService,
+				/** @type {import('../services/interfaces.js').ILoggerService} */ (
+					this.logger
+				),
+			);
+		}
 	}
 }

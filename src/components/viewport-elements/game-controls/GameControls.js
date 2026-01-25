@@ -1,6 +1,7 @@
 import { msg, updateWhenLocaleChanges } from "@lit/localize";
 import { Signal, SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement, nothing } from "lit";
+import { KeyboardController } from "../../../controllers/keyboard-controller.js";
 import { TouchController } from "../../../controllers/touch-controller.js";
 import { UIEvents } from "../../../core/events.js";
 import { gameControlsStyles } from "./GameControls.styles.js";
@@ -17,11 +18,6 @@ export class GameControls extends SignalWatcher(LitElement) {
 	/** @override */
 	static styles = gameControlsStyles;
 
-	/** @override */
-	static properties = {
-		isVoiceActive: { type: Boolean },
-	};
-
 	#hasTouch = window.matchMedia("(pointer: coarse)").matches;
 	#hasKeyboard = window.matchMedia("(any-pointer: fine)").matches;
 	#viewMode = new Signal.State(this.#hasTouch ? "touch" : "keyboard");
@@ -29,10 +25,87 @@ export class GameControls extends SignalWatcher(LitElement) {
 	constructor() {
 		super();
 		updateWhenLocaleChanges(this);
-		this.isVoiceActive = false;
 
 		/** @type {TouchController} */
 		this.touch = new TouchController(this);
+		/** @type {KeyboardController} */
+		this.keyboard = new KeyboardController(this);
+
+		// Lazy load VoiceController
+		/** @type {import('../../../controllers/voice-controller.js').VoiceController | null} */
+		this.voice = null;
+		this.initVoice();
+	}
+
+	async initVoice() {
+		const { VoiceController } = await import(
+			"../../../controllers/voice-controller.js"
+		);
+		this.voice = new VoiceController(this);
+		this.requestUpdate();
+	}
+
+	/**
+	 * Handles next chapter command from VoiceController
+	 */
+	handleLevelComplete() {
+		this.dispatchEvent(
+			new CustomEvent(UIEvents.NEXT_CHAPTER, {
+				bubbles: true,
+				composed: true,
+			}),
+		);
+	}
+
+	/**
+	 * Handles move to command from VoiceController
+	 * @param {number} x
+	 * @param {number} y
+	 */
+	moveTo(x, y) {
+		this.dispatchEvent(
+			new CustomEvent(UIEvents.MOVE_TO, {
+				detail: { x, y },
+				bubbles: true,
+				composed: true,
+			}),
+		);
+	}
+
+	/**
+	 * Handles next slide command from VoiceController
+	 */
+	nextDialogSlide() {
+		this.dispatchEvent(
+			new CustomEvent(UIEvents.NEXT_SLIDE, {
+				bubbles: true,
+				composed: true,
+			}),
+		);
+	}
+
+	/**
+	 * Handles prev slide command from VoiceController
+	 */
+	prevDialogSlide() {
+		this.dispatchEvent(
+			new CustomEvent(UIEvents.PREV_SLIDE, {
+				bubbles: true,
+				composed: true,
+			}),
+		);
+	}
+
+	/**
+	 * Handles pause input from KeyboardController and VoiceController
+	 */
+	handlePause() {
+		this.dispatchEvent(
+			new CustomEvent(UIEvents.TOGGLE_PAUSE, {
+				bubbles: true,
+				composed: true,
+			}),
+		);
 	}
 
 	/**
@@ -71,7 +144,7 @@ export class GameControls extends SignalWatcher(LitElement) {
 				${mode === "touch" ? this.touch.render() : nothing}
 				
 				<div class="instructions-wrapper">
-					<wa-details class="controls-details" open>
+					<wa-details class="controls-details">
 						<div slot="summary">${msg("CONTROLS")}</div>
 						<div class="details-content">
 							${this.#renderModeToggle()}
@@ -94,10 +167,11 @@ export class GameControls extends SignalWatcher(LitElement) {
 				<wa-button 
 					variant="neutral" 
 					size="small" 
-					class="voice-toggle ${this.isVoiceActive ? "active" : ""}"
+					class="voice-toggle ${this.voice?.enabled ? "active" : ""}"
+					?loading="${this.voice?.isInitializing}"
 					@click="${this._toggleVoice}"
 				>
-					<wa-icon slot="start" name="${this.isVoiceActive ? "microphone" : "microphone-slash"}"></wa-icon>
+					<wa-icon slot="start" name="${this.voice?.enabled ? "microphone" : "microphone-slash"}"></wa-icon>
 					${msg("Voice Control")}
 				</wa-button>
 			</div>
@@ -128,12 +202,11 @@ export class GameControls extends SignalWatcher(LitElement) {
 		`;
 	}
 
-	_toggleVoice() {
-		this.dispatchEvent(
-			new CustomEvent(UIEvents.TOGGLE_VOICE, {
-				bubbles: true,
-				composed: true,
-			}),
-		);
+	async _toggleVoice() {
+		if (this.voice) {
+			await this.voice.toggle();
+		} else {
+			console.warn("Voice controller not initialized");
+		}
 	}
 }

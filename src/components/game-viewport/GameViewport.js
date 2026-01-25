@@ -1,19 +1,15 @@
-import "@awesome.me/webawesome/dist/components/card/card.js";
-import "@awesome.me/webawesome/dist/components/details/details.js";
-import { consume } from "@lit/context";
+import { consume, provide } from "@lit/context";
 import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { gameConfig } from "../../config/game-configuration.js";
-import { aiContext } from "../../contexts/ai-context.js";
+import { dialogStateContext } from "../../contexts/dialog-context.js";
 import { localizationContext } from "../../contexts/localization-context.js";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { questLoaderContext } from "../../contexts/quest-loader-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
 import { themeContext } from "../../contexts/theme-context.js";
-import { voiceContext } from "../../contexts/voice-context.js";
-import { KeyboardController } from "../../controllers/keyboard-controller.js";
 import { heroStateContext } from "../../game/contexts/hero-context.js";
 import { questStateContext } from "../../game/contexts/quest-context.js";
 import { worldStateContext } from "../../game/contexts/world-context.js";
@@ -21,7 +17,6 @@ import { setupCharacterContexts } from "../../setup/setup-character-contexts.js"
 import { setupCollision } from "../../setup/setup-collision.js";
 import { setupGameController } from "../../setup/setup-game.js";
 import { setupInteraction } from "../../setup/setup-interaction.js";
-import { setupVoice } from "../../setup/setup-voice.js";
 import { setupZones } from "../../setup/setup-zones.js";
 import {
 	extractAssetPath,
@@ -54,6 +49,17 @@ export class GameViewport extends SignalWatcher(
 		/** @type {import('../../game/interfaces.js').IHeroStateService} */ (
 			/** @type {unknown} */ (null)
 		);
+
+	/** @type {import('../../contexts/dialog-context.js').DialogState} */
+	@provide({ context: dialogStateContext })
+	accessor dialogState = {
+		isDialogOpen: false,
+		isRewardCollected: false,
+		npcName: null,
+		exitZoneName: null,
+		chapterTitle: null,
+		currentDialogText: null,
+	};
 
 	/** @type {import('../../game/interfaces.js').IQuestStateService} */
 	@consume({ context: questStateContext, subscribe: true })
@@ -104,26 +110,11 @@ export class GameViewport extends SignalWatcher(
 			/** @type {unknown} */ (null)
 		);
 
-	/** @type {import('../../services/interfaces.js').IAIService} */
-	@consume({ context: aiContext, subscribe: true })
-	accessor aiService =
-		/** @type {import('../../services/interfaces.js').IAIService} */ (
-			/** @type {unknown} */ (null)
-		);
-
-	/** @type {import('../../services/interfaces.js').IVoiceSynthesisService} */
-	@consume({ context: voiceContext, subscribe: true })
-	accessor voiceSynthesisService =
-		/** @type {import('../../services/interfaces.js').IVoiceSynthesisService} */ (
-			/** @type {unknown} */ (null)
-		);
-
 	/** @override */
 	static properties = {
 		isAnimatingReward: { state: true },
 		rewardAnimState: { state: true },
 		isRewardCollected: { state: true },
-		isVoiceActive: { type: Boolean },
 	};
 
 	/** @override */
@@ -134,7 +125,6 @@ export class GameViewport extends SignalWatcher(
 		this.isAnimatingReward = false;
 		this.rewardAnimState = "";
 		this.isRewardCollected = false;
-		this.isVoiceActive = false;
 
 		// Controllers
 		this._controllersInitialized = false;
@@ -146,10 +136,6 @@ export class GameViewport extends SignalWatcher(
 		this.zones = null;
 		/** @type {import('../../controllers/interaction-controller.js').InteractionController | null} */
 		this.interaction = null;
-		/** @type {import('../../controllers/keyboard-controller.js').KeyboardController | null} */
-		this.keyboard = null;
-		/** @type {import('../../controllers/voice-controller.js').VoiceController | null} */
-		this.voice = null;
 		/** @type {import('../../controllers/game-controller.js').GameController | null} */
 		this.gameController = null;
 	}
@@ -235,21 +221,8 @@ export class GameViewport extends SignalWatcher(
 		});
 	}
 
-	/**
-	 * Setup input handling controllers
-	 */
 	#setupInputHandlers() {
-		this.#setupKeyboard();
-		setupVoice(this, {
-			logger: this.questController?.options?.logger,
-			localizationService: this.localizationService,
-			aiService: this.aiService,
-			voiceSynthesisService: this.voiceSynthesisService,
-			worldState: this.worldState,
-			questState: this.questState,
-			questController: this.questController,
-			questLoader: this.questLoader,
-		});
+		// All input handlers are now in GameControls
 	}
 
 	/**
@@ -263,17 +236,6 @@ export class GameViewport extends SignalWatcher(
 			worldState: this.worldState,
 			questController: this.questController,
 			questLoader: this.questLoader,
-		});
-	}
-
-	/**
-	 * Setup keyboard controller
-	 */
-	#setupKeyboard() {
-		this.keyboard = new KeyboardController(this, {
-			interaction: this.interaction ?? null,
-			worldState: this.worldState,
-			speed: 2.5,
 		});
 	}
 
@@ -424,6 +386,18 @@ export class GameViewport extends SignalWatcher(
 			}
 			this._lastHasCollectedItem = hasCollectedItem;
 		}
+
+		// Update Dialog State Context
+		const chapter = this.questController?.currentChapter;
+		this.dialogState = {
+			isDialogOpen: this.worldState?.showDialog.get() || false,
+			isRewardCollected: this.questState?.isRewardCollected.get() || false,
+			npcName: chapter?.npc?.name || null,
+			exitZoneName: chapter?.exitZone ? "exit" : null,
+			chapterTitle: chapter?.title || null,
+			currentDialogText: this.worldState?.currentDialogText.get() || null,
+			nextDialogText: this.worldState?.nextDialogText?.get() || null,
+		};
 	}
 
 	startRewardAnimation() {
@@ -508,10 +482,21 @@ export class GameViewport extends SignalWatcher(
 				${this._renderHero()}
 			</div>
 			<game-controls 
-				.isVoiceActive="${this.voice?.enabled || false}"
 				@move="${(/** @type {CustomEvent} */ e) => this.handleMove(e.detail.dx, e.detail.dy)}"
+				@move-to="${(/** @type {CustomEvent} */ e) => this.moveTo(e.detail.x, e.detail.y)}"
+				@move-to-npc="${() => {
+					const npcPos = this.questController?.currentChapter?.npc?.position;
+					if (npcPos) this.moveTo(npcPos.x - 8, npcPos.y);
+				}}"
+				@move-to-exit="${() => {
+					const exitZone = this.questController?.currentChapter?.exitZone;
+					if (exitZone) this.moveTo(exitZone.x, exitZone.y);
+				}}"
 				@interact="${() => this.handleInteract()}"
-				@toggle-voice="${this.#handleToggleVoice}"
+				@toggle-pause="${() => this.togglePause()}"
+				@next-chapter="${() => this.handleLevelComplete()}"
+				@next-slide="${() => this.nextDialogSlide()}"
+				@prev-slide="${() => this.prevDialogSlide()}"
 			></game-controls>
 		`;
 	}
@@ -564,17 +549,9 @@ export class GameViewport extends SignalWatcher(
 				.image="${config.reward.image || ""}"
 				.x="${x}"
 				.y="${y}"
-				class=${classMap({ [this.rewardAnimState]: this.isAnimatingReward })}
+				class=${classMap({ [this.rewardAnimState || ""]: this.isAnimatingReward })}
 			></reward-element>
 		`;
-	}
-
-	#handleToggleVoice() {
-		if (this.voice) {
-			this.voice.toggle();
-		} else {
-			console.warn("Voice controller not initialized");
-		}
 	}
 
 	_renderHero() {

@@ -20,7 +20,6 @@ import { setupGameController } from "../setup/setup-game.js";
 import { setupInteraction } from "../setup/setup-interaction.js";
 import { setupQuest } from "../setup/setup-quest.js";
 import { setupService } from "../setup/setup-service.js";
-import { setupVoice } from "../setup/setup-voice.js";
 import { setupZones } from "../setup/setup-zones.js";
 import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-transition.js";
 import { Router } from "../utils/router.js";
@@ -31,11 +30,8 @@ import { Router } from "../utils/router.js";
  * @property {import('../services/progress-service.js').ProgressService} progressService
  * @property {import('../services/quest-registry-service.js').QuestRegistryService} registry
  * @property {Object} services
-
  * @property {import('../services/preloader-service.js').PreloaderService} preloader
  * @property {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} evaluateChapterTransition
- * @property {import('../services/ai-service.js').AIService} aiService
- * @property {import('../services/voice-synthesis-service.js').VoiceSynthesisService} voiceSynthesisService
  * @property {import('../services/localization-service.js').LocalizationService} localizationService
  * @property {import('../services/theme-service.js').ThemeService} themeService
  * @property {import('../services/session-service.js').SessionService} sessionService
@@ -58,8 +54,6 @@ import { Router } from "../utils/router.js";
  * @property {Object} services
  * @property {import('../services/preloader-service.js').PreloaderService} preloaderService
  * @property {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} evaluateChapterTransition
- * @property {import('../services/ai-service.js').AIService} aiService
- * @property {import('../services/voice-synthesis-service.js').VoiceSynthesisService} voiceSynthesisService
  * @property {import('../services/localization-service.js').LocalizationService} localizationService
  * @property {import('../services/theme-service.js').ThemeService} themeService
  * @property {import('../services/session-service.js').SessionService} sessionService
@@ -118,14 +112,6 @@ export class GameBootstrapper {
 			await import("../services/quest-registry-service.js")
 		).QuestRegistryService();
 
-		const aiService = new (
-			await import("../services/ai-service.js")
-		).AIService();
-
-		const voiceSynthesisService = new (
-			await import("../services/voice-synthesis-service.js")
-		).VoiceSynthesisService();
-
 		const progressService = new ProgressService(
 			storageAdapter,
 			registry,
@@ -159,8 +145,6 @@ export class GameBootstrapper {
 			services,
 			preloader,
 			evaluateChapterTransition: new EvaluateChapterTransitionUseCase(),
-			aiService,
-			voiceSynthesisService,
 			localizationService,
 			themeService,
 			sessionService,
@@ -188,8 +172,6 @@ export class GameBootstrapper {
 			themeService,
 			sessionService,
 			localizationService,
-			aiService,
-			voiceSynthesisService,
 			storageAdapter,
 		} = { ...servicesContext };
 
@@ -258,16 +240,6 @@ export class GameBootstrapper {
 			questState,
 			questController,
 		});
-		setupVoice(/** @type {any} */ (host), {
-			logger,
-			localizationService,
-			aiService,
-			voiceSynthesisService,
-			worldState,
-			questState,
-			questController,
-			questLoader,
-		});
 
 		return {
 			logger,
@@ -280,8 +252,6 @@ export class GameBootstrapper {
 			services,
 			preloaderService: servicesContext.preloader ?? null,
 			evaluateChapterTransition,
-			aiService,
-			voiceSynthesisService,
 			localizationService,
 			themeService,
 			sessionService,

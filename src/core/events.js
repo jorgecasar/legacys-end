@@ -26,7 +26,12 @@ export const UIEvents = {
 	NEXT_SLIDE: "next-slide",
 	PREV_SLIDE: "prev-slide",
 	MOVE: "move",
+	MOVE_TO: "move-to",
 	INTERACT: "interact",
+	TOGGLE_PAUSE: "toggle-pause",
+	NEXT_CHAPTER: "next-chapter",
+	MOVE_TO_NPC: "move-to-npc",
+	MOVE_TO_EXIT: "move-to-exit",
 	TOGGLE_VOICE: "toggle-voice",
 	SLIDE_CHANGED: "slide-changed",
 	COMPLETE: "complete", // Generic completion (dialogs, etc)

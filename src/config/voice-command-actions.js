@@ -12,34 +12,31 @@
 /**
  * Execute a voice command action
  * @param {string} action - The action to execute
- * @param {import('../services/interfaces.js').JsonValue} value - Optional value for the action
  * @param {VoiceController} controller - VoiceController instance with options
  * @param {string|null} [lang] - Language for feedback
  */
-export function executeVoiceAction(action, value, controller, lang = null) {
-	const { options } = controller;
-
+export function executeVoiceAction(action, controller, lang = null) {
 	// Command action mapping
 	/** @type {Record<string, () => void>} */
 	const actionHandlers = {
-		move_up: () => options.onMove?.(0, -5),
-		move_down: () => options.onMove?.(0, 5),
-		move_left: () => options.onMove?.(-5, 0),
-		move_right: () => options.onMove?.(5, 0),
+		move_up: () => controller.move(0, -5),
+		move_down: () => controller.move(0, 5),
+		move_left: () => controller.move(-5, 0),
+		move_right: () => controller.move(5, 0),
 
-		move_to_npc: () => options.onMoveToNpc?.(),
-		move_to_exit: () => options.onMoveToExit?.(),
+		move_to_npc: () => controller.moveToNpc(),
+		move_to_exit: () => controller.moveToExit(),
 
-		pause: () => options.onPause?.(),
+		pause: () => controller.pause(),
 
-		next_slide: () => options.onNextSlide?.(),
-		prev_slide: () => options.onPrevSlide?.(),
+		next_slide: () => controller.nextSlide(),
+		prev_slide: () => controller.prevSlide(),
 
 		interact: () => {
-			options.onInteract?.();
+			controller.interact();
 			// After a short delay, narrate the dialogue
 			setTimeout(() => {
-				const dialogText = options.onGetDialogText?.();
+				const dialogText = controller._dialogContext?.currentDialogText;
 				if (dialogText) {
 					controller.narrateDialogue(dialogText, lang);
 				}
@@ -51,9 +48,7 @@ export function executeVoiceAction(action, value, controller, lang = null) {
 		help: () => controller.showHelp(),
 
 		debug: () => {
-			if (value) {
-				options.onDebugAction?.(/** @type {string} */ (action), value);
-			}
+			// Deprecated debug action
 		},
 	};
 

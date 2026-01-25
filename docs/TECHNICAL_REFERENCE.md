@@ -57,14 +57,12 @@ To avoid "Prop Drilling" (passing data through many layers of components), we us
 *   **Service**: "Source of Truth". Holds data and business logic (e.g., `GameStateService`).
 *   **Controller**: "Brain". Reactive Controllers that hook into the component lifecycle to bridge services and UI (e.g., `KeyboardController`).
 *   **Component**: "View". Purely visual representation of the state (e.g., `GameViewport`).
-    *   **The Component** consumes services and provides them to controllers.
-    *   **The Controller** reactively observes these services.
+    *   **The Component** provides the context.
+    *   **The Controller** independently requests the services it needs via `ContextConsumer`.
 
-### 4. Reactive Controller Pattern (Detailed)
-When a Controller needs to use one or more services:
-1.  **Component Responsibility**: The component is responsible for providing services (using `@consume` or direct import) and passing them to the controller through the constructor options.
-2.  **Controller Responsibility**: The controller receives these dependencies and sets up reactive observers (like `Task` args or Signals).
-3.  **Reactivity**: If a service value changes, the controller reacts by updating its internal state and/or requesting a host update (`this.host.requestUpdate()`).
+1.  **Controller Responsibility**: The controller is responsible for requesting the services it needs via `ContextConsumer`. It does not rely on the host to pass dependencies via constructor options.
+2.  **host**: The controller uses the host only for lifecycle hooks and event dispatching.
+3.  **Reactivity**: The controller sets up context consumers with `subscribe: true`. If a service value changes, the controller reacts by updating its internal state and/or requesting a host update (`this.host.requestUpdate()`).
 
 ### 5. Alternative Considered: Services as Lit Controllers?
 **Question**: Why not implement `GameStateService` directly as a [Lit Reactive Controller](https://lit.dev/docs/composition/controllers/)?
@@ -282,8 +280,8 @@ Controllers are specialized classes (often using Lit's Reactive Controller patte
 ### `VoiceController`
 **Purpose**: Handles Web Speech API integration for voice commands with AI-powered natural language processing.
 **Type**: Lit Reactive Controller.
+**Architecture**: Consumes `LoggerService`, `AIService`, `VoiceSynthesisService`, `LocalizationService`, and `DialogStateContext` via Lit Context for full independence.
 **Inputs**:
-*   `VoiceControllerOptions`: Injected `logger`, callbacks for movement, interaction, navigation, and context retrieval.
 *   Voice commands in English or Spanish (e.g., "move left", "interact", "go to NPC").
 **Outputs**:
 *   Movement callbacks (`onMove`, `onMoveToNpc`, `onMoveToExit`).

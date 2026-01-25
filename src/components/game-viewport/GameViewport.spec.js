@@ -381,7 +381,6 @@ describe("GameViewport", () => {
 		await element.updateComplete;
 
 		expect(element._controllersInitialized).toBe(true);
-		expect(element.keyboard).toBeTruthy();
 	});
 
 	it("should pass zones from current chapter to indicators", async () => {

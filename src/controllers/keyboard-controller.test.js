@@ -4,8 +4,6 @@ import { KeyboardController } from "./keyboard-controller.js";
 describe("KeyboardController", () => {
 	/** @type {any} */
 	let host;
-	/** @type {any} */
-	let context;
 	/** @type {KeyboardController} */
 	let controller;
 	/** @type {{ keydown?: (e: any) => void }} */
@@ -17,18 +15,8 @@ describe("KeyboardController", () => {
 			addController: vi.fn(),
 			requestUpdate: vi.fn(),
 			handleMove: vi.fn(),
-			interaction: {
-				handleInteract: vi.fn(),
-			},
-		};
-
-		// Mock context (now explicit dependencies)
-		context = {
-			interaction: host.interaction,
-			worldState: {
-				isPaused: { get: () => false },
-				setPaused: vi.fn(),
-			},
+			handleInteract: vi.fn(),
+			handlePause: vi.fn(),
 		};
 
 		// Mock window event listeners
@@ -40,7 +28,7 @@ describe("KeyboardController", () => {
 		});
 
 		// Initialize controller
-		controller = new KeyboardController(host, { ...context });
+		controller = new KeyboardController(host);
 		controller.hostConnected();
 	});
 
@@ -73,25 +61,24 @@ describe("KeyboardController", () => {
 		expect(host.handleMove).toHaveBeenCalledWith(2.5, 0);
 	});
 
-	it("should call interaction.handleInteract() on Space", () => {
+	it("should call host.handleInteract() on Space", () => {
 		const event = { code: "Space", preventDefault: vi.fn() };
 		eventMap.keydown?.(event);
 
 		expect(event.preventDefault).toHaveBeenCalled();
-		expect(host.interaction.handleInteract).toHaveBeenCalled();
+		expect(host.handleInteract).toHaveBeenCalled();
 	});
 
-	it("should call worldState.setPaused() on Escape", () => {
+	it("should call host.handlePause() on Escape", () => {
 		const event = { code: "Escape", preventDefault: vi.fn() };
 		eventMap.keydown?.(event);
 
 		expect(event.preventDefault).toHaveBeenCalled();
-		expect(context.worldState.setPaused).toHaveBeenCalledWith(true);
+		expect(host.handlePause).toHaveBeenCalled();
 	});
 
 	it("should use custom speed from options", () => {
 		const customController = new KeyboardController(host, {
-			...context,
 			speed: 5.0,
 		});
 		customController.hostConnected();
