@@ -27,33 +27,6 @@ import { DialogueGenerationService } from "../services/dialogue-generation-servi
  * @typedef {Object} AISession
  * @property {function(string): Promise<string>} prompt
  * @property {function(): void} destroy
- *
- * @typedef {Object} SpeechRecognitionAlternative
- * @property {string} transcript
- * @property {number} confidence
- *
- * @typedef {{ [index: number]: SpeechRecognitionAlternative, length: number, item(index: number): SpeechRecognitionAlternative, isFinal: boolean }} SpeechRecognitionResult
- *
- * @typedef {{ [index: number]: SpeechRecognitionResult, length: number, item(index: number): SpeechRecognitionResult }} SpeechRecognitionResultList
- *
- * @typedef {Object} SpeechRecognitionEvent
- * @property {SpeechRecognitionResultList} results
- *
- * @typedef {Object} SpeechRecognitionErrorEvent
- * @property {string} error
- * @property {string} message
- *
- * @typedef {Object} SpeechRecognition
- * @property {boolean} continuous
- * @property {boolean} interimResults
- * @property {string} lang
- * @property {function(): void} start
- * @property {function(): void} stop
- * @property {function(): void} abort
- * @property {((this: SpeechRecognition, ev: Event) => any) | null} onstart
- * @property {((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null} onresult
- * @property {((this: SpeechRecognition, ev: Event) => any) | null} onend
- * @property {((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null} onerror
  */
 
 /**
@@ -224,11 +197,9 @@ export class VoiceController {
 		if (this.recognition) return;
 
 		const SpeechRecognition =
-			// @ts-expect-error
 			window.SpeechRecognition || window.webkitSpeechRecognition;
 
 		if (SpeechRecognition) {
-			/** @type {SpeechRecognition} */
 			const recognition = new SpeechRecognition();
 			this.recognition = recognition;
 
@@ -245,8 +216,7 @@ export class VoiceController {
 				this.host.requestUpdate();
 			};
 
-			recognition.onresult = (/** @type {SpeechRecognitionEvent} */ event) =>
-				this.handleResult(event);
+			recognition.onresult = (event) => this.handleResult(event);
 
 			recognition.onend = () => {
 				this.isListening = false;
@@ -268,12 +238,9 @@ export class VoiceController {
 				}
 			};
 
-			recognition.onerror = (
-				/** @type {SpeechRecognitionErrorEvent} */ event,
-			) => {
-				const errorEvent = /** @type {SpeechRecognitionErrorEvent} */ (event);
-				this.logger?.error?.(`❌ Voice recognition error: ${errorEvent.error}`);
-				if (errorEvent.error === "not-allowed") {
+			recognition.onerror = (event) => {
+				this.logger?.error?.(`❌ Voice recognition error: ${event.error}`);
+				if (event.error === "not-allowed") {
 					this.isListening = false;
 					this.enabled = false;
 					this.host.requestUpdate();
@@ -339,7 +306,10 @@ export class VoiceController {
 		this.host.requestUpdate();
 	}
 
-	handleResult(/** @type {SpeechRecognitionEvent} */ event) {
+	/**
+	 * @param {SpeechRecognitionEvent} event
+	 */
+	handleResult(event) {
 		const last = event.results.length - 1;
 		if (last < 0) return;
 

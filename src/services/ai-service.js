@@ -45,20 +45,27 @@ export class AIService {
 	}
 
 	/**
+	 * Private getter for Chrome Built-in AI (Prompt API)
+	 * @returns {import('./interfaces.js').AILanguageModel | undefined}
+	 */
+	get #ai() {
+		// @ts-expect-error - Chrome Built-in AI experimental API
+		return window.ai?.languageModel;
+	}
+
+	/**
 	 * Check if Chrome Built-in AI is available
 	 * @returns {Promise<string>} Availability status
 	 */
 	async checkAvailability() {
 		try {
-			// @ts-expect-error - Chrome Built-in AI experimental API
-			const ai = window.ai?.languageModel || window.LanguageModel;
-			if (!ai) {
+			if (!this.#ai) {
 				logger.warn("Chrome Built-in AI not supported in this browser");
 				this.availabilityStatus = "no";
 				return "no";
 			}
 
-			const status = await ai.availability();
+			const status = await this.#ai.availability();
 			this.availabilityStatus = status;
 			this.isAvailable = status === "readily" || status === "available";
 
@@ -125,8 +132,9 @@ export class AIService {
 			logger.debug(
 				`🤖 Creating AI session "${sessionId}" with language: ${options.language}`,
 			);
-			// @ts-expect-error - experimental API LanguageModel
-			const ai = window.ai?.languageModel || window.LanguageModel;
+			if (!this.#ai) {
+				throw new Error("AI model API not available");
+			}
 
 			const { initialPrompts = [], ...rest } = options;
 			const systemPromptObj = initialPrompts.find((p) => p.role === "system");
@@ -137,7 +145,7 @@ export class AIService {
 				(p) => p.role !== "system",
 			);
 
-			const session = await ai.create({
+			const session = await this.#ai.create({
 				...rest,
 				systemPrompt,
 				initialPrompts: remainingPrompts,
@@ -169,9 +177,10 @@ export class AIService {
 		);
 
 		try {
-			// @ts-expect-error - experimental API LanguageModel
-			const ai = window.ai?.languageModel || window.LanguageModel;
-			const session = await ai.create({
+			if (!this.#ai) {
+				throw new Error("AI model API not available");
+			}
+			const session = await this.#ai.create({
 				language: options.language,
 				expectedOutputLanguage: options.language,
 				monitor: (/** @type {any} */ m) => {

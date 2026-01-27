@@ -6,23 +6,29 @@ import { logger } from "./logger-service.js";
  */
 export class VoiceSynthesisService {
 	constructor() {
-		/** @type {SpeechSynthesis} */
-		this.synthesis = window.speechSynthesis;
 		/** @type {SpeechSynthesisVoice[]} */
 		this.voices = [];
 		/** @type {boolean} */
 		this.isSpeaking = false;
 
-		if (this.synthesis) {
+		if (this.#synthesis) {
 			this.#loadVoices();
-			if (this.synthesis.onvoiceschanged !== undefined) {
-				this.synthesis.onvoiceschanged = () => this.#loadVoices();
+			if (this.#synthesis.onvoiceschanged !== undefined) {
+				this.#synthesis.onvoiceschanged = () => this.#loadVoices();
 			}
 		}
 	}
 
+	/**
+	 * Private getter for browser speechSynthesis
+	 * @returns {SpeechSynthesis | undefined}
+	 */
+	get #synthesis() {
+		return window.speechSynthesis;
+	}
+
 	#loadVoices() {
-		this.voices = this.synthesis.getVoices();
+		this.voices = this.#synthesis?.getVoices() || [];
 	}
 
 	/**
@@ -85,7 +91,7 @@ export class VoiceSynthesisService {
 				return;
 			}
 
-			if (!this.synthesis) {
+			if (!this.#synthesis) {
 				logger.warn(
 					"VoiceSynthesisService.speak: Speech synthesis not available",
 				);
@@ -107,7 +113,7 @@ export class VoiceSynthesisService {
 			this.isSpeaking = true;
 
 			if (!queue) {
-				this.synthesis.cancel();
+				this.#synthesis?.cancel();
 			}
 
 			const utterance = new SpeechSynthesisUtterance(text);
@@ -144,7 +150,7 @@ export class VoiceSynthesisService {
 				resolve(); // Resolve even on error to prevent hanging await
 			};
 
-			this.synthesis.speak(utterance);
+			this.#synthesis?.speak(utterance);
 		});
 	}
 
@@ -152,8 +158,8 @@ export class VoiceSynthesisService {
 	 * Cancel all ongoing speech
 	 */
 	cancel() {
-		if (this.synthesis) {
-			this.synthesis.cancel();
+		if (this.#synthesis) {
+			this.#synthesis.cancel();
 			this.isSpeaking = false;
 		}
 	}

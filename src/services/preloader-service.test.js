@@ -1,6 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PreloaderService } from "./preloader-service.js";
 
+// Mock Logger
+const { mockLogger } = vi.hoisted(() => ({
+	mockLogger: {
+		debug: vi.fn(),
+		info: vi.fn(),
+		warn: vi.fn(),
+		error: vi.fn(),
+	},
+}));
+
+vi.mock("./logger-service.js", () => ({
+	logger: mockLogger,
+}));
+
 describe("PreloaderService", () => {
 	/** @type {PreloaderService} */
 	let service;
@@ -44,16 +58,17 @@ describe("PreloaderService", () => {
 	it("should preload an image successfully", async () => {
 		const promise = service.preloadImage("valid-image.jpg");
 		await expect(promise).resolves.toBeUndefined();
+		expect(mockLogger.debug).toHaveBeenCalledWith(
+			expect.stringContaining("Loaded image: valid-image.jpg"),
+		);
 	});
 
 	it("should resolve gracefully even if image fails", async () => {
-		const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 		const promise = service.preloadImage("fail.jpg");
 		await expect(promise).resolves.toBeUndefined();
-		expect(consoleSpy).toHaveBeenCalledWith(
+		expect(mockLogger.warn).toHaveBeenCalledWith(
 			expect.stringContaining("Failed to preload"),
 		);
-		consoleSpy.mockRestore();
 	});
 
 	it("should preload multiple images", async () => {

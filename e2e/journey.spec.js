@@ -55,7 +55,6 @@ test.describe("Quest Journey E2E", () => {
 		// Move Hero close to NPC (using evaluate to access internal state for stability/speed)
 		await page.evaluate(() => {
 			const app = document.querySelector("legacys-end-app");
-			// @ts-expect-error
 			app.heroState.setPos(40, 54);
 		});
 
@@ -64,7 +63,6 @@ test.describe("Quest Journey E2E", () => {
 		await page.waitForFunction(
 			async () => {
 				const app = document.querySelector("legacys-end-app");
-				// @ts-expect-error
 				const viewport = app.shadowRoot
 					.querySelector("quest-view")
 					.shadowRoot.querySelector("game-viewport");
@@ -75,7 +73,6 @@ test.describe("Quest Journey E2E", () => {
 				}
 
 				// Check if dialog is open
-				// @ts-expect-error
 				return app.worldState.showDialog.get() === true;
 			},
 			null,
@@ -117,7 +114,6 @@ test.describe("Quest Journey E2E", () => {
 		// We can check the state via evaluate
 		const hasCollected = await page.evaluate(() => {
 			const app = document.querySelector("legacys-end-app");
-			// @ts-expect-error
 			return app.questState.hasCollectedItem.get();
 		});
 		expect(hasCollected).toBe(true);
@@ -126,11 +122,9 @@ test.describe("Quest Journey E2E", () => {
 		// Simulate reaching exit zone
 		await page.evaluate(() => {
 			const app = document.querySelector("legacys-end-app");
-			// @ts-expect-error
 			const viewport = app.shadowRoot
 				.querySelector("quest-view")
 				.shadowRoot.querySelector("game-viewport");
-			// @ts-expect-error
 			viewport.gameController.handleExitZoneReached();
 		});
 
@@ -140,7 +134,6 @@ test.describe("Quest Journey E2E", () => {
 		// Verify Chapter 2
 		const chapterId = await page.evaluate(() => {
 			const app = document.querySelector("legacys-end-app");
-			// @ts-expect-error
 			return app.questController.currentChapter.id;
 		});
 		expect(chapterId).toBe("hall-of-fragments");
@@ -151,7 +144,6 @@ test.describe("Quest Journey E2E", () => {
 		// --- 4. Return to Hub ---
 		await page.evaluate(async () => {
 			const app = document.querySelector("legacys-end-app");
-			// @ts-expect-error
 			await app.questController.returnToHub();
 		});
 
@@ -167,7 +159,6 @@ test.describe("Quest Journey E2E", () => {
 		// Verify still in Chapter 2
 		const chapterIdResumed = await page.evaluate(() => {
 			const app = document.querySelector("legacys-end-app");
-			// @ts-expect-error
 			return app.questController.currentChapter.id;
 		});
 		expect(chapterIdResumed).toBe("hall-of-fragments");
@@ -176,7 +167,6 @@ test.describe("Quest Journey E2E", () => {
 		// Hack state to "collected"
 		await page.evaluate(() => {
 			const app = document.querySelector("legacys-end-app");
-			// @ts-expect-error
 			app.questState.setHasCollectedItem(true);
 		});
 
@@ -185,11 +175,9 @@ test.describe("Quest Journey E2E", () => {
 		// Trigger Exit
 		await page.evaluate(() => {
 			const app = document.querySelector("legacys-end-app");
-			// @ts-expect-error
 			const viewport = app.shadowRoot
 				.querySelector("quest-view")
 				.shadowRoot.querySelector("game-viewport");
-			// @ts-expect-error
 			viewport.gameController.handleExitZoneReached();
 		});
 
@@ -212,7 +200,6 @@ test.describe("Quest Journey E2E", () => {
 
 		const isCompleted = await page.evaluate(() => {
 			const app = document.querySelector("legacys-end-app");
-			// @ts-expect-error
 			return app.questState.isQuestCompleted.get();
 		});
 		expect(isCompleted).toBe(true);

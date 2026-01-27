@@ -16,6 +16,14 @@ import { logger } from "./logger-service.js";
  */
 export class LocalStorageAdapter {
 	/**
+	 * Private getter for browser localStorage
+	 * @returns {Storage}
+	 */
+	get #storage() {
+		return window.localStorage;
+	}
+
+	/**
 	 * Get item from storage.
 	 * Parses JSON automatically.
 	 * @param {string} key - The key to retrieve
@@ -23,7 +31,7 @@ export class LocalStorageAdapter {
 	 */
 	getItem(key) {
 		try {
-			const item = localStorage.getItem(key);
+			const item = this.#storage.getItem(key);
 			return item ? JSON.parse(item) : null;
 		} catch (e) {
 			logger.error(`Error getting item ${key} from storage:`, e);
@@ -40,7 +48,7 @@ export class LocalStorageAdapter {
 	setItem(key, value) {
 		try {
 			const serialized = JSON.stringify(value);
-			localStorage.setItem(key, serialized);
+			this.#storage.setItem(key, serialized);
 		} catch (e) {
 			logger.error(`Error setting item ${key} in storage:`, e);
 		}
@@ -52,7 +60,7 @@ export class LocalStorageAdapter {
 	 */
 	removeItem(key) {
 		try {
-			localStorage.removeItem(key);
+			this.#storage.removeItem(key);
 		} catch (e) {
 			logger.error(`Error removing item ${key} from storage:`, e);
 		}
@@ -63,7 +71,7 @@ export class LocalStorageAdapter {
 	 */
 	clear() {
 		try {
-			localStorage.clear();
+			this.#storage.clear();
 		} catch (e) {
 			logger.error("Error clearing storage:", e);
 		}

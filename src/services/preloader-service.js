@@ -1,3 +1,5 @@
+import { logger } from "./logger-service.js";
+
 /**
  * Service responsible for preloading assets to ensure smooth transitions.
  */
@@ -9,16 +11,14 @@ export class PreloaderService {
 	 */
 	preloadImage(url) {
 		return new Promise((resolve, _reject) => {
-			const start = performance.now();
 			const img = new Image();
 			img.src = url;
 			img.onload = () => {
-				const duration = Math.round(performance.now() - start);
-				console.log(`[Perf] 🖼️ Loaded image: ${url} (${duration}ms)`);
+				logger.debug(`[Perf] 🖼️ Loaded image: ${url}`);
 				resolve();
 			};
 			img.onerror = () => {
-				console.warn(`[Perf] ❌ Failed to preload: ${url}`);
+				logger.warn(`[Perf] ❌ Failed to preload: ${url}`);
 				resolve();
 			};
 		});

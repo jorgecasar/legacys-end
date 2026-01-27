@@ -41,8 +41,7 @@ describe("VoiceSynthesisService", () => {
 	});
 
 	describe("Initialization", () => {
-		it("should initialize with synthesis and voices", () => {
-			expect(service.synthesis).toBe(speechSynthesisMock);
+		it("should initialize with voices", () => {
 			expect(service.voices).toHaveLength(4);
 			expect(service.isSpeaking).toBe(false);
 		});

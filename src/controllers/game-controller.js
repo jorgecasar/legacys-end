@@ -46,6 +46,28 @@ export class GameController {
 	#questController = null;
 
 	/**
+	 * Private getter for search params
+	 * @returns {URLSearchParams}
+	 */
+	get #searchParams() {
+		return new URLSearchParams(window.location.search);
+	}
+
+	/**
+	 * Private setter/getter for global game variable
+	 * @type {any}
+	 */
+	get #globalGame() {
+		// @ts-expect-error - window.game is a custom global for debugging
+		return window.game;
+	}
+
+	set #globalGame(value) {
+		// @ts-expect-error - window.game is a custom global for debugging
+		window.game = value;
+	}
+
+	/**
 	 * @param {ReactiveControllerHost} host
 	 * @param {GameControllerOptions} [options]
 	 */
@@ -56,7 +78,7 @@ export class GameController {
 			exposeToConsole: true,
 			...options,
 		};
-		this.isEnabled = new URLSearchParams(window.location.search).has("debug");
+		this.isEnabled = this.#searchParams.has("debug");
 		/** @type {boolean} */
 		this.isTransitioning = false;
 
@@ -113,8 +135,7 @@ export class GameController {
 			this.enableDebugMode();
 		}
 		if (this.options.exposeToConsole) {
-			// @ts-expect-error
-			window.game = this;
+			this.#globalGame = this;
 		}
 	}
 
