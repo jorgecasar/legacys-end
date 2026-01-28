@@ -33,6 +33,7 @@ import "./game-viewport.js";
 /** @typedef {import('../../services/theme-service.js').ThemeService} ThemeService */
 /** @typedef {import('../../services/ai-service.js').AIService} AIService */
 /** @typedef {import('../../services/voice-synthesis-service.js').VoiceSynthesisService} VoiceSynthesisService */
+/** @typedef {import('../viewport-elements/game-zone-indicator/GameZoneIndicator.js').GameZoneIndicator} GameZoneIndicator */
 
 /**
  * Test wrapper to provide contexts
@@ -403,10 +404,11 @@ describe("GameViewport", () => {
 			element.shadowRoot?.querySelectorAll("game-zone-indicator") || [],
 		);
 		const themeIndicator = indicators.find(
-			(el) => /** @type {any} */ (el).type === ZoneTypes.THEME_CHANGE,
+			(el) => el.type === ZoneTypes.THEME_CHANGE,
 		);
+
 		expect(themeIndicator).toBeTruthy();
-		expect(/** @type {any} */ (themeIndicator).zones).toEqual(zones);
+		expect(themeIndicator?.zones).toEqual(zones);
 	});
 
 	it("should switch to backgroundStyleReward when reward is collected", async () => {

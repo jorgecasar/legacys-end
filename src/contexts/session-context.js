@@ -1,3 +1,10 @@
 import { createContext } from "@lit/context";
 
-export const sessionContext = createContext("session");
+/**
+ * @typedef {import("../services/interfaces.js").ISessionService} ISessionService
+ */
+
+/**
+ * @type {import('@lit/context').Context<symbol, ISessionService>}
+ */
+export const sessionContext = createContext(Symbol("session"));

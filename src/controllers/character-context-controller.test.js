@@ -29,9 +29,6 @@ describe("CharacterContextController", () => {
 	let host;
 	/** @type {CharacterContextController} */
 	let controller;
-	/** @type {any} */
-	let characterProvider;
-
 	// Mock context states
 	/** @type {any} */
 	let mockHeroState;
@@ -51,8 +48,8 @@ describe("CharacterContextController", () => {
 			removeController: vi.fn(),
 			requestUpdate: vi.fn(),
 			updateComplete: Promise.resolve(true),
+			characterProvider: { setValue: vi.fn() },
 		};
-		characterProvider = { setValue: vi.fn() };
 
 		mockHeroState = {
 			hotSwitchState: new Signal.State(HotSwitchStates.LEGACY),
@@ -78,8 +75,8 @@ describe("CharacterContextController", () => {
 		};
 	});
 
-	const initController = (options = {}) => {
-		controller = new CharacterContextController(host, options);
+	const initController = () => {
+		controller = new CharacterContextController(host);
 
 		// Manual injection via the stored callbacks from the mock ContextConsumer
 		const callbacks = Array.from(contextMocks.values());
@@ -105,10 +102,13 @@ describe("CharacterContextController", () => {
 				},
 			};
 
-			initController({ characterProvider });
+			initController();
 			controller.hostUpdate();
 
-			expect(characterProvider.setValue).toHaveBeenCalledWith(
+			initController();
+			controller.hostUpdate();
+
+			expect(host.characterProvider.setValue).toHaveBeenCalledWith(
 				expect.objectContaining({
 					suit: { image: "/assets/level_1/hero.png" },
 				}),
@@ -125,10 +125,13 @@ describe("CharacterContextController", () => {
 			};
 			mockQuestState.isRewardCollected.set(true);
 
-			initController({ characterProvider });
+			initController();
 			controller.hostUpdate();
 
-			expect(characterProvider.setValue).toHaveBeenCalledWith(
+			initController();
+			controller.hostUpdate();
+
+			expect(host.characterProvider.setValue).toHaveBeenCalledWith(
 				expect.objectContaining({
 					suit: { image: "/assets/level_1/hero-reward.png" },
 				}),
@@ -142,10 +145,13 @@ describe("CharacterContextController", () => {
 			};
 			mockQuestState.hasCollectedItem.set(true);
 
-			initController({ characterProvider });
+			initController();
 			controller.hostUpdate();
 
-			expect(characterProvider.setValue).toHaveBeenCalledWith(
+			initController();
+			controller.hostUpdate();
+
+			expect(host.characterProvider.setValue).toHaveBeenCalledWith(
 				expect.objectContaining({
 					gear: { image: "/assets/level_2/reward.png" },
 				}),
@@ -159,10 +165,13 @@ describe("CharacterContextController", () => {
 			};
 			mockQuestState.hasCollectedItem.set(false);
 
-			initController({ characterProvider });
+			initController();
 			controller.hostUpdate();
 
-			expect(characterProvider.setValue).toHaveBeenCalledWith(
+			initController();
+			controller.hostUpdate();
+
+			expect(host.characterProvider.setValue).toHaveBeenCalledWith(
 				expect.objectContaining({
 					gear: { image: null },
 				}),
@@ -173,10 +182,13 @@ describe("CharacterContextController", () => {
 			mockHeroState.hotSwitchState.set(HotSwitchStates.NEW);
 			mockThemeService.themeMode.get.mockReturnValue(ThemeModes.DARK);
 
-			initController({ characterProvider });
+			initController();
 			controller.hostUpdate();
 
-			expect(characterProvider.setValue).toHaveBeenCalledWith(
+			initController();
+			controller.hostUpdate();
+
+			expect(host.characterProvider.setValue).toHaveBeenCalledWith(
 				expect.objectContaining({
 					power: {
 						effect: "stable",
@@ -184,11 +196,6 @@ describe("CharacterContextController", () => {
 					},
 				}),
 			);
-		});
-
-		it("should not crash if characterProvider is missing", () => {
-			initController();
-			expect(() => controller.hostUpdate()).not.toThrow();
 		});
 	});
 });

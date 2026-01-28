@@ -1,6 +1,10 @@
 import { createContext } from "@lit/context";
 
 /**
- * @type {import("@lit/context").Context<symbol, import("../services/interfaces.js").IQuestController>}
+ * @typedef {import("../services/interfaces.js").IQuestController} IQuestController
+ */
+
+/**
+ * @type {import("@lit/context").Context<symbol, IQuestController>}
  */
 export const questControllerContext = createContext(Symbol("quest-controller"));

@@ -9,10 +9,11 @@
  */
 
 /**
- * @typedef {Object} HostWithCallbacks
- * @property {(dx: number, dy: number) => void} [handleMove] - Movement callback
- * @property {() => void} [handleInteract] - Interaction callback
- * @property {() => void} [handlePause] - Pause callback
+ * @typedef {ReactiveControllerHost & {
+ * 	handleMove?: (dx: number, dy: number) => void,
+ * 	handleInteract?: () => void,
+ * 	handlePause?: () => void
+ * }} HostWithCallbacks
  */
 
 /**
@@ -27,11 +28,11 @@
  */
 export class KeyboardController {
 	/**
-	 * @param {ReactiveControllerHost} host
-	 * @param {Partial<KeyboardOptions>} [options]
+	 * @param {HostWithCallbacks} host
+	 * @param {KeyboardOptions} [options]
 	 */
 	constructor(host, options = {}) {
-		/** @type {ReactiveControllerHost} */
+		/** @type {HostWithCallbacks} */
 		this.host = host;
 		this.options = {
 			speed: 2.5,
@@ -95,12 +96,26 @@ export class KeyboardController {
 	/**
 	 * Safely call a method on the host if it exists
 	 * @param {keyof HostWithCallbacks} methodName
-	 * @param {...any} args
+	 * @param {...unknown} args
 	 */
 	#callHostMethod(methodName, ...args) {
-		const host = /** @type {any} */ (this.host);
-		if (typeof host[methodName] === "function") {
-			host[methodName](...args);
+		const host = /** @type {HostWithCallbacks} */ (this.host);
+
+		if (methodName === "handleMove") {
+			host.handleMove?.(
+				/** @type {number} */ (args[0]),
+				/** @type {number} */ (args[1]),
+			);
+			return;
+		}
+
+		if (methodName === "handleInteract") {
+			host.handleInteract?.();
+			return;
+		}
+
+		if (methodName === "handlePause") {
+			host.handlePause?.();
 		}
 	}
 }

@@ -9,6 +9,11 @@ export const levelDialogStyles = [
     }
 
     /* Customizing wa-dialog */
+    wa-dialog {
+        --width: 80ch;
+        --body-spacing: 0;
+    }
+
     wa-dialog::part(panel) {
         width: 100vw;
         height: 100vh;

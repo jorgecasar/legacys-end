@@ -22,6 +22,7 @@
 		"localize:build": "lit-localize build",
 		"size": "npm run build && size-limit",
 		"analyze": "ANALYZE=true npm run build",
+		"analyze:cem": "custom-elements-manifest analyze",
 		"prepare": "husky || true"
 	},
 	"size-limit": [
@@ -48,6 +49,7 @@
 		"@biomejs/biome": "^2.0.8",
 		"@commitlint/cli": "^20.2.0",
 		"@commitlint/config-conventional": "^20.2.0",
+		"@custom-elements-manifest/analyzer": "^0.11.0",
 		"@lit-labs/rollup-plugin-minify-html-literals": "^0.1.1",
 		"@lit/localize-tools": "^0.7.2",
 		"@playwright/test": "^1.57.0",
@@ -73,5 +75,6 @@
 		"vite-plugin-babel": "^1.4.1",
 		"vite-plugin-image-optimizer": "^2.0.3",
 		"vitest": "^4.0.15"
-	}
+	},
+	"customElements": "custom-elements.json"
 }

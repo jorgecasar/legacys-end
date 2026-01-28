@@ -35,7 +35,15 @@ export class LocalizationService {
 						es: () => import("../generated/locales/es.js"),
 					};
 					const loader = loaders[locale];
-					return loader ? loader() : Promise.resolve(/** @type {any} */ ({}));
+					return loader
+						? loader()
+						: Promise.resolve(
+								/** @type {import('@lit/localize').LocaleModule} */ (
+									/** @type {unknown} */ ({
+										templates: {},
+									})
+								),
+							);
 				},
 			});
 		}

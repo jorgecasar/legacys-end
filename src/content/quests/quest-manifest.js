@@ -177,6 +177,6 @@ export const getQuestManifest = () => {
 			}
 			return acc;
 		},
-		/** @type {Record<string, any>} */ ({}),
+		/** @type {Record<string, QuestMetadata>} */ ({}),
 	);
 };

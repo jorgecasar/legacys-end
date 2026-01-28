@@ -50,7 +50,7 @@
  * @property {() => void} resetProgress - Reset all progress
  * @property {(questId: string) => void} resetQuestProgress - Reset specific quest
  * @property {(questId: string|null, chapterId: string|null) => void} setCurrentQuest - Set active quest/chapter
- * @property {(chapterId: string, state: JsonValue) => void} setChapterState - Update chapter state
+ * @property {(chapterId: string, state: Record<string, JsonValue>) => void} setChapterState - Update chapter state
  * @property {(chapterId: string) => JsonValue} getChapterState - Get chapter state
  * @property {(chapterId: string) => void} completeChapter - Mark chapter complete
  * @property {(questId: string) => void} completeQuest - Mark quest complete

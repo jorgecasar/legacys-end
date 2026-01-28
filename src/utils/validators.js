@@ -37,15 +37,20 @@ const createValidationResult = (errors) => ({
 
 /**
  * Helper to convert a ValidationResult to a Result
+ * @template T
  * @param {ValidationResult} validation
- * @param {any} value
- * @returns {Result}
+ * @param {T} value
+ * @returns {Result<T, ValidationError[]>}
  */
 const toResult = (validation, value) => {
 	if (validation.isValid) {
-		return Result.Ok(value);
+		return /** @type {Result<T, ValidationError[]>} */ (
+			/** @type {unknown} */ (Result.Ok(value))
+		);
 	}
-	return Result.Err(validation.errors);
+	return /** @type {Result<T, ValidationError[]>} */ (
+		Result.Err(validation.errors)
+	);
 };
 
 /**
@@ -96,7 +101,7 @@ export const PositionValidator = {
 	 * Validate position and return Result
 	 * @param {number} x
 	 * @param {number} y
-	 * @returns {Result}
+	 * @returns {Result<{x: number, y: number}, ValidationError[]>}
 	 */
 	validateResult(x, y) {
 		return toResult(this.validate(x, y), { x, y });
@@ -141,7 +146,7 @@ export const ThemeModeValidator = {
 	/**
 	 * Validate theme mode and return Result
 	 * @param {ThemeMode} mode
-	 * @returns {Result}
+	 * @returns {Result<ThemeMode, ValidationError[]>}
 	 */
 	validateResult(mode) {
 		return toResult(this.validate(mode), mode);
@@ -186,7 +191,7 @@ export const HotSwitchStateValidator = {
 	/**
 	 * Validate hot switch state and return Result
 	 * @param {HotSwitchState} state
-	 * @returns {Result}
+	 * @returns {Result<HotSwitchState, ValidationError[]>}
 	 */
 	validateResult(state) {
 		return toResult(this.validate(state), state);
@@ -232,7 +237,7 @@ export const QuestIdValidator = {
 	/**
 	 * Validate quest ID and return Result
 	 * @param {string} questId
-	 * @returns {Result}
+	 * @returns {Result<string, ValidationError[]>}
 	 */
 	validateResult(questId) {
 		return toResult(this.validate(questId), questId);
@@ -255,7 +260,7 @@ export const CompositeValidator = {
 
 	/**
 	 * Validate an object against a schema
-	 * @param {Record<string, any>} obj - Object to validate
+	 * @param {Record<string, unknown>} obj - Object to validate
 	 * @param {Record<string, (value: unknown) => ValidationResult>} schema - Validation schema
 	 * @returns {ValidationResult}
 	 */

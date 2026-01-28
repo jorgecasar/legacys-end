@@ -58,7 +58,7 @@ export const getOrbOfInquiryChapters = () => ({
 			],
 		},
 		stats: { maintainability: 45, portability: 50 },
-		serviceType: /** @type {any} */ (null),
+		serviceType: null,
 		startPos: { x: 5, y: 50 },
 		exitZone: {
 			x: 95,
@@ -157,7 +157,7 @@ export class ProductProviderLegacy extends LitElement {
 			],
 		},
 		stats: { maintainability: 80, portability: 80 },
-		serviceType: /** @type {any} */ (null),
+		serviceType: null,
 		startPos: { x: 50, y: 10 },
 		exitZone: {
 			x: 50,
@@ -256,7 +256,7 @@ export class ProductItem extends LitElement {
 			],
 		},
 		stats: { maintainability: 85, portability: 85 },
-		serviceType: /** @type {any} */ (null),
+		serviceType: null,
 		startPos: { x: 50, y: 10 },
 		exitZone: {
 			x: 50,
@@ -446,7 +446,7 @@ export class ProductProviderMock extends LitElement {
 			],
 		},
 		stats: { maintainability: 100, portability: 100 },
-		serviceType: /** @type {any} */ (null),
+		serviceType: null,
 		startPos: { x: 95, y: 30 },
 		exitZone: { x: 50, y: 10, width: 20, height: 10, label: msg("Victory") },
 		backgroundStyleReward: `url('/assets/liberated-battlefield/background_end.png')`,

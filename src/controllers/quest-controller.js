@@ -653,8 +653,10 @@ export class QuestController {
 		}
 
 		if (this.#progressService && this.#state) {
-			const state = /** @type {any} */ (
-				this.#progressService.getChapterState(chapter.id)
+			const state = /** @type {{ hasCollectedItem: boolean } | null} */ (
+				/** @type {unknown} */ (
+					this.#progressService.getChapterState(chapter.id)
+				)
 			);
 			if (state?.hasCollectedItem) {
 				this.#state.setHasCollectedItem(true);

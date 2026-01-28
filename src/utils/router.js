@@ -3,7 +3,7 @@
  */
 /**
  * @callback RouteCallback
- * @param {any} params
+ * @param {Record<string, string>} params
  * @returns {void}
  */
 

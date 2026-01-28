@@ -404,9 +404,8 @@ export class LevelDialog extends LitElement {
 
 		return html`
 			<wa-dialog 
-				label="${/** @type {any} */ (config?.title ?? "")}" 
+				.label="${config?.title || ""}" 
 				open
-				style="--width: 80ch; --body-spacing: 0;"
 				@wa-request-close="${(/** @type {Event} */ e) => e.preventDefault()}"
 				@wa-after-hide="${this.#dispatchClose}"
 			>

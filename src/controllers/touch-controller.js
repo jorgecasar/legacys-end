@@ -236,9 +236,11 @@ export class TouchController {
 	 * @param {...any} args
 	 */
 	#callHostMethod(methodName, ...args) {
-		const host = /** @type {any} */ (this.host);
+		const host = /** @type {HostWithCallbacks} */ (
+			/** @type {unknown} */ (this.host)
+		);
 		if (typeof host[methodName] === "function") {
-			host[methodName](...args);
+			/** @type {Function} */ (host[methodName])(...args);
 		}
 	}
 

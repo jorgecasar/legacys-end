@@ -1,6 +1,10 @@
 import { createContext } from "@lit/context";
 
 /**
- * @type {import("@lit/context").Context<symbol, import("../services/interfaces.js").IAIService>}
+ * @typedef {import("../services/interfaces.js").IAIService} IAIService
+ */
+
+/**
+ * @type {import("@lit/context").Context<symbol, IAIService>}
  */
 export const aiContext = createContext(Symbol("ai-service"));

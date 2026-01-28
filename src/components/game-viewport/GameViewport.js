@@ -35,6 +35,20 @@ import { UIEvents } from "../../core/events.js";
 import { gameViewportStyles } from "./GameViewport.styles.js";
 
 /**
+ * @typedef {import('../../content/quests/quest-types.js').LevelConfig} LevelConfig
+ * @typedef {import('../../content/quests/quest-types.js').Rect} Rect
+ * @typedef {import('../../game/interfaces.js').IHeroStateService} IHeroStateService
+ * @typedef {import('../../contexts/dialog-context.js').DialogState} DialogState
+ * @typedef {import('../../game/interfaces.js').IQuestStateService} IQuestStateService
+ * @typedef {import('../../game/interfaces.js').IWorldStateService} IWorldStateService
+ * @typedef {import('../../services/interfaces.js').IQuestController} IQuestController
+ * @typedef {import('../../services/interfaces.js').ISessionService} ISessionService
+ * @typedef {import('../../services/interfaces.js').ILocalizationService} ILocalizationService
+ * @typedef {import('../../services/interfaces.js').IThemeService} IThemeService
+ * @typedef {import('lit').PropertyValues} PropertyValues
+ */
+
+/**
  * @element game-viewport
  * @extends {LitElement}
  */
@@ -43,14 +57,13 @@ export class GameViewport extends SignalWatcher(
 		LitElement
 	),
 ) {
-	/** @type {import('../../game/interfaces.js').IHeroStateService} */
+	/** @type {IHeroStateService} */
 	@consume({ context: heroStateContext, subscribe: true })
-	accessor heroState =
-		/** @type {import('../../game/interfaces.js').IHeroStateService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor heroState = /** @type {IHeroStateService} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../contexts/dialog-context.js').DialogState} */
+	/** @type {DialogState} */
 	@provide({ context: dialogStateContext })
 	accessor dialogState = {
 		isDialogOpen: false,
@@ -61,47 +74,43 @@ export class GameViewport extends SignalWatcher(
 		currentDialogText: null,
 	};
 
-	/** @type {import('../../game/interfaces.js').IQuestStateService} */
+	/** @type {IQuestStateService} */
 	@consume({ context: questStateContext, subscribe: true })
-	accessor questState =
-		/** @type {import('../../game/interfaces.js').IQuestStateService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor questState = /** @type {IQuestStateService} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../game/interfaces.js').IWorldStateService} */
+	/** @type {IWorldStateService} */
 	@consume({ context: worldStateContext, subscribe: true })
-	accessor worldState =
-		/** @type {import('../../game/interfaces.js').IWorldStateService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor worldState = /** @type {IWorldStateService} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../services/interfaces.js').IQuestController} */
+	/** @type {IQuestController} */
 	@consume({ context: questControllerContext, subscribe: true })
-	accessor questController =
-		/** @type {import('../../services/interfaces.js').IQuestController} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor questController = /** @type {IQuestController} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../services/session-service.js').SessionService} */
+	/** @type {ISessionService} */
 	@consume({ context: sessionContext, subscribe: true })
-	accessor sessionService =
-		/** @type {import('../../services/session-service.js').SessionService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor sessionService = /** @type {ISessionService} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../services/interfaces.js').ILocalizationService} */
+	/** @type {ILocalizationService} */
 	@consume({ context: localizationContext, subscribe: true })
-	accessor localizationService =
-		/** @type {import('../../services/interfaces.js').ILocalizationService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor localizationService = /** @type {ILocalizationService} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../services/interfaces.js').IThemeService} */
+	/** @type {IThemeService} */
 	@consume({ context: themeContext, subscribe: true })
-	accessor themeService =
-		/** @type {import('../../services/interfaces.js').IThemeService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor themeService = /** @type {IThemeService} */ (
+		/** @type {unknown} */ (null)
+	);
+
+	gameController = new GameController(this);
 
 	/** @override */
 	static properties = {
@@ -123,14 +132,12 @@ export class GameViewport extends SignalWatcher(
 		this._controllersInitialized = false;
 		this._autoMoveRequestId = null;
 
-		/** @type {import('../../controllers/collision-controller.js').CollisionController | null} */
+		/** @type {CollisionController | null} */
 		this.collision = null;
-		/** @type {import('../../controllers/game-zone-controller.js').GameZoneController | null} */
+		/** @type {GameZoneController | null} */
 		this.zones = null;
-		/** @type {import('../../controllers/interaction-controller.js').InteractionController | null} */
+		/** @type {InteractionController | null} */
 		this.interaction = null;
-		/** @type {import('../../controllers/game-controller.js').GameController | null} */
-		this.gameController = null;
 	}
 
 	/**
@@ -195,8 +202,6 @@ export class GameViewport extends SignalWatcher(
 		this.interaction = new InteractionController(this, {
 			interactWithNpcUseCase: new InteractWithNpcUseCase(),
 		});
-
-		this.gameController = new GameController(this);
 	}
 
 	/**
@@ -219,9 +224,7 @@ export class GameViewport extends SignalWatcher(
 		// Handle collision detection
 		const chapter = this.questController?.currentChapter;
 		const isColliding = chapter?.obstacles?.some(
-			(
-				/** @type {import('../../content/quests/quest-types.js').Rect} */ obstacle,
-			) =>
+			(/** @type {Rect} */ obstacle) =>
 				this.collision?.checkAABB(
 					{ x: nextX, y: nextY, width: 5, height: 5 },
 					obstacle,
@@ -329,7 +332,7 @@ export class GameViewport extends SignalWatcher(
 	}
 
 	/**
-	 * @param {import("lit").PropertyValues<this>} changedProperties
+	 * @param {PropertyValues} changedProperties
 	 * @override
 	 */
 	willUpdate(changedProperties) {
@@ -395,13 +398,13 @@ export class GameViewport extends SignalWatcher(
 	render() {
 		if (!this.questState || !this.questController) return nothing;
 
-		/** @type {any} */
-		const config = this.questController.currentChapter || {};
-		let backgroundStyle = config.backgroundStyle || "";
+		/** @type {LevelConfig | null} */
+		const config = this.questController.currentChapter;
+		let backgroundStyle = config?.backgroundStyle || "";
 
 		if (
 			this.questState.isRewardCollected.get() &&
-			config.backgroundStyleReward
+			config?.backgroundStyleReward
 		) {
 			backgroundStyle = config.backgroundStyleReward;
 		}
@@ -427,12 +430,12 @@ export class GameViewport extends SignalWatcher(
 				}
 				<game-zone-indicator 
 					.type="${ZoneTypes.THEME_CHANGE}"
-					.zones="${config.zones || []}"
+					.zones="${config?.zones}"
 				></game-zone-indicator>
 
 				<game-zone-indicator 
 					.type="${ZoneTypes.CONTEXT_CHANGE}"
-					.zones="${config.zones || []}"
+					.zones="${config?.zones}"
 				></game-zone-indicator>
 
 				<game-exit-zone></game-exit-zone>

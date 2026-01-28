@@ -42,11 +42,12 @@ export class HeroProfile extends SignalWatcher(
 			/** @type {unknown} */ (null)
 		);
 
-	/** @type {ProfileData} */
+	/** @type {import('../../contexts/profile-context.js').Profile} */
 	@consume({ context: profileContext, subscribe: true })
-	accessor profileData = /** @type {ProfileData} */ (
-		/** @type {unknown} */ (null)
-	);
+	accessor profileData =
+		/** @type {import('../../contexts/profile-context.js').Profile} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @type {import('../../services/interfaces.js').IThemeService} */
 	@consume({ context: themeContext, subscribe: true })
@@ -55,9 +56,12 @@ export class HeroProfile extends SignalWatcher(
 			/** @type {unknown} */ (null)
 		);
 
-	/** @type {SuitData} */
+	/** @type {import('../../contexts/character-context.js').CharacterContext} */
 	@consume({ context: characterContext, subscribe: true })
-	accessor suitData = /** @type {SuitData} */ (/** @type {unknown} */ (null));
+	accessor suitData =
+		/** @type {import('../../contexts/character-context.js').CharacterContext} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @override */
 	static properties = {
@@ -148,11 +152,11 @@ export class HeroProfile extends SignalWatcher(
 		return html`
         <!-- Character Image -->
         ${
-					this.suitData?.image || imageSrc
+					this.suitData?.suit?.image || imageSrc
 						? html`
             <img 
-							src="${ifDefined(processImagePath(this.suitData?.image || imageSrc))}" 
-							srcset="${ifDefined(processImageSrcset(this.suitData?.image || imageSrc))}"
+							src="${ifDefined(processImagePath(this.suitData?.suit?.image || imageSrc))}" 
+							srcset="${ifDefined(processImageSrcset(this.suitData?.suit?.image || imageSrc))}"
 							sizes="15vw"
 							class="character-img" 
 							alt="Alarion" 

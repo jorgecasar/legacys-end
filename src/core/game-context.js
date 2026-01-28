@@ -8,17 +8,12 @@
  * @property {import('../game/interfaces.js').IHeroStateService} heroState
  * @property {import('../game/interfaces.js').IQuestStateService} questState
  * @property {import('../game/interfaces.js').IWorldStateService} worldState
- * @property {any} [gameService]
  * @property {import("../utils/router.js").Router} [router]
  * @property {import("../services/storage-service.js").LocalStorageAdapter} [storageAdapter]
- * @property {import('../services/interfaces.js').IInteractionController | null} [interaction]
- * @property {any} [serviceController]
- * @property {any} [characterContexts]
- * @property {Record<string, any>} [services]
+ * @property {import('../services/user-api-client.js').UserApiClients} [services]
  * @property {import('../services/preloader-service.js').PreloaderService} [preloader]
  * @property {import('../services/quest-registry-service.js').QuestRegistryService} [registry]
  * @property {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} [evaluateChapterTransition]
- * @property {import('../services/ai-service.js').AIService} [aiService]
  * @property {import('../services/voice-synthesis-service.js').VoiceSynthesisService} [voiceSynthesisService]
  * @property {import('../services/localization-service.js').LocalizationService} [localizationService]
  * @property {import('../services/theme-service.js').ThemeService} [themeService]

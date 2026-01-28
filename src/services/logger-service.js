@@ -57,7 +57,7 @@ export class LoggerService {
 	/**
 	 * Log a debug message (lowest priority).
 	 * @param {string} message - The message to log
-	 * @param {...any} args - Additional arguments to log
+	 * @param {...unknown} args - Additional arguments to log
 	 */
 	debug(message, ...args) {
 		if (this.shouldLog("debug")) {
@@ -68,7 +68,7 @@ export class LoggerService {
 	/**
 	 * Log an info message.
 	 * @param {string} message - The message to log
-	 * @param {...any} args - Additional arguments to log
+	 * @param {...unknown} args - Additional arguments to log
 	 */
 	info(message, ...args) {
 		if (this.shouldLog("info")) {
@@ -79,7 +79,7 @@ export class LoggerService {
 	/**
 	 * Log a warning message.
 	 * @param {string} message - The message to log
-	 * @param {...any} args - Additional arguments to log
+	 * @param {...unknown} args - Additional arguments to log
 	 */
 	warn(message, ...args) {
 		if (this.shouldLog("warn")) {
@@ -90,7 +90,7 @@ export class LoggerService {
 	/**
 	 * Log an error message (highest priority).
 	 * @param {string} message - The message to log
-	 * @param {...any} args - Additional arguments to log
+	 * @param {...unknown} args - Additional arguments to log
 	 */
 	error(message, ...args) {
 		if (this.shouldLog("error")) {

@@ -105,25 +105,48 @@ describe("ServiceController", () => {
 			removeController: vi.fn(),
 			requestUpdate: vi.fn(),
 			updateComplete: Promise.resolve(true),
+			profileProvider: profileProvider,
 		};
 	});
 
-	const initController = (options = {}) => {
-		controller = new ServiceController(host, options);
+	const initController = () => {
+		controller = new ServiceController(host);
 
-		// Manual injection via the stored callbacks from the mock ContextConsumer
+		// Manually trigger context callbacks
 		const callbacks = Array.from(contextMocks.values());
-		// heroState, questController, apiClients
 		if (callbacks[0]) callbacks[0](mockHeroState);
 		if (callbacks[1]) callbacks[1](mockQuestController);
 		if (callbacks[2]) callbacks[2](mockApiClients);
 	};
 
-	it("should initialize correctly", () => {
+	it("should initialize and add controller to host", () => {
 		initController();
 		expect(host.addController).toHaveBeenCalledWith(controller);
-		expect(controller.userTask).toBeDefined();
-		expect(controller.userTask.status).toBe(TaskStatus.INITIAL);
+	});
+
+	it("should fetch user data when task runs", async () => {
+		initController();
+		await controller.userTask.run([mockApiClients.legacy]);
+
+		expect(mockApiClients.legacy.fetchUserData).toHaveBeenCalledWith(1);
+	});
+
+	it("should update profile context on host update", async () => {
+		initController();
+
+		// Run the task to fetch user data
+		await controller.userTask.run([mockApiClients.legacy]);
+
+		// Trigger host update to update the profile context
+		controller.hostUpdate();
+
+		expect(host.profileProvider.setValue).toHaveBeenCalledWith(
+			expect.objectContaining({
+				name: "Legacy User",
+				role: "developer",
+				serviceName: "legacy",
+			}),
+		);
 	});
 
 	describe("getActiveService", () => {
@@ -165,7 +188,7 @@ describe("ServiceController", () => {
 
 	describe("Task Execution", () => {
 		it("should fetch user data when service is active", async () => {
-			initController({ profileProvider });
+			initController();
 
 			// Trigger task update logic
 			await controller.userTask.run();
@@ -180,7 +203,7 @@ describe("ServiceController", () => {
 		});
 
 		it("should update profile context on hostUpdate", async () => {
-			initController({ profileProvider });
+			initController();
 			await controller.userTask.run();
 
 			controller.hostUpdate();
@@ -198,7 +221,7 @@ describe("ServiceController", () => {
 
 		it("should handle errors", async () => {
 			legacyService.fetchUserData.mockRejectedValue(new Error("Network error"));
-			initController({ profileProvider });
+			initController();
 
 			try {
 				await controller.userTask.run();
@@ -220,7 +243,7 @@ describe("ServiceController", () => {
 
 	describe("updateProfileContext", () => {
 		it("should update profile context with pending state", async () => {
-			initController({ profileProvider });
+			initController();
 
 			expect(controller.userTask.status).toBe(TaskStatus.INITIAL);
 			controller.hostUpdate();

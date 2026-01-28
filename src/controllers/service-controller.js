@@ -22,8 +22,7 @@ import { ServiceType } from "../services/user-api-client.js";
  */
 
 /**
- * @typedef {Object} ServiceControllerOptions
- * @property {import('@lit/context').ContextProvider<any, any> | null} [profileProvider] - Profile context provider
+ * @typedef {import("lit").ReactiveElement & { profileProvider: import('@lit/context').ContextProvider<any, any> | null }} HostWithProfileProvider
  */
 
 /**
@@ -46,16 +45,10 @@ export class ServiceController {
 
 	/**
 	 * @param {ReactiveControllerHost} host
-	 * @param {Partial<ServiceControllerOptions>} [options]
 	 */
-	constructor(host, options = {}) {
+	constructor(host) {
 		/** @type {ReactiveControllerHost} */
 		this.host = host;
-		/** @type {ServiceControllerOptions} */
-		this.options = {
-			profileProvider: null,
-			...options,
-		};
 
 		const hostElement = /** @type {ReactiveElement} */ (
 			/** @type {unknown} */ (this.host)
@@ -118,7 +111,11 @@ export class ServiceController {
 	 * Update profile context with current task state
 	 */
 	#updateProfileContext() {
-		if (!this.options.profileProvider) return;
+		const host = /** @type {HostWithProfileProvider} */ (
+			/** @type {unknown} */ (this.host)
+		);
+
+		if (!host.profileProvider) return;
 
 		const status = this.userTask.status;
 		const error = this.userTask.error;
@@ -129,7 +126,7 @@ export class ServiceController {
 			this.#heroState?.hotSwitchState.get(),
 		);
 
-		this.options.profileProvider.setValue({
+		host.profileProvider.setValue({
 			name: value?.name,
 			role: value?.role,
 			loading: status === TaskStatus.PENDING || status === TaskStatus.INITIAL,

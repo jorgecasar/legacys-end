@@ -149,7 +149,7 @@ export class GameZoneController {
 		// Handle THEME_CHANGE (Last one wins if multiple)
 		const themeChange = [...results]
 			.reverse()
-			.find((/** @type {any} */ r) => r.type === ZoneTypes.THEME_CHANGE);
+			.find((r) => r.type === ZoneTypes.THEME_CHANGE);
 		if (themeChange && this.#themeService) {
 			this.#themeService.setTheme(themeChange.payload);
 		}
@@ -157,7 +157,7 @@ export class GameZoneController {
 		// Handle CONTEXT_CHANGE (Last one wins if multiple)
 		const contextChange = [...results]
 			.reverse()
-			.find((/** @type {any} */ r) => r.type === ZoneTypes.CONTEXT_CHANGE);
+			.find((r) => r.type === ZoneTypes.CONTEXT_CHANGE);
 		if (contextChange && this.#heroState) {
 			const currentContext = this.#heroState.hotSwitchState.get();
 			if (currentContext !== contextChange.payload) {

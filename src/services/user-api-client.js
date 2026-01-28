@@ -24,6 +24,13 @@ export const ServiceType = {
  * @property {function(): string} getServiceName
  */
 
+/**
+ * @typedef {Object} UserApiClients
+ * @property {IUserApiClient} [legacy]
+ * @property {IUserApiClient} [mock]
+ * @property {IUserApiClient} [new]
+ */
+
 /** @param {number} ms */
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 

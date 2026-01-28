@@ -1,6 +1,10 @@
 import { createContext } from "@lit/context";
 
 /**
- * @type {import("@lit/context").Context<symbol, import("../services/interfaces.js").IThemeService>}
+ * @typedef {import("../services/interfaces.js").IThemeService} IThemeService
+ */
+
+/**
+ * @type {import("@lit/context").Context<symbol, IThemeService>}
  */
 export const themeContext = createContext(Symbol("theme-service"));

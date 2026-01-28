@@ -11,5 +11,5 @@ import { createContext } from "@lit/context";
  * @property {string|null} [nextDialogText] - The pre-fetched next dialog text
  */
 
-/** @type {import('@lit/context').Context<any, DialogState>} */
-export const dialogStateContext = createContext("dialog-state");
+/** @type {import('@lit/context').Context<symbol, DialogState>} */
+export const dialogStateContext = createContext(Symbol("dialog-state"));

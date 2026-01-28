@@ -59,14 +59,14 @@ describe("LegacysEndApp Integration", () => {
 
 		// 4. Verify initial state
 		// 4. Verify initial state
-		expect(/** @type {any} */ (element).isLoading).toBe(false);
+		expect(element.isLoading).toBe(false);
 		// Wait, initGame is async. We waited 100ms.
 		// in LegacysEndApp.js constructor sets isLoading = true.
 		// initGame calls syncSessionState which sets isLoading from sessionManager.
 		// SessionManager initial state might be loading?
 		// Let's verify with .toBeDefined() or check actual logic.
 		// But first fix property name.
-		expect(/** @type {any} */ (element).isLoading).toBeDefined();
+		expect(element.isLoading).toBeDefined();
 	});
 
 	it("renders quest cards in the hub after initialization", async () => {
@@ -78,9 +78,7 @@ describe("LegacysEndApp Integration", () => {
 		expect(element.isInHub).toBe(true);
 
 		// Query quest-hub and check its rendered content
-		const hub = /** @type {any} */ (
-			element.shadowRoot?.querySelector("quest-hub")
-		);
+		const hub = element.shadowRoot?.querySelector("quest-hub");
 		expect(hub).toBeDefined();
 
 		if (hub) {
@@ -90,9 +88,9 @@ describe("LegacysEndApp Integration", () => {
 			expect(cards?.length).toBeGreaterThan(0);
 
 			// Check if first card has quest data
-			const firstCard = /** @type {any} */ (cards?.[0]);
-			expect(firstCard.quest).toBeDefined();
-			expect(firstCard.quest.id).toBeDefined();
+			const firstCard = cards?.[0];
+			expect(firstCard?.quest).toBeDefined();
+			expect(firstCard?.quest.id).toBeDefined();
 		}
 	});
 });

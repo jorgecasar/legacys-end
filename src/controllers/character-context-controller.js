@@ -7,20 +7,17 @@ import { questStateContext } from "../game/contexts/quest-context.js";
 
 /**
  * @typedef {import("lit").ReactiveController} ReactiveController
- * @typedef {import("lit").ReactiveControllerHost} ReactiveControllerHost
  * @typedef {import("lit").ReactiveElement} ReactiveElement
- */
-
-/**
  * @typedef {import('../game/interfaces.js').IHeroStateService} IHeroStateService
  * @typedef {import('../game/interfaces.js').IQuestStateService} IQuestStateService
  * @typedef {import('../services/interfaces.js').IQuestController} IQuestController
  * @typedef {import('../services/interfaces.js').IThemeService} IThemeService
+ * @typedef {import('../contexts/character-context.js').CharacterContext} CharacterContext
+ * @typedef {import("@lit/context").ContextProvider<import('@lit/context').Context<symbol, CharacterContext>, ReactiveElement>} CharacterContextProvider
  */
 
 /**
- * @typedef {Object} CharacterContextOptions
- * @property {import('@lit/context').ContextProvider<any, any> | null} [characterProvider] - Combined provider if used
+ * @typedef {ReactiveElement & { characterProvider: CharacterContextProvider | null }} HostWithCharacterProvider
  */
 
 /**
@@ -44,60 +41,46 @@ export class CharacterContextController {
 	#themeService = null;
 
 	/**
-	 * @param {ReactiveControllerHost} host
-	 * @param {CharacterContextOptions} [options]
+	 * @param {HostWithCharacterProvider} host
 	 */
-	constructor(host, options = {}) {
-		/** @type {ReactiveControllerHost} */
+	constructor(host) {
 		this.host = host;
-		this.options = {
-			characterProvider: null,
-			...options,
-		};
-
-		const hostElement = /** @type {ReactiveElement} */ (
-			/** @type {unknown} */ (this.host)
-		);
 
 		// Initialize Context Consumers
-		new ContextConsumer(hostElement, {
+		new ContextConsumer(this.host, {
 			context: heroStateContext,
 			subscribe: true,
 			callback: (service) => {
-				this.#heroState = /** @type {IHeroStateService} */ (service);
+				this.#heroState = service;
 			},
 		});
 
-		new ContextConsumer(hostElement, {
+		new ContextConsumer(this.host, {
 			context: questStateContext,
 			subscribe: true,
 			callback: (service) => {
-				this.#questState = /** @type {IQuestStateService} */ (service);
+				this.#questState = service;
 			},
 		});
 
-		new ContextConsumer(hostElement, {
+		new ContextConsumer(this.host, {
 			context: questControllerContext,
 			subscribe: true,
 			callback: (service) => {
-				this.#questController = /** @type {IQuestController} */ (service);
+				this.#questController = service;
 			},
 		});
 
-		new ContextConsumer(hostElement, {
+		new ContextConsumer(this.host, {
 			context: themeContext,
 			subscribe: true,
 			callback: (service) => {
-				this.#themeService = /** @type {IThemeService} */ (service);
+				this.#themeService = service;
 			},
 		});
 
 		host.addController(this);
 	}
-
-	hostConnected() {}
-
-	hostDisconnected() {}
 
 	/**
 	 * Called before the host updates
@@ -106,10 +89,17 @@ export class CharacterContextController {
 	hostUpdate() {
 		if (!this.#heroState || !this.#questState || !this.#questController) return;
 
+		const host = /** @type {HostWithCharacterProvider} */ (
+			/** @type {unknown} */ (this.host)
+		);
+
+		if (!host.characterProvider) return;
+
 		const currentChapter = this.#questController.currentChapter;
 
 		// Calculate derived values
 		const level = currentChapter?.id ?? "";
+		const levelNumber = parseInt(level, 10) || 0;
 		const chapterData = currentChapter;
 
 		const isRewardCollected =
@@ -141,17 +131,15 @@ export class CharacterContextController {
 		};
 
 		const mastery = {
-			level: level,
+			level: levelNumber,
 		};
 
 		// Update the single character provider
-		if (this.options.characterProvider) {
-			this.options.characterProvider.setValue({
-				suit,
-				gear,
-				power,
-				mastery,
-			});
-		}
+		host.characterProvider.setValue({
+			suit,
+			gear,
+			power,
+			mastery,
+		});
 	}
 }

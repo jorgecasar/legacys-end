@@ -1,7 +1,11 @@
 import { createContext } from "@lit/context";
 
 /**
- * @type {import("@lit/context").Context<symbol, import("../services/interfaces.js").ILocalizationService>}
+ * @typedef {import("../services/interfaces.js").ILocalizationService} ILocalizationService
+ */
+
+/**
+ * @type {import("@lit/context").Context<symbol, ILocalizationService>}
  */
 export const localizationContext = createContext(
 	Symbol("localization-service"),

@@ -145,7 +145,9 @@ export class CollisionController {
 			hLeft < eRight && hRight > eLeft && hTop < eBottom && hBottom > eTop;
 
 		if (collided) {
-			/** @type {any} */ (this.host).gameController?.handleExitZoneReached();
+			/** @type {import('../components/game-viewport/GameViewport.js').GameViewport} */ (
+				this.host
+			).gameController?.handleExitZoneReached();
 		}
 
 		return collided;

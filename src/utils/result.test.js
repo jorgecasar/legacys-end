@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { Result, tryAsync, trySync } from "./result.js";
 
+/** @typedef {import('./result.js').Result<any, any>} AnyResult */
+/** @typedef {import('./result.js').Result<number, Error>} NumberResult */
+
 describe("Result", () => {
 	describe("Ok", () => {
 		it("should create a successful result", () => {
@@ -39,7 +42,9 @@ describe("Result", () => {
 		});
 
 		it("should return default with unwrapOr", () => {
-			const result = Result.Err(new Error("Failed"));
+			const result = /** @type {Result<number, Error>} */ (
+				/** @type {unknown} */ (Result.Err(new Error("Failed")))
+			);
 			expect(result.unwrapOr(0)).toBe(0);
 		});
 
@@ -52,33 +57,31 @@ describe("Result", () => {
 
 	describe("map", () => {
 		it("should map Ok value", () => {
-			const result = Result.Ok(42).map(/** @param {number} x */ (x) => x * 2);
+			const result = Result.Ok(42).map((x) => x * 2);
 			expect(result.unwrap()).toBe(84);
 		});
 
 		it("should not map Err value", () => {
 			const error = new Error("Failed");
-			const result = Result.Err(error).map(
-				/** @param {number} x */ (x) => x * 2,
+			const result = /** @type {Result<number, Error>} */ (
+				/** @type {unknown} */ (Result.Err(error))
 			);
-			expect(result.error).toBe(error);
+			const mapped = result.map((x) => x * 2);
+			expect(mapped.error).toBe(error);
 		});
 	});
 
 	describe("mapErr", () => {
 		it("should not map Ok error", () => {
-			const result = Result.Ok(42).mapErr(
-				/** @param {Error} _e */ (_e) => new Error("Mapped"),
-			);
+			const result = Result.Ok(42).mapErr((_e) => new Error("Mapped"));
 			expect(result.value).toBe(42);
 		});
 
 		it("should map Err error", () => {
 			const result = Result.Err(new Error("Original")).mapErr(
-				/** @param {Error} _e */
 				(_e) => new Error("Mapped"),
 			);
-			expect(result.error.message).toBe("Mapped");
+			expect(/** @type {Error} */ (result.error).message).toBe("Mapped");
 		});
 	});
 
@@ -92,10 +95,13 @@ describe("Result", () => {
 
 		it("should short-circuit on Err", () => {
 			const error = new Error("Failed");
-			const result = Result.Err(error).andThen(
+			const original = /** @type {Result<number, Error>} */ (
+				/** @type {unknown} */ (Result.Err(error))
+			);
+			const result = original.andThen(
 				/** @param {number} x */ (x) => Result.Ok(x * 2),
 			);
-			expect(result.error).toBe(error);
+			expect(/** @type {Error} */ (result.error)).toBe(error);
 		});
 
 		it("should propagate Err from chained operation", () => {
@@ -103,21 +109,21 @@ describe("Result", () => {
 				/** @param {number} _x */ (_x) => Result.Err(new Error("Chain failed")),
 			);
 			expect(result.isErr()).toBe(true);
-			expect(result.error.message).toBe("Chain failed");
+			expect(/** @type {Error} */ (result.error).message).toBe("Chain failed");
 		});
 	});
 
 	describe("unwrapOrElse", () => {
 		it("should return value for Ok", () => {
 			const result = Result.Ok(42);
-			expect(result.unwrapOrElse(/** @param {Error} _e */ (_e) => 0)).toBe(42);
+			expect(result.unwrapOrElse((_e) => 0)).toBe(42);
 		});
 
 		it("should compute value from error for Err", () => {
-			const result = Result.Err(new Error("Failed"));
-			expect(
-				result.unwrapOrElse(/** @param {Error} e */ (e) => e.message.length),
-			).toBe(6);
+			const result = /** @type {Result<number, Error>} */ (
+				/** @type {unknown} */ (Result.Err(new Error("Failed")))
+			);
+			expect(result.unwrapOrElse((e) => e.message.length)).toBe(6);
 		});
 	});
 
@@ -125,17 +131,20 @@ describe("Result", () => {
 		it("should call ok handler for Ok", () => {
 			const result = Result.Ok(42);
 			const value = result.match({
-				ok: /** @param {number} x */ (x) => x * 2,
-				err: /** @param {Error} _e */ (_e) => 0,
+				ok: (x) => x * 2,
+				err: (_e) => 0,
 			});
 			expect(value).toBe(84);
 		});
 
 		it("should call err handler for Err", () => {
-			const result = Result.Err(new Error("Failed"));
+			const result = /** @type {Result<number, Error>} */ (
+				/** @type {unknown} */ (Result.Err(new Error("Failed")))
+			);
 			const value = result.match({
-				ok: /** @param {number} x */ (x) => x * 2,
-				err: /** @param {Error} e */ (e) => e.message,
+				ok: (x) => x * 2,
+				// @ts-expect-error
+				err: (e) => e.message,
 			});
 			expect(value).toBe("Failed");
 		});
@@ -153,7 +162,7 @@ describe("Result", () => {
 				throw new Error("Failed");
 			});
 			expect(result.isErr()).toBe(true);
-			expect(result.error.message).toBe("Failed");
+			expect(/** @type {Error} */ (result.error).message).toBe("Failed");
 		});
 	});
 
@@ -169,7 +178,7 @@ describe("Result", () => {
 				throw new Error("Failed");
 			});
 			expect(result.isErr()).toBe(true);
-			expect(result.error.message).toBe("Failed");
+			expect(/** @type {Error} */ (result.error).message).toBe("Failed");
 		});
 	});
 });

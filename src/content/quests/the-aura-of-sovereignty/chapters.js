@@ -181,7 +181,7 @@ customElements.define('product-item', ProductItem);`,
 			],
 		},
 		stats: { maintainability: 0, portability: 0 },
-		serviceType: /** @type {any} */ (null),
+		serviceType: null,
 		startPos: { x: 50, y: 15 },
 		exitZone: {
 			x: 95,

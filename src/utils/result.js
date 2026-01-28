@@ -19,12 +19,14 @@
 /**
  * Result class for explicit error handling
  * Can be either Ok (success) or Err (failure)
+ * @template T
+ * @template E
  */
 export class Result {
 	/**
 	 * @private
-	 * @param {any} value
-	 * @param {any} error
+	 * @param {T | null} value
+	 * @param {E | null} error
 	 */
 	constructor(value, error) {
 		this._value = value;
@@ -34,8 +36,9 @@ export class Result {
 
 	/**
 	 * Create a successful Result
-	 * @param {any} value - The success value
-	 * @returns {Result}
+	 * @template T
+	 * @param {T} value - The success value
+	 * @returns {Result<T, null>}
 	 */
 	static Ok(value) {
 		return new Result(value, null);
@@ -43,8 +46,9 @@ export class Result {
 
 	/**
 	 * Create a failed Result
-	 * @param {any} error - The error
-	 * @returns {Result}
+	 * @template E
+	 * @param {E} error - The error
+	 * @returns {Result<null, E>}
 	 */
 	static Err(error) {
 		return new Result(null, error);
@@ -68,97 +72,109 @@ export class Result {
 
 	/**
 	 * Get the value, throwing if this is an error
-	 * @returns {any}
+	 * @returns {T}
 	 * @throws {Error} If this is an Err
 	 */
 	unwrap() {
 		if (this.isErr()) {
 			throw this.error;
 		}
-		return this.value;
+		return /** @type {T} */ (this._value);
 	}
 
 	/**
 	 * Get the value or a default if it's an error
-	 * @template T
 	 * @param {T} defaultValue - The default value to return on error
 	 * @returns {T}
 	 */
 	unwrapOr(defaultValue) {
-		return this.isOk() ? this._value : defaultValue;
+		return this.isOk() ? /** @type {T} */ (this._value) : defaultValue;
 	}
 
 	/**
 	 * Get the error, throwing if this is a success
-	 * @returns {any}
+	 * @returns {E}
 	 * @throws {Error} If this is an Ok
 	 */
 	unwrapErr() {
 		if (this.isOk()) {
 			throw new Error("Called unwrapErr on an Ok value");
 		}
-		return this.error;
+		return /** @type {E} */ (this._error);
 	}
 
 	/**
 	 * Map the success value
-	 * @param {Function} fn - The mapping function
-	 * @returns {Result}
+	 * @template U
+	 * @param {function(T): U} fn - The mapping function
+	 * @returns {Result<U, E>}
 	 */
 	map(fn) {
 		if (this.isOk()) {
-			return Result.Ok(fn(this.value));
+			// @ts-expect-error - We know value is T
+			return Result.Ok(fn(this._value));
 		}
-		return this;
+		// @ts-expect-error - We know error is E
+		return Result.Err(this._error);
 	}
 
 	/**
 	 * Map the error value
-	 * @param {Function} fn - The mapping function
-	 * @returns {Result}
+	 * @template F
+	 * @param {function(E): F} fn - The mapping function
+	 * @returns {Result<T, F>}
 	 */
 	mapErr(fn) {
 		if (this.isErr()) {
-			return Result.Err(fn(this.error));
+			// @ts-expect-error - We know error is E
+			return Result.Err(fn(this._error));
 		}
-		return this;
+		// @ts-expect-error - We know value is T
+		return Result.Ok(this._value);
 	}
 
 	/**
 	 * Chain operations that return Results
-	 * @param {Function} fn - The function to chain
-	 * @returns {Result}
+	 * @template U
+	 * @template F
+	 * @param {function(T): Result<U, F>} fn - The function to chain
+	 * @returns {Result<U, E | F>}
 	 */
 	andThen(fn) {
 		if (this.isOk()) {
-			return fn(this.value);
+			// @ts-expect-error - We know value is T
+			return fn(this._value);
 		}
-		return this;
+		// @ts-expect-error - We know error is E
+		return Result.Err(this._error);
 	}
 
 	/**
 	 * Get value or compute from error
-	 * @param {Function} fn - Function to compute value from error
-	 * @returns {any}
+	 * @param {function(E): T} fn - Function to compute value from error
+	 * @returns {T}
 	 */
 	unwrapOrElse(fn) {
-		return this.isOk() ? this.value : fn(this.error);
+		// @ts-expect-error - We know types match logic
+		return this.isOk() ? this._value : fn(this._error);
 	}
 
 	/**
 	 * Pattern match on the Result
+	 * @template R
 	 * @param {Object} handlers
-	 * @param {Function} handlers.ok - Handler for success
-	 * @param {Function} handlers.err - Handler for error
-	 * @returns {any}
+	 * @param {function(T): R} handlers.ok - Handler for success
+	 * @param {function(E): R} handlers.err - Handler for error
+	 * @returns {R}
 	 */
 	match(handlers) {
-		return this.isOk() ? handlers.ok(this.value) : handlers.err(this.error);
+		// @ts-expect-error - types match logic
+		return this.isOk() ? handlers.ok(this._value) : handlers.err(this._error);
 	}
 
 	/**
 	 * Get the value property (for compatibility)
-	 * @returns {any | null}
+	 * @returns {T | null}
 	 */
 	get value() {
 		return this._value;
@@ -166,7 +182,7 @@ export class Result {
 
 	/**
 	 * Get the error property (for compatibility)
-	 * @returns {any | null}
+	 * @returns {E | null}
 	 */
 	get error() {
 		return this._error;
@@ -175,28 +191,30 @@ export class Result {
 
 /**
  * Wrap an async function to return a Result
- * @param {Function} fn - Async function to wrap
- * @returns {Promise<Result>}
+ * @template T
+ * @param {function(): Promise<T>} fn - Async function to wrap
+ * @returns {Promise<Result<T, unknown>>}
  */
 export async function tryAsync(fn) {
 	try {
 		const value = await fn();
 		return Result.Ok(value);
 	} catch (error) {
-		return Result.Err(error);
+		return /** @type {Result<T, unknown>} */ (Result.Err(error));
 	}
 }
 
 /**
  * Wrap a sync function to return a Result
- * @param {Function} fn - Function to wrap
- * @returns {Result}
+ * @template T
+ * @param {function(): T} fn - Function to wrap
+ * @returns {Result<T, unknown>}
  */
 export function trySync(fn) {
 	try {
 		const value = fn();
 		return Result.Ok(value);
 	} catch (error) {
-		return Result.Err(error);
+		return /** @type {Result<T, unknown>} */ (Result.Err(error));
 	}
 }

@@ -166,9 +166,9 @@ export class GameConfiguration {
 
 	/**
 	 * Deep merge two objects
-	 * @param {Record<string, any>} target
-	 * @param {Record<string, any>} source
-	 * @returns {Record<string, any>}
+	 * @param {Record<string, unknown>} target
+	 * @param {Record<string, unknown>} source
+	 * @returns {Record<string, unknown>}
 	 * @private
 	 */
 	_deepMerge(target, source) {
@@ -179,7 +179,14 @@ export class GameConfiguration {
 				typeof source[key] === "object" &&
 				!Array.isArray(source[key])
 			) {
-				output[key] = this._deepMerge(target[key] || {}, source[key]);
+				output[key] = this._deepMerge(
+					/** @type {Record<string, unknown>} */ (
+						/** @type {unknown} */ (target[key] || {})
+					),
+					/** @type {Record<string, unknown>} */ (
+						/** @type {unknown} */ (source[key])
+					),
+				);
 			} else {
 				output[key] = source[key];
 			}
@@ -190,14 +197,15 @@ export class GameConfiguration {
 	/**
 	 * Get configuration value by path
 	 * @param {string} path - Dot-separated path (e.g., 'animation.rewardDuration')
-	 * @returns {number | string | boolean | Object | undefined}
+	 * @returns {unknown}
 	 */
 	get(path) {
 		return path
 			.split(".")
 			.reduce(
-				(obj, key) => (obj ? /** @type {any} */ (obj)[key] : undefined),
-				this._config,
+				(obj, key) =>
+					obj ? /** @type {Record<string, unknown>} */ (obj)[key] : undefined,
+				/** @type {unknown} */ (this._config),
 			);
 	}
 

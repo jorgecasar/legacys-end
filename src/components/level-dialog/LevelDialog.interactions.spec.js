@@ -275,7 +275,6 @@ function getMockApp(overrides = {}) {
 			currentChapter: { id: "1" },
 			hasNextChapter: vi.fn(() => false),
 		},
-		gameService: {},
 		addController: vi.fn(),
 
 		sessionManager: {},
@@ -442,13 +441,13 @@ describe("QuestView Integration", () => {
 		expect(dialog).toBeTruthy();
 
 		// Mock gameController on GameViewport
-		const viewport = /** @type {any} */ (
-			element.shadowRoot?.querySelector("game-viewport")
-		);
+		const viewport = element.shadowRoot?.querySelector("game-viewport");
+		if (!viewport) throw new Error("Viewport not found");
+
 		viewport.handleLevelComplete = vi.fn();
-		viewport.gameController = {
+		viewport.gameController = /** @type {any} */ ({
 			handleLevelCompleted: vi.fn(),
-		};
+		});
 
 		dialog?.dispatchEvent(new CustomEvent(UIEvents.COMPLETE));
 
@@ -581,15 +580,15 @@ describe("QuestView Integration", () => {
 		container.appendChild(wrapper);
 		await element.updateComplete;
 
-		const viewport = /** @type {any} */ (
-			element.shadowRoot?.querySelector("game-viewport")
-		);
+		const viewport = element.shadowRoot?.querySelector("game-viewport");
+		if (!viewport) throw new Error("Viewport not found");
+
 		// Mock handleInteract directly on viewport element level
 		viewport.handleInteract = vi.fn();
-		viewport.interaction = { handleInteract: vi.fn() };
+		viewport.interaction = /** @type {any} */ ({ handleInteract: vi.fn() });
 
 		viewport.handleInteract();
 
-		expect(viewport.interaction.handleInteract).not.toHaveBeenCalled();
+		expect(viewport.interaction?.handleInteract).not.toHaveBeenCalled();
 	});
 });

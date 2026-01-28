@@ -40,10 +40,7 @@ export class ProgressService {
 	) {
 		if (!registry) throw new Error("Registry is required");
 		this.storage = storage;
-		this.registry =
-			/** @type {import('../services/quest-registry-service.js').QuestRegistryService} */ (
-				registry
-			);
+		this.registry = registry;
 		this.logger = logger;
 		this.storageKey = StorageKeys.PROGRESS;
 		this.progress = this._initializeProgress();
@@ -215,7 +212,7 @@ export class ProgressService {
 
 			// Process rewards (achievements)
 			if (quest?.reward?.badge) {
-				this.unlockAchievement(/** @type {any} */ (quest.reward.badge));
+				this.unlockAchievement(quest.reward.badge);
 			}
 
 			this.unlockNewQuests();
@@ -392,7 +389,7 @@ export class ProgressService {
 	/**
 	 * Update state for a specific chapter (e.g. collected items).
 	 * @param {string} chapterId
-	 * @param {import('./interfaces.js').JsonValue} state
+	 * @param {Record<string, import('./interfaces.js').JsonValue>} state
 	 */
 	setChapterState(chapterId, state) {
 		if (!this.progress.chapterStates) {
@@ -403,7 +400,7 @@ export class ProgressService {
 		}
 		this.progress.chapterStates[chapterId] = {
 			...this.progress.chapterStates[chapterId],
-			.../** @type {Object} */ (state),
+			...state,
 		};
 		this.saveProgress();
 	}

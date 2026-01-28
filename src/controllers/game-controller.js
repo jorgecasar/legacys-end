@@ -54,40 +54,21 @@ export class GameController {
 	}
 
 	/**
-	 * Private setter/getter for global game variable
-	 * @type {any}
-	 */
-	get #globalGame() {
-		// @ts-expect-error - window.game is a custom global for debugging
-		return window.game;
-	}
-
-	set #globalGame(value) {
-		// @ts-expect-error - window.game is a custom global for debugging
-		window.game = value;
-	}
-
-	/**
-	 * @param {ReactiveControllerHost} host
+	 * @param {ReactiveControllerHost & HTMLElement} host
 	 * @param {GameControllerOptions} [options]
 	 */
 	constructor(host, options = {}) {
-		/** @type {ReactiveControllerHost} */
+		/** @type {ReactiveControllerHost & HTMLElement} */
 		this.host = host;
 		this.options = {
-			exposeToConsole: true,
 			...options,
 		};
 		this.isEnabled = this.#searchParams.has("debug");
 		/** @type {boolean} */
 		this.isTransitioning = false;
 
-		const hostElement = /** @type {ReactiveElement} */ (
-			/** @type {unknown} */ (this.host)
-		);
-
 		// Initialize Context Consumers
-		new ContextConsumer(hostElement, {
+		new ContextConsumer(this.host, {
 			context: loggerContext,
 			subscribe: true,
 			callback: (service) => {
@@ -95,7 +76,7 @@ export class GameController {
 			},
 		});
 
-		new ContextConsumer(hostElement, {
+		new ContextConsumer(this.host, {
 			context: heroStateContext,
 			subscribe: true,
 			callback: (service) => {
@@ -103,7 +84,7 @@ export class GameController {
 			},
 		});
 
-		new ContextConsumer(hostElement, {
+		new ContextConsumer(this.host, {
 			context: questStateContext,
 			subscribe: true,
 			callback: (service) => {
@@ -111,7 +92,7 @@ export class GameController {
 			},
 		});
 
-		new ContextConsumer(hostElement, {
+		new ContextConsumer(this.host, {
 			context: worldStateContext,
 			subscribe: true,
 			callback: (service) => {
@@ -119,7 +100,7 @@ export class GameController {
 			},
 		});
 
-		new ContextConsumer(hostElement, {
+		new ContextConsumer(this.host, {
 			context: questControllerContext,
 			subscribe: true,
 			callback: (service) => {
@@ -133,9 +114,6 @@ export class GameController {
 	hostConnected() {
 		if (this.isEnabled) {
 			this.enableDebugMode();
-		}
-		if (this.options.exposeToConsole) {
-			this.#globalGame = this;
 		}
 	}
 

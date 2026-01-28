@@ -36,6 +36,18 @@ import { VoiceSynthesisService } from "../../services/voice-synthesis-service.js
 
 /**
  * @typedef {import("@awesome.me/webawesome/dist/components/dialog/dialog.js").default} DialogElement
+ * @typedef {import('../../contexts/character-context.js').CharacterContext} CharacterContext
+ * @typedef {import('../../contexts/profile-context.js').Profile} Profile
+ * @typedef {import('../../services/interfaces.js').IThemeService} IThemeService
+ * @typedef {import('../../services/quest-registry-service.js').QuestRegistryService} QuestRegistryService
+ * @typedef {import('../../services/preloader-service.js').PreloaderService} PreloaderService
+ * @typedef {import('../../services/user-api-client.js').UserApiClients} UserApiClients
+ * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<symbol, CharacterContext>, import('lit').ReactiveElement>} CharacterContextProvider
+ * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<symbol, Profile>, import('lit').ReactiveElement>} ProfileContextProvider
+ * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<symbol, IThemeService>, import('lit').ReactiveElement>} ThemeContextProvider
+ * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<symbol, QuestRegistryService>, import('lit').ReactiveElement>} QuestRegistryContextProvider
+ * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<symbol, PreloaderService>, import('lit').ReactiveElement>} PreloaderContextProvider
+ * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<"api-clients", UserApiClients>, import('lit').ReactiveElement>} ApiClientsContextProvider
  */
 
 /**
@@ -91,17 +103,17 @@ export class LegacysEndApp extends SignalWatcher(LitElement) {
 	worldStateProvider = null;
 	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
 	sessionProvider = null;
-	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	/** @type {ApiClientsContextProvider | null} */
 	apiClientsProvider = null;
-	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	/** @type {ProfileContextProvider | null} */
 	profileProvider = null;
-	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	/** @type {CharacterContextProvider | null} */
 	characterProvider = null;
-	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	/** @type {ThemeContextProvider | null} */
 	themeProvider = null;
-	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	/** @type {QuestRegistryContextProvider | null} */
 	questRegistryProvider = null;
-	/** @type {import('@lit/context').ContextProvider<any, any> | null} */
+	/** @type {PreloaderContextProvider | null} */
 	preloaderProvider = null;
 
 	// Router
@@ -116,16 +128,9 @@ export class LegacysEndApp extends SignalWatcher(LitElement) {
 		/** @type {import('../../controllers/quest-controller.js').QuestController} */ (
 			/** @type {unknown} */ (null)
 		);
-	/** @type {import('../../controllers/service-controller.js').ServiceController} */
-	serviceController =
-		/** @type {import('../../controllers/service-controller.js').ServiceController} */ (
-			/** @type {unknown} */ (null)
-		);
-	/** @type {import('../../controllers/character-context-controller.js').CharacterContextController} */
-	characterContexts =
-		/** @type {import('../../controllers/character-context-controller.js').CharacterContextController} */ (
-			/** @type {unknown} */ (null)
-		);
+
+	serviceController = new ServiceController(this);
+	characterContexts = new CharacterContextController(this);
 
 	/** @override */
 	static properties = {
@@ -249,14 +254,6 @@ export class LegacysEndApp extends SignalWatcher(LitElement) {
 				power: {},
 				mastery: {},
 			},
-		});
-
-		this.serviceController = new ServiceController(this, {
-			profileProvider: this.profileProvider,
-		});
-
-		this.characterContexts = new CharacterContextController(this, {
-			characterProvider: this.characterProvider,
 		});
 
 		// Setup QuestController
