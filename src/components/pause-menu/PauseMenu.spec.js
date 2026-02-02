@@ -100,7 +100,18 @@ describe("PauseMenu", () => {
 		wrapper.worldState = /** @type {IWorldStateService} */ (
 			/** @type {unknown} */ ({
 				isPaused: new Signal.State(true),
+				showDialog: new Signal.State(false),
+				currentDialogText: new Signal.State(""),
+				nextDialogText: new Signal.State(""),
+				currentSlideIndex: new Signal.State(0),
 				setPaused: vi.fn(),
+				setShowDialog: vi.fn(),
+				setCurrentDialogText: vi.fn(),
+				setNextDialogText: vi.fn(),
+				nextSlide: vi.fn(),
+				prevSlide: vi.fn(),
+				setSlideIndex: vi.fn(),
+				resetSlideIndex: vi.fn(),
 			})
 		);
 		wrapper.questController = /** @type {IQuestController} */ ({});
@@ -127,7 +138,18 @@ describe("PauseMenu", () => {
 		wrapper.worldState = /** @type {IWorldStateService} */ (
 			/** @type {unknown} */ ({
 				isPaused: new Signal.State(true),
+				showDialog: new Signal.State(false),
+				currentDialogText: new Signal.State(""),
+				nextDialogText: new Signal.State(""),
+				currentSlideIndex: new Signal.State(0),
 				setPaused: setPausedSpy,
+				setShowDialog: vi.fn(),
+				setCurrentDialogText: vi.fn(),
+				setNextDialogText: vi.fn(),
+				nextSlide: vi.fn(),
+				prevSlide: vi.fn(),
+				setSlideIndex: vi.fn(),
+				resetSlideIndex: vi.fn(),
 			})
 		);
 		wrapper.questController = /** @type {IQuestController} */ ({});
@@ -160,7 +182,18 @@ describe("PauseMenu", () => {
 		wrapper.worldState = /** @type {IWorldStateService} */ (
 			/** @type {unknown} */ ({
 				isPaused: new Signal.State(true),
+				showDialog: new Signal.State(false),
+				currentDialogText: new Signal.State(""),
+				nextDialogText: new Signal.State(""),
+				currentSlideIndex: new Signal.State(0),
 				setPaused: setPausedSpy,
+				setShowDialog: vi.fn(),
+				setCurrentDialogText: vi.fn(),
+				setNextDialogText: vi.fn(),
+				nextSlide: vi.fn(),
+				prevSlide: vi.fn(),
+				setSlideIndex: vi.fn(),
+				resetSlideIndex: vi.fn(),
 			})
 		);
 		wrapper.questController = /** @type {IQuestController} */ (
@@ -195,7 +228,18 @@ describe("PauseMenu", () => {
 		wrapper.worldState = /** @type {IWorldStateService} */ (
 			/** @type {unknown} */ ({
 				isPaused: new Signal.State(true),
+				showDialog: new Signal.State(false),
+				currentDialogText: new Signal.State(""),
+				nextDialogText: new Signal.State(""),
+				currentSlideIndex: new Signal.State(0),
 				setPaused: vi.fn(),
+				setShowDialog: vi.fn(),
+				setCurrentDialogText: vi.fn(),
+				setNextDialogText: vi.fn(),
+				nextSlide: vi.fn(),
+				prevSlide: vi.fn(),
+				setSlideIndex: vi.fn(),
+				resetSlideIndex: vi.fn(),
 			})
 		);
 		wrapper.questController = /** @type {IQuestController} */ ({});

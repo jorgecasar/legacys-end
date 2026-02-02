@@ -12,6 +12,7 @@ export class WorldStateService {
 		this.showDialog = new Signal.State(false);
 		this.currentDialogText = new Signal.State("");
 		this.nextDialogText = new Signal.State("");
+		this.currentSlideIndex = new Signal.State(0);
 	}
 
 	/**
@@ -40,5 +41,24 @@ export class WorldStateService {
 	 */
 	setNextDialogText(text) {
 		this.nextDialogText.set(text || "");
+	}
+
+	nextSlide() {
+		this.currentSlideIndex.set(this.currentSlideIndex.get() + 1);
+	}
+
+	prevSlide() {
+		this.currentSlideIndex.set(Math.max(this.currentSlideIndex.get() - 1, 0));
+	}
+
+	/**
+	 * @param {number} index
+	 */
+	setSlideIndex(index) {
+		this.currentSlideIndex.set(index);
+	}
+
+	resetSlideIndex() {
+		this.currentSlideIndex.set(0);
 	}
 }

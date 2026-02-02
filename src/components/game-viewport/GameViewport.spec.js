@@ -247,16 +247,26 @@ describe("GameViewport", () => {
 		const showDialog = new Signal.State(false);
 		const currentDialogText = new Signal.State("");
 		const nextDialogText = new Signal.State("");
+		const currentSlideIndex = new Signal.State(0);
 
 		return {
 			isPaused,
 			showDialog,
 			currentDialogText,
 			nextDialogText,
+			currentSlideIndex,
 			setPaused: vi.fn((v) => isPaused.set(v)),
 			setShowDialog: vi.fn((v) => showDialog.set(v)),
 			setCurrentDialogText: vi.fn((t) => currentDialogText.set(t)),
 			setNextDialogText: vi.fn((t) => nextDialogText.set(t)),
+			nextSlide: vi.fn(() =>
+				currentSlideIndex.set(currentSlideIndex.get() + 1),
+			),
+			prevSlide: vi.fn(() =>
+				currentSlideIndex.set(Math.max(currentSlideIndex.get() - 1, 0)),
+			),
+			setSlideIndex: vi.fn((i) => currentSlideIndex.set(i)),
+			resetSlideIndex: vi.fn(() => currentSlideIndex.set(0)),
 		};
 	};
 

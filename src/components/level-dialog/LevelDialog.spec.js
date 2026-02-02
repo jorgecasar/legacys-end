@@ -139,7 +139,9 @@ describe("LevelDialog Component", () => {
 		wrapper.worldState = /** @type {IWorldStateService} */ (
 			/** @type {unknown} */ ({
 				showDialog: new Signal.State(true),
+				currentSlideIndex: new Signal.State(0),
 				setCurrentDialogText: vi.fn(),
+				setNextDialogText: vi.fn(),
 			})
 		);
 
@@ -177,7 +179,9 @@ describe("LevelDialog Component", () => {
 		wrapper.worldState = /** @type {IWorldStateService} */ (
 			/** @type {unknown} */ ({
 				showDialog: new Signal.State(true),
+				currentSlideIndex: new Signal.State(0),
 				setCurrentDialogText: vi.fn(),
+				setNextDialogText: vi.fn(),
 			})
 		);
 
@@ -215,7 +219,9 @@ describe("LevelDialog Component", () => {
 		wrapper.worldState = /** @type {IWorldStateService} */ (
 			/** @type {unknown} */ ({
 				showDialog: new Signal.State(true),
+				currentSlideIndex: new Signal.State(0),
 				setCurrentDialogText: vi.fn(),
+				setNextDialogText: vi.fn(),
 			})
 		);
 

@@ -148,10 +148,29 @@ describe("LevelDialog Interactions", () => {
 			codeSnippets: { start: [{ title: "Snippet", code: "const x = 1;" }] },
 		};
 
+		const worldStateMock = {
+			currentSlideIndex: new Signal.State(0),
+			nextSlide: vi.fn(() => {
+				worldStateMock.currentSlideIndex.set(
+					worldStateMock.currentSlideIndex.get() + 1,
+				);
+			}),
+			prevSlide: vi.fn(() => {
+				worldStateMock.currentSlideIndex.set(
+					Math.max(worldStateMock.currentSlideIndex.get() - 1, 0),
+				);
+			}),
+			setCurrentDialogText: vi.fn(),
+			setNextDialogText: vi.fn(),
+		};
+
 		element = new LevelDialog();
 		const wrapper = new TestContextWrapper();
 		wrapper.questController = /** @type {IQuestController} */ (
 			/** @type {unknown} */ ({ currentChapter: config })
+		);
+		wrapper.worldState = /** @type {IWorldStateService} */ (
+			/** @type {unknown} */ (worldStateMock)
 		);
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
@@ -159,18 +178,20 @@ describe("LevelDialog Interactions", () => {
 		await element.updateComplete;
 
 		// Initial state
-		expect(element.slideIndex).toBe(0);
+		expect(worldStateMock.currentSlideIndex.get()).toBe(0);
 
 		// Find NEXT button
 		const buttons = element.shadowRoot?.querySelectorAll("wa-button");
 		if (!buttons || buttons.length === 0) throw new Error("Buttons not found");
-		const nextBtn = buttons[buttons.length - 1];
+		const nextBtn = Array.from(buttons).find((b) =>
+			b.textContent?.trim().includes("NEXT"),
+		);
 
 		if (nextBtn) {
-			expect(nextBtn.textContent?.trim()).toContain("NEXT");
 			nextBtn.click();
 			await element.updateComplete;
-			expect(element.slideIndex).toBe(1);
+			expect(worldStateMock.currentSlideIndex.get()).toBe(1);
+			expect(worldStateMock.nextSlide).toHaveBeenCalled();
 		}
 	});
 
@@ -181,18 +202,36 @@ describe("LevelDialog Interactions", () => {
 			problemDesc: "Problem",
 		};
 
+		const worldStateMock = {
+			currentSlideIndex: new Signal.State(1),
+			nextSlide: vi.fn(() => {
+				worldStateMock.currentSlideIndex.set(
+					worldStateMock.currentSlideIndex.get() + 1,
+				);
+			}),
+			prevSlide: vi.fn(() => {
+				worldStateMock.currentSlideIndex.set(
+					Math.max(worldStateMock.currentSlideIndex.get() - 1, 0),
+				);
+			}),
+			setCurrentDialogText: vi.fn(),
+			setNextDialogText: vi.fn(),
+		};
+
 		element = new LevelDialog();
 		const wrapper = new TestContextWrapper();
 		wrapper.questController = /** @type {IQuestController} */ (
 			/** @type {unknown} */ ({ currentChapter: config })
 		);
-		element.slideIndex = 1; // Start at second slide
+		wrapper.worldState = /** @type {IWorldStateService} */ (
+			/** @type {unknown} */ (worldStateMock)
+		);
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
 		await wrapper.updateComplete;
 		await element.updateComplete;
 
-		expect(element.slideIndex).toBe(1);
+		expect(worldStateMock.currentSlideIndex.get()).toBe(1);
 
 		const buttons = element.shadowRoot?.querySelectorAll("wa-button");
 		if (!buttons || buttons.length === 0) throw new Error("Buttons not found");
@@ -202,7 +241,8 @@ describe("LevelDialog Interactions", () => {
 			expect(prevBtn.textContent?.trim()).toContain("PREV");
 			prevBtn.click();
 			await element.updateComplete;
-			expect(element.slideIndex).toBe(0);
+			expect(worldStateMock.currentSlideIndex.get()).toBe(0);
+			expect(worldStateMock.prevSlide).toHaveBeenCalled();
 		}
 	});
 
@@ -213,13 +253,22 @@ describe("LevelDialog Interactions", () => {
 			// Only 2 slides total: Narrative -> Confirmation
 		};
 
+		const worldStateMock = {
+			currentSlideIndex: new Signal.State(1),
+			nextSlide: vi.fn(),
+			prevSlide: vi.fn(),
+			setCurrentDialogText: vi.fn(),
+			setNextDialogText: vi.fn(),
+		};
+
 		element = new LevelDialog();
 		const wrapper = new TestContextWrapper();
 		wrapper.questController = /** @type {IQuestController} */ (
 			/** @type {unknown} */ ({ currentChapter: config })
 		);
-		// Narrative is index 0. Confirmation is index 1 (last).
-		element.slideIndex = 1;
+		wrapper.worldState = /** @type {IWorldStateService} */ (
+			/** @type {unknown} */ (worldStateMock)
+		);
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
 		await wrapper.updateComplete;
@@ -414,6 +463,7 @@ describe("QuestView Integration", () => {
 					showDialog: { get: vi.fn(() => true) },
 					currentDialogText: { get: vi.fn(() => "") },
 					nextDialogText: { get: vi.fn(() => "") },
+					currentSlideIndex: new Signal.State(0),
 				})
 			);
 		wrapper.sessionService = /** @type {ISessionService} */ (
@@ -503,6 +553,7 @@ describe("QuestView Integration", () => {
 					showDialog: new Signal.State(true), // Dialog open
 					setCurrentDialogText: vi.fn(),
 					setNextDialogText: vi.fn(),
+					currentSlideIndex: new Signal.State(0),
 				})
 			);
 		wrapper.questState =
@@ -558,6 +609,7 @@ describe("QuestView Integration", () => {
 					setCurrentDialogText: vi.fn(),
 					setNextDialogText: vi.fn(),
 					setShowDialog: vi.fn(),
+					currentSlideIndex: new Signal.State(0),
 				})
 			);
 		wrapper.questState =

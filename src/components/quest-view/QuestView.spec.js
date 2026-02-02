@@ -144,16 +144,28 @@ describe("QuestView", () => {
 		wrapper.worldState = /** @type {IWorldStateService} */ (
 			/** @type {unknown} */ ({
 				showDialog: new Signal.State(false),
-			})
-		);
-		wrapper.questState = /** @type {IQuestStateService} */ (
-			/** @type {unknown} */ ({
-				isQuestCompleted: new Signal.State(false),
+				isPaused: new Signal.State(false),
+				currentDialogText: new Signal.State(""),
+				nextDialogText: new Signal.State(""),
+				currentSlideIndex: new Signal.State(0),
+				setPaused: vi.fn(),
+				setShowDialog: vi.fn(),
+				setCurrentDialogText: vi.fn(),
+				setNextDialogText: vi.fn(),
+				nextSlide: vi.fn(),
+				prevSlide: vi.fn(),
+				setSlideIndex: vi.fn(),
+				resetSlideIndex: vi.fn(),
 			})
 		);
 		wrapper.sessionService = /** @type {ISessionService} */ (
 			/** @type {unknown} */ ({
 				currentQuest: new Signal.State(null),
+			})
+		);
+		wrapper.questState = /** @type {IQuestStateService} */ (
+			/** @type {unknown} */ ({
+				isQuestCompleted: new Signal.State(false),
 			})
 		);
 		wrapper.heroState = /** @type {IHeroStateService} */ ({});
@@ -177,7 +189,17 @@ describe("QuestView", () => {
 			/** @type {unknown} */ ({
 				showDialog: new Signal.State(false),
 				isPaused: new Signal.State(false),
+				currentDialogText: new Signal.State(""),
+				nextDialogText: new Signal.State(""),
+				currentSlideIndex: new Signal.State(0),
+				setPaused: vi.fn(),
+				setShowDialog: vi.fn(),
 				setCurrentDialogText: vi.fn(),
+				setNextDialogText: vi.fn(),
+				nextSlide: vi.fn(),
+				prevSlide: vi.fn(),
+				setSlideIndex: vi.fn(),
+				resetSlideIndex: vi.fn(),
 			})
 		);
 		wrapper.questState = /** @type {IQuestStateService} */ (
@@ -213,6 +235,18 @@ describe("QuestView", () => {
 		wrapper.worldState = /** @type {IWorldStateService} */ (
 			/** @type {unknown} */ ({
 				showDialog: new Signal.State(false),
+				isPaused: new Signal.State(false),
+				currentDialogText: new Signal.State(""),
+				nextDialogText: new Signal.State(""),
+				currentSlideIndex: new Signal.State(0),
+				setPaused: vi.fn(),
+				setShowDialog: vi.fn(),
+				setCurrentDialogText: vi.fn(),
+				setNextDialogText: vi.fn(),
+				nextSlide: vi.fn(),
+				prevSlide: vi.fn(),
+				setSlideIndex: vi.fn(),
+				resetSlideIndex: vi.fn(),
 			})
 		);
 		wrapper.questState = /** @type {IQuestStateService} */ (
@@ -249,7 +283,17 @@ describe("QuestView", () => {
 			/** @type {unknown} */ ({
 				showDialog: new Signal.State(true),
 				isPaused: new Signal.State(false),
+				currentDialogText: new Signal.State(""),
+				nextDialogText: new Signal.State(""),
+				currentSlideIndex: new Signal.State(0),
+				setPaused: vi.fn(),
+				setShowDialog: vi.fn(),
 				setCurrentDialogText: vi.fn(),
+				setNextDialogText: vi.fn(),
+				nextSlide: vi.fn(),
+				prevSlide: vi.fn(),
+				setSlideIndex: vi.fn(),
+				resetSlideIndex: vi.fn(),
 			})
 		);
 		wrapper.questState = /** @type {IQuestStateService} */ (

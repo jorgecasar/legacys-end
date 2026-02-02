@@ -115,19 +115,11 @@ export class QuestView extends SignalWatcher(
 	}
 
 	nextDialogSlide() {
-		const dialog =
-			/** @type {import('../level-dialog/level-dialog.js').LevelDialog} */ (
-				this.shadowRoot?.querySelector("level-dialog")
-			);
-		if (dialog) dialog.nextSlide();
+		this.worldState?.nextSlide();
 	}
 
 	prevDialogSlide() {
-		const dialog =
-			/** @type {import('../level-dialog/level-dialog.js').LevelDialog} */ (
-				this.shadowRoot?.querySelector("level-dialog")
-			);
-		if (dialog) dialog.prevSlide();
+		this.worldState?.prevSlide();
 	}
 
 	#handleLevelComplete() {

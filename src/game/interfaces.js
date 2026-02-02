@@ -48,10 +48,15 @@
  * @property {{ get(): boolean }} showDialog
  * @property {{ get(): string }} currentDialogText
  * @property {{ get(): string }} nextDialogText
+ * @property {{ get(): number }} currentSlideIndex
  * @property {(paused: boolean) => void} setPaused
  * @property {(show: boolean) => void} setShowDialog
  * @property {(text: string) => void} setCurrentDialogText
  * @property {(text: string) => void} setNextDialogText
+ * @property {() => void} nextSlide
+ * @property {() => void} prevSlide
+ * @property {(index: number) => void} setSlideIndex
+ * @property {() => void} resetSlideIndex
  */
 
 export {};

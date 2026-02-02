@@ -1,5 +1,6 @@
 import { consume } from "@lit/context";
 import { msg, str, updateWhenLocaleChanges } from "@lit/localize";
+import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement, nothing } from "lit";
 import { ifDefined } from "lit/directives/if-defined.js";
 import "@awesome.me/webawesome/dist/components/button/button.js";
@@ -9,6 +10,7 @@ import "syntax-highlight-element";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { UIEvents } from "../../core/events.js";
 import { questStateContext } from "../../game/contexts/quest-context.js";
+import { worldStateContext } from "../../game/contexts/world-context.js";
 import { escapeHtml } from "../../utils/html-utils.js";
 import {
 	processImagePath,
@@ -34,11 +36,10 @@ import { levelDialogStyles } from "./LevelDialog.styles.js";
  * @element level-dialog
  * @property {LevelConfig} config - Level configuration data
  * @property {string} level - Level identifier
- * @property {number} slideIndex - Current slide index (internal state)
  * @fires complete - Fired when user completes the dialog
  * @fires close - Fired when dialog is closed
  */
-export class LevelDialog extends LitElement {
+export class LevelDialog extends SignalWatcher(LitElement) {
 	/** @type {import('../../services/interfaces.js').IQuestController} */
 	@consume({ context: questControllerContext, subscribe: true })
 	accessor questController =
@@ -53,10 +54,12 @@ export class LevelDialog extends LitElement {
 			/** @type {unknown} */ (null)
 		);
 
-	/** @override */
-	static properties = {
-		slideIndex: { state: true },
-	};
+	/** @type {import('../../game/interfaces.js').IWorldStateService} */
+	@consume({ context: worldStateContext, subscribe: true })
+	accessor worldState =
+		/** @type {import('../../game/interfaces.js').IWorldStateService} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @override */
 	static styles = levelDialogStyles;
@@ -64,7 +67,6 @@ export class LevelDialog extends LitElement {
 	constructor() {
 		super();
 		updateWhenLocaleChanges(this);
-		this.slideIndex = 0;
 	}
 
 	/** @override */
@@ -85,31 +87,34 @@ export class LevelDialog extends LitElement {
 	 * @override
 	 */
 	updated(changedProperties) {
-		if (
-			changedProperties.has("slideIndex") ||
-			changedProperties.has("questController")
-		) {
-			this.dispatchEvent(
-				new CustomEvent(UIEvents.SLIDE_CHANGED, {
-					detail: { text: this.#getCurrentSlideText() },
-					bubbles: true,
-					composed: true,
-				}),
-			);
-		}
+		super.updated(changedProperties);
 
-		if (changedProperties.has("slideIndex")) {
-			const slides = this.#getSlides();
-			if (slides[this.slideIndex] === "confirmation") {
-				this.updateComplete.then(() => {
-					requestAnimationFrame(() => {
-						const btn = /** @type {HTMLElement} */ (
-							this.shadowRoot?.querySelector(".complete-btn")
-						);
-						if (btn) btn.focus();
-					});
+		if (!this.worldState) return;
+
+		const slideIndex = this.worldState.currentSlideIndex.get();
+		const slides = this.#getSlides();
+
+		// Always update text when rendering
+		this.dispatchEvent(
+			new CustomEvent(UIEvents.SLIDE_CHANGED, {
+				detail: {
+					text: this.#getCurrentSlideText(),
+					nextText: this.#getNextSlideText(),
+				},
+				bubbles: true,
+				composed: true,
+			}),
+		);
+
+		if (slides[slideIndex] === "confirmation") {
+			this.updateComplete.then(() => {
+				requestAnimationFrame(() => {
+					const btn = /** @type {HTMLElement} */ (
+						this.shadowRoot?.querySelector(".complete-btn")
+					);
+					if (btn) btn.focus();
 				});
-			}
+			});
 		}
 	}
 
@@ -133,9 +138,12 @@ export class LevelDialog extends LitElement {
 	 * Advances to the next slide or completes the dialog
 	 */
 	nextSlide() {
+		if (!this.worldState) return;
 		const slides = this.#getSlides();
-		if (this.slideIndex < slides.length - 1) {
-			this.slideIndex++;
+		const currentIndex = this.worldState.currentSlideIndex.get();
+
+		if (currentIndex < slides.length - 1) {
+			this.worldState.nextSlide();
 		} else {
 			this.#dispatchComplete();
 		}
@@ -145,7 +153,21 @@ export class LevelDialog extends LitElement {
 	 * Goes back to the previous slide
 	 */
 	prevSlide() {
-		this.slideIndex = Math.max(this.slideIndex - 1, 0);
+		this.worldState?.prevSlide();
+	}
+
+	/**
+	 * Gets the text content of the next slide for prefetching
+	 * @returns {string} The next slide text
+	 */
+	#getNextSlideText() {
+		if (!this.worldState) return "";
+		const currentIndex = this.worldState.currentSlideIndex.get();
+		const nextIndex = currentIndex + 1;
+		const slides = this.#getSlides();
+
+		if (nextIndex >= slides.length) return "";
+		return this.#getSlideText(nextIndex);
 	}
 
 	/**
@@ -153,8 +175,18 @@ export class LevelDialog extends LitElement {
 	 * @returns {string} The slide text
 	 */
 	#getCurrentSlideText() {
+		if (!this.worldState) return "";
+		return this.#getSlideText(this.worldState.currentSlideIndex.get());
+	}
+
+	/**
+	 * Gets text for a specific slide index
+	 * @param {number} index
+	 * @returns {string}
+	 */
+	#getSlideText(index) {
 		const slides = this.#getSlides();
-		const type = slides[this.slideIndex];
+		const type = slides[index];
 
 		const config = this.questController?.currentChapter;
 		if (!config) return "";
@@ -396,8 +428,11 @@ export class LevelDialog extends LitElement {
 
 	/** @override */
 	render() {
+		if (!this.worldState) return nothing;
+
 		const slides = this.#getSlides();
-		const currentSlideType = slides[this.slideIndex];
+		const currentSlideIndex = this.worldState.currentSlideIndex.get();
+		const currentSlideType = slides[currentSlideIndex];
 		const config = this.questController?.currentChapter;
 
 		if (!currentSlideType) return nothing;
@@ -420,8 +455,8 @@ export class LevelDialog extends LitElement {
 				<div slot="footer" class="dialog-footer">
 					<wa-button 
 						.variant="${"neutral"}"
-						?disabled="${this.slideIndex === 0}"
-						@click="${() => this.slideIndex--}"
+						?disabled="${currentSlideIndex === 0}"
+						@click="${() => this.worldState?.prevSlide()}"
 					>
 						<wa-icon slot="start" name="arrow-left"></wa-icon> ${msg("PREV")}
 					</wa-button>
@@ -430,13 +465,13 @@ export class LevelDialog extends LitElement {
 					<div class="indicators">
 						${slides.map(
 							(_, i) => html`
-								<div class="indicator ${i === this.slideIndex ? "active" : "inactive"}"></div>
+								<div class="indicator ${i === currentSlideIndex ? "active" : "inactive"}"></div>
 							`,
 						)}
 					</div>
 					
 					${
-						this.slideIndex === slides.length - 1
+						currentSlideIndex === slides.length - 1
 							? html`
 							<wa-button 
 								id="evolve-btn"
@@ -452,7 +487,7 @@ export class LevelDialog extends LitElement {
 							<wa-button 
 								id="next-btn"
 								.variant="${"brand"}"
-								@click="${() => this.slideIndex++}"
+								@click="${() => this.worldState?.nextSlide()}"
 							>
 								<span>${msg("NEXT")} <wa-icon slot="end" name="arrow-right"></wa-icon></span>
 							</wa-button>
