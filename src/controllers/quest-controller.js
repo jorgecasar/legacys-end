@@ -240,8 +240,12 @@ export class QuestController {
 
 		this.#setLoadingState(true);
 		this.#state?.resetQuestState();
+		this.#worldState?.setPaused(false);
+		this.#worldState?.setShowDialog(false);
+		this.#worldState?.resetSlideIndex();
 
 		try {
+			this.#progressService.resetQuestProgress(questId);
 			const success = await this.loadQuest(questId);
 			if (!success || !this.currentQuest) {
 				this.#setLoadingState(false);
@@ -332,6 +336,9 @@ export class QuestController {
 	async continueQuest(questId) {
 		this.#setLoadingState(true);
 		this.#state?.resetQuestState();
+		this.#worldState?.setPaused(false);
+		this.#worldState?.setShowDialog(false);
+		this.#worldState?.resetSlideIndex();
 
 		try {
 			const success = await this.loadQuest(questId);
@@ -394,6 +401,9 @@ export class QuestController {
 	 */
 	async loadChapter(questId, chapterId) {
 		this.#sessionService?.setLoading(true);
+		this.#worldState?.setPaused(false);
+		this.#worldState?.setShowDialog(false);
+		this.#worldState?.resetSlideIndex();
 
 		try {
 			const currentQuest = this.#sessionService?.currentQuest.get();
@@ -565,6 +575,12 @@ export class QuestController {
 		if (nextChapter) {
 			this.currentChapterIndex = nextIndex;
 			this.currentChapter = nextChapter;
+
+			// Reset UI state for next chapter
+			this.#worldState?.setShowDialog(false);
+			this.#worldState?.setPaused(false);
+			this.#worldState?.resetSlideIndex();
+
 			this.#progressService?.setCurrentQuest(
 				this.currentQuest.id,
 				nextChapter.id,

@@ -19,6 +19,8 @@ describe("QuestController", () => {
 	/** @type {any} */
 	let mockQuestState;
 	/** @type {any} */
+	let mockWorldState;
+	/** @type {any} */
 	let mockSessionService;
 
 	beforeEach(async () => {
@@ -39,6 +41,7 @@ describe("QuestController", () => {
 		mockRegistry = {
 			loadQuestData: vi.fn().mockResolvedValue(mockQuest),
 			getAvailableQuests: vi.fn().mockReturnValue([mockQuest]),
+			getQuest: vi.fn().mockReturnValue(mockQuest),
 		};
 
 		mockLogger = {
@@ -57,6 +60,12 @@ describe("QuestController", () => {
 			resetQuestState: vi.fn(),
 			resetChapterState: vi.fn(),
 			setIsQuestCompleted: vi.fn(),
+		};
+
+		mockWorldState = {
+			setPaused: vi.fn(),
+			setShowDialog: vi.fn(),
+			resetSlideIndex: vi.fn(),
 		};
 
 		mockSessionService = {
@@ -78,6 +87,7 @@ describe("QuestController", () => {
 			registry: mockRegistry,
 			progressService: fakeProgressService,
 			state: mockQuestState,
+			worldState: mockWorldState,
 			sessionService: mockSessionService,
 			preloaderService: {
 				preloadChapter: vi.fn(),
@@ -99,6 +109,15 @@ describe("QuestController", () => {
 		expect(mockQuestState.setQuestTitle).toHaveBeenCalledWith("Test Quest");
 	});
 
+	it("should reset quest progress and world state when starting a quest", async () => {
+		const resetSpy = vi.spyOn(fakeProgressService, "resetQuestProgress");
+		await controller.startQuest("test-quest");
+		expect(resetSpy).toHaveBeenCalledWith("test-quest");
+		expect(mockWorldState.setPaused).toHaveBeenCalledWith(false);
+		expect(mockWorldState.setShowDialog).toHaveBeenCalledWith(false);
+		expect(mockWorldState.resetSlideIndex).toHaveBeenCalled();
+	});
+
 	it("should fail to start a quest if locked", async () => {
 		fakeProgressService.progress.unlockedQuests = [];
 		const result = await controller.startQuest("test-quest");
@@ -113,5 +132,24 @@ describe("QuestController", () => {
 
 		expect(controller.currentQuest).toBeNull();
 		expect(mockQuestState.resetQuestState).toHaveBeenCalled();
+	});
+
+	it("should reset world state when moving to next chapter", async () => {
+		mockQuest.chapterIds = ["chapter-1", "chapter-2"];
+		mockQuest.chapters["chapter-2"] = { id: "chapter-2", title: "Chapter 2" };
+
+		await controller.startQuest("test-quest");
+
+		// Reset mocks to clear startQuest calls
+		mockWorldState.setPaused.mockClear();
+		mockWorldState.setShowDialog.mockClear();
+		mockWorldState.resetSlideIndex.mockClear();
+
+		controller.nextChapter();
+
+		expect(mockWorldState.setPaused).toHaveBeenCalledWith(false);
+		expect(mockWorldState.setShowDialog).toHaveBeenCalledWith(false);
+		expect(mockWorldState.resetSlideIndex).toHaveBeenCalled();
+		expect(controller.currentChapter?.id).toBe("chapter-2");
 	});
 });

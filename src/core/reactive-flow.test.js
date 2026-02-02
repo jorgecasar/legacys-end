@@ -16,6 +16,12 @@ const mockQuestRegistry =
 				chapterIds: ["c1"],
 				chapters: { c1: { id: "c1", title: "Chapter 1" } },
 			}),
+			getQuest: (/** @type {string} */ id) => ({
+				id,
+				name: "Test Quest",
+				chapterIds: ["c1"],
+				chapters: { c1: { id: "c1", title: "Chapter 1" } },
+			}),
 			getAvailableQuests: () => [],
 			isQuestLocked: () => false,
 			isQuestAvailable: () => true,

@@ -27,6 +27,9 @@ export class WorldStateService {
 	 */
 	setShowDialog(show) {
 		this.showDialog.set(show);
+		if (show) {
+			this.resetSlideIndex();
+		}
 	}
 
 	/**
