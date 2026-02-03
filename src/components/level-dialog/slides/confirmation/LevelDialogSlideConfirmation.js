@@ -15,7 +15,10 @@ import { levelDialogStyles } from "../../LevelDialog.styles.js";
  * @element level-dialog-slide-confirmation
  */
 export class LevelDialogSlideConfirmation extends SignalWatcher(LitElement) {
-	/** @type {import('../../../../content/quests/quest-types.js').RewardConfig | undefined} */
+	/**
+	 * @type {import('../../../../content/quests/quest-types.js').RewardConfig | undefined}
+	 * @public
+	 */
 	@property({ type: Object })
 	accessor reward = undefined;
 

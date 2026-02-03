@@ -11,7 +11,10 @@ import { levelDialogStyles } from "../../LevelDialog.styles.js";
  * @element level-dialog-slide-analysis
  */
 export class LevelDialogSlideAnalysis extends SignalWatcher(LitElement) {
-	/** @type {string[]} */
+	/**
+	 * @type {string[]}
+	 * @public
+	 */
 	@property({ type: Array })
 	accessor architecturalChanges = [];
 

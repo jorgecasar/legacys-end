@@ -24,7 +24,9 @@
 		"size": "npm run build && size-limit",
 		"analyze": "ANALYZE=true npm run build",
 		"analyze:cem": "custom-elements-manifest analyze",
-		"prepare": "husky || true"
+		"prepare": "husky || true",
+		"storybook": "storybook dev -p 6006",
+		"build-storybook": "storybook build"
 	},
 	"size-limit": [
 		{
@@ -76,7 +78,12 @@
 		"vite-imagetools": "^9.0.2",
 		"vite-plugin-babel": "^1.4.1",
 		"vite-plugin-image-optimizer": "^2.0.3",
-		"vitest": "^4.0.15"
+		"vitest": "^4.0.15",
+		"storybook": "^10.2.4",
+		"@storybook/web-components-vite": "^10.2.4",
+		"@storybook/addon-vitest": "^10.2.4",
+		"@storybook/addon-a11y": "^10.2.4",
+		"@storybook/addon-docs": "^10.2.4"
 	},
 	"customElements": "custom-elements.json"
 }

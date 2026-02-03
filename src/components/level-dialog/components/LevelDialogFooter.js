@@ -10,11 +10,17 @@ import { levelDialogStyles } from "../LevelDialog.styles.js";
  * @element level-dialog-footer
  */
 export class LevelDialogFooter extends SignalWatcher(LitElement) {
-	/** @type {string[]} */
+	/**
+	 * @type {string[]}
+	 * @public
+	 */
 	@property({ type: Array })
 	accessor slides = [];
 
-	/** @type {number} */
+	/**
+	 * @type {number}
+	 * @public
+	 */
 	@property({ type: Number })
 	accessor currentSlideIndex = 0;
 

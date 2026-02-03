@@ -13,11 +13,17 @@ import { levelDialogStyles } from "../../LevelDialog.styles.js";
  * @element level-dialog-slide-code
  */
 export class LevelDialogSlideCode extends SignalWatcher(LitElement) {
-	/** @type {CodeSnippet[]} */
+	/**
+	 * @type {CodeSnippet[]}
+	 * @public
+	 */
 	@property({ type: Array })
 	accessor snippets = [];
 
-	/** @type {'start' | 'end'} */
+	/**
+	 * @type {'start' | 'end'}
+	 * @public
+	 */
 	@property({ type: String })
 	accessor type = "start";
 

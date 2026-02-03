@@ -40,3 +40,6 @@ playwright-report/
 test-results.json
 bundle-history.jsonl
 
+
+*storybook.log
+storybook-static
