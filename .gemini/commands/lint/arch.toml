@@ -1,0 +1,5 @@
+prompt = """
+Please execute the project's architecture checks.
+!{npm run lint:arch}
+"""
+description = "Check for architecture violations."

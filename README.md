@@ -8,28 +8,25 @@ A comprehensive RPG-style resume application built with Lit Web Components. It d
 
 ## 🏗️ Architecture
 
-The project follows **SOLID principles** and **Clean Architecture**, with recent Phase 10 refactoring focused on code quality and maintainability.
+The project follows **SOLID principles** and **Clean Architecture**, with a focus on decoupling, reactivity, and type safety.
 
 ### Key Concepts
 
-*   **Event-Driven Architecture**: Controllers (`Quest`, `Interaction`, `GameZone`) are fully decoupled from consumers, emitting events via a global `EventBus` instead of direct callbacks.
-*   **Dependency Injection**: Core services and controllers are injected via `IGameContext`, decoupling them from the main application shell.
-*   **Command Pattern**: Game actions (Move, Interact, Pause) are encapsulated as Commands in a Command Bus, enabling replayability and macro recording.
-*   **Use Cases**: Complex domain logic (e.g., `EvaluateChapterTransition`, `ProcessGameZoneInteraction`) is extracted into pure, testable Use Cases.
-*   **State Management**: Uses **Lit Signals** (`@lit-labs/signals`) for fine-grained, reactive state management. `GameStateService` acts as the single source of truth.
-*   **Web Components**: UI is built with Lit (lightweight, standard-based web components) following a strict 4-file architecture pattern.
-*   **Encapsulation**: Private methods (#) and helper functions for better code organization and maintainability.
+*   **Context-Based Dependency Injection**: Services and controllers are injected via `@lit/context`, eliminating prop-drilling and decoupling components from concrete implementations.
+*   **Domain-Driven State**: Application state is split into focused domain services (`HeroStateService`, `QuestStateService`, `WorldStateService`) instead of a single monolith.
+*   **Reactive Signals**: Uses **Lit Signals** (`@lit-labs/signals`) for high-performance, fine-grained reactivity. Components only re-render when the specific signals they consume are updated.
+*   **Use Cases**: Complex business rules (e.g., `EvaluateChapterTransition`, `InteractWithNpc`) are encapsulated in pure, stateless Use Case classes.
+*   **Reactive Controllers**: Bridging logic between domain services and UI components is handled by specialized Lit Reactive Controllers.
+*   **Web Components**: UI is built with Lit, following a strict 4-file architecture pattern (Logic, Styles, Definition, Test).
 
 ### Directory Structure
 
-*   `src/use-cases/`: Pure business logic (e.g., Chapter Transitions, Zone Interactions).
-*   `src/commands/`: Action objects for the Command Bus.
+*   `src/game/services/`: Domain-specific state services (Hero, Quest, World).
+*   `src/services/`: Global infrastructure services (Theme, Progress, Session).
 *   `src/controllers/`: Reactive controllers linking UI to logic.
-*   `src/services/`: Core infrastructure (Progress, Storage, Audio).
-*   `src/components/`: Lit components (Game View, HUD, Dialogs).
-*   `src/managers/`: Session and game orchestration.
-*   `src/setup/`: Dependency injection wiring and initialization.
-*   `src/constants/`: Shared constants, including `EVENTS`.
+*   `src/use-cases/`: Pure business logic and domain rules.
+*   `src/components/`: Lit components organized by domain.
+*   `src/contexts/`: Lit context definitions for dependency injection.
 *   `src/utils/`: Shared utilities and helpers.
 
 ## 🚀 Run Locally
@@ -48,7 +45,7 @@ The project follows **SOLID principles** and **Clean Architecture**, with recent
 
 ## 🧪 Testing
 
-The project maintains a high standard of code quality with **585+ tests** passing.
+The project maintains a high standard of code quality with comprehensive test coverage.
 
 *   **Run all tests:** `npm run test`
 *   **Run with coverage:** `npm run test:coverage`
@@ -57,40 +54,31 @@ The project maintains a high standard of code quality with **585+ tests** passin
 
 ## 🛠 Recent Refactors
 
+### Phase 11: Domain-Driven Refactor & Context DI (February 2026)
+
+Major architectural shift to a modern, decoupled structure:
+
+*   🚀 **Decomposed GameState monolith** into domain-specific services (`Hero`, `Quest`, `World`).
+*   🔒 **Migrated to @lit/context** for service injection, removing legacy instantiation patterns.
+*   🧹 **Removed EventBus and CommandBus** in favor of direct service calls and reactive signals.
+*   🧪 **Hardened Type Safety** using JSDoc and strict TSC configuration.
+*   ✨ **Standardized Decorators** using TC39 standard decorators (`accessor` keyword).
+
 ### Phase 10: Code Quality & Encapsulation (January 2026)
 
-Major refactoring focused on improving code quality, reducing duplication, and enhancing maintainability:
-
-**Components Refactored:**
-- ✅ **QuestHub** - Extracted `QuestCard` component, reduced from 304 to 187 lines (-38%)
-- ✅ **LevelDialog** - Extracted utilities, privatized 8 methods, added extensibility hooks
-- ✅ **GameView** - Privatized 5 event handlers, split `setupControllers` into 5 focused methods
-- ✅ **QuestController** - Replaced console.logs with logger, extracted 2 helper methods, eliminated ~65 lines
-- ✅ **GameSessionManager** - Privatized 8 event handlers, extracted 2 helpers, eliminated ~30 lines
-- ✅ **LegacysEndApp** - Privatized 10 event handlers, extracted command execution helpers, eliminated ~25 lines
-
-**Key Improvements:**
+Focused on improving component-level encapsulation and reducing duplication:
 - 🔒 **23 event handlers** converted to private methods (#)
 - 🧩 **8 helper methods** extracted for reusability
 - 📉 **~245 lines** of duplicate code eliminated
-- 🎯 **100% test coverage** maintained (585/585 tests passing)
-- 🚀 **Performance optimizations** (theme application, state management)
-- 📝 **Consistent logging** with logger service (no console.logs)
-
-### Phase 9: Signal Migration (2025)
-*   Refactored `GameStateService` from Observable pattern to `@lit-labs/signals`
-*   Improved performance and reduced boilerplate
-
-### Phases 6-8: Event-Driven Architecture (2025)
-*   Complete migration to event-driven controllers
-*   Decoupled `GameView` from `LegacysEndApp`
-*   Logic extraction to Use Cases
+- 📝 **Consistent logging** with `LoggerService` (removed raw console logs)
 
 ## 📚 Documentation
 
 *   [Project Standards](docs/PROJECT_STANDARDS.md) - Coding standards and guidelines
-*   [Technical Reference](docs/TECHNICAL_REFERENCE.md) - Architecture deep dive
-*   [Deployment Guide](DEPLOYMENT.md) - How to deploy
+*   [Architecture Overview](docs/ARCHITECTURE.md) - High-level system design
+*   [Technical Reference](docs/TECHNICAL_REFERENCE.md) - Detailed module documentation
+*   [i18n Technical Glossary](docs/I18N_GLOSSARY.md) - Translation standards
+
 
 ## 🤝 Contributing
 

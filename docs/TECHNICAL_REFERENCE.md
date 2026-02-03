@@ -31,7 +31,7 @@ graph TD
 ```
 
 ### 2. Reactive Signals Pattern
-**Question**: Why does `GameStateService` (and others) use Lit Signals?
+**Question**: Why do the domain state services (Hero, Quest, World) use Lit Signals?
 
 **Reasoning**:
 In standard Lit applications, state is usually managed within components using reactive properties. However, in a game engine, state often needs to be accessed and modified by purely logical entities (Managers, Controllers) that are *not* UI components.
@@ -40,36 +40,36 @@ In standard Lit applications, state is usually managed within components using r
 **Principle**: "Reactive State derivations over Imperative Synchronization".
 **Reasoning**: avoid "Glue Code" (manually syncing state between parents and children via events). Prefer **Reactive Primitives** (`@lit/task`, Signals) that derive UI state directly from usage. If a Controller has the data, share the Controller (or a Context), do NOT copy the data to the App component just to pass it down.
 
-*   **Decoupling Logic from UI**: `GameStateService` can run game logic, update coordinates, or handle inventory without needing a DOM element.
-*   **Fine-Grained Reactivity**: By using `@lit-labs/signals`, the service becomes a pinpoint reactive data source. UI components only re-render when the specific signals they use are updated.
-*   **Automatic Dependency Tracking**: Components using the `SignalWatcher` mixin automatically tracking which signals they access in `render()`, removing the need for manual `subscribe()` and `unsubscribe()` boilerplate.
+*   **Decoupling Logic from UI**: State services can run game logic, update coordinates, or handle quest progression without needing a DOM element.
+*   **Fine-Grained Reactivity**: By using `@lit-labs/signals`, services become pinpoint reactive data sources. UI components only re-render when the specific signals they use are updated.
+*   **Automatic Dependency Tracking**: Components using the `SignalWatcher` mixin automatically track which signals they access in `render()`, removing the need for manual `subscribe()` and `unsubscribe()` boilerplate.
 *   **Multiple Consumers**: A single signal update (e.g., `hasCollectedItem.set(true)`) can simultaneously update the HUD, trigger a sound effect manager, and notify the Quest Controller, without these systems knowing about each other.
 
 ### 2. Dependency Injection (DI) via Context
 **Pattern**: Usage of `@lit/context` and standardized Interfaces.
 
 **Reasoning**:
-To avoid "Prop Drilling" (passing data through many layers of components), we use Lit Context to provide service instances. However, components should NOT depend on concrete classes. They MUST depend on **Interfaces** defined in `src/services/interfaces.js`. This allows for easy mocking in tests and swapping implementations (e.g., swapping a `LocalStorageService` for a `CloudStorageService`) without changing component logic.
+To avoid "Prop Drilling" (passing data through many layers of components), we use Lit Context to provide service instances. However, components should NOT depend on concrete classes. They MUST depend on **Interfaces** defined in `src/game/interfaces.js` or `src/services/interfaces.js`. This allows for easy mocking in tests and swapping implementations (e.g., swapping a `LocalStorageService` for a `CloudStorageService`) without changing component logic.
 
 ### 3. Service-Controller-Component Triad
 **Pattern**: Strict separation of concerns.
 
-*   **Service**: "Source of Truth". Holds data and business logic (e.g., `GameStateService`).
+*   **Service**: "Source of Truth". Holds domain data and business logic (e.g., `HeroStateService`, `QuestStateService`, `WorldStateService`).
 *   **Controller**: "Brain". Reactive Controllers that hook into the component lifecycle to bridge services and UI (e.g., `KeyboardController`).
 *   **Component**: "View". Purely visual representation of the state (e.g., `GameViewport`).
-    *   **The Component** provides the context.
+    *   **The Component** provides or consumes the context.
     *   **The Controller** independently requests the services it needs via `ContextConsumer`.
 
-1.  **Controller Responsibility**: The controller is responsible for requesting the services it needs via `ContextConsumer`. It does not rely on the host to pass dependencies via constructor options.
+1.  **Controller Responsibility**: The controller is responsible for requesting the services it needs via `ContextConsumer`.
 2.  **host**: The controller uses the host only for lifecycle hooks and event dispatching.
 3.  **Reactivity**: The controller sets up context consumers with `subscribe: true`. If a service value changes, the controller reacts by updating its internal state and/or requesting a host update (`this.host.requestUpdate()`).
 
 ### 5. Alternative Considered: Services as Lit Controllers?
-**Question**: Why not implement `GameStateService` directly as a [Lit Reactive Controller](https://lit.dev/docs/composition/controllers/)?
+**Question**: Why not implement State Services directly as [Lit Reactive Controllers](https://lit.dev/docs/composition/controllers/)?
 
 **Reasoning**:
 Lit Controllers are powerful but are designed to be **bound to a specific host component's lifecycle**.
-*   **Lifecycle Limitations**: A Controller is instantiated by a component (`new Controller(this)`). If we moved the `GameState` logic entirely into a Controller, every component would have its own isolated instance of the state, or we would still need a singleton backing store.
+*   **Lifecycle Limitations**: A Controller is instantiated by a component (`new Controller(this)`). If we moved the state logic entirely into a Controller, every component would have its own isolated instance of the state, or we would still need a singleton backing store.
 *   **Architecture Choice**: We use **Services** for *singletons* that exist independently of the UI (Data Layer), and **Controllers** for logic that *must* interact with the Component Lifecycle (Inputs, Timers, View Bindings).
 
 ### 5. Historical Context: Migration from the Observable Pattern
@@ -86,32 +86,46 @@ The project originally used a custom `Observable` implementation for coarse-grai
 **Question**: Why was the global `EventBus` removed?
 
 **Reasoning**:
-*   **Traceability**: Direct method calls (e.g., `gameView.nextDialogSlide()`) and Signals are easier to trace in IDEs than loose event strings.
-*   **Decoupling**: Eliminates the "Implicit Dependency" on a central bus. Components declare exactly what they need (`WorldStateService`, `QuestLoaderService`).
-*   **Simplicity**: specialized logic (like level completion) is now handled via explicit methods on `GameController` rather than generic event listeners.
+*   **Traceability**: Direct method calls and Signals are easier to trace in IDEs than loose event strings.
+*   **Decoupling**: Eliminates the "Implicit Dependency" on a central bus. Components declare exactly what they need (`WorldStateService`, `QuestController`).
+*   **Simplicity**: specialized logic (like level completion) is now handled via explicit methods on `GameController` or domain services rather than generic event listeners.
 
 ---
 
-## 🏗️ Services (`src/services/`)
+## 🏗️ Services (`src/services/` and `src/game/services/`)
 
-Services are pure logic classes that manage specific domains of the application state or business logic. They are often unrelated to the UI and can be injected or imported directly.
+Services are pure logic classes that manage specific domains of the application state or business logic. They are often unrelated to the UI and can be injected via Context.
 
-### `GameStateService`
-**Purpose**: Manages the ephemeral state of the active gameplay session (hero position, UI flags, etc.).
+### `HeroStateService`
+**Purpose**: Manages the ephemeral state of the player character.
 **Type**: Signal Provider (uses `@lit-labs/signals`).
 
 *   **State Properties**:
-    *   `heroPos`: `{x, y}` coordinates of the player.
+    *   `pos`: `{x, y}` coordinates of the player.
+    *   `isEvolving`: Boolean, true during character transformation animations.
+    *   `hotSwitchState`: `HotSwitchState` indications for API context visual effects.
+    *   `imageSrc`: Current sprite source.
+
+### `QuestStateService`
+**Purpose**: Manages active quest progression metadata and session-specific goals.
+**Type**: Signal Provider (uses `@lit-labs/signals`).
+
+*   **State Properties**:
     *   `hasCollectedItem`: Boolean, true if the level's objective item is collected.
     *   `isRewardCollected`: Boolean, true if the visual reward sequence is finished.
-    *   `hotSwitchState`: `HotSwitchState` (`legacy` | `new` | `test` | `null`) indicating the current API context. **Defaults to `null`** - only set explicitly by zone interactions or user actions.
-    *   `isPaused`: Boolean, game pause state.
-    *   `themeMode`: `ThemeMode` (`light` | `dark`), visual theme.
+    *   `isQuestCompleted`: Boolean, global completion flag.
+    *   `questTitle` / `levelTitle`: Display strings.
+    *   `currentChapterNumber` / `totalChapters`: Progress counters.
 
-*   **Key Methods**:
-    *   `getState()`: Returns a snapshot of the current state.
-    *   `setHeroPosition(x, y)`: Updates player coordinates.
-    *   `resetChapterState()`: Resets ephemeral flags (items, messages) for a new chapter.
+### `WorldStateService`
+**Purpose**: Manages environmental and UI engine state.
+**Type**: Signal Provider (uses `@lit-labs/signals`).
+
+*   **State Properties**:
+    *   `isPaused`: Boolean, game pause state.
+    *   `showDialog`: Boolean, visibility of the storytelling dialog.
+    *   `currentSlideIndex`: Number, current active slide in the dialog. **Automatically resets to 0 when `showDialog` is set to true.**
+    *   `currentDialogText` / `nextDialogText`: Narrative strings.
 
 ### `ProgressService`
 **Purpose**: Manages long-term player progression and persistence.
@@ -156,13 +170,9 @@ Services are pure logic classes that manage specific domains of the application 
 ## ⚙️ Managers (`src/managers/`)
 (Deprecated & Removed. Logic moved to Services.)
 
-### `SessionService` (formerly `GameSessionManager`)
-**Purpose**: Manages the user session.
+### `SessionService`
+**Purpose**: Manages the meta-game session (Hub vs Game, Loading state).
 **Location**: `src/services/session-service.js`
-
-### `QuestLoaderService`
-**Purpose**: Orchestrates Quest loading and transitions.
-**Location**: `src/services/quest-loader-service.js`
 
 ---
 
@@ -190,7 +200,7 @@ Pure domain logic encapsulated in single-responsibility classes. These contain t
 Controllers are specialized classes (often using Lit's Reactive Controller pattern) that handle specific functional aspects of the application.
 
 ### `QuestController`
-**Purpose**: Manages the specific logic of Quest progression (chapters, prerequisites, completion).
+**Purpose**: Manages the orchestration of Quest progression (chapters, transitions, completion).
 **Type**: Lit Reactive Controller.
 **Architecture**: Delegates transition logic to `EvaluateChapterTransitionUseCase`.
 **Inputs**:
@@ -201,10 +211,9 @@ Controllers are specialized classes (often using Lit's Reactive Controller patte
 *   `onQuestComplete(quest)`: Triggered when quest completes.
 *   `onReturnToHub()`: Triggered when returning to hub.
 **Key Methods**:
-*   `startQuest(questId)`: Starts a new quest from the beginning.
+*   `startQuest(questId)`: Starts a new quest (resets progress for that quest).
 *   `continueQuest(questId)`: Resumes from the first uncompleted chapter.
-*   `jumpToChapter(chapterId)`: Navigates to a specific chapter (with validation).
-*   `completeChapter()`: Marks current chapter as done and advances.
+*   `nextChapter()`: Advances to the next chapter (resets UI state for the new chapter).
 *   `completeQuest()`: Marks quest as completed.
 
 ### `KeyboardController`
@@ -233,14 +242,14 @@ Controllers are specialized classes (often using Lit's Reactive Controller patte
 *   `onLocked(msg)`: Triggers a "locked" feedback message.
 **Key Logic**:
 *   **Proximity**: Hero must be within `interactionDistance` (default 15) of the NPC.
-*   **Final Boss**: Special logic blocks interaction if `hotSwitchState` is 'legacy' (requires 'new' context).
+*   **Use Case Delegation**: Uses `InteractWithNpcUseCase` for validation.
 
 ### `CollisionController`
 **Purpose**: Handles AABB (Axis-Aligned Bounding Box) collision detection and exit zone triggers.
 **Type**: Lit Reactive Controller.
 **Key Logic**:
-*   **Signal Observation**: In `hostUpdate()`, it reads `gameState.heroPos` and `gameState.hasCollectedItem` to react to position changes.
-*   `checkExitZone()`: Determines if the player has entered the level exit area (only active if item is collected). Calls `host.gameController.handleExitZoneReached()` directly.
+*   **Signal Observation**: Reads `HeroStateService` and `QuestStateService` to react to position changes.
+*   `checkExitZone()`: Determines if the player has entered the level exit area (only active if item is collected).
 *   `checkAABB(box1, box2)`: Generic collision utility.
 
 ### `GameZoneController`
@@ -248,10 +257,8 @@ Controllers are specialized classes (often using Lit's Reactive Controller patte
 **Type**: Lit Reactive Controller.
 **Architecture**: Delegates zone logic to `ProcessGameZoneInteractionUseCase`.
 **Key Logic**:
-*   **Signal Observation**: In `hostUpdate()`, it reads `gameState.heroPos` to trigger zone checks.
-*   **Direct State Update**: Updates `themeMode` or `hotSwitchState` in `GameStateService` based on use case results.
-*   **Theme Zones**: Switches between 'dark' (bottom) and 'light' (top) if `hasThemeZones` is active.
-*   **Context Zones**: Switches API context (`legacy` vs `new`) based on X/Y quadrants.
+*   **Signal Observation**: Reads `HeroStateService` to trigger zone checks.
+*   **Direct State Update**: Updates `themeMode` or `hotSwitchState` based on use case results.
 
 ### `ServiceController`
 **Purpose**: Manages the loading of async data (simulated) from the active `UserService`.
@@ -295,14 +302,14 @@ Controllers are specialized classes (often using Lit's Reactive Controller patte
 *   **Context-Aware**: Uses game state (dialog open, reward collected) to interpret ambiguous commands like "next".
 **Browser Support**: Chrome/Edge (Web Speech API required).
 
-### `GameController` (formerly `DebugController`)
-**Purpose**: The primary interface for game operations. It receives commands from the `VoiceController` or console and delegates them to relevant services (e.g., `SessionService`, `QuestLoaderService`).
+### `GameController`
+**Purpose**: The primary interface for high-level game operations and orchestration. It coordinates between UI components and domain services.
 **Type**: Lit Reactive Controller.
 **Inputs**:
 *   `?debug` query parameter in URL (enables debug mode).
-*   `GameControllerOptions`: Injected `SessionService`, `QuestLoaderService`, and `LoggerService`.
+*   `GameControllerOptions`: Injected `SessionService` and `LoggerService`.
 **Outputs**:
-*   Console logs for state inspection.
+*   Console logs for state inspection in debug mode.
 *   `handleLevelCompleted()`: Public method called by GameView when a level is finished.
 *   `handleExitZoneReached()`: Public method called by CollisionController when the exit is reached.
 *   **Note**: `window.game` has been removed.
@@ -316,60 +323,59 @@ Controllers are specialized classes (often using Lit's Reactive Controller patte
 
 Visual UI elements built with `Lit`.
 
-### `GameView`
-**Element**: `<game-view>`
-**Purpose**: The main container for the active gameplay.
-**State**: Renders `GameViewport`, `GameHud`, `PauseMenu`, and `LevelDialog`.
+### `QuestView`
+**Element**: `<quest-view>`
+**Purpose**: The main page wrapper for active gameplay.
+**State**: Manages the high-level layout, rendering `GameViewport`, `PauseMenu`, `VictoryScreen`, and `LevelDialog` based on reactive state.
 
 ### `GameViewport`
 **Element**: `<game-viewport>`
-**Purpose**: The "World" canvas where the game is played.
+**Purpose**: The "World" canvas where the game engine runs.
 **Responsibilities**:
+*   Coordinates domain controllers (Collision, Interaction, GameZone).
 *   Renders the Hero, NPCs, Rewards, and background.
 *   Handles CSS-based animations (Hero movement, Reward collection sequence).
 
 ### `QuestHub`
 **Element**: `<quest-hub>`
-**Purpose**: The main menu screen listing available quests.
+**Purpose**: The main menu screen for quest selection.
 **Features**:
-*   Grid of Quest Cards.
-*   Coming Soon section.
-*   Progress bars and badges.
+*   Grid of `QuestCard` components.
+*   Progress visualization and persistent state management via `ProgressService`.
 
 ### `LevelDialog`
 **Element**: `<level-dialog>`
-**Purpose**: The modal interface for storytelling and code challenges.
+**Purpose**: Modal interface for narrative progression and chapter completion.
 **Structure**:
-*   **Slides**: Narrative -> Problem -> Code Analysis -> Confirmation.
-*   **Interactive**: Displays syntax-highlighted code blocks.
-*   **Note**: The "CONTROL CONSOLE" slide and `isFinalBoss` logic have been removed. All levels now use the standard confirmation flow.
+*   **Slides**: Narrative -> Code Snippets -> Problem -> Architectural Analysis -> Confirmation.
+*   **Reactivity**: Purely functional consumer of `WorldStateService.currentSlideIndex`.
 
 ### `HeroProfile`
 **Element**: `<hero-profile>`
-**Purpose**: Renders the player character sprite and nameplate.
+**Purpose**: Renders the player character status and avatar.
 **Features**:
-*   Context-aware styling (glitch effects, shadows based on API context).
-*   Composites multiple images (Suit + Gear + Power).
+*   Context-aware styling based on `HeroStateService`.
+*   Composites multiple images based on active equipment and API context.
 
 ### `NpcElement` / `RewardElement`
 **Elements**: `<npc-element>`, `<reward-element>`
-**Purpose**: Simple absolute-positioned entities in the viewport.
+**Purpose**: Purely visual entities in the viewport that react to position and state.
 
 ### `VictoryScreen`
 **Element**: `<victory-screen>`
-**Purpose**: Full-screen overlay shown upon completing a Quest.
+**Purpose**: Overlay shown when an entire Quest is completed.
 
 ### `PauseMenu`
 **Element**: `<pause-menu>`
-**Purpose**: In-game menu for Resuming, Restarting, or Quitting to Hub.
+**Purpose**: In-game menu for session management.
 
 ---
 
 ## 🧪 Mixins (`src/mixins/`)
 
-### `ContextMixin`
-**Purpose**: Sets up the root-level Lit Context Providers.
-**Usage**: Applied to the main application shell (`LegacysEndApp`) to ensure contexts (`theme`, `profile`, `character`) are available globally.
+### `SignalWatcher`
+**Purpose**: Automated dependency tracking for Lit Signals.
+**Usage**: Applied to any component that reads values from domain services in its `render()` method.
 
 ---
 
@@ -378,31 +384,25 @@ Visual UI elements built with `Lit`.
 ### How Services are Consumed
 Services are designed as **Singletons** and are primarily accessed via **Lit Context** (`@lit/context`). This ensures any component in the tree can access the service instance without prop drilling.
 
-1.  **Instantiation**: Services are instantiated in `legacys-end-app.js` (Root Component).
-2.  **Provision**: The Root Component uses `ContextMixin` and `@provide` decorators to make services available.
-3.  **Consumption**: Child components use the `@consume` decorator to get the service instance.
+1.  **Instantiation**: Services are instantiated in `GameBootstrapper` and owned by `LegacysEndApp`.
+2.  **Provision**: `LegacysEndApp` provides the contexts to the entire component tree.
+3.  **Consumption**: Child components use the `@consume` decorator with the `accessor` keyword to get the service instance.
 
 ### Access Pattern
 ```javascript
-// 1. Define Context (context-mixin.js)
-export const gameContext = createContext('game-state');
-
-// 2. Provide (legacys-end-app.js)
-@provide({ context: gameContext })
-gameStateService = new GameStateService();
-
-// 3. Consume & Watch (Any Component)
 import { SignalWatcher } from "@lit-labs/signals";
+import { consume } from "@lit/context";
+import { questStateContext } from "../game/contexts/quest-context.js";
 
 class MyNewComponent extends SignalWatcher(LitElement) {
-  /** @type {import('../services/interfaces.js').IQuestStateService} */
+  /** @type {import('../game/interfaces.js').IQuestStateService} */
   @consume({ context: questStateContext, subscribe: true })
-  questStateService;
+  accessor questState = /** @type {import('../game/interfaces.js').IQuestStateService} */ (/** @type {unknown} */ (null));
 
   render() {
     // Simply access signals; the mixin tracks dependencies automatically
-    const pos = this.questStateService.heroPos.get();
-    return html`Hero is at: ${pos.x}, ${pos.y}`;
+    const title = this.questState.questTitle.get();
+    return html`<h1>${title}</h1>`;
   }
 }
 ```
@@ -410,54 +410,55 @@ class MyNewComponent extends SignalWatcher(LitElement) {
 ### Consumer Map
 | Service Interface | Consumers (Examples) | Usage |
 | :--- | :--- | :--- |
-| `IQuestStateService` | `GameView`, `GameViewport`, `GameHud` | Rendering UI, Hero movement, Theme changes. |
-| `IQuestLoaderService` | `LegacysEndApp`, `PauseMenu`, `VictoryScreen` | Controlling global flow (Home <-> Game). |
-| `IQuestController` | `GameViewport`, `GameHud`, `QuestView` | Quest logic orchestration and chapter management. |
-| `IProgressService` | `QuestController`, `QuestHub` | Saving/Loading progress, unlocking chapters. |
-| `ILoggerService` | `*` | Injected everywhere for unified logging. |
+| `IQuestStateService` | `QuestView`, `GameViewport`, `GameHud` | Chapter metadata, completion status. |
+| `IHeroStateService` | `HeroProfile`, `GameViewport`, `GameZoneController` | Hero position, evolution state, effects. |
+| `IWorldStateService` | `QuestView`, `LevelDialog`, `PauseMenu` | Dialog navigation, pause state. |
+| `ISessionService` | `LegacysEndApp`, `QuestView`, `QuestController` | Meta-game state (Hub vs Game). |
+| `IQuestController` | `QuestHub`, `LevelDialog`, `PauseMenu` | Direct orchestration of quest flow. |
+| `IProgressService` | `QuestController`, `QuestHub` | Persistent saving and loading. |
+| `ILoggerService` | `*` | Unified logging through the application. |
 
 ### How to Include a Service in a New Component
-To use an existing service (e.g., `GameStateService`) in a new component:
+To use an existing service (e.g., `QuestStateService`) in a new component:
 
-1.  **Import the Context**:
-    ```javascript
-    import { gameContext } from "../mixins/context-mixin.js";
-    ```
-2.  **Add the Consumer and Watcher**:
+1.  **Import the Context and Decorators**:
     ```javascript
     import { consume } from "@lit/context";
     import { SignalWatcher } from "@lit-labs/signals";
-
+    import { questStateContext } from "../game/contexts/quest-context.js";
+    ```
+2.  **Add the Consumer and Watcher**:
+    ```javascript
     class MyNewComponent extends SignalWatcher(LitElement) {
-      @consume({ context: gameContext })
-      gameStateService;
+      @consume({ context: questStateContext, subscribe: true })
+      accessor questState = /** @type {any} */ (null);
 
       render() {
-        return html`Hero is at: ${this.gameStateService.heroPos.get().x}`;
+        return html`Progress: ${this.questState.currentChapterNumber.get()}`;
       }
     }
     ```
-    *Note: No manual subscription management is required when using `SignalWatcher`.*
+    *Note: The `accessor` keyword and initialization are required for standard decorators.*
 
 ---
 
 ## 🛠️ Shared Modules & Utilities
 
-### `QuestRegistry` (`src/quests/quest-registry.js`)
-**Purpose**: The central repository for all Quest definitions.
-**Key Functions**:
-*   `getQuest(id)`: Retrieves a specific quest configuration.
-*   `getAllQuests()`: Returns all playable quests.
-*   `isQuestLocked(id, completedQuests)`: Checks prerequisites against user progress.
+### `QuestRegistryService` (`src/services/quest-registry-service.js`)
+**Purpose**: The central repository for all Quest definitions and chapter loading logic.
+**Key Methods**:
+*   `getQuest(id)`: Retrieves metadata for a specific quest.
+*   `loadQuestData(id)`: Asynchronously loads full chapter data for a quest.
+*   `getAllQuests()`: Returns all quest definitions.
 
-### `GameConfig` (`src/constants/game-config.js`)
-**Purpose**: Defines global constants and configuration values.
+### `GameConfig` (`src/config/game-configuration.js`)
+**Purpose**: Defines global constants and gameplay parameters.
 **Key Constants**:
-*   `ANIMATION`: Timings for rewards and transitions.
-*   `VIEWPORT.ZONES`: Coordinates for logic triggers (Legacy/New API zones, Dark Mode zones).
+*   `gameplay`: Movement speeds, interaction distances.
+*   `viewport`: Viewport dimensions and grid settings.
 
 ### `Asset Utilities` (`src/utils/process-assets.js`)
 **Purpose**: helper functions to ensure correct asset loading across different environments using `import.meta.env.BASE_URL`.
 **Key Functions**:
 *   `processImagePath(path)`: Resolves image paths relative to the application root.
-*   `processBackgroundStyle(styleString)`: Parses and corrects URLs within CSS background strings.
+*   `processImageSrcset(path)`: Generates responsive srcset strings for assets.

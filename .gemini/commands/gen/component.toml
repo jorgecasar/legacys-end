@@ -1,0 +1,8 @@
+prompt = """
+Please use the `scaffold-component` skill to create a new component.
+The component name and path should be based on the arguments provided: "{{args}}".
+For example:
+- if args is "my-button components/ui", create "my-button" in "src/components/ui".
+- if args is "user-profile", ask for the path or assume a default.
+"""
+description = "Scaffold a new Lit component."

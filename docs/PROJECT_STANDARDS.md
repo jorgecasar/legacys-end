@@ -1,9 +1,9 @@
 # Legacy's End - Project Standards & Guidelines
 
 > **CRITICAL ARCHITECTURAL DIRECTIVE**
-> All code changes, refactors, and new features MUST align with the target architecture defined in `docs/ARCHITECTURE_TOBE.md`.
+> All code changes, refactors, and new features MUST align with the system architecture defined in `docs/ARCHITECTURE.md`.
 >
-> **Core Principles of TO-BE State**:
+> **Core Principles of Current Architecture**:
 > 1.  **Strict 3-Layer Structure**: `App (Router)` -> `QuestView (Context Provider)` -> `GameViewport (Engine)`.
 > 2.  **Domain-Driven State**: No monolithic `GameState`. Use `HeroState`, `QuestState`, `WorldState`.
 > 3.  **No Global Singletons**: All services must be Classes injected via `@lit/context`.
@@ -44,9 +44,9 @@ This document outlines the mandatory architectural and coding standards for "Leg
 *   **Stricter Typing**: All variables, parameters, and return types must be explicitly typed using JSDoc. Avoid generic `Object` types; define the shape.
 *   **Interface Casting**: When using `@consume`, cast the context initial value using JSDoc to the interface type.
     ```javascript
-    /** @type {import('../../services/interfaces.js').IQuestLoaderService} */
-    @consume({ context: questLoaderContext, subscribe: true })
-    accessor questLoader = /** @type {import('../../services/interfaces.js').IQuestLoaderService} */ (
+    /** @type {import('../../game/interfaces.js').IQuestStateService} */
+    @consume({ context: questStateContext, subscribe: true })
+    accessor questState = /** @type {import('../../game/interfaces.js').IQuestStateService} */ (
         /** @type {unknown} */ (null)
     );
     ```
@@ -81,6 +81,14 @@ To avoid brittle tests that break with implementation changes:
 *   **Behavioral Assertions**: Assert on public state changes or public side effects, not on internal method calls.
     *   *Bad*: `expect(service.setInternalFlag).toHaveBeenCalled()`
     *   *Good*: `expect(service.state.flag.get()).toBe(true)`
+*   **Regression Testing (MANDATORY)**:
+    *   **Rule**: When a bug is reported, you **MUST** first create a failing test case that reproduces the bug before fixing it.
+    *   **Process**:
+        1.  Create a test case (e.g., `it('should handle edge case X')`) that fails.
+        2.  Verify it fails (red).
+        3.  Implement the fix.
+        4.  Verify it passes (green).
+    *   **Goal**: Prevent the bug from ever resurfacing.
 *   **Example**:
     ```javascript
     // Instead of mocking GameStateService and checking calls:
@@ -204,7 +212,12 @@ Every component must follow this strict structure in its own directory:
 
 *   **Private/Internal State**: Use Lit's `@state()` decorator.
 *   **Public API**: Use `@property()`.
-*   **Service Access**: Use `@consume({ context: myContext })`.
+*   **Service Access**: Use `@consume({ context: myContext })` with `accessor` and initialization for type safety.
+    ```javascript
+    /** @type {import('../../services/interfaces.js').ILoggerService} */
+    @consume({ context: loggerContext })
+    accessor logger = /** @type {import('../../services/interfaces.js').ILoggerService} */ (/** @type {unknown} */ (null));
+    ```
 *   **Private Methods**: Use `#` prefix for private methods and helpers.
     ```javascript
     class MyComponent extends LitElement {
@@ -263,16 +276,32 @@ Every component must follow this strict structure in its own directory:
 *   **Commit Messages**: Follow conventional commits format:
     ```
     type(scope): description
-    
-    Examples:
-    feat(quest-hub): add quest filtering
-    fix(game-view): resolve dialog state issue
-    refactor(quest-controller): improve encapsulation
-    docs(readme): update architecture section
-    test(game-state): add signal tests
+
+    Body (optional)
+
+    Task: #task-id
     ```
+    *   **Task Link**: You **MUST** append `Task: #<id>` to the footer. Get the ID from the active `02_DOING` file.
+
+*   **Atomic Commits**:
+    *   Ideally, **1 Task = 1 Commit** (or a series of linked commits).
+    *   Do not bundle unrelated changes.
+
+*   **Review Protocol (Continuous Improvement)**:
+    *   If a review (manual or automated) detects an issue or improvement opportunity that is **NOT** critical for the current task:
+        1.  Do **NOT** fix it immediately if it bloats the scope.
+        2.  Do **NOT** ignore it.
+        3.  **CREATE** a new task in `01_TODO` (using `create-task` status=TODO) to address it later.
+    *   *Goal*: Maintain focus (Flow) while ensuring technical debt is recorded.
 
 *   **Agent Protocol**:
+    *   **Verification (NEW)**: Before committing, the Agent MUST run the `verify-changes` skill.
+        *   This ensures Lint, Types, Tests, and Build pass.
+        *   If verification fails, the Agent MUST NOT commit.
+    *   **Documentation Maintenance**: With every code change, the Agent **MUST** review and update:
+        *   `docs/TECHNICAL_REFERENCE.md` (if implementation details change).
+        *   `docs/PROJECT_STANDARDS.md` (if conventions change).
+        *   `docs/ARCHITECTURE.md` (if structure changes).
     *   **No Unvalidated Commits**: The AI Agent MUST NOT commit or push changes without explicit user validation or prior approval.
     *   **Validation First**: Always verify changes (tests, build, manual check) AND ask the user for confirmation before finalizing a task with a commit.
 
@@ -287,9 +316,9 @@ Every component must follow this strict structure in its own directory:
     ```javascript
     willUpdate(changedProperties) {
       // Only apply theme if it actually changed
-      if (this.gameState.themeMode.get() !== this._lastThemeMode) {
+      if (this.themeService.themeMode.get() !== this._lastThemeMode) {
         this.applyTheme();
-        this._lastThemeMode = this.gameState.themeMode.get();
+        this._lastThemeMode = this.themeService.themeMode.get();
       }
     }
     ```
@@ -361,3 +390,26 @@ logger.warn("Invalid state", { state });
     *   **Source of Truth**: Consult `docs/I18N_GLOSSARY.md` for the list of non-translatable terms.
     *   **Workflow**: When extracting strings (`npm run localize:extract`) or translating XLIFF files, ensure terms from the glossary are preserved as English in the `<target>` tags.
 *   **Plain Text Preference**: Avoid interpolating glossary constants into `msg()` in the source code. Prefer plain text for better readability and easier extraction.
+
+---
+
+## 11. AI Agent Workflow & Task Management
+
+> **MANDATORY**: All AI Agents working on this repository MUST follow this workflow to ensure context persistence and project history.
+
+### 1. Task Management (Kanban)
+The project uses a file-based Kanban system in `docs/tasks/`.
+*   **00_BACKLOG**: Ideas and potential features.
+*   **01_TODO**: Tasks ready to be picked up.
+*   **02_DOING**: The **single source of truth** for the active task. **Only one file allowed here.**
+*   **03_DONE**: Completed tasks (history).
+
+### 2. Session Protocol
+1.  **Start / Status Update**: When beginning a session OR when the user asks about "next steps" or "status":
+    *   **Check `docs/tasks/02_DOING`**:
+        *   If a file exists, read it to restore context and report current progress.
+        *   If empty, **SCAN** `docs/tasks/01_TODO` and **SUGGEST** the top priority tasks to the user.
+2.  **During Work**: Update the task file's "Memory / Current State" section with progress before stopping or switching context.
+3.  **Task Creation**: When the user requests a new feature `docs/tasks/TEMPLATE.md` to generate a standardized task file in `01_TODO` or `00_BACKLOG`.
+4.  **Completion**: When finished, move the file to `03_DONE` and update the status in the file header.
+

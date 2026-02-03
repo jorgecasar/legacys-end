@@ -4,7 +4,7 @@
 
 **Legacy's End** is a gamified educational web application designed to teach modern frontend architecture principles through an RPG-style interface. Players guide a character ("Alarion") through various "Quests" that represent technical challenges, transforming a "legacy" codebase into a modern, clean architecture.
 
-The project is built using **Lit** (Web Components) and **Vite**, leveraging a custom service-based architecture to manage game state, progression, and quests.
+The project is built using **Lit** (Web Components) and **Vite**, leveraging a Domain-Driven Service architecture with fine-grained reactivity via **Signals**.
 
 ---
 
@@ -14,74 +14,70 @@ The project is built using **Lit** (Web Components) and **Vite**, leveraging a c
 
 *   **Core Framework**: [Lit 3.x](https://lit.dev/) (Web Components)
 *   **Build Tool**: [Vite](https://vitejs.dev/)
-*   **Language**: JavaScript (ES Modules) with JSDoc typing
-*   **UI Components**: [@awesome.me/webawesome](https://processed.awesome.me/docs) (Shoelace successor)
-*   **State Management**: Custom Observable Service Pattern + Lit Context
-*   **Testing**: Vitest (Unit) + Playwright (E2E)
+*   **Language**: JavaScript (ES Modules) with strict JSDoc typing
+*   **UI Components**: [@awesome.me/webawesome](https://processed.awesome.me/docs)
+*   **State Management**: Domain-Driven Signals (`@lit-labs/signals`)
+*   **Dependency Injection**: `@lit/context`
+*   **Testing**: Vitest (Unit/Browser) + Playwright (E2E)
 *   **Linting/Formatting**: Biome
 
 ### 2.2 Directory Structure (`src/`)
 
 | Directory | Purpose |
 |-----------|---------|
-| `components/` | Reusable UI components (HUD, Hub, Dialogs, etc.) |
-| `constants/` | App-wide constants (Routes, Events) |
-| `content/` | Static content assets (images, text) |
-| `contexts/` | Lit Context definitions for dependency injection |
-| `controllers/` | Logic handlers separated from UI (Input, Game Loop) |
-| `services/` | Core business logic services (GameState, Progress, Logger) |
-| `managers/` | Higher-level state coordinators (SessionManager) |
-| `quests/` | Quest definitions and configuration logic |
-| `mixins/` | Shared behavior for components (e.g., `ContextMixin`) |
-| `setup/` | Initialization scripts for routes, services, and controllers |
-| `utils/` | Helper functions (Router, Mapper) |
+| `components/` | Reusable UI components organized by domain. |
+| `constants/` | App-wide constants (Routes, Events). |
+| `content/` | Game content definitions (Quests, Chapters). |
+| `contexts/` | Lit Context definitions for dependency injection. |
+| `controllers/` | Reactive controllers bridging services and UI. |
+| `game/services/` | Domain-specific state services (Hero, Quest, World). |
+| `services/` | Global infrastructure services (Theme, Progress, Session). |
+| `use-cases/` | Pure business logic and domain rules. |
+| `utils/` | Helper functions and shared utilities. |
 
 ### 2.3 Key Design Patterns
 
-#### **Service-Controller-Component Architecture**
-The application avoids tight coupling by separating concerns:
-1.  **Services** (`src/services/`): Pure logic classes managing specific domains (e.g., `GameStateService`, `ProgressService`). They use an observer pattern to notify subscribers of changes.
-2.  **Controllers** (`src/controllers/`): Bridges between Components and Services. They handle user input and complex logic flows (e.g., `QuestController`, `KeyboardController`).
-3.  **Components** (`src/components/`): Dumb UI elements that render state and dispatch events.
+#### **Service-Controller-Component Triad**
+The application strictly separates concerns:
+1.  **Services** (`src/**/services/`): Singletons managing specific domains (e.g., `HeroStateService`). They expose reactive **Signals**.
+2.  **Controllers** (`src/controllers/`): Bridges that hook into the Lit lifecycle to bridge UI events and Services.
+3.  **Components** (`src/components/`): Visual representations that consume state via Context and use `SignalWatcher` for automatic updates.
 
-#### **Dependency Injection & Context**
-The app uses `@lit/context` to provide services and data down the component tree without prop drilling. This is heavily used for checking "Capabilities" (permissions/upgrades obtained in the game).
+#### **Inversion of Control (IoC)**
+The app uses `@lit/context` to inject service interfaces. Components do not instantiate services; they request them, enabling high testability through "Fakes" and "Mocks".
 
-#### **Quest System Engine**
-The core progression engine is decoupled from the rendering.
-*   **Quest Registry** (`src/quests/quest-registry.js`): The specific definition of all available content.
-*   **QuestController**: Manages the state of the active quest, chapter progression, and completion logic.
+#### **Reactive State Derivation**
+The UI is a projection of the reactive state. Imperative DOM manipulation is forbidden in favor of signal-based updates (e.g., slide navigation is controlled by `WorldStateService`).
 
 ---
 
 ## 3. Core Systems Analysis
 
-### 3.1 The App Shell (`legacys-end-app.js`)
-This is the main entry point and "God Component" that orchestrates the application.
+### 3.1 The Composition Root (`LegacysEndApp.js`)
+The main entry point where the application is assembled.
 *   **Responsibilities**:
-    *   Initializes Services, Routes, and Controllers.
-    *   Manages top-level state synchronization (`syncState`).
-    *   Handles routing between the **Hub** and the **Game View**.
-    *   Applies global themes (`applyTheme`).
+    *   Bootstraps core services via `GameBootstrapper`.
+    *   Provides context for all global and domain services.
+    *   Handles top-level routing between the Hub and Gameplay.
 
-### 3.2 The Game Loop & Rendering
-*   **GameView** (`src/components/game-view.js`): The primary canvas/renderer for the levels.
-*   **GameViewport** (`src/components/game-viewport.js`): The active game engine.
+### 3.2 Game Engine (`GameViewport.js`)
+The active engine responsible for the "World" interaction.
+*   **Orchestration**: Manages `CollisionController`, `InteractionController`, and `GameZoneController`.
+*   **Rendering**: Translates domain signals into visual animations and state.
 
-### 3.3 State Management
-The project uses a custom reactive system:
-*   **Services** extend `Observable`: Components subscribe to them to auto-update.
-*   **SessionService**: Manages the current user session and active quest pointer.
-*   **QuestLoaderService**: Orchestrates the complex logic of loading quests and chapters.
+### 3.3 Domain Services
+*   **HeroStateService**: Tracks position, evolution status, and visual effects.
+*   **QuestStateService**: Manages chapter progression and level-specific goals.
+*   **WorldStateService**: Controls engine-level flags like pause and narrative dialogs.
 
-### 3.4 Routing
-A custom `Router` (`src/utils/router.js`) handles client-side navigation, primarily switching between the "Hub" view and specific "Quest" views.
+### 3.4 Persistence
+*   **ProgressService**: Manages long-term data (completed quests, achievements) using a pluggable `StorageAdapter`.
 
 ---
 
 ## 4. Content & "Saga" Structure
 
-The content is organized into "Quests", each representing a Chapter of the Saga (as detailed in `SAGA_ARCHITECTURE.md`).
+The content is organized into "Quests", each representing a Chapter of the Saga.
 
 | Quest ID | Title | Concept / Skill | Status |
 |----------|-------|-----------------|--------|
@@ -94,30 +90,17 @@ The content is organized into "Quests", each representing a Chapter of the Saga 
 | `the-crimson-altar` | The Crimson Altar | Error Handling | 🚧 Coming Soon |
 | `the-scroll-of-tongues` | The Scroll of Tongues | i18n / Localization | 🚧 Coming Soon |
 
-**Current status**: The framework is in place (Registry, Hub UI), but most content is marked as "Coming Soon".
-
 ---
 
-## 5. Development Guide
+## 5. Development Standards
 
-### 5.1 Commands
+### 5.1 Quality Enforcement
+*   **100% Coverage**: Mandatory for all service logic.
+*   **Strict Typing**: Checked via `tsc --noEmit` and JSDoc.
+*   **Linting**: Enforced via Biome and Lit-Analyzer.
 
-*   `npm install`: Install dependencies.
-*   `npm run dev`: Start local development server (Vite).
-*   `npm run build`: Build for production.
-*   `npm run lint`: Run Biome and Lit Analyzer.
-*   `npm run test`: Run functionality tests (Vitest).
-
-### 5.2 Adding a New Quest
-To add a new quest (e.g., unlocking "The Chromatic Loom"):
-1.  Navigate to `src/quests/the-chromatic-loom/`.
-2.  Define the quest structure in `index.js`, including `chapters` and `prerequisites`.
-3.  Ensure the quest is exported and registered in `src/quests/quest-registry.js`.
-4.  Create level assets (backgrounds, dialogs) for the new chapters.
-5.  Change status from `coming-soon` to `active` (or remove the status property).
-
-### 5.3 Best Practices
-*   **Naming**: Follow usages in `NAMES_AUDIT.md`.
-*   **Components**: Create new UI elements in `src/components/`, extending `LitElement`.
-*   **Styles**: Use `src/styles/shared.js` and `pixel.css` for consistency.
-*   **Localization**: Wrap text in `msg()` from `@lit/localize`.
+### 5.2 Component Pattern (4-File)
+1.  **Logic** (`.js`): Class definition only.
+2.  **Styles** (`.styles.js`): CSS exports.
+3.  **Definition** (`.js`): Registration side-effect.
+4.  **Test** (`.spec.js`): Browser-mode interaction tests.

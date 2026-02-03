@@ -1,5 +1,23 @@
 # Changelog - Recent Updates
 
+## 2026-02-03 - Domain-Driven Refactor & Context DI (Phase 11)
+
+### Architecture
+- **GameState Monolith Decomposition**: Replaced the single `GameStateService` with specialized domain services: `HeroStateService`, `QuestStateService`, and `WorldStateService`.
+- **Strict Context-Based DI**: Migrated from manual instantiation to `@lit/context` for all services. Root app (`LegacysEndApp`) now acts as the central provider.
+- **Bus Removal**: Fully eliminated `EventBus` and `CommandBus`. Component communication now flows through direct service calls or reactive signals.
+- **Standardized Decorators**: Adopted TC39 standard decorators (using `accessor` keyword) for all `@consume` and `@state` properties.
+
+### Refactoring
+- **Router Injection**: Refactored `Router` to accept a `LoggerService` instance, eliminating direct `console` dependencies.
+- **Quest Lifecycle**: Integrated quest loading and orchestration directly into `QuestController`, removing the intermediate `QuestLoaderService`.
+- **Error Handling**: Improved error propagation in `loadQuest`, ensuring failures are caught and handled at the controller level.
+- **State Resets**: Ensured consistent UI state (dialogs, pause, slide index) when restarting quests or navigating between chapters.
+
+### Documentation
+- Overhauled `ARCHITECTURE.md`, `TECHNICAL_REFERENCE.md`, and `PROJECT_STANDARDS.md` to reflect the new decoupled structure.
+- Updated `README.md` with current technical concepts and directory structure.
+
 ## 2026-01-12 - Data-Driven Zones & NPC Refactor
 
 ### Refactoring
