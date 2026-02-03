@@ -1,5 +1,8 @@
 import { Signal } from "@lit-labs/signals";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { loggerContext } from "../contexts/logger-context.js";
+import { questControllerContext } from "../contexts/quest-controller-context.js";
+import { heroStateContext } from "../game/contexts/hero-context.js";
 import { GameController } from "./game-controller.js";
 
 // Mock @lit/context to handle dependency injection in tests
@@ -35,10 +38,6 @@ describe("GameController", () => {
 	/** @type {any} */
 	let mockHeroState;
 	/** @type {any} */
-	let mockQuestState;
-	/** @type {any} */
-	let mockWorldState;
-	/** @type {any} */
 	let mockQuestController;
 
 	beforeEach(() => {
@@ -54,20 +53,6 @@ describe("GameController", () => {
 
 		mockHeroState = {
 			pos: new Signal.State({ x: 50, y: 15 }),
-		};
-
-		mockQuestState = {
-			hasCollectedItem: new Signal.State(false),
-			isRewardCollected: new Signal.State(false),
-			setIsRewardCollected: (/** @type {boolean} */ val) =>
-				mockQuestState.isRewardCollected.set(val),
-			setHasCollectedItem: (/** @type {boolean} */ val) =>
-				mockQuestState.hasCollectedItem.set(val),
-		};
-
-		mockWorldState = {
-			isPaused: new Signal.State(false),
-			setShowDialog: vi.fn(),
 		};
 
 		mockQuestController = {
@@ -97,14 +82,19 @@ describe("GameController", () => {
 	const initController = (options = {}) => {
 		controller = new GameController(host, options);
 
-		// Manual injection via the stored callbacks from the mock ContextConsumer
-		const callbacks = Array.from(contextMocks.values());
-		// logger, heroState, questState, worldState, questController, questLoader
-		if (callbacks[0]) callbacks[0](mockLogger);
-		if (callbacks[1]) callbacks[1](mockHeroState);
-		if (callbacks[2]) callbacks[2](mockQuestState);
-		if (callbacks[3]) callbacks[3](mockWorldState);
-		if (callbacks[4]) callbacks[4](mockQuestController);
+		/**
+		 * Manual injection via context keys
+		 * @param {import("@lit/context").Context<unknown, unknown>} context
+		 * @param {unknown} mock
+		 */
+		const inject = (context, mock) => {
+			const callback = contextMocks.get(context);
+			if (callback) callback(mock);
+		};
+
+		inject(loggerContext, mockLogger);
+		inject(heroStateContext, mockHeroState);
+		inject(questControllerContext, mockQuestController);
 	};
 
 	it("should not enable debug mode by default", () => {
