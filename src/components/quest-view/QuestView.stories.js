@@ -13,8 +13,9 @@ import "./quest-view.js";
 export default {
 	title: "Pages/QuestView",
 	component: "quest-view",
-	parameters: {
-		layout: "fullscreen",
+	argTypes: {
+		"close-dialog": { action: "close-dialog" },
+		"reward-collected": { action: "reward-collected" },
 	},
 };
 
@@ -95,8 +96,10 @@ const mockLocalizationService = {
 };
 
 /** @type {{render: any}} */
+/** @type {{render: any}} */
 export const Default = {
-	render: () => html`
+	/** @param {any} args */
+	render: (args) => html`
     <div style="width: 100vw; height: 100vh; background: #222;">
       <context-provider .context="${questControllerContext}" .value="${mockQuestController}">
         <context-provider .context="${questStateContext}" .value="${mockQuestState}">
@@ -105,7 +108,11 @@ export const Default = {
               <context-provider .context="${themeContext}" .value="${mockThemeService}">
                 <context-provider .context="${sessionContext}" .value="${mockSessionService}">
                   <context-provider .context="${localizationContext}" .value="${mockLocalizationService}">
-                    <quest-view style="height: 100%; width: 100%;"></quest-view>
+                    <quest-view
+                      style="height: 100%; width: 100%;"
+                      @close-dialog="${args["close-dialog"]}"
+                      @reward-collected="${args["reward-collected"]}"
+                    ></quest-view>
                   </context-provider>
                 </context-provider>
               </context-provider>
@@ -119,7 +126,8 @@ export const Default = {
 
 /** @type {{render: any}} */
 export const Victory = {
-	render: () => {
+	/** @param {any} args */
+	render: (args) => {
 		const victoryQuestState = {
 			...mockQuestState,
 			isQuestCompleted: new Signal.State(true),
@@ -133,7 +141,11 @@ export const Victory = {
                 <context-provider .context="${themeContext}" .value="${mockThemeService}">
                   <context-provider .context="${sessionContext}" .value="${mockSessionService}">
                     <context-provider .context="${localizationContext}" .value="${mockLocalizationService}">
-                      <quest-view style="height: 100%; width: 100%;"></quest-view>
+                      <quest-view
+                        style="height: 100%; width: 100%;"
+                        @close-dialog="${args["close-dialog"]}"
+                        @reward-collected="${args["reward-collected"]}"
+                      ></quest-view>
                     </context-provider>
                   </context-provider>
                 </context-provider>

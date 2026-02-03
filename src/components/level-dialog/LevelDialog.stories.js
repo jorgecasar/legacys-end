@@ -15,9 +15,15 @@ export default {
       </div>
     `,
 	],
+	argTypes: {
+		complete: { action: "complete" },
+		close: { action: "close" },
+		"slide-changed": { action: "slide-changed" },
+	},
 };
 
-const Template = () => {
+/** @param {any} args */
+const Template = (args) => {
 	const worldState = {
 		currentSlideIndex: new Signal.State(0),
 		setShowDialog: () => {},
@@ -71,7 +77,13 @@ const Template = () => {
 		}
 	}, 50);
 
-	return html`<level-dialog></level-dialog>`;
+	return html`
+    <level-dialog
+      @complete="${args.complete}"
+      @close="${args.close}"
+      @slide-changed="${args["slide-changed"]}"
+    ></level-dialog>
+  `;
 };
 
 export const Default = Template.bind({});

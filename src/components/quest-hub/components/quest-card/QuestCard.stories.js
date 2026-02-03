@@ -5,19 +5,8 @@ export default {
 	title: "Components/QuestHub/QuestCard",
 	component: "quest-card",
 	argTypes: {
-		variant: {
-			control: { type: "select" },
-			options: ["brand", "neutral", "success"],
-		},
-		difficulty: {
-			control: { type: "select" },
-			options: ["beginner", "intermediate", "advanced"],
-		},
-		progress: {
-			control: { type: "range", min: 0, max: 100, step: 1 },
-		},
-		isCompleted: { control: "boolean" },
-		isLocked: { control: "boolean" },
+		"quest-select": { action: "quest-select" },
+		"quest-continue": { action: "quest-continue" },
 	},
 };
 

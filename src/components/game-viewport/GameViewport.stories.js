@@ -13,8 +13,11 @@ import "./game-viewport.js";
 export default {
 	title: "Components/Game/GameViewport",
 	component: "game-viewport",
-	parameters: {
-		layout: "fullscreen",
+	argTypes: {
+		"next-slide": { action: "next-slide" },
+		"prev-slide": { action: "prev-slide" },
+		complete: { action: "complete" },
+		"reward-collected": { action: "reward-collected" },
 	},
 };
 

@@ -4,8 +4,14 @@ import "./game-controls.js";
 export default {
 	title: "Components/Game/GameControls",
 	component: "game-controls",
-	parameters: {
-		layout: "fullscreen",
+	argTypes: {
+		move: { action: "move" },
+		"move-to": { action: "move-to" },
+		interact: { action: "interact" },
+		"toggle-pause": { action: "toggle-pause" },
+		complete: { action: "complete" },
+		"next-slide": { action: "next-slide" },
+		"prev-slide": { action: "prev-slide" },
 	},
 };
 
