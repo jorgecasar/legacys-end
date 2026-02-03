@@ -60,7 +60,7 @@ export class GameControls extends SignalWatcher(LitElement) {
 	 */
 	handleLevelComplete() {
 		this.dispatchEvent(
-			new CustomEvent(UIEvents.NEXT_CHAPTER, {
+			new CustomEvent(UIEvents.COMPLETE, {
 				bubbles: true,
 				composed: true,
 			}),

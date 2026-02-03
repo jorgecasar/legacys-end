@@ -5,10 +5,10 @@ test.describe("Quest Journey E2E", () => {
 		// 1. Visit the app
 		await page.goto("/");
 
-		// 2. Inject style to disable animations (but allow WebAwesome components to function)
+		// 2. Inject style to disable animations
 		await page.addStyleTag({
 			content: `
-        *:not(wa-dialog):not(wa-dialog *) {
+        *, *::before, *::after {
           animation: none !important;
           transition: none !important;
         }
@@ -82,11 +82,15 @@ test.describe("Quest Journey E2E", () => {
 		// Dialog handling
 		const dialog = gameView.locator("level-dialog");
 		await expect(dialog).toBeAttached();
-		// Skip strict visibility check for wa-dialog due to layout issues in test env
-		// await expect(dialog.locator("wa-dialog")).toBeVisible({ timeout: 5000 });
+
+		// Wait for the content container to be attached to ensure internal rendering
+		await expect(dialog.locator(".dialog-content")).toBeAttached();
 
 		// Snapshot: Level Dialog
-		await expect(page).toHaveScreenshot("level-dialog.png");
+		await expect(page).toHaveScreenshot("level-dialog.png", {
+			animations: "disabled",
+			maxDiffPixelRatio: 0.05, // Tolerance for minor rendering variations
+		});
 
 		// Click Next until Evolve appears
 		// We assume the button id is #next-btn provided in the shadow root

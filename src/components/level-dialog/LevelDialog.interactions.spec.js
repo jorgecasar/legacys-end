@@ -180,8 +180,11 @@ describe("LevelDialog Interactions", () => {
 		// Initial state
 		expect(worldStateMock.currentSlideIndex.get()).toBe(0);
 
-		// Find NEXT button
-		const buttons = element.shadowRoot?.querySelectorAll("wa-button");
+		// Find NEXT button in footer
+		const footer = element.shadowRoot?.querySelector("level-dialog-footer");
+		// @ts-expect-error
+		await footer?.updateComplete;
+		const buttons = footer?.shadowRoot?.querySelectorAll("wa-button");
 		if (!buttons || buttons.length === 0) throw new Error("Buttons not found");
 		const nextBtn = Array.from(buttons).find((b) =>
 			b.textContent?.trim().includes("NEXT"),
@@ -233,7 +236,10 @@ describe("LevelDialog Interactions", () => {
 
 		expect(worldStateMock.currentSlideIndex.get()).toBe(1);
 
-		const buttons = element.shadowRoot?.querySelectorAll("wa-button");
+		const footer = element.shadowRoot?.querySelector("level-dialog-footer");
+		// @ts-expect-error
+		await footer?.updateComplete;
+		const buttons = footer?.shadowRoot?.querySelectorAll("wa-button");
 		if (!buttons || buttons.length === 0) throw new Error("Buttons not found");
 		const prevBtn = buttons[0]; // First button is PREV
 
@@ -277,7 +283,10 @@ describe("LevelDialog Interactions", () => {
 		const completeSpy = vi.fn();
 		element.addEventListener(UIEvents.COMPLETE, completeSpy);
 
-		const buttons = element.shadowRoot?.querySelectorAll("wa-button");
+		const footer = element.shadowRoot?.querySelector("level-dialog-footer");
+		// @ts-expect-error
+		await footer?.updateComplete;
+		const buttons = footer?.shadowRoot?.querySelectorAll("wa-button");
 		if (!buttons || buttons.length === 0) throw new Error("Buttons not found");
 		const actionBtn = buttons[buttons.length - 1]; // "EVOLVE" or "COMPLETE"
 
@@ -474,11 +483,17 @@ describe("QuestView Integration", () => {
 			})
 		);
 		// Needed by LevelDialog inside QuestView
+		const completeChapterSpy = vi.fn();
 		wrapper.questController = /** @type {IQuestController} */ (
 			/** @type {unknown} */ ({
 				currentChapter: { description: "Test" },
+				completeChapter: completeChapterSpy,
 			})
 		);
+
+		// Manually set questController on the element if it relies on property injection
+		// or ensure the context provider is ready
+		element.questController = wrapper.questController;
 
 		wrapper.appendChild(element);
 		container.appendChild(wrapper);
@@ -490,18 +505,15 @@ describe("QuestView Integration", () => {
 		const dialog = element.shadowRoot?.querySelector("level-dialog");
 		expect(dialog).toBeTruthy();
 
-		// Mock gameController on GameViewport
+		// Mock handleLevelComplete on viewport directly if needed or verify event flow
 		const viewport = element.shadowRoot?.querySelector("game-viewport");
 		if (!viewport) throw new Error("Viewport not found");
 
-		viewport.handleLevelComplete = vi.fn();
-		viewport.gameController = /** @type {any} */ ({
-			handleLevelCompleted: vi.fn(),
-		});
+		dialog?.dispatchEvent(
+			new CustomEvent(UIEvents.COMPLETE, { bubbles: true, composed: true }),
+		);
 
-		dialog?.dispatchEvent(new CustomEvent(UIEvents.COMPLETE));
-
-		expect(viewport.handleLevelComplete).toHaveBeenCalled();
+		expect(completeChapterSpy).toHaveBeenCalled();
 	});
 
 	it("should re-dispatch 'close-dialog' event from level-dialog close", async () => {

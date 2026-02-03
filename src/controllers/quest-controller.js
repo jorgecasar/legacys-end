@@ -522,6 +522,13 @@ export class QuestController {
 		if (!this.currentQuest || !this.currentChapter || !this.#progressService)
 			return;
 
+		// 1. Hide dialog
+		this.#worldState?.setShowDialog(false);
+
+		// 2. Mark item as collected
+		this.#state?.setHasCollectedItem(true);
+
+		// 3. Mark chapter as completed in persistence
 		const chapterId = this.currentChapter.id;
 		this.#progressService.completeChapter(chapterId);
 
@@ -533,7 +540,11 @@ export class QuestController {
 		if (result.action === "COMPLETE") {
 			this.completeQuest();
 		} else {
-			this.nextChapter();
+			// Advance ONLY if there is NO exit zone.
+			// If there is an exit zone, the CollisionController will call advanceChapter when the player walks into it.
+			if (!this.currentChapter.exitZone) {
+				this.nextChapter();
+			}
 		}
 	}
 
@@ -542,7 +553,8 @@ export class QuestController {
 	 * @returns {Promise<void>}
 	 */
 	async advanceChapter() {
-		if (this.#isAdvancingChapter || !this.currentQuest) return;
+		if (this.#isAdvancingChapter || !this.currentQuest || !this.currentChapter)
+			return;
 		this.#isAdvancingChapter = true;
 
 		try {
@@ -552,7 +564,12 @@ export class QuestController {
 			if (this.isLastChapter()) {
 				await this.completeQuest();
 			} else {
-				this.completeChapter();
+				// 1. Mark current as complete in persistence if not already
+				this.#progressService?.completeChapter(this.currentChapter.id);
+
+				// 2. Move to next
+				this.nextChapter();
+
 				if (this.currentChapter) {
 					this.#syncHeroState(this.currentChapter);
 				}
@@ -585,6 +602,13 @@ export class QuestController {
 				this.currentQuest.id,
 				nextChapter.id,
 			);
+
+			if (this.#router) {
+				this.#router.navigate(
+					`/quest/${this.currentQuest.id}/chapter/${nextChapter.id}`,
+				);
+			}
+
 			this.#updateState();
 			this.#preloadNextChapters();
 			this.host.requestUpdate();

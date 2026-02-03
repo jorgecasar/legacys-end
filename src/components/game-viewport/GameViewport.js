@@ -300,15 +300,6 @@ export class GameViewport extends SignalWatcher(
 	}
 
 	/**
-	 * Handles level completion
-	 */
-	handleLevelComplete() {
-		if (this.gameController) {
-			this.gameController.handleLevelCompleted();
-		}
-	}
-
-	/**
 	 * Toggles game pause state
 	 */
 	togglePause() {
@@ -457,7 +448,7 @@ export class GameViewport extends SignalWatcher(
 				}}"
 				@interact="${() => this.handleInteract()}"
 				@toggle-pause="${() => this.togglePause()}"
-				@next-chapter="${() => this.handleLevelComplete()}"
+				@complete="${() => this.dispatchEvent(new CustomEvent(UIEvents.COMPLETE))}"
 				@next-slide="${() => this.nextDialogSlide()}"
 				@prev-slide="${() => this.prevDialogSlide()}"
 			></game-controls>

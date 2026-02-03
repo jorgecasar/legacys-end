@@ -1,6 +1,7 @@
 import { consume } from "@lit/context";
 import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement } from "lit";
+import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
 import { heroStateContext } from "../../game/contexts/hero-context.js";
 import { questStateContext } from "../../game/contexts/quest-context.js";
@@ -23,6 +24,13 @@ export class QuestView extends SignalWatcher(
 		LitElement
 	),
 ) {
+	/** @type {import('../../services/interfaces.js').IQuestController} */
+	@consume({ context: questControllerContext, subscribe: true })
+	accessor questController =
+		/** @type {import('../../services/interfaces.js').IQuestController} */ (
+			/** @type {unknown} */ (null)
+		);
+
 	/** @type {import('../../game/interfaces.js').IHeroStateService} */
 	@consume({ context: heroStateContext, subscribe: true })
 	accessor heroState =
@@ -93,6 +101,7 @@ export class QuestView extends SignalWatcher(
 					<game-viewport
 						@next-slide="${() => this.nextDialogSlide()}"
 						@prev-slide="${() => this.prevDialogSlide()}"
+						@complete="${() => this.#handleLevelComplete()}"
 						@request-dialog="${() => this.worldState.setShowDialog(true)}"
 						@show-locked-message="${(/** @type {CustomEvent} */ e) => this.questState.setLockedMessage(e.detail.message)}"
 					></game-viewport>
@@ -123,12 +132,6 @@ export class QuestView extends SignalWatcher(
 	}
 
 	#handleLevelComplete() {
-		const viewport =
-			/** @type {import('../game-viewport/GameViewport.js').GameViewport} */ (
-				this.shadowRoot?.querySelector("game-viewport")
-			);
-		if (viewport) {
-			viewport.handleLevelComplete();
-		}
+		this.questController?.completeChapter();
 	}
 }

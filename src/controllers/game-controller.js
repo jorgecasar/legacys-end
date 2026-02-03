@@ -38,10 +38,6 @@ export class GameController {
 	#logger = null;
 	/** @type {IHeroStateService | null} */
 	#heroState = null;
-	/** @type {IQuestStateService | null} */
-	#questState = null;
-	/** @type {IWorldStateService | null} */
-	#worldState = null;
 	/** @type {IQuestController | null} */
 	#questController = null;
 
@@ -87,16 +83,16 @@ export class GameController {
 		new ContextConsumer(this.host, {
 			context: questStateContext,
 			subscribe: true,
-			callback: (service) => {
-				this.#questState = /** @type {IQuestStateService} */ (service);
+			callback: () => {
+				// No longer needed locally but consumed to satisfy hostUpdate if needed
 			},
 		});
 
 		new ContextConsumer(this.host, {
 			context: worldStateContext,
 			subscribe: true,
-			callback: (service) => {
-				this.#worldState = /** @type {IWorldStateService} */ (service);
+			callback: () => {
+				// No longer needed locally
 			},
 		});
 
@@ -140,21 +136,8 @@ export class GameController {
 	 * Executes logic to advance chapter or complete quest
 	 */
 	handleLevelCompleted = () => {
-		// 1. Hide dialog if open (handled by UI state, but ensures clean slate)
-		this.#worldState?.setShowDialog(false);
-
-		// 2. Mark item as collected (triggers reward animation in viewport)
-		this.#logger?.info("✅ Level Goal Reached (Item Collected)");
-		this.#questState?.setHasCollectedItem(true);
-
-		// 3. Advance to next chapter ONLY if there is NO exit zone
-		// If there is an exit zone, CollisionController will trigger advancement when reached.
-		const currentChapter = this.#questController?.currentChapter;
-		if (!currentChapter?.exitZone) {
-			this.#logger?.info("📖 No exit zone, advancing...");
-			if (this.#questController) {
-				this.#questController.advanceChapter();
-			}
+		if (this.#questController) {
+			this.#questController.completeChapter();
 		}
 	};
 

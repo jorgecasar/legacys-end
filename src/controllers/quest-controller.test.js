@@ -60,6 +60,8 @@ describe("QuestController", () => {
 			resetQuestState: vi.fn(),
 			resetChapterState: vi.fn(),
 			setIsQuestCompleted: vi.fn(),
+			setHasCollectedItem: vi.fn(),
+			setIsRewardCollected: vi.fn(),
 		};
 
 		mockWorldState = {
@@ -151,5 +153,38 @@ describe("QuestController", () => {
 		expect(mockWorldState.setShowDialog).toHaveBeenCalledWith(false);
 		expect(mockWorldState.resetSlideIndex).toHaveBeenCalled();
 		expect(controller.currentChapter?.id).toBe("chapter-2");
+	});
+
+	it("should advance when advanceChapter is called even if exit zone is present", async () => {
+		mockQuest.chapterIds = ["chapter-1", "chapter-2"];
+		mockQuest.chapters["chapter-1"] = {
+			id: "chapter-1",
+			title: "Chapter 1",
+			exitZone: { x: 50, y: 50, width: 10, height: 10 },
+		};
+		mockQuest.chapters["chapter-2"] = { id: "chapter-2", title: "Chapter 2" };
+
+		await controller.startQuest("test-quest");
+		expect(controller.currentChapter?.id).toBe("chapter-1");
+
+		await controller.advanceChapter();
+
+		expect(controller.currentChapter?.id).toBe("chapter-2");
+	});
+
+	it("should NOT advance automatically when completeChapter is called if exit zone is present", async () => {
+		mockQuest.chapterIds = ["chapter-1", "chapter-2"];
+		mockQuest.chapters["chapter-1"] = {
+			id: "chapter-1",
+			title: "Chapter 1",
+			exitZone: { x: 50, y: 50, width: 10, height: 10 },
+		};
+		mockQuest.chapters["chapter-2"] = { id: "chapter-2", title: "Chapter 2" };
+
+		await controller.startQuest("test-quest");
+
+		controller.completeChapter();
+
+		expect(controller.currentChapter?.id).toBe("chapter-1"); // Should still be chapter 1
 	});
 });

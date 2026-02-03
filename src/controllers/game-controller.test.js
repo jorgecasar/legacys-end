@@ -73,8 +73,10 @@ describe("GameController", () => {
 		mockQuestController = {
 			hasNextChapter: vi.fn(),
 			isLastChapter: vi.fn(),
+			currentQuest: { id: "test-quest" },
 			currentChapter: { id: "c1" }, // Default no exit zone
 			advanceChapter: vi.fn().mockResolvedValue(undefined),
+			completeChapter: vi.fn(),
 		};
 
 		host = {
@@ -145,55 +147,9 @@ describe("GameController", () => {
 			controller.hostConnected();
 		});
 
-		it("should mark item as collected and advance if NOT yet collected and no exit zone", () => {
-			// Fake state: Reward NOT collected, NO exit zone (default)
-			mockQuestState.setIsRewardCollected(false);
-			mockQuestController.hasNextChapter.mockReturnValue(true);
-
+		it("should delegate to questController.completeChapter()", () => {
 			controller.handleLevelCompleted();
-
-			expect(mockQuestState.hasCollectedItem.get()).toBe(true);
-			expect(mockQuestController.advanceChapter).toHaveBeenCalled();
-		});
-
-		it("should NOT advance chapter if reward IS collected BUT there IS an exit zone", () => {
-			// Fake state: Reward COLLECTED, HAS exit zone
-			mockQuestState.setIsRewardCollected(true);
-			mockQuestController.hasNextChapter.mockReturnValue(true);
-			mockQuestController.currentChapter.exitZone = {
-				x: 10,
-				y: 10,
-				width: 5,
-				height: 5,
-			};
-
-			controller.handleLevelCompleted();
-
-			expect(mockQuestState.hasCollectedItem.get()).toBe(true);
-			expect(mockQuestController.advanceChapter).not.toHaveBeenCalled();
-		});
-
-		it("should advance chapter if reward IS collected AND there is NO exit zone", () => {
-			// Fake state: Reward COLLECTED, NO exit zone
-			mockQuestState.setIsRewardCollected(true);
-			mockQuestController.hasNextChapter.mockReturnValue(true);
-			mockQuestController.currentChapter.exitZone = null;
-
-			controller.handleLevelCompleted();
-
-			expect(mockQuestController.advanceChapter).toHaveBeenCalled();
-		});
-
-		it("should still advance if NO next chapter but NO exit zone (completing quest)", () => {
-			// Fake state: Reward COLLECTED + NO Next Chapter + NO exit zone
-			mockQuestState.setIsRewardCollected(true);
-			mockQuestController.hasNextChapter.mockReturnValue(false);
-			mockQuestController.currentChapter.exitZone = null;
-
-			controller.handleLevelCompleted();
-
-			expect(mockQuestState.hasCollectedItem.get()).toBe(true);
-			expect(mockQuestController.advanceChapter).toHaveBeenCalled();
+			expect(mockQuestController.completeChapter).toHaveBeenCalled();
 		});
 	});
 });

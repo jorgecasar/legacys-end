@@ -5,24 +5,24 @@ export const levelDialogStyles = [
 	...sharedStyles,
 	css`
     :host {
-      display: block;
+      display: contents;
     }
 
     /* Customizing wa-dialog */
     wa-dialog {
-        --width: 80ch;
+        --width: 100vw;
         --body-spacing: 0;
     }
 
     wa-dialog::part(panel) {
-        width: 100vw;
-        height: 100vh;
+        width: 100%;
+        height: 100%;
         max-height: 100vh;
         max-width: 100vw;
         border-radius: 0;
         margin: 0;
-        /* display: flex; removed to fix footer visibility */
-        /* flex-direction: column; removed */
+        display: flex;
+        flex-direction: column;
     }
     wa-dialog::part(body) {
         flex: 1;
@@ -217,7 +217,7 @@ export const levelDialogStyles = [
     }
 
     .narrative-text {
-      font-size: var(--wa-font-size-xs);
+      font-size: var(--wa-font-size-m);
       text-align: center;
       padding: 0 var(--wa-space-l);
       color: var(--wa-color-text-quiet);

@@ -154,7 +154,12 @@ describe("LevelDialog Component", () => {
 		await wrapper.updateComplete;
 		await element.updateComplete;
 
-		expect(element.shadowRoot?.textContent).toContain("Intro Narrative");
+		const slide = element.shadowRoot?.querySelector(
+			"level-dialog-slide-narrative",
+		);
+		// @ts-expect-error
+		await slide?.updateComplete;
+		expect(slide?.shadowRoot?.textContent).toContain("Intro Narrative");
 	});
 
 	it("renders problem slide if description is missing", async () => {
@@ -194,7 +199,12 @@ describe("LevelDialog Component", () => {
 		await wrapper.updateComplete;
 		await element.updateComplete;
 
-		expect(element.shadowRoot?.textContent).toContain("Problem Description");
+		const slide = element.shadowRoot?.querySelector(
+			"level-dialog-slide-problem",
+		);
+		// @ts-expect-error
+		await slide?.updateComplete;
+		expect(slide?.shadowRoot?.textContent).toContain("Problem Description");
 	});
 
 	it("should have no accessibility violations", async () => {
