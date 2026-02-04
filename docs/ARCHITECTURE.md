@@ -66,17 +66,14 @@ graph TD
 The project uses `@lit/context` for dependency injection. 
 
 ### Provision
-**In LegacysEndApp (Global providers):**
+Providers use either the `ContextProvider` class or the standardized `@provide` pattern. See [Context Usage Patterns](PROJECT_STANDARDS.md#context-usage-patterns) for details.
 ```javascript
-this.sessionServiceProvider = new ContextProvider(this, { context: sessionServiceContext, ... });
+@provide({ context: sessionServiceContext })
+accessor sessionService = new SessionService();
 ```
 
 ### Consumption
-**Components consume services via decorators:**
-```javascript
-@consume({ context: questStateContext, subscribe: true })
-accessor questState;
-```
+Components consume services using the standardized `@consume` pattern. For detailed implementation details and mandatory typing requirements, see the [Context Usage Patterns](PROJECT_STANDARDS.md#context-usage-patterns) in the Project Standards.
 
 ## Reactivity Strategy
 

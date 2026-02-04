@@ -1,9 +1,16 @@
-import { logger } from "./logger-service.js";
+/** @typedef {import('./interfaces.js').ILoggerService} ILoggerService */
 
 /**
  * Service responsible for preloading assets to ensure smooth transitions.
  */
 export class PreloaderService {
+	/**
+	 * @param {Object} [options]
+	 * @param {ILoggerService} [options.logger]
+	 */
+	constructor(options = {}) {
+		this.logger = options.logger;
+	}
 	/**
 	 * Preload a single image
 	 * @param {string} url
@@ -14,11 +21,11 @@ export class PreloaderService {
 			const img = new Image();
 			img.src = url;
 			img.onload = () => {
-				logger.debug(`[Perf] 🖼️ Loaded image: ${url}`);
+				this.logger?.debug(`[Perf] 🖼️ Loaded image: ${url}`);
 				resolve();
 			};
 			img.onerror = () => {
-				logger.warn(`[Perf] ❌ Failed to preload: ${url}`);
+				this.logger?.warn(`[Perf] ❌ Failed to preload: ${url}`);
 				resolve();
 			};
 		});
@@ -56,5 +63,3 @@ export class PreloaderService {
 		}
 	}
 }
-
-export const preloader = new PreloaderService();

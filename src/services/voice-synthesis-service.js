@@ -1,11 +1,16 @@
-import { logger } from "./logger-service.js";
+/** @typedef {import('./interfaces.js').ILoggerService} ILoggerService */
 
 /**
  * VoiceSynthesisService - Wrapper for Web Speech API
  * Generic service for handling text-to-speech.
  */
 export class VoiceSynthesisService {
-	constructor() {
+	/**
+	 * @param {Object} [options]
+	 * @param {ILoggerService} [options.logger]
+	 */
+	constructor(options = {}) {
+		this.logger = options.logger;
 		/** @type {SpeechSynthesisVoice[]} */
 		this.voices = [];
 		/** @type {boolean} */
@@ -86,13 +91,13 @@ export class VoiceSynthesisService {
 		return new Promise((resolve) => {
 			// Validate text parameter
 			if (!text || typeof text !== "string") {
-				logger.warn("VoiceSynthesisService.speak: Invalid or empty text");
+				this.logger?.warn("VoiceSynthesisService.speak: Invalid or empty text");
 				resolve();
 				return;
 			}
 
 			if (!this.#synthesis) {
-				logger.warn(
+				this.logger?.warn(
 					"VoiceSynthesisService.speak: Speech synthesis not available",
 				);
 				resolve();
@@ -140,11 +145,11 @@ export class VoiceSynthesisService {
 				// Ignore interruption errors as they are often intentional (flow control)
 				if (event.error === "interrupted" || event.error === "canceled") {
 					this.isSpeaking = false;
-					logger.debug("Speech synthesis interrupted (intentional).");
+					this.logger?.debug("Speech synthesis interrupted (intentional).");
 					resolve(); // Resolve on interruption too so flow continues
 					return;
 				}
-				logger.error("Speech synthesis error:", event);
+				this.logger?.error("Speech synthesis error:", event);
 				this.isSpeaking = false;
 				if (onError) onError(event);
 				resolve(); // Resolve even on error to prevent hanging await
@@ -173,5 +178,5 @@ export class VoiceSynthesisService {
 	}
 }
 
-// Export singleton instance
+// Export singleton instance (will be replaced by LegacysEndApp injection in the future, but currently still needed by some files)
 export const voiceSynthesisService = new VoiceSynthesisService();

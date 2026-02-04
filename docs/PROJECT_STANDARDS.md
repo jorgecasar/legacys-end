@@ -42,14 +42,7 @@ This document outlines the mandatory architectural and coding standards for "Leg
     ```
 *   **No "Any"**: The use of `any` is strictly forbidden. Use `unknown` for truly dynamic types or define specific shapes.
 *   **Stricter Typing**: All variables, parameters, and return types must be explicitly typed using JSDoc. Avoid generic `Object` types; define the shape.
-*   **Interface Casting**: When using `@consume`, cast the context initial value using JSDoc to the interface type.
-    ```javascript
-    /** @type {import('../../game/interfaces.js').IQuestStateService} */
-    @consume({ context: questStateContext, subscribe: true })
-    accessor questState = /** @type {import('../../game/interfaces.js').IQuestStateService} */ (
-        /** @type {unknown} */ (null)
-    );
-    ```
+*   **Context Consumption Pattern**: Components MUST consume services using the standardized `@consume` pattern. See [Context Usage Patterns](#context-usage-patterns) for details.
 *   **Private Methods**: Document private methods with JSDoc but mark them as internal.
 
 ---
@@ -212,12 +205,34 @@ Every component must follow this strict structure in its own directory:
 
 *   **Private/Internal State**: Use Lit's `@state()` decorator.
 *   **Public API**: Use `@property()`.
-*   **Service Access**: Use `@consume({ context: myContext })` with `accessor` and initialization for type safety.
-    ```javascript
-    /** @type {import('../../services/interfaces.js').ILoggerService} */
-    @consume({ context: loggerContext })
-    accessor logger = /** @type {import('../../services/interfaces.js').ILoggerService} */ (/** @type {unknown} */ (null));
-    ```
+#### Context Usage Patterns
+
+All components providing or consuming contexts MUST use the `accessor` keyword for decorator compliance and follow these patterns:
+
+##### 1. Context Provision (@provide)
+Used in provider components (like `LegacysEndApp`) to expose a service or state to children.
+
+```javascript
+@provide({ context: loggerContext })
+accessor logger = new LoggerService();
+```
+
+##### 2. Context Consumption (@consume)
+Used in child components to access provided services. 
+
+```javascript
+/** @type {import('../../services/interfaces.js').ILoggerService} */
+@consume({ context: loggerContext })
+accessor logger = /** @type {import('../../services/interfaces.js').ILoggerService} */ (
+    /** @type {unknown} */ (null)
+);
+```
+
+**Key Requirements**:
+1.  **`accessor` keyword**: Mandatory for TC39 decorators (standard in this project).
+2.  **JSDoc `@type`**: Defines the interface (for consumption).
+3.  **Double Casting (for @consume)**: `(/** @type {Target} */ (/** @type {unknown} */ (null)))` allows initializing with `null` while satisfying strict property initialization.
+
 *   **Private Methods**: Use `#` prefix for private methods and helpers.
     ```javascript
     class MyComponent extends LitElement {

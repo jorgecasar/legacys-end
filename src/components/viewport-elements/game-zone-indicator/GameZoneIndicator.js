@@ -2,6 +2,7 @@ import { consume } from "@lit/context";
 import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement, nothing } from "lit";
 import { styleMap } from "lit/directives/style-map.js";
+import { loggerContext } from "../../../contexts/logger-context.js";
 import { questControllerContext } from "../../../contexts/quest-controller-context.js";
 import { themeContext } from "../../../contexts/theme-context.js";
 import {
@@ -22,6 +23,7 @@ import { gameZoneIndicatorStyles } from "./GameZoneIndicator.styles.js";
  * @property {Zone[]} zones - The list of zones to render.
  * @property {String} type - The type of zones to filter and render (e.g. 'THEME_CHANGE', 'CONTEXT_CHANGE').
  * @extends {LitElement}
+ * @typedef {import('../../../services/interfaces.js').ILoggerService} ILoggerService
  */
 export class GameZoneIndicator extends SignalWatcher(LitElement) {
 	/** @type {import('../../../services/interfaces.js').IQuestController} */
@@ -44,6 +46,12 @@ export class GameZoneIndicator extends SignalWatcher(LitElement) {
 		/** @type {import('../../../game/interfaces.js').IHeroStateService} */ (
 			/** @type {unknown} */ (null)
 		);
+
+	/** @type {ILoggerService} */
+	@consume({ context: loggerContext })
+	accessor logger = /** @type {ILoggerService} */ (
+		/** @type {unknown} */ (null)
+	);
 
 	/** @override */
 	static styles = gameZoneIndicatorStyles;

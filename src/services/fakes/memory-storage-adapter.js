@@ -1,5 +1,5 @@
 /**
- * @typedef {import('../storage-service.js').StorageAdapter} StorageAdapter
+ * @typedef {import('../interfaces.js').IStorageAdapter} IStorageAdapter
  */
 
 export class MemoryStorageAdapter {

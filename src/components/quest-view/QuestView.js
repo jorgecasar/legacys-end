@@ -1,6 +1,7 @@
 import { consume } from "@lit/context";
 import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement } from "lit";
+import { loggerContext } from "../../contexts/logger-context.js";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
 import { heroStateContext } from "../../game/contexts/hero-context.js";
@@ -18,6 +19,7 @@ import { questViewStyles } from "./quest-view.css.js";
  *
  * @element quest-view
  * @extends {LitElement}
+ * @typedef {import('../../services/interfaces.js').ILoggerService} ILoggerService
  */
 export class QuestView extends SignalWatcher(
 	/** @type {new (...args: unknown[]) => import('lit').ReactiveElement} */ (
@@ -58,6 +60,12 @@ export class QuestView extends SignalWatcher(
 		/** @type {import('../../services/session-service.js').SessionService} */ (
 			/** @type {unknown} */ (null)
 		);
+
+	/** @type {ILoggerService} */
+	@consume({ context: loggerContext })
+	accessor logger = /** @type {ILoggerService} */ (
+		/** @type {unknown} */ (null)
+	);
 
 	/** @override */
 	static styles = questViewStyles;

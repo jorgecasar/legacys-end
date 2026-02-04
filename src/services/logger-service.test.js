@@ -22,8 +22,8 @@ describe("LoggerService", () => {
 		expect(logger.level).toBe("warn");
 	});
 
-	it("should allow forcing a level even in test environment", () => {
-		logger = new LoggerService({ level: "debug", force: true, env: "test" });
+	it("should allow override level even in test environment", () => {
+		logger = new LoggerService({ level: "debug", env: "test" });
 		expect(logger.level).toBe("debug");
 	});
 
@@ -38,7 +38,7 @@ describe("LoggerService", () => {
 
 	describe("Logging Methods", () => {
 		beforeEach(() => {
-			logger = new LoggerService({ level: "debug", force: true });
+			logger = new LoggerService({ level: "debug" });
 		});
 
 		it("should log debug messages", () => {
@@ -62,7 +62,7 @@ describe("LoggerService", () => {
 		});
 
 		it("should respect silent mode", () => {
-			logger = new LoggerService({ level: "silent", force: true });
+			logger = new LoggerService({ level: "silent" });
 			logger.error("should not see this");
 			expect(console.error).not.toHaveBeenCalled();
 		});

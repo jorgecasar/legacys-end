@@ -5,6 +5,7 @@ import { consume } from "@lit/context";
 import { msg, updateWhenLocaleChanges } from "@lit/localize";
 import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement } from "lit";
+import { loggerContext } from "../../contexts/logger-context.js";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
 import { worldStateContext } from "../../game/contexts/world-context.js";
@@ -13,6 +14,7 @@ import { pauseMenuStyles } from "./PauseMenu.styles.js";
 /**
  * @element pause-menu
  * @extends {LitElement}
+ * @typedef {import('../../services/interfaces.js').ILoggerService} ILoggerService
  */
 export class PauseMenu extends SignalWatcher(
 	/** @type {new (...args: unknown[]) => import('lit').ReactiveElement} */ (
@@ -39,6 +41,12 @@ export class PauseMenu extends SignalWatcher(
 		/** @type {import('../../services/session-service.js').SessionService} */ (
 			/** @type {unknown} */ (null)
 		);
+
+	/** @type {ILoggerService} */
+	@consume({ context: loggerContext })
+	accessor logger = /** @type {ILoggerService} */ (
+		/** @type {unknown} */ (null)
+	);
 
 	/** @override */
 	static styles = pauseMenuStyles;

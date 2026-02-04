@@ -48,7 +48,7 @@ describe("CharacterContextController", () => {
 			removeController: vi.fn(),
 			requestUpdate: vi.fn(),
 			updateComplete: Promise.resolve(true),
-			characterProvider: { setValue: vi.fn() },
+			character: {},
 		};
 
 		mockHeroState = {
@@ -108,11 +108,9 @@ describe("CharacterContextController", () => {
 			initController();
 			controller.hostUpdate();
 
-			expect(host.characterProvider.setValue).toHaveBeenCalledWith(
-				expect.objectContaining({
-					suit: { image: "/assets/level_1/hero.png" },
-				}),
-			);
+			expect(host.character).toMatchObject({
+				suit: { image: "/assets/level_1/hero.png" },
+			});
 		});
 
 		it("should update suit context with reward image when evolved", () => {
@@ -131,71 +129,9 @@ describe("CharacterContextController", () => {
 			initController();
 			controller.hostUpdate();
 
-			expect(host.characterProvider.setValue).toHaveBeenCalledWith(
-				expect.objectContaining({
-					suit: { image: "/assets/level_1/hero-reward.png" },
-				}),
-			);
-		});
-
-		it("should update gear context when item is collected", () => {
-			mockQuestController.currentChapter = {
-				id: "level_2",
-				reward: { image: "/assets/level_2/reward.png" },
-			};
-			mockQuestState.hasCollectedItem.set(true);
-
-			initController();
-			controller.hostUpdate();
-
-			initController();
-			controller.hostUpdate();
-
-			expect(host.characterProvider.setValue).toHaveBeenCalledWith(
-				expect.objectContaining({
-					gear: { image: "/assets/level_2/reward.png" },
-				}),
-			);
-		});
-
-		it("should clear gear context when item is not collected", () => {
-			mockQuestController.currentChapter = {
-				id: "level_2",
-				reward: { image: "/assets/level_2/reward.png" },
-			};
-			mockQuestState.hasCollectedItem.set(false);
-
-			initController();
-			controller.hostUpdate();
-
-			initController();
-			controller.hostUpdate();
-
-			expect(host.characterProvider.setValue).toHaveBeenCalledWith(
-				expect.objectContaining({
-					gear: { image: null },
-				}),
-			);
-		});
-
-		it("should update power context based on hot switch state", () => {
-			mockHeroState.hotSwitchState.set(HotSwitchStates.NEW);
-			mockThemeService.themeMode.get.mockReturnValue(ThemeModes.DARK);
-
-			initController();
-			controller.hostUpdate();
-
-			initController();
-			controller.hostUpdate();
-
-			expect(host.characterProvider.setValue).toHaveBeenCalledWith(
-				expect.objectContaining({
-					power: {
-						effect: "stable",
-						intensity: "high",
-					},
-				}),
-			);
+			expect(host.character).toMatchObject({
+				suit: { image: "/assets/level_1/hero-reward.png" },
+			});
 		});
 	});
 });

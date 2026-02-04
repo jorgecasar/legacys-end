@@ -1,3 +1,4 @@
+import { consume } from "@lit/context";
 import { msg, updateWhenLocaleChanges } from "@lit/localize";
 import { html, LitElement, nothing } from "lit";
 import { questHubStyles } from "./QuestHub.styles.js";
@@ -6,6 +7,7 @@ import "@awesome.me/webawesome/dist/components/icon/icon.js";
 import "../about-slides/about-slides.js";
 import "../language-selector/language-selector.js";
 import "./components/quest-card/quest-card.js";
+import { loggerContext } from "../../contexts/logger-context.js";
 import { UIEvents } from "../../core/events.js";
 
 /**
@@ -13,6 +15,7 @@ import { UIEvents } from "../../core/events.js";
  *
  * @typedef {import("../about-slides/AboutSlides.js").AboutSlides} AboutSlides
  * @typedef {import("../../content/quests/quest-types.js").Quest} Quest
+ * @typedef {import("../../services/interfaces.js").ILoggerService} ILoggerService
  *
  * Displays available quests with:
  * - Quest cards for each available quest
@@ -42,6 +45,11 @@ export class QuestHub extends LitElement {
 		isFullscreen: { type: Boolean },
 		localizationService: { attribute: false },
 	};
+
+	@consume({ context: loggerContext })
+	accessor logger = /** @type {ILoggerService} */ (
+		/** @type {unknown} */ (null)
+	);
 
 	constructor() {
 		super();
@@ -250,12 +258,18 @@ export class QuestHub extends LitElement {
 	 * Toggles fullscreen mode
 	 */
 	#toggleFullscreen() {
-		if (!document.fullscreenElement) {
-			document.documentElement.requestFullscreen();
-		} else {
-			if (document.exitFullscreen) {
-				document.exitFullscreen();
-			}
+		if (document.fullscreenElement) {
+			document.exitFullscreen();
+			this.logger.info("Fullscreen disabled");
+			return;
 		}
+		document.documentElement
+			.requestFullscreen({ navigationUI: "show" })
+			.then(() => {
+				this.logger.info("Fullscreen enabled");
+			})
+			.catch((err) => {
+				this.logger.error(`Error enabling fullscreen: ${err.message}`);
+			});
 	}
 }

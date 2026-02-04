@@ -4,6 +4,8 @@ import { ThemeModeValidator } from "../utils/validators.js";
 
 /**
  * @typedef {import('../core/constants.js').ThemeMode} ThemeMode
+ * @typedef {import('./interfaces.js').ILoggerService} ILoggerService
+ * @typedef {import('./interfaces.js').IStorageAdapter} IStorageAdapter
  */
 
 /**
@@ -12,13 +14,29 @@ import { ThemeModeValidator } from "../utils/validators.js";
  */
 export class ThemeService {
 	/**
-	 * @param {import('./logger-service.js').LoggerService} logger
-	 * @param {import('./storage-service.js').StorageAdapter} storage
+	 * @type {ILoggerService | undefined}
 	 */
-	constructor(logger, storage) {
-		this.logger = logger;
-		this.storage = storage;
-		this.storageKey = StorageKeys.THEME;
+	#logger;
+
+	/**
+	 * @type {IStorageAdapter | undefined}
+	 */
+	#storage;
+
+	/**
+	 * @type {string}
+	 */
+	#storageKey;
+
+	/**
+	 * @param {Object} params
+	 * @param {ILoggerService} [params.logger]
+	 * @param {IStorageAdapter} [params.storage]
+	 */
+	constructor({ logger, storage }) {
+		this.#logger = logger;
+		this.#storage = storage;
+		this.#storageKey = StorageKeys.THEME;
 
 		/** @type {Signal.State<import('../core/constants.js').ThemeMode>} */
 		this.themeMode = new Signal.State(this.#loadStoredTheme());
@@ -34,14 +52,14 @@ export class ThemeService {
 	setTheme(mode) {
 		const validation = ThemeModeValidator.validate(mode);
 		if (!validation.isValid) {
-			this.logger.warn(`Invalid theme mode: ${mode}`);
+			this.#logger?.warn(`Invalid theme mode: ${mode}`);
 			return;
 		}
 
 		this.themeMode.set(mode);
-		this.storage.setItem(this.storageKey, mode);
+		this.#storage?.setItem(this.#storageKey, mode);
 		this.#applyTheme(mode);
-		this.logger.info(`🎨 Theme switched to: ${mode}`);
+		this.#logger?.info(`🎨 Theme switched to: ${mode}`);
 	}
 
 	/**
@@ -60,7 +78,7 @@ export class ThemeService {
 	 * @returns {ThemeMode}
 	 */
 	#loadStoredTheme() {
-		const stored = this.storage.getItem(this.storageKey);
+		const stored = this.#storage?.getItem(this.#storageKey);
 		if (
 			typeof stored === "string" &&
 			ThemeModeValidator.validate(stored).isValid

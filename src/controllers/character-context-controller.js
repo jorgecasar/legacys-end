@@ -1,7 +1,5 @@
 import { ContextConsumer } from "@lit/context";
 import { questControllerContext } from "../contexts/quest-controller-context.js";
-import { themeContext } from "../contexts/theme-context.js";
-import { HotSwitchStates, ThemeModes } from "../core/constants.js";
 import { heroStateContext } from "../game/contexts/hero-context.js";
 import { questStateContext } from "../game/contexts/quest-context.js";
 
@@ -17,7 +15,7 @@ import { questStateContext } from "../game/contexts/quest-context.js";
  */
 
 /**
- * @typedef {ReactiveElement & { characterProvider: CharacterContextProvider | null }} HostWithCharacterProvider
+ * @typedef {ReactiveElement & { character: CharacterContext }} HostWithCharacterProvider
  */
 
 /**
@@ -25,8 +23,6 @@ import { questStateContext } from "../game/contexts/quest-context.js";
  *
  * Handles:
  * - Suit/Skin images based on level and theme
- * - Gear images based on level
- * - Power images based on level
  *
  * @implements {ReactiveController}
  */
@@ -37,8 +33,6 @@ export class CharacterContextController {
 	#questState = null;
 	/** @type {IQuestController | null} */
 	#questController = null;
-	/** @type {IThemeService | null} */
-	#themeService = null;
 
 	/**
 	 * @param {HostWithCharacterProvider} host
@@ -71,14 +65,6 @@ export class CharacterContextController {
 			},
 		});
 
-		new ContextConsumer(this.host, {
-			context: themeContext,
-			subscribe: true,
-			callback: (service) => {
-				this.#themeService = service;
-			},
-		});
-
 		host.addController(this);
 	}
 
@@ -93,22 +79,14 @@ export class CharacterContextController {
 			/** @type {unknown} */ (this.host)
 		);
 
-		if (!host.characterProvider) return;
+		if (!host.character) return;
 
 		const currentChapter = this.#questController.currentChapter;
 
-		// Calculate derived values
-		const level = currentChapter?.id ?? "";
-		const levelNumber = parseInt(level, 10) || 0;
 		const chapterData = currentChapter;
 
 		const isRewardCollected =
 			this.#questState.isRewardCollected?.get() ?? false;
-		const hasCollectedItem = this.#questState.hasCollectedItem?.get() ?? false;
-		const hotSwitchState =
-			this.#heroState.hotSwitchState?.get() ?? HotSwitchStates.LEGACY;
-
-		const themeMode = this.#themeService?.themeMode?.get() ?? ThemeModes.LIGHT;
 
 		const suit = {
 			image: chapterData?.hero
@@ -118,28 +96,8 @@ export class CharacterContextController {
 				: null,
 		};
 
-		const gear = {
-			image:
-				hasCollectedItem && chapterData?.reward?.image
-					? chapterData.reward.image
-					: null,
-		};
-
-		const power = {
-			effect: hotSwitchState === HotSwitchStates.NEW ? "stable" : "glitch",
-			intensity: themeMode === ThemeModes.DARK ? "high" : "low",
-		};
-
-		const mastery = {
-			level: levelNumber,
-		};
-
-		// Update the single character provider
-		host.characterProvider.setValue({
+		host.character = {
 			suit,
-			gear,
-			power,
-			mastery,
-		});
+		};
 	}
 }

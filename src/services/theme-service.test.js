@@ -6,18 +6,11 @@ describe("ThemeService", () => {
 	let service;
 	/** @type {any} */
 	let mockStorage;
-	/** @type {any} */
-	let mockLogger;
 
 	beforeEach(() => {
 		mockStorage = {
 			getItem: vi.fn(),
 			setItem: vi.fn(),
-		};
-		mockLogger = {
-			info: vi.fn(),
-			warn: vi.fn(),
-			error: vi.fn(),
 		};
 		// Reset DOM
 		document.documentElement.className = "";
@@ -41,7 +34,7 @@ describe("ThemeService", () => {
 
 	it("should initialize with default system theme if no storage", () => {
 		mockStorage.getItem.mockReturnValue(null);
-		service = new ThemeService(mockLogger, mockStorage);
+		service = new ThemeService({ storage: mockStorage });
 
 		expect(service.themeMode.get()).toBe("system");
 		expect(mockStorage.getItem).toHaveBeenCalledWith("legacys-end-theme");
@@ -54,7 +47,7 @@ describe("ThemeService", () => {
 
 	it("should initialize with stored theme", () => {
 		mockStorage.getItem.mockReturnValue("dark");
-		service = new ThemeService(mockLogger, mockStorage);
+		service = new ThemeService({ storage: mockStorage });
 
 		expect(service.themeMode.get()).toBe("dark");
 		expect(document.documentElement.classList.contains("wa-dark")).toBe(true);
@@ -62,7 +55,7 @@ describe("ThemeService", () => {
 
 	it("should set theme and update storage/DOM", () => {
 		mockStorage.getItem.mockReturnValue("light");
-		service = new ThemeService(mockLogger, mockStorage);
+		service = new ThemeService({ storage: mockStorage });
 		mockStorage.setItem.mockClear();
 
 		service.setTheme("dark");
@@ -78,7 +71,7 @@ describe("ThemeService", () => {
 
 	it("should overwrite theme even if same (no check in set)", () => {
 		mockStorage.getItem.mockReturnValue("light");
-		service = new ThemeService(mockLogger, mockStorage);
+		service = new ThemeService({ storage: mockStorage });
 		mockStorage.setItem.mockClear();
 
 		service.setTheme("light");
@@ -91,7 +84,7 @@ describe("ThemeService", () => {
 
 	it("should toggle theme", () => {
 		mockStorage.getItem.mockReturnValue("light");
-		service = new ThemeService(mockLogger, mockStorage);
+		service = new ThemeService({ storage: mockStorage });
 
 		service.toggleTheme();
 
@@ -111,7 +104,7 @@ describe("ThemeService", () => {
 			addEventListener: vi.fn(),
 		}));
 
-		service = new ThemeService(mockLogger, mockStorage);
+		service = new ThemeService({ storage: mockStorage });
 		service.setTheme("system");
 
 		expect(service.themeMode.get()).toBe("system");

@@ -60,6 +60,7 @@ export default defineConfig(({ mode }) => {
 				}),
 		],
 		build: {
+			target: "es2022",
 			rollupOptions: {
 				input: {
 					main: "index.html",

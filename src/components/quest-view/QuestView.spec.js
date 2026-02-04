@@ -7,7 +7,7 @@ import { sessionContext } from "../../contexts/session-context.js";
 import { heroStateContext } from "../../game/contexts/hero-context.js";
 import { questStateContext } from "../../game/contexts/quest-context.js";
 import { worldStateContext } from "../../game/contexts/world-context.js";
-import { logger } from "../../services/logger-service.js";
+
 import "./quest-view.js";
 
 /** @typedef {import("../../game/interfaces.js").IHeroStateService} IHeroStateService */
@@ -121,7 +121,6 @@ describe("QuestView", () => {
 	beforeEach(() => {
 		container = document.createElement("div");
 		document.body.appendChild(container);
-		vi.spyOn(logger, "warn").mockImplementation(() => {});
 	});
 
 	afterEach(() => {

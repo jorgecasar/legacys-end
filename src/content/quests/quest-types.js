@@ -117,7 +117,6 @@ export const ServiceBrandMap = {
 /**
  * @typedef {Object} LevelConfig
  * @property {string} id
- * @property {number} [powerLevel]
  * @property {string} title
  * @property {string} description
  * @property {string} problemTitle

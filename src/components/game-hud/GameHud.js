@@ -1,12 +1,14 @@
 import { consume } from "@lit/context";
 import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement, nothing } from "lit";
+import { loggerContext } from "../../contexts/logger-context.js";
 import { questStateContext } from "../../game/contexts/quest-context.js";
 import { gameHudStyles } from "./GameHud.styles.js";
 
 /**
  * @element game-hud
  * @extends {LitElement}
+ * @typedef {import('../../services/interfaces.js').ILoggerService} ILoggerService
  */
 export class GameHud extends SignalWatcher(
 	/** @type {new (...args: unknown[]) => import('lit').ReactiveElement} */ (
@@ -18,6 +20,12 @@ export class GameHud extends SignalWatcher(
 		/** @type {import('../../game/interfaces.js').IQuestStateService} */ (
 			/** @type {unknown} */ (null)
 		);
+
+	/** @type {ILoggerService} */
+	@consume({ context: loggerContext })
+	accessor logger = /** @type {ILoggerService} */ (
+		/** @type {unknown} */ (null)
+	);
 
 	/** @override */
 	static styles = gameHudStyles;

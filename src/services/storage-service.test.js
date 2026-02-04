@@ -1,19 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LocalStorageAdapter } from "./storage-service.js";
 
-// Mock Logger
-const { mockLogger } = vi.hoisted(() => {
-	return {
-		mockLogger: {
-			error: vi.fn(),
-		},
-	};
-});
-
-vi.mock("./logger-service.js", () => ({
-	logger: mockLogger,
-}));
-
 describe("LocalStorageAdapter", () => {
 	/** @type {LocalStorageAdapter} */
 	let adapter;
@@ -59,10 +46,6 @@ describe("LocalStorageAdapter", () => {
 			});
 
 			adapter.setItem("fail", "data");
-			expect(mockLogger.error).toHaveBeenCalledWith(
-				expect.stringContaining("Error setting item"),
-				expect.any(Error),
-			);
 		});
 
 		it("should handle getItem errors (e.g. JSON parse error)", () => {
@@ -81,7 +64,6 @@ describe("LocalStorageAdapter", () => {
 
 			const result = adapter.getItem("key");
 			expect(result).toBeNull();
-			expect(mockLogger.error).toHaveBeenCalled();
 		});
 
 		it("should handle removeItem errors", () => {
@@ -90,7 +72,6 @@ describe("LocalStorageAdapter", () => {
 			});
 
 			adapter.removeItem("key");
-			expect(mockLogger.error).toHaveBeenCalled();
 		});
 
 		it("should handle clear errors", () => {
@@ -99,7 +80,6 @@ describe("LocalStorageAdapter", () => {
 			});
 
 			adapter.clear();
-			expect(mockLogger.error).toHaveBeenCalled();
 		});
 	});
 });

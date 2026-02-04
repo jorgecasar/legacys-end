@@ -4,11 +4,14 @@ import { html, LitElement, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { gameConfig } from "../../config/game-configuration.js";
+import { characterContext } from "../../contexts/character-context.js";
 import { dialogStateContext } from "../../contexts/dialog-context.js";
 import { localizationContext } from "../../contexts/localization-context.js";
+import { loggerContext } from "../../contexts/logger-context.js";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
 import { themeContext } from "../../contexts/theme-context.js";
+import { CharacterContextController } from "../../controllers/character-context-controller.js";
 import { CollisionController } from "../../controllers/collision-controller.js";
 import { GameController } from "../../controllers/game-controller.js";
 import { GameZoneController } from "../../controllers/game-zone-controller.js";
@@ -45,6 +48,8 @@ import { gameViewportStyles } from "./GameViewport.styles.js";
  * @typedef {import('../../services/interfaces.js').ISessionService} ISessionService
  * @typedef {import('../../services/interfaces.js').ILocalizationService} ILocalizationService
  * @typedef {import('../../services/interfaces.js').IThemeService} IThemeService
+ * @typedef {import('../../services/interfaces.js').ILoggerService} ILoggerService
+ * @typedef {import('../../contexts/character-context.js').CharacterContext} CharacterContext
  * @typedef {import('lit').PropertyValues} PropertyValues
  */
 
@@ -110,7 +115,19 @@ export class GameViewport extends SignalWatcher(
 		/** @type {unknown} */ (null)
 	);
 
+	/** @type {ILoggerService} */
+	@consume({ context: loggerContext })
+	accessor logger = /** @type {ILoggerService} */ (
+		/** @type {unknown} */ (null)
+	);
+
+	@provide({ context: characterContext })
+	accessor character = /** @type {CharacterContext} */ ({
+		suit: {},
+	});
+
 	gameController = new GameController(this);
+	characterContexts = new CharacterContextController(this);
 
 	/** @override */
 	static properties = {

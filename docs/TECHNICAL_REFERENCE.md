@@ -278,11 +278,9 @@ Controllers are specialized classes (often using Lit's Reactive Controller patte
 **Inputs**:
 *   `getState()`: Function returning current Level, Chapter Data, User Data, etc.
 **Outputs**:
-*   Updates the `CharacterContext` (Suit, Gear, Power, Mastery).
+*   Updates the `CharacterContext` (Suit).
 **Logic**:
-*   **Suit/Gear**: Determines correct sprite based on Level Config and collected rewards.
-*   **Power**: Applies glitch effects based on 'Hot Switch' state and API stability.
-*   **Mastery**: Tracks character level progression.
+*   **Suit**: Determines correct sprite based on Level Config and collected rewards.
 
 ### `VoiceController`
 **Purpose**: Handles Web Speech API integration for voice commands with AI-powered natural language processing.
@@ -428,17 +426,9 @@ To use an existing service (e.g., `QuestStateService`) in a new component:
     import { questStateContext } from "../game/contexts/quest-context.js";
     ```
 2.  **Add the Consumer and Watcher**:
-    ```javascript
-    class MyNewComponent extends SignalWatcher(LitElement) {
-      @consume({ context: questStateContext, subscribe: true })
-      accessor questState = /** @type {any} */ (null);
+    - Child components consume services using the standardized `@consume` pattern.
+    - **Mandatory Pattern**: See the [Context Usage Patterns](PROJECT_STANDARDS.md#context-usage-patterns) in the Project Standards.
 
-      render() {
-        return html`Progress: ${this.questState.currentChapterNumber.get()}`;
-      }
-    }
-    ```
-    *Note: The `accessor` keyword and initialization are required for standard decorators.*
 
 ---
 

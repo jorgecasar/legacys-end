@@ -5,6 +5,7 @@ import { html, LitElement, nothing } from "lit";
 import "@awesome.me/webawesome/dist/components/button/button.js";
 import "@awesome.me/webawesome/dist/components/dialog/dialog.js";
 import "@awesome.me/webawesome/dist/components/icon/icon.js";
+import { loggerContext } from "../../contexts/logger-context.js";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { UIEvents } from "../../core/events.js";
 import { questStateContext } from "../../game/contexts/quest-context.js";
@@ -20,6 +21,7 @@ import "./slides/problem/level-dialog-slide-problem.js";
 import "./components/LevelDialogFooter.js";
 
 /** @typedef {import('../../content/quests/quest-types.js').LevelConfig} LevelConfig */
+/** @typedef {import('../../services/interfaces.js').ILoggerService} ILoggerService */
 
 /**
  * LevelDialog - Interactive dialog for level completion
@@ -49,6 +51,12 @@ export class LevelDialog extends SignalWatcher(LitElement) {
 		/** @type {import('../../game/interfaces.js').IWorldStateService} */ (
 			/** @type {unknown} */ (null)
 		);
+
+	/** @type {ILoggerService} */
+	@consume({ context: loggerContext })
+	accessor logger = /** @type {ILoggerService} */ (
+		/** @type {unknown} */ (null)
+	);
 
 	/** @override */
 	static styles = levelDialogStyles;

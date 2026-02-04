@@ -2,8 +2,7 @@ import { HeroStateService } from "../game/services/hero-state-service.js";
 import { QuestStateService } from "../game/services/quest-state-service.js";
 import { WorldStateService } from "../game/services/world-state-service.js";
 import { LocalizationService } from "../services/localization-service.js";
-import { logger } from "../services/logger-service.js";
-import { preloader } from "../services/preloader-service.js";
+import { PreloaderService } from "../services/preloader-service.js";
 import { ProgressService } from "../services/progress-service.js";
 import { SessionService } from "../services/session-service.js";
 import { LocalStorageAdapter } from "../services/storage-service.js";
@@ -15,10 +14,12 @@ import {
 import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-transition.js";
 import { Router } from "../utils/router.js";
 
+/** @typedef {import('../services/interfaces.js').ILoggerService} ILoggerService */
+
 /**
  * @typedef {Object} ServicesContext
- * @property {import('../services/storage-service.js').LocalStorageAdapter} storageAdapter
- * @property {import('../services/progress-service.js').ProgressService} progressService
+ * @property {import('../services/interfaces.js').IStorageAdapter} storage
+ * @property {import('../services/interfaces.js').IProgressService} progressService
  * @property {import('../services/quest-registry-service.js').QuestRegistryService} registry
  * @property {Object} services
  * @property {import('../services/preloader-service.js').PreloaderService} preloader
@@ -33,9 +34,9 @@ import { Router } from "../utils/router.js";
 
 /**
  * @typedef {Object} GameContext
- * @property {import('../services/logger-service.js').LoggerService} logger
- * @property {import('../services/storage-service.js').LocalStorageAdapter} storageAdapter
- * @property {import('../services/progress-service.js').ProgressService} progressService
+ * @property {ILoggerService | undefined} [logger]
+ * @property {import('../services/interfaces.js').IStorageAdapter} storage
+ * @property {import('../services/interfaces.js').IProgressService} progressService
  * @property {import('../utils/router.js').Router} router
  * @property {Object} services
  * @property {import('../services/preloader-service.js').PreloaderService} preloader
@@ -56,51 +57,49 @@ import { Router } from "../utils/router.js";
  * Controllers and UI orchestration are handled by the main app component.
  */
 export class GameBootstrapper {
+	/** @type {ILoggerService | undefined} */
+	#logger;
+
 	/**
 	 * Bootstrap the game application
 	 * @param {import('lit').ReactiveControllerHost} _host - The Lit component host
+	 * @param {ILoggerService} [logger] - Optional logger instance
 	 * @returns {Promise<GameContext>}
 	 */
-	async bootstrap(_host) {
-		logger.info("GameBootstrapper: Starting initialization...");
+	async bootstrap(_host, logger) {
+		this.#logger = logger;
+		this.#logger?.info("GameBootstrapper: Starting initialization...");
 
-		const context = await this.#setupServices();
-		const router = new Router(logger);
+		const context = await this.#setupServices(this.#logger);
+		const router = new Router(this.#logger);
 
-		logger.info("GameBootstrapper: Initialization complete.");
+		this.#logger?.info("GameBootstrapper: Initialization complete.");
 
 		return {
 			...context,
-			logger,
+			logger: this.#logger,
 			router,
 		};
 	}
 
 	/**
+	 * @param {ILoggerService} [logger]
 	 * @returns {Promise<ServicesContext>}
 	 */
-	async #setupServices() {
-		const storageAdapter = new LocalStorageAdapter();
-		const loggerService = logger;
+	async #setupServices(logger) {
+		const storage = new LocalStorageAdapter({ logger });
 
 		const themeService = new (
 			await import("../services/theme-service.js")
-		).ThemeService(loggerService, storageAdapter);
+		).ThemeService({ storage, logger });
 
 		const registry = new (
 			await import("../services/quest-registry-service.js")
 		).QuestRegistryService();
 
-		const progressService = new ProgressService(
-			storageAdapter,
-			registry,
-			loggerService,
-		);
+		const progressService = new ProgressService(storage, registry, logger);
 
-		const localizationService = new LocalizationService(
-			loggerService,
-			storageAdapter,
-		);
+		const localizationService = new LocalizationService({ storage, logger });
 
 		localizationService.onLocaleChange(() => {
 			registry.invalidateQuestCache();
@@ -113,12 +112,13 @@ export class GameBootstrapper {
 		};
 
 		const sessionService = new SessionService();
+		const preloader = new PreloaderService({ logger });
 		const heroState = new HeroStateService();
 		const questState = new QuestStateService();
 		const worldState = new WorldStateService();
 
 		return {
-			storageAdapter,
+			storage,
 			progressService,
 			services,
 			preloader,

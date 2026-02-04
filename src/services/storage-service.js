@@ -1,20 +1,21 @@
-import { logger } from "./logger-service.js";
-
-/**
- * Storage Interface (Implicit)
- * @typedef {Object} StorageAdapter
- * @property {function(string): import('./interfaces.js').JsonValue} getItem
- * @property {function(string, import('./interfaces.js').JsonValue): void} setItem
- * @property {function(string): void} removeItem
- * @property {function(): void} clear
- */
+/** @typedef {import('./interfaces.js').ILoggerService} ILoggerService */
+/** @typedef {import('./interfaces.js').IStorageAdapter} IStorageAdapter */
 
 /**
  * LocalStorageAdapter
  * Concrete implementation of StorageAdapter using browser localStorage.
  * Handles JSON serialization/deserialization automatically.
+ * @implements {IStorageAdapter}
  */
 export class LocalStorageAdapter {
+	/**
+	 * @param {Object} [options]
+	 * @param {ILoggerService} [options.logger]
+	 */
+	constructor(options = {}) {
+		this.logger = options.logger;
+	}
+
 	/**
 	 * Private getter for browser localStorage
 	 * @returns {Storage}
@@ -34,7 +35,7 @@ export class LocalStorageAdapter {
 			const item = this.#storage.getItem(key);
 			return item ? JSON.parse(item) : null;
 		} catch (e) {
-			logger.error(`Error getting item ${key} from storage:`, e);
+			this.logger?.error(`Error getting item ${key} from storage:`, e);
 			return null;
 		}
 	}
@@ -50,7 +51,7 @@ export class LocalStorageAdapter {
 			const serialized = JSON.stringify(value);
 			this.#storage.setItem(key, serialized);
 		} catch (e) {
-			logger.error(`Error setting item ${key} in storage:`, e);
+			this.logger?.error(`Error setting item ${key} in storage:`, e);
 		}
 	}
 
@@ -62,7 +63,7 @@ export class LocalStorageAdapter {
 		try {
 			this.#storage.removeItem(key);
 		} catch (e) {
-			logger.error(`Error removing item ${key} from storage:`, e);
+			this.logger?.error(`Error removing item ${key} from storage:`, e);
 		}
 	}
 
@@ -73,7 +74,7 @@ export class LocalStorageAdapter {
 		try {
 			this.#storage.clear();
 		} catch (e) {
-			logger.error("Error clearing storage:", e);
+			this.logger?.error("Error clearing storage:", e);
 		}
 	}
 }

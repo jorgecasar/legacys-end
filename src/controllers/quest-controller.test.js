@@ -15,8 +15,6 @@ describe("QuestController", () => {
 	/** @type {any} */
 	let mockRegistry;
 	/** @type {any} */
-	let mockLogger;
-	/** @type {any} */
 	let mockQuestState;
 	/** @type {any} */
 	let mockWorldState;
@@ -42,13 +40,6 @@ describe("QuestController", () => {
 			loadQuestData: vi.fn().mockResolvedValue(mockQuest),
 			getAvailableQuests: vi.fn().mockReturnValue([mockQuest]),
 			getQuest: vi.fn().mockReturnValue(mockQuest),
-		};
-
-		mockLogger = {
-			error: vi.fn(),
-			warn: vi.fn(),
-			debug: vi.fn(),
-			info: vi.fn(),
 		};
 
 		mockQuestState = {
@@ -85,17 +76,16 @@ describe("QuestController", () => {
 
 		// Use explicit service injection instead of fighting with @lit/context mock
 		controller = new QuestController(host, {
-			logger: mockLogger,
 			registry: mockRegistry,
 			progressService: fakeProgressService,
 			state: mockQuestState,
 			worldState: mockWorldState,
 			sessionService: mockSessionService,
-			preloaderService: {
+			preloaderService: /** @type {any} */ ({
 				preloadChapter: vi.fn(),
 				preloadImage: vi.fn(),
 				preloadImages: vi.fn(),
-			},
+			}),
 		});
 	});
 

@@ -4238,7 +4238,7 @@
 			"declarations": [
 				{
 					"kind": "class",
-					"description": "CharacterContextController - Manages character appearance contexts\n\nHandles:\n- Suit/Skin images based on level and theme\n- Gear images based on level\n- Power images based on level",
+					"description": "CharacterContextController - Manages character appearance contexts\n\nHandles:\n- Suit/Skin images based on level and theme",
 					"name": "CharacterContextController",
 					"members": [
 						{

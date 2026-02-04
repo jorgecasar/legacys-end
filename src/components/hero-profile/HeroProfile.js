@@ -4,6 +4,7 @@ import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement } from "lit";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { characterContext } from "../../contexts/character-context.js";
+import { loggerContext } from "../../contexts/logger-context.js";
 import { profileContext } from "../../contexts/profile-context.js";
 import { themeContext } from "../../contexts/theme-context.js";
 import { ThemeModes } from "../../core/constants.js";
@@ -29,6 +30,7 @@ import { heroProfileStyles } from "./HeroProfile.styles.js";
 /**
  * @element hero-profile
  * @extends {LitElement}
+ * @typedef {import('../../services/interfaces.js').ILoggerService} ILoggerService
  */
 export class HeroProfile extends SignalWatcher(
 	/** @type {new (...args: unknown[]) => import('lit').ReactiveElement} */ (
@@ -62,6 +64,12 @@ export class HeroProfile extends SignalWatcher(
 		/** @type {import('../../contexts/character-context.js').CharacterContext} */ (
 			/** @type {unknown} */ (null)
 		);
+
+	/** @type {ILoggerService} */
+	@consume({ context: loggerContext })
+	accessor logger = /** @type {ILoggerService} */ (
+		/** @type {unknown} */ (null)
+	);
 
 	/** @override */
 	static properties = {

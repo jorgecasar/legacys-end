@@ -1,14 +1,17 @@
-export const LogLevel = {
-	DEBUG: 0,
-	INFO: 1,
-	WARN: 2,
-	ERROR: 3,
+/**
+ * @enum {number}
+ */
+export const LOG_LEVELS = {
+	debug: 0,
+	info: 1,
+	warn: 2,
+	error: 3,
+	silent: 4,
 };
 
 /**
  * @typedef {Object} LoggerOptions
- * @property {('debug'|'info'|'warn'|'error'|'silent')} [level='warn'] - Initial log level
- * @property {boolean} [force=false] - If true, overrides environment default levels
+ * @property {keyof typeof LOG_LEVELS} [level='warn'] - Initial log level
  * @property {string} [env] - Override environment (default: import.meta.env.MODE)
  */
 
@@ -22,34 +25,29 @@ export const LogLevel = {
  * @implements {ILoggerService}
  */
 export class LoggerService {
+	/** @type {string} */
+	env;
+
+	/** @type {keyof typeof LOG_LEVELS} */
+	level;
+
 	/**
 	 * @param {LoggerOptions} [options] - Configuration options
 	 */
 	constructor(options = {}) {
 		this.env = options.env || import.meta.env?.MODE || "development";
-
-		/** @type {Object.<string, number>} key-value map for log level priorities */
-		this.levels = {
-			debug: 0,
-			info: 1,
-			warn: 2,
-			error: 3,
-			silent: 4,
-		};
-
-		/** @type {string} Current active log level */
 		this.level =
 			options.level || (this.env === "development" ? "info" : "warn");
 	}
 
 	/**
 	 * Check if a message with the given level should be logged.
-	 * @param {string} level - The level of the message to check
+	 * @param {keyof typeof LOG_LEVELS} level - The level of the message to check
 	 * @returns {boolean} True if the message should be logged
 	 */
 	shouldLog(level) {
-		const levelVal = this.levels[level];
-		const currentVal = this.levels[this.level];
+		const levelVal = LOG_LEVELS[level];
+		const currentVal = LOG_LEVELS[this.level];
 		if (levelVal === undefined || currentVal === undefined) return false;
 		return levelVal >= currentVal;
 	}
@@ -98,5 +96,3 @@ export class LoggerService {
 		}
 	}
 }
-
-export const logger = new LoggerService();

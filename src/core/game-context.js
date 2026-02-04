@@ -1,7 +1,6 @@
 /**
  * @typedef {Object} IGameContext
- * @property {import('../services/logger-service.js').LoggerService} logger
-
+ * @property {import('../services/interfaces.js').ILoggerService} logger
  * @property {import('../controllers/quest-controller.js').QuestController} questController
  * @property {import('../services/progress-service.js').ProgressService} progressService
  * @property {import('../services/session-service.js').SessionService} sessionService

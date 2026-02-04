@@ -1,18 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
+import { FakeLoggerService } from "./fakes/fake-logger-service.js";
+import { FakeStorageAdapter } from "./fakes/fake-storage-adapter.js";
 import { LocalizationService } from "./localization-service.js";
 
 // Mock dependencies
-const mockLogger = {
-	info: vi.fn(),
-	warn: vi.fn(),
-	error: vi.fn(),
-};
-
-const mockStorage = {
-	getItem: vi.fn(),
-	setItem: vi.fn(),
-};
+const mockLogger = new FakeLoggerService();
+const mockStorage = new FakeStorageAdapter();
 
 // Mock @lit/localize
 vi.mock("@lit/localize", () => ({
@@ -42,10 +35,10 @@ describe("LocalizationService", () => {
 		mockStorage.getItem.mockReturnValue("es");
 
 		// Act
-		const service = new LocalizationService(
-			/** @type {any} */ (mockLogger),
-			/** @type {any} */ (mockStorage),
-		);
+		const service = new LocalizationService({
+			logger: mockLogger,
+			storage: mockStorage,
+		});
 
 		// Assert: Signal should initially be 'en' (source) to allow reactive update later
 		expect(service.getLocale()).toBe("en");
@@ -67,10 +60,10 @@ describe("LocalizationService", () => {
 			configurable: true,
 		});
 
-		const service = new LocalizationService(
-			/** @type {any} */ (mockLogger),
-			/** @type {any} */ (mockStorage),
-		);
+		const service = new LocalizationService({
+			logger: mockLogger,
+			storage: mockStorage,
+		});
 
 		expect(service.getLocale()).toBe("en");
 		await new Promise((resolve) => setTimeout(resolve, 0));

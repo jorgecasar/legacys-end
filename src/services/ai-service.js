@@ -1,5 +1,6 @@
 import { Signal } from "@lit-labs/signals";
-import { logger } from "./logger-service.js";
+
+/** @typedef {import('./interfaces.js').ILoggerService} ILoggerService */
 
 /**
  * Service for managing Chrome Built-in AI (Prompt API) sessions.
@@ -34,7 +35,12 @@ import { logger } from "./logger-service.js";
  */
 
 export class AIService {
-	constructor() {
+	/**
+	 * @param {Object} [options]
+	 * @param {ILoggerService} [options.logger]
+	 */
+	constructor(options = {}) {
+		this.logger = options.logger;
 		/** @type {string} */
 		this.availabilityStatus = "no";
 		/** @type {boolean} */
@@ -60,7 +66,7 @@ export class AIService {
 	async checkAvailability() {
 		try {
 			if (!this.#ai) {
-				logger.warn("Chrome Built-in AI not supported in this browser");
+				this.logger?.warn("Chrome Built-in AI not supported in this browser");
 				this.availabilityStatus = "no";
 				return "no";
 			}
@@ -69,11 +75,11 @@ export class AIService {
 			this.availabilityStatus = status;
 			this.isAvailable = status === "readily" || status === "available";
 
-			logger.debug("🤖 Chrome Built-in AI availability:", status);
+			this.logger?.debug("🤖 Chrome Built-in AI availability:", { status });
 
 			// Provide helpful instructions based on status
 			if (status === "no") {
-				logger.warn(
+				this.logger?.warn(
 					"⚠️ Chrome Built-in AI not available. To enable:\n" +
 						"1. Use Chrome Dev/Canary (v127+)\n" +
 						"2. Enable flags:\n" +
@@ -84,7 +90,7 @@ export class AIService {
 						"5. Verify with: await ai.languageModel.availability()",
 				);
 			} else if (status === "after-download") {
-				logger.warn(
+				this.logger?.warn(
 					"⚠️ Chrome Built-in AI requires model download.\n" +
 						"Go to chrome://components/ and update 'Optimization Guide On Device Model'",
 				);
@@ -92,7 +98,7 @@ export class AIService {
 
 			return status;
 		} catch (error) {
-			logger.error("Failed to check AI availability:", error);
+			this.logger?.error("Failed to check AI availability:", error);
 			this.availabilityStatus = "no";
 			return "no";
 		}
@@ -107,7 +113,7 @@ export class AIService {
 	async createSession(sessionId, options) {
 		// Check if session already exists
 		if (this.sessions.has(sessionId)) {
-			logger.warn(
+			this.logger?.warn(
 				`Session "${sessionId}" already exists. Destroying old session.`,
 			);
 			this.destroySession(sessionId);
@@ -119,7 +125,7 @@ export class AIService {
 		if (status === "downloadable") {
 			const session = await this.downloadModel(options);
 			this.sessions.set(sessionId, session);
-			logger.debug(`✅ Session "${sessionId}" created after download`);
+			this.logger?.debug(`✅ Session "${sessionId}" created after download`);
 			return session;
 		}
 
@@ -129,7 +135,7 @@ export class AIService {
 		}
 
 		try {
-			logger.debug(
+			this.logger?.debug(
 				`🤖 Creating AI session "${sessionId}" with language: ${options.language}`,
 			);
 			if (!this.#ai) {
@@ -157,10 +163,10 @@ export class AIService {
 				sessionId,
 				/** @type {import('./interfaces.js').AIModelSession} */ (session),
 			);
-			logger.debug(`✅ Session "${sessionId}" created successfully`);
+			this.logger?.debug(`✅ Session "${sessionId}" created successfully`);
 			return session;
 		} catch (error) {
-			logger.error(`Failed to create session "${sessionId}":`, error);
+			this.logger?.error(`Failed to create session "${sessionId}":`, error);
 			throw error;
 		}
 	}
@@ -171,7 +177,7 @@ export class AIService {
 	 * @returns {Promise<import('./interfaces.js').AIModelSession>} AI session after download
 	 */
 	async downloadModel(options) {
-		logger.info(
+		this.logger?.info(
 			"📥 Chrome Built-in AI model is downloadable.\n" +
 				"Attempting to download model automatically...",
 		);
@@ -190,7 +196,7 @@ export class AIService {
 							/** @type {import('./interfaces.js').AIDownloadProgressEvent} */ e,
 						) => {
 							const progress = Math.round((e.loaded / e.total) * 100);
-							logger.info(
+							this.logger?.info(
 								`📥 Downloading AI model: ${e.loaded}/${e.total} bytes (${progress}%)`,
 							);
 							if (options.onDownloadProgress) {
@@ -201,13 +207,13 @@ export class AIService {
 				},
 			});
 
-			logger.info("✅ AI model downloaded successfully!");
+			this.logger?.info("✅ AI model downloaded successfully!");
 			this.isAvailable = true;
 			this.availabilityStatus = "readily";
 			return session;
 		} catch (error) {
-			logger.error("❌ Failed to download AI model:", error);
-			logger.warn(
+			this.logger?.error("❌ Failed to download AI model:", error);
+			this.logger?.warn(
 				"Manual download required:\n" +
 					"Go to chrome://components/ and update 'Optimization Guide On Device Model'",
 			);
@@ -223,7 +229,7 @@ export class AIService {
 	getSession(sessionId) {
 		const session = this.sessions.get(sessionId);
 		if (!session) {
-			logger.warn(`Session "${sessionId}" not found`);
+			this.logger?.warn(`Session "${sessionId}" not found`);
 			return null;
 		}
 		return session;
@@ -248,9 +254,9 @@ export class AIService {
 			try {
 				session.destroy();
 				this.sessions.delete(sessionId);
-				logger.debug(`🗑️ Session "${sessionId}" destroyed`);
+				this.logger?.debug(`🗑️ Session "${sessionId}" destroyed`);
 			} catch (error) {
-				logger.error(`Failed to destroy session "${sessionId}":`, error);
+				this.logger?.error(`Failed to destroy session "${sessionId}":`, error);
 			}
 		}
 	}
@@ -262,9 +268,9 @@ export class AIService {
 		for (const [sessionId, session] of this.sessions.entries()) {
 			try {
 				session.destroy();
-				logger.debug(`🗑️ Session "${sessionId}" destroyed`);
+				this.logger?.debug(`🗑️ Session "${sessionId}" destroyed`);
 			} catch (error) {
-				logger.error(`Failed to destroy session "${sessionId}":`, error);
+				this.logger?.error(`Failed to destroy session "${sessionId}":`, error);
 			}
 		}
 		this.sessions.clear();

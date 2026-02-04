@@ -5,6 +5,13 @@ import {
 	targetLocales,
 } from "../generated/locales/locale-codes.js";
 
+/**
+ * @typedef {import('./interfaces.js').ILoggerService} ILoggerService
+ * @typedef {import('./interfaces.js').IStorageAdapter} IStorageAdapter
+ * @typedef {Object} LocalizationServiceParams
+ * @property {IStorageAdapter} storage
+ * @property {ILoggerService|undefined} [logger]
+ */
 /** @type {ReturnType<typeof configureLocalization>} */
 let localizationConfig;
 
@@ -13,14 +20,22 @@ let localizationConfig;
  * Manages application locale and translation loading.
  */
 export class LocalizationService {
+	/** @type {ILoggerService | undefined} */
+	#logger;
+
+	/** @type {IStorageAdapter | undefined} */
+	#storage;
+
+	/** @type {string} */
+	#storageKey;
+
 	/**
-	 * @param {import('./logger-service.js').LoggerService} logger
-	 * @param {import('./storage-service.js').StorageAdapter} storage
+	 * @param {LocalizationServiceParams} params
 	 */
-	constructor(logger, storage) {
-		this.logger = logger;
-		this.storage = storage;
-		this.storageKey = "legacys-end-locale";
+	constructor({ storage, logger }) {
+		this.#storage = storage;
+		this.#logger = logger;
+		this.#storageKey = "legacys-end-locale";
 		/** @type {Set<() => void>} */
 		this.listeners = new Set();
 
@@ -64,12 +79,12 @@ export class LocalizationService {
 
 		if (storedLocale && this.isValidLocale(storedLocale)) {
 			initialLocale = storedLocale;
-			this.logger.info(`🌐 Using stored locale: ${storedLocale}`);
+			this.#logger?.info(`🌐 Using stored locale: ${storedLocale}`);
 		} else if (browserLocale && this.isValidLocale(browserLocale)) {
 			initialLocale = browserLocale;
-			this.logger.info(`🌐 Detected browser locale: ${browserLocale}`);
+			this.#logger?.info(`🌐 Detected browser locale: ${browserLocale}`);
 		} else {
-			this.logger.info(`🌐 Using default locale: ${sourceLocale}`);
+			this.#logger?.info(`🌐 Using default locale: ${sourceLocale}`);
 		}
 
 		this._localeSignal = new Signal.State(sourceLocale);
@@ -134,7 +149,7 @@ export class LocalizationService {
 	 */
 	async setLocale(locale) {
 		if (locale !== sourceLocale && !targetLocales.includes(locale)) {
-			this.logger.warn(`⚠️ Locale '${locale}' not supported.`);
+			this.#logger?.warn(`⚠️ Locale '${locale}' not supported.`);
 			return;
 		}
 
@@ -143,13 +158,13 @@ export class LocalizationService {
 			document.documentElement.lang = locale;
 			await this._setLocale(locale);
 			this._localeSignal.set(locale);
-			this.storage.setItem(this.storageKey, locale);
-			this.logger.info(`🌐 Locale switched to: ${locale}`);
+			this.#storage?.setItem(this.#storageKey, locale);
+			this.#logger?.info(`🌐 Locale switched to: ${locale}`);
 			this.listeners.forEach((cb) => {
 				cb();
 			});
 		} catch (e) {
-			this.logger.error(`❌ Failed to set locale to '${locale}':`, e);
+			this.#logger?.error(`❌ Failed to set locale to '${locale}':`, e);
 		}
 	}
 
@@ -158,7 +173,9 @@ export class LocalizationService {
 	 * @returns {string|null}
 	 */
 	getStoredLocale() {
-		return /** @type {string|null} */ (this.storage.getItem(this.storageKey));
+		return /** @type {string|null} */ (
+			this.#storage?.getItem(this.#storageKey)
+		);
 	}
 
 	/**

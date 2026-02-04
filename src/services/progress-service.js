@@ -1,7 +1,8 @@
 import { StorageKeys } from "../core/constants.js";
 import { LocalStorageAdapter } from "./storage-service.js";
 
-/** @typedef {import('./storage-service').StorageAdapter} StorageAdapter */
+/** @typedef {import('./interfaces.js').IStorageAdapter} IStorageAdapter */
+/** @typedef {import('./interfaces.js').ILoggerService} ILoggerService */
 
 /**
  * @typedef {Object} ProgressStats
@@ -29,9 +30,9 @@ import { LocalStorageAdapter } from "./storage-service.js";
  */
 export class ProgressService {
 	/**
-	 * @param {StorageAdapter} [storage] - Storage adapter for persistence
+	 * @param {IStorageAdapter} [storage] - Storage adapter for persistence
 	 * @param {import('../services/quest-registry-service.js').QuestRegistryService} [registry] - Quest registry
-	 * @param {import('./logger-service.js').LoggerService} [logger] - Logger service
+	 * @param {ILoggerService} [logger] - Logger service
 	 */
 	constructor(
 		storage = new LocalStorageAdapter(),
@@ -43,6 +44,7 @@ export class ProgressService {
 		this.registry = registry;
 		this.logger = logger;
 		this.storageKey = StorageKeys.PROGRESS;
+		/** @type {ProgressState} */
 		this.progress = this._initializeProgress();
 	}
 
@@ -108,7 +110,7 @@ export class ProgressService {
 	loadProgress() {
 		const data = this.storage.getItem(this.storageKey);
 		if (data) {
-			this.logger?.info("💾 Loaded progress:", data);
+			this.logger?.info("💾 Loaded progress:", { data });
 			/** @type {ProgressState} */
 			const typedData = /** @type {ProgressState} */ (data);
 			return typedData;
@@ -123,7 +125,7 @@ export class ProgressService {
 	 * Save current progress state to storage.
 	 */
 	saveProgress() {
-		this.logger?.info("💾 Saving progress:", this.progress);
+		this.logger?.info("💾 Saving progress:", { progress: this.progress });
 		this.storage.setItem(this.storageKey, this.progress);
 	}
 
@@ -134,16 +136,6 @@ export class ProgressService {
 	resetProgress() {
 		this.logger?.warn("⚠️ Resetting progress (Game Over / New Game)");
 		this.progress = this._getDefaultState();
-		// Re-unlock first quest explicitely if needed, but default state implies empty?
-		// Actually the original code had: unlockedQuests: ["the-aura-of-sovereignty"]
-		// Let's ensure default state has it or logic adds it.
-		// Original default had: unlockedQuests: ["the-aura-of-sovereignty"]
-		// My _getDefaultState has empty array. I should fix that to match original behavior if that was intended.
-		// Looking at usage, setup-game probably unlocks it.
-		// But let's check the original code from view_file.
-		// It had: unlockedQuests: ["the-aura-of-sovereignty"], // First quest always unlocked
-		// I will update _getDefaultState to include it.
-		this.progress.unlockedQuests = ["the-aura-of-sovereignty"];
 		this.saveProgress();
 	}
 
@@ -179,12 +171,6 @@ export class ProgressService {
 		);
 
 		if (this.progress.currentQuest === questId) {
-			// quest lookup redundant here if we already looked it up above, but keeping structure similar
-			// actually we already have 'quest' variable from above
-			if (quest?.chapterIds && quest.chapterIds.length > 0) {
-				// We don't necessarily set currentChapter here, the controller does.
-				// But we clear the completed ones.
-			}
 			this.progress.currentChapter = null; // Will start from beginning
 			this.progress.currentQuest = null;
 		}
@@ -276,8 +262,6 @@ export class ProgressService {
 			if (this.progress.unlockedQuests.includes(quest.id)) continue;
 
 			// Check prerequisites using registry service which handles the logic
-			// The registry service's isQuestLocked returns true if ANY prerequisite is missing
-			// So if it returns false, the quest is NOT locked (i.e., available)
 			const isLocked = this.registry.isQuestLocked(
 				quest.id,
 				this.progress.completedQuests,
@@ -366,10 +350,6 @@ export class ProgressService {
 	}
 
 	/**
-	 * Get the entire progress state object.
-	 * @returns {ProgressState}
-	 */
-	/**
 	 * @template {keyof ProgressState} K
 	 * @param {K} key
 	 * @returns {ProgressState[K]}
@@ -408,7 +388,7 @@ export class ProgressService {
 	/**
 	 * Get state for a specific chapter.
 	 * @param {string} chapterId
-	 * @returns {import('./interfaces.js').JsonValue}
+	 * @returns {Record<string, import('./interfaces.js').JsonValue>}
 	 */
 	getChapterState(chapterId) {
 		return this.progress.chapterStates?.[chapterId] || {};

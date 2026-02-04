@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HotSwitchStates, ThemeModes } from "../../core/constants.js";
 import { UIEvents } from "../../core/events.js";
-import { logger } from "../../services/logger-service.js";
+
 import { QuestView } from "../quest-view/QuestView.js";
 import "../quest-view/quest-view.js";
+
 import { LevelDialog } from "./LevelDialog.js"; // Mock child component
 
 vi.mock("../game-viewport/game-viewport.js", () => ({})); // Mock child component
@@ -129,7 +130,6 @@ describe("LevelDialog Interactions", () => {
 	beforeEach(async () => {
 		container = document.createElement("div");
 		document.body.appendChild(container);
-		vi.spyOn(logger, "warn").mockImplementation(() => {});
 	});
 
 	afterEach(() => {
@@ -367,7 +367,6 @@ describe("QuestView Integration", () => {
 	beforeEach(() => {
 		container = document.createElement("div");
 		document.body.appendChild(container);
-		vi.spyOn(logger, "warn").mockImplementation(() => {});
 	});
 
 	afterEach(() => {

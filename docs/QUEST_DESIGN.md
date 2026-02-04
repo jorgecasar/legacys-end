@@ -58,10 +58,9 @@ Every Quest follows a strict **"Refactoring Ark"**:
     ```javascript
     import { userService } from '../services/global-service.js'; // Hard coupling
     ```
-*   **The Refactor:**
-    ```javascript
-    @consume({ context: userContext }) userService; // Injected
-    ```
+*   **The Refactor**:
+    - Decouple services using the standardized [Context Usage Patterns](PROJECT_STANDARDS.md#context-usage-patterns).
+
 *   **Reward:** **The Ghost Key**. Ability: "Summon Service" - Can invoke tools without carrying them.
 *   **Chapter Roadmap:**
     1.  **"The Hard Link"**: Try to test a component that imports a database directly (fails).

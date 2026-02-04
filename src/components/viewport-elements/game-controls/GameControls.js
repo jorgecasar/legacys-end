@@ -21,12 +21,12 @@ export class GameControls extends SignalWatcher(LitElement) {
 	/** @override */
 	static styles = gameControlsStyles;
 
-	/** @type {import('../../../services/interfaces.js').ILoggerService} */
+	/** @typedef {import('../../../services/interfaces.js').ILoggerService} ILoggerService */
+	/** @type {ILoggerService} */
 	@consume({ context: loggerContext })
-	accessor logger =
-		/** @type {import('../../../services/interfaces.js').ILoggerService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor logger = /** @type {ILoggerService} */ (
+		/** @type {unknown} */ (null)
+	);
 
 	#hasTouch = window.matchMedia("(pointer: coarse)").matches;
 	#hasKeyboard = window.matchMedia("(any-pointer: fine)").matches;

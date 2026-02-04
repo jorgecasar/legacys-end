@@ -44,7 +44,10 @@ describe("LegacysEndApp Integration", () => {
 		await element.updateComplete;
 
 		// 1. Verify Bootstrapper was called
-		expect(GameBootstrapper.prototype.bootstrap).toHaveBeenCalledWith(element);
+		expect(GameBootstrapper.prototype.bootstrap).toHaveBeenCalledWith(
+			element,
+			expect.any(Object),
+		);
 
 		// 2. Verify Services are attached to the App (host)
 		expect(element.heroState).toBeDefined();
@@ -55,7 +58,7 @@ describe("LegacysEndApp Integration", () => {
 		expect(element.questController).toBeDefined();
 
 		// 3. Verify specific wiring state
-		expect(element.progressService.logger).toBeDefined();
+		expect(/** @type {any} */ (element.progressService).logger).toBeDefined();
 
 		// 4. Verify initial state
 		// 4. Verify initial state

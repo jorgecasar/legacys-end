@@ -1,6 +1,7 @@
 import { consume } from "@lit/context";
 import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement, nothing } from "lit";
+import { loggerContext } from "../../../contexts/logger-context.js";
 import { questControllerContext } from "../../../contexts/quest-controller-context.js";
 import { questStateContext } from "../../../game/contexts/quest-context.js";
 
@@ -19,6 +20,7 @@ import "@awesome.me/webawesome/dist/components/tag/tag.js";
  * @property {Boolean} active - Whether the exit zone is active (e.g. item collected).
  * @attribute active
  * @extends {LitElement}
+ * @typedef {import('../../../services/interfaces.js').ILoggerService} ILoggerService
  */
 export class GameExitZone extends SignalWatcher(
 	/** @type {Constructor<import('lit').LitElement>} */ (LitElement),
@@ -36,6 +38,12 @@ export class GameExitZone extends SignalWatcher(
 		/** @type {import('../../../game/interfaces.js').IQuestStateService} */ (
 			/** @type {unknown} */ (null)
 		);
+
+	/** @type {ILoggerService} */
+	@consume({ context: loggerContext })
+	accessor logger = /** @type {ILoggerService} */ (
+		/** @type {unknown} */ (null)
+	);
 
 	/** @override */
 	static styles = gameExitZoneStyles;
