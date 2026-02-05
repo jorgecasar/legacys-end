@@ -3,10 +3,12 @@ import { consume } from "@lit/context";
 import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement } from "lit";
 import { ifDefined } from "lit/directives/if-defined.js";
+import { apiClientsContext } from "../../contexts/api-clients-context.js";
 import { characterContext } from "../../contexts/character-context.js";
 import { loggerContext } from "../../contexts/logger-context.js";
-import { profileContext } from "../../contexts/profile-context.js";
+import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { themeContext } from "../../contexts/theme-context.js";
+import { ServiceController } from "../../controllers/service-controller.js";
 import { ThemeModes } from "../../core/constants.js";
 import { heroStateContext } from "../../game/contexts/hero-context.js";
 import {
@@ -14,6 +16,16 @@ import {
 	processImageSrcset,
 } from "../../utils/process-assets.js";
 import { heroProfileStyles } from "./HeroProfile.styles.js";
+
+/**
+ * @typedef {import('../../game/interfaces.js').IHeroStateService} IHeroStateService
+ * @typedef {import('../../contexts/profile-context.js').Profile} Profile
+ * @typedef {import('../../contexts/character-context.js').CharacterContext} CharacterContext
+ * @typedef {import('../../contexts/api-clients-context.js').UserApiClients} UserApiClients
+ * @typedef {import('../../services/interfaces.js').IThemeService} IThemeService
+ * @typedef {import('../../services/interfaces.js').ILoggerService} ILoggerService
+ * @typedef {import('../../services/interfaces.js').IQuestController} IQuestController
+ */
 
 /**
  * @typedef {Object} ProfileData
@@ -30,46 +42,53 @@ import { heroProfileStyles } from "./HeroProfile.styles.js";
 /**
  * @element hero-profile
  * @extends {LitElement}
- * @typedef {import('../../services/interfaces.js').ILoggerService} ILoggerService
  */
 export class HeroProfile extends SignalWatcher(
 	/** @type {new (...args: unknown[]) => import('lit').ReactiveElement} */ (
 		LitElement
 	),
 ) {
-	/** @type {import('../../game/interfaces.js').IHeroStateService} */
+	/** @type {IHeroStateService} */
 	@consume({ context: heroStateContext, subscribe: true })
-	accessor heroState =
-		/** @type {import('../../game/interfaces.js').IHeroStateService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor heroState = /** @type {IHeroStateService} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../contexts/profile-context.js').Profile} */
-	@consume({ context: profileContext, subscribe: true })
-	accessor profileData =
-		/** @type {import('../../contexts/profile-context.js').Profile} */ (
-			/** @type {unknown} */ (null)
-		);
+	/** @type {Profile} */
+	profile = /** @type {Profile} */ (/** @type {unknown} */ ({}));
 
-	/** @type {import('../../services/interfaces.js').IThemeService} */
+	/** @type {IThemeService} */
 	@consume({ context: themeContext, subscribe: true })
-	accessor themeService =
-		/** @type {import('../../services/interfaces.js').IThemeService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor themeService = /** @type {IThemeService} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../contexts/character-context.js').CharacterContext} */
+	/** @type {CharacterContext} */
 	@consume({ context: characterContext, subscribe: true })
-	accessor suitData =
-		/** @type {import('../../contexts/character-context.js').CharacterContext} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor suitData = /** @type {CharacterContext} */ (
+		/** @type {unknown} */ (null)
+	);
 
 	/** @type {ILoggerService} */
 	@consume({ context: loggerContext })
 	accessor logger = /** @type {ILoggerService} */ (
 		/** @type {unknown} */ (null)
 	);
+
+	/** @type {UserApiClients} */
+	@consume({ context: apiClientsContext, subscribe: true })
+	accessor apiClients = /** @type {UserApiClients} */ (
+		/** @type {unknown} */ (null)
+	);
+
+	/** @type {IQuestController} */
+	@consume({ context: questControllerContext, subscribe: true })
+	accessor questController = /** @type {IQuestController} */ (
+		/** @type {unknown} */ (null)
+	);
+
+	/** @type {ServiceController | null} */
+	serviceController = null;
 
 	/** @override */
 	static properties = {
@@ -100,6 +119,20 @@ export class HeroProfile extends SignalWatcher(
 	 * @override
 	 */
 	update(changedProperties) {
+		// Initialize ServiceController when all dependencies are available
+		if (
+			!this.serviceController &&
+			this.heroState &&
+			this.questController &&
+			this.apiClients
+		) {
+			this.serviceController = new ServiceController(this, {
+				heroState: this.heroState,
+				questController: this.questController,
+				apiClients: this.apiClients,
+			});
+		}
+
 		const heroState = this.heroState;
 
 		// Reactive class update based on signal
@@ -152,8 +185,7 @@ export class HeroProfile extends SignalWatcher(
 
 	/** @override */
 	render() {
-		const { name, loading, error } = this.profileData || {};
-
+		const { name, loading, error } = this.profile || {};
 		const heroState = this.heroState;
 		const imageSrc = heroState?.imageSrc.get() || this.imageSrc;
 

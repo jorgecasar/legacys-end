@@ -1,8 +1,8 @@
 import { TaskStatus } from "@lit/task";
 import { Signal } from "@lit-labs/signals";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ServiceType } from "../content/quests/quest-types.js";
 import { HotSwitchStates } from "../core/constants.js";
-import { ServiceType } from "../services/user-api-client.js";
 import { ServiceController } from "./service-controller.js";
 
 // Mock @lit/context to handle dependency injection in tests
@@ -39,8 +39,6 @@ describe("ServiceController", () => {
 	let mockService;
 	/** @type {any} */
 	let newService;
-	/** @type {any} */
-	let profileProvider;
 
 	// Mock context states
 	/** @type {any} */
@@ -82,10 +80,6 @@ describe("ServiceController", () => {
 			getServiceName: vi.fn().mockReturnValue("new"),
 		};
 
-		profileProvider = {
-			setValue: vi.fn(),
-		};
-
 		mockHeroState = {
 			hotSwitchState: new Signal.State(HotSwitchStates.LEGACY),
 		};
@@ -105,18 +99,16 @@ describe("ServiceController", () => {
 			removeController: vi.fn(),
 			requestUpdate: vi.fn(),
 			updateComplete: Promise.resolve(true),
-			profileProvider: profileProvider,
+			profile: {},
 		};
 	});
 
 	const initController = () => {
-		controller = new ServiceController(host);
-
-		// Manually trigger context callbacks
-		const callbacks = Array.from(contextMocks.values());
-		if (callbacks[0]) callbacks[0](mockHeroState);
-		if (callbacks[1]) callbacks[1](mockQuestController);
-		if (callbacks[2]) callbacks[2](mockApiClients);
+		controller = new ServiceController(host, {
+			heroState: mockHeroState,
+			questController: mockQuestController,
+			apiClients: mockApiClients,
+		});
 	};
 
 	it("should initialize and add controller to host", () => {
@@ -140,13 +132,11 @@ describe("ServiceController", () => {
 		// Trigger host update to update the profile context
 		controller.hostUpdate();
 
-		expect(host.profileProvider.setValue).toHaveBeenCalledWith(
-			expect.objectContaining({
-				name: "Legacy User",
-				role: "developer",
-				serviceName: "legacy",
-			}),
-		);
+		expect(host.profile).toMatchObject({
+			name: "Legacy User",
+			role: "developer",
+			serviceName: "legacy",
+		});
 	});
 
 	describe("getActiveService", () => {
@@ -208,15 +198,13 @@ describe("ServiceController", () => {
 
 			controller.hostUpdate();
 
-			expect(profileProvider.setValue).toHaveBeenCalledWith(
-				expect.objectContaining({
-					name: "Legacy User",
-					role: "developer",
-					loading: false,
-					error: null,
-					serviceName: "legacy",
-				}),
-			);
+			expect(host.profile).toMatchObject({
+				name: "Legacy User",
+				role: "developer",
+				loading: false,
+				error: null,
+				serviceName: "legacy",
+			});
 		});
 
 		it("should handle errors", async () => {
@@ -232,12 +220,10 @@ describe("ServiceController", () => {
 			controller.hostUpdate();
 
 			expect(controller.userTask.status).toBe(TaskStatus.ERROR);
-			expect(profileProvider.setValue).toHaveBeenCalledWith(
-				expect.objectContaining({
-					error: "Error: Network error",
-					loading: false,
-				}),
-			);
+			expect(host.profile).toMatchObject({
+				error: "Error: Network error",
+				loading: false,
+			});
 		});
 	});
 
@@ -248,12 +234,10 @@ describe("ServiceController", () => {
 			expect(controller.userTask.status).toBe(TaskStatus.INITIAL);
 			controller.hostUpdate();
 
-			expect(profileProvider.setValue).toHaveBeenCalledWith(
-				expect.objectContaining({
-					loading: true,
-					error: null,
-				}),
-			);
+			expect(host.profile).toMatchObject({
+				loading: true,
+				error: null,
+			});
 		});
 	});
 });

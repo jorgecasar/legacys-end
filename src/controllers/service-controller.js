@@ -1,10 +1,6 @@
-import { ContextConsumer } from "@lit/context";
 import { Task, TaskStatus } from "@lit/task";
-import { apiClientsContext } from "../contexts/api-clients-context.js";
-import { questControllerContext } from "../contexts/quest-controller-context.js";
+import { ServiceType } from "../content/quests/quest-types.js";
 import { HotSwitchStates } from "../core/constants.js";
-import { heroStateContext } from "../game/contexts/hero-context.js";
-import { ServiceType } from "../services/user-api-client.js";
 
 /**
  * @typedef {import('lit').ReactiveController} ReactiveController
@@ -19,10 +15,8 @@ import { ServiceType } from "../services/user-api-client.js";
 /**
  * @typedef {import('../game/interfaces.js').IHeroStateService} IHeroStateService
  * @typedef {import('../services/interfaces.js').IQuestController} IQuestController
- */
-
-/**
- * @typedef {import("lit").ReactiveElement & { profileProvider: import('@lit/context').ContextProvider<any, any> | null }} HostWithProfileProvider
+ * @typedef {import('../contexts/profile-context.js').Profile} Profile
+ * @typedef {ReactiveControllerHost & { profile: Profile }} HostWithProfile
  */
 
 /**
@@ -44,40 +38,20 @@ export class ServiceController {
 	#apiClients = null;
 
 	/**
-	 * @param {ReactiveControllerHost} host
+	 * @param {HostWithProfile} host
+	 * @param {object} dependencies
+	 * @param {IHeroStateService} dependencies.heroState
+	 * @param {IQuestController} dependencies.questController
+	 * @param {UserApiClients} dependencies.apiClients
 	 */
-	constructor(host) {
-		/** @type {ReactiveControllerHost} */
+	constructor(host, { heroState, questController, apiClients }) {
+		/** @type {HostWithProfile} */
 		this.host = host;
 
-		const hostElement = /** @type {ReactiveElement} */ (
-			/** @type {unknown} */ (this.host)
-		);
-
-		// Initialize Context Consumers
-		new ContextConsumer(hostElement, {
-			context: heroStateContext,
-			subscribe: true,
-			callback: (service) => {
-				this.#heroState = /** @type {IHeroStateService} */ (service);
-			},
-		});
-
-		new ContextConsumer(hostElement, {
-			context: questControllerContext,
-			subscribe: true,
-			callback: (service) => {
-				this.#questController = /** @type {IQuestController} */ (service);
-			},
-		});
-
-		new ContextConsumer(hostElement, {
-			context: apiClientsContext,
-			subscribe: true,
-			callback: (services) => {
-				this.#apiClients = /** @type {UserApiClients} */ (services);
-			},
-		});
+		// Store injected dependencies
+		this.#heroState = heroState;
+		this.#questController = questController;
+		this.#apiClients = apiClients;
 
 		this.userTask = new Task(host, {
 			task: async ([service], { signal: _signal }) => {
@@ -111,33 +85,30 @@ export class ServiceController {
 	 * Update profile context with current task state
 	 */
 	#updateProfileContext() {
-		const host = /** @type {HostWithProfileProvider} */ (
-			/** @type {unknown} */ (this.host)
-		);
-
-		if (!host.profileProvider) return;
-
-		const status = this.userTask.status;
-		const error = this.userTask.error;
-		const value = this.userTask.value;
-
 		const activeService = this.getActiveService(
 			this.#questController?.currentChapter?.serviceType,
 			this.#heroState?.hotSwitchState.get(),
 		);
 
-		host.profileProvider.setValue({
-			name: value?.name,
-			role: value?.role,
+		const { status, error, value } = this.userTask;
+
+		/** @type {import('../contexts/profile-context.js').Profile} */
+		const profile = {
 			loading: status === TaskStatus.PENDING || status === TaskStatus.INITIAL,
 			error: error ? String(error) : null,
-			serviceName: activeService?.getServiceName(),
-		});
+		};
+
+		if (value?.name) profile.name = value.name;
+		if (value?.role) profile.role = value.role;
+		const serviceName = activeService?.getServiceName();
+		if (serviceName) profile.serviceName = serviceName;
+
+		this.host.profile = profile;
 	}
 
 	/**
 	 * Get active service based on service type and hot switch state
-	 * @param {import('../services/user-api-client.js').ServiceType | string | null | undefined} serviceType - ServiceType from chapter data
+	 * @param {import('../content/quests/quest-types.js').ServiceType | string | null | undefined} serviceType - ServiceType from chapter data
 	 * @param {import('../game/interfaces.js').HotSwitchState | undefined} hotSwitchState - Current zone state (for dynamic injection)
 	 * @returns {IUserApiClient | null} Active service or null
 	 */

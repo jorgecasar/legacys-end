@@ -21,7 +21,6 @@ import { sessionContext } from "../../contexts/session-context.js";
 import { themeContext } from "../../contexts/theme-context.js";
 import { voiceContext } from "../../contexts/voice-context.js";
 import { QuestController } from "../../controllers/quest-controller.js";
-import { ServiceController } from "../../controllers/service-controller.js";
 import { ThemeModes } from "../../core/constants.js";
 import { GameBootstrapper } from "../../core/game-bootstrapper.js";
 import { heroStateContext } from "../../game/contexts/hero-context.js";
@@ -172,8 +171,6 @@ export class LegacysEndApp extends SignalWatcher(LitElement) {
 		/** @type {import('../../controllers/quest-controller.js').QuestController} */ (
 			/** @type {unknown} */ (null)
 		);
-
-	serviceController = new ServiceController(this);
 
 	@state() accessor chapterId = "";
 	@state() accessor hasSeenIntro = false;

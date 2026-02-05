@@ -32,24 +32,24 @@ export const Difficulty = {
 };
 
 /**
- * Service Brands
+ * Service Types
  * @readonly
  * @enum {string}
  */
-export const ServiceBrand = {
+export const ServiceType = {
 	LEGACY: "Legacy API",
 	MOCK: "Mock Service",
 	NEW: "New V2 API",
 };
 
 /**
- * Maps HotSwitchStates to their corresponding ServiceBrand display names.
- * @type {Record<string, ServiceBrand>}
+ * Maps HotSwitchStates to their corresponding ServiceType display names.
+ * @type {Record<string, ServiceType>}
  */
-export const ServiceBrandMap = {
-	legacy: ServiceBrand.LEGACY,
-	new: ServiceBrand.NEW,
-	mock: ServiceBrand.MOCK,
+export const ServiceTypeMap = {
+	legacy: ServiceType.LEGACY,
+	new: ServiceType.NEW,
+	mock: ServiceType.MOCK,
 };
 
 /**
@@ -126,7 +126,7 @@ export const ServiceBrandMap = {
  * @property {string[]} [architecturalChanges]
  * @property {CodeSnippetsConfig} [codeSnippets]
  * @property {GameStats} [stats]
- * @property {ServiceBrand | null} [serviceType]
+ * @property {ServiceType | null} [serviceType]
  * @property {Vector2} startPos
  * @property {Zone} [exitZone]
  * @property {string} [backgroundStyle]

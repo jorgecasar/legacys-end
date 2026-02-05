@@ -1,6 +1,6 @@
 import { msg, str } from "@lit/localize";
 import { HotSwitchStates, ZoneTypes } from "../../../core/constants.js";
-import { ServiceBrand, ServiceBrandMap } from "../quest-types.js";
+import { ServiceType, ServiceTypeMap } from "../quest-types.js";
 
 /**
  * The Orb of Inquiry Quest - Chapter Data
@@ -352,7 +352,7 @@ export class ProductProviderMock extends LitElement {
 			],
 		},
 		stats: { maintainability: 90, portability: 90 },
-		serviceType: ServiceBrand.MOCK,
+		serviceType: ServiceType.MOCK,
 		startPos: { x: 50, y: 10 },
 		exitZone: {
 			x: 50,
@@ -446,7 +446,7 @@ export class ProductProviderMock extends LitElement {
 			],
 		},
 		stats: { maintainability: 100, portability: 100 },
-		serviceType: null,
+		serviceType: ServiceType.NEW,
 		startPos: { x: 95, y: 30 },
 		exitZone: { x: 50, y: 10, width: 20, height: 10, label: msg("Victory") },
 		backgroundStyleReward: `url('/assets/liberated-battlefield/background_end.png')`,
@@ -459,7 +459,7 @@ export class ProductProviderMock extends LitElement {
 			requirements: {
 				hotSwitchState: {
 					value: HotSwitchStates.NEW,
-					message: msg(str`REQ: ${ServiceBrandMap[HotSwitchStates.NEW]}`),
+					message: msg(str`REQ: ${ServiceTypeMap[HotSwitchStates.NEW]}`),
 				},
 			},
 		},

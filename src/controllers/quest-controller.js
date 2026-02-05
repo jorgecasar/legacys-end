@@ -1,5 +1,6 @@
 import { ContextConsumer } from "@lit/context";
 import { Task } from "@lit/task";
+import { ServiceType } from "../content/quests/quest-types.js";
 import { loggerContext } from "../contexts/logger-context.js";
 import { preloaderContext } from "../contexts/preloader-context.js";
 import { progressContext } from "../contexts/progress-context.js";
@@ -9,7 +10,6 @@ import { HotSwitchStates } from "../core/constants.js";
 import { heroStateContext } from "../game/contexts/hero-context.js";
 import { questStateContext } from "../game/contexts/quest-context.js";
 import { worldStateContext } from "../game/contexts/world-context.js";
-import { ServiceType } from "../services/user-api-client.js";
 import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-transition.js";
 
 /**
@@ -709,7 +709,7 @@ export class QuestController {
 
 	/**
 	 * Maps ServiceType to HotSwitchState
-	 * @param {import('../services/user-api-client.js').ServiceType | null} serviceType
+	 * @param {import('../content/quests/quest-types.js').ServiceType | null} serviceType
 	 */
 	#mapServiceTypeToHotSwitch(serviceType) {
 		if (serviceType === null) return null;

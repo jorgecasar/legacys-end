@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ServiceType } from "../content/quests/quest-types.js";
 import {
 	LegacyUserApiClient,
 	MockUserApiClient,
 	NewUserApiClient,
-	ServiceType,
 } from "./user-api-client.js";
 
 describe("UserApiClients", () => {
@@ -30,7 +30,7 @@ describe("UserApiClients", () => {
 			const data = await promise;
 			expect(data).toEqual({
 				id: 123,
-				name: "Alarion",
+				name: "Alarion V1",
 				role: "Monolith Dweller",
 				hp: 50,
 				avatarColor: "#ef4444",
@@ -76,7 +76,7 @@ describe("UserApiClients", () => {
 			const data = await promise;
 			expect(data).toEqual({
 				id: 789,
-				name: "Alarion",
+				name: "Alarion V2",
 				role: "System Walker",
 				hp: 100,
 				avatarColor: "#22c55e",

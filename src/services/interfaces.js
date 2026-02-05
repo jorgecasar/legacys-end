@@ -20,7 +20,7 @@
 /** @typedef {import('../content/quests/quest-types.js').Difficulty} Difficulty */
 /** @typedef {import('../content/quests/quest-types.js').QuestStatus} QuestStatus */
 /** @typedef {import('../content/quests/quest-types.js').ZoneType} ZoneType */
-/** @typedef {import('../content/quests/quest-types.js').ServiceBrand} ServiceBrand */
+/** @typedef {import('../content/quests/quest-types.js').ServiceType} ServiceType */
 /**
  * @typedef {string | number | boolean | null | Object | Array<*>} JsonValue
  */

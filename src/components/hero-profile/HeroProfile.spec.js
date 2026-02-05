@@ -1,9 +1,7 @@
-import { ContextProvider } from "@lit/context";
 import axe from "axe-core";
 import { html, render } from "lit";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { profileContext } from "../../contexts/profile-context.js";
 import "./hero-profile.js";
 
 /** @typedef {import("./HeroProfile.js").HeroProfile} HeroProfile */
@@ -25,7 +23,7 @@ describe("HeroProfile", () => {
 		vi.clearAllMocks();
 	});
 
-	it("should display the hero name from profile context", async () => {
+	it("should display the hero name from profile data", async () => {
 		const profileData = {
 			name: "Test Hero",
 			role: "Acolyte",
@@ -33,28 +31,16 @@ describe("HeroProfile", () => {
 			error: null,
 		};
 
-		// Render with a provider to simulate app context
-		render(
-			html`
-				<div id="provider-container">
-				</div>
-			`,
-			container,
-		);
+		render(html`<div id="provider-container"></div>`, container);
 
 		const providerContainer = /** @type {HTMLElement} */ (
 			container.querySelector("#provider-container")
 		);
-		/** @type {{context: import('@lit/context').Context<any, any>, initialValue?: ProfileData }} */
-		const options = { context: profileContext };
-		if (profileData != null) {
-			options.initialValue = /** @type {ProfileData} */ (
-				/** @type {unknown} */ (profileData)
-			);
-		}
-		new ContextProvider(providerContainer, options);
 
-		render(html`<hero-profile></hero-profile>`, providerContainer);
+		render(
+			html`<hero-profile .profile=${profileData}></hero-profile>`,
+			providerContainer,
+		);
 		const element = /** @type {HeroProfile} */ (
 			providerContainer.querySelector("hero-profile")
 		);
@@ -64,28 +50,25 @@ describe("HeroProfile", () => {
 		const nameTag = /** @type {HTMLElement} */ (
 			element.shadowRoot?.querySelector(".name-tag")
 		);
-		expect(nameTag.textContent?.trim()).toBe("Test Hero");
+		expect(nameTag?.textContent?.trim()).toBe("Test Hero");
 	});
 
 	it("should display '...' when profile is loading", async () => {
 		const profileData = {
 			loading: true,
+			name: "",
+			role: "",
 		};
 
 		render(html`<div id="provider-container"></div>`, container);
 		const providerContainer = /** @type {HTMLElement} */ (
 			container.querySelector("#provider-container")
 		);
-		/** @type {{context: import('@lit/context').Context<any, any>, initialValue?: ProfileData }} */
-		const options = { context: profileContext };
-		if (profileData != null) {
-			options.initialValue = /** @type {ProfileData} */ (
-				/** @type {unknown} */ (profileData)
-			);
-		}
-		new ContextProvider(providerContainer, options);
 
-		render(html`<hero-profile></hero-profile>`, providerContainer);
+		render(
+			html`<hero-profile .profile=${profileData}></hero-profile>`,
+			providerContainer,
+		);
 		const element = /** @type {HeroProfile} */ (
 			providerContainer.querySelector("hero-profile")
 		);
@@ -94,7 +77,7 @@ describe("HeroProfile", () => {
 		const loadingSpan = /** @type {HTMLElement} */ (
 			element.shadowRoot?.querySelector(".loading")
 		);
-		expect(loadingSpan.textContent?.trim()).toBe("...");
+		expect(loadingSpan?.textContent?.trim()).toBe("...");
 	});
 
 	it("should have no accessibility violations", async () => {
@@ -109,16 +92,11 @@ describe("HeroProfile", () => {
 		const providerContainer = /** @type {HTMLElement} */ (
 			container.querySelector("#provider-container")
 		);
-		/** @type {{context: import('@lit/context').Context<any, any>, initialValue?: ProfileData }} */
-		const options = { context: profileContext };
-		if (profileData != null) {
-			options.initialValue = /** @type {ProfileData} */ (
-				/** @type {unknown} */ (profileData)
-			);
-		}
-		new ContextProvider(providerContainer, options);
 
-		render(html`<hero-profile></hero-profile>`, providerContainer);
+		render(
+			html`<hero-profile .profile=${profileData}></hero-profile>`,
+			providerContainer,
+		);
 		const element = /** @type {HeroProfile} */ (
 			providerContainer.querySelector("hero-profile")
 		);

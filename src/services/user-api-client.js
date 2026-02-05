@@ -1,13 +1,4 @@
-/**
- * Enum for Service Types
- * @readonly
- * @enum {string}
- */
-export const ServiceType = {
-	LEGACY: "Legacy API",
-	MOCK: "Mock Service",
-	NEW: "New V2 API",
-};
+import { ServiceType } from "../content/quests/quest-types.js";
 
 /**
  * @typedef {Object} UserData
@@ -48,7 +39,7 @@ export class LegacyUserApiClient {
 		await delay(500);
 		return {
 			id,
-			name: "Alarion",
+			name: "Alarion V1",
 			role: "Monolith Dweller",
 			hp: 50,
 			avatarColor: "#ef4444", // Red
@@ -108,7 +99,7 @@ export class NewUserApiClient {
 		await delay(500);
 		return {
 			id,
-			name: "Alarion",
+			name: "Alarion V2",
 			role: "System Walker",
 			hp: 100,
 			avatarColor: "#22c55e", // Green
