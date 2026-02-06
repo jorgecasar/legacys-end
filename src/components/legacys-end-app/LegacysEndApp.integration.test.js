@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { GameBootstrapper } from "../../core/game-bootstrapper.js";
 import { LegacysEndApp } from "./LegacysEndApp.js";
 
 // Mock dependencies if needed, or use real ones for full integration.
@@ -15,10 +14,6 @@ describe("LegacysEndApp Integration", () => {
 		if (!customElements.get("legacys-end-app")) {
 			customElements.define("legacys-end-app", LegacysEndApp);
 		}
-
-		// Spy on GameBootstrapper.bootstrap to verify it's called
-		// But let it run through to test wiring
-		vi.spyOn(GameBootstrapper.prototype, "bootstrap");
 
 		element = /** @type {LegacysEndApp} */ (
 			document.createElement("legacys-end-app")
@@ -43,13 +38,8 @@ describe("LegacysEndApp Integration", () => {
 		await new Promise((resolve) => setTimeout(resolve, 100));
 		await element.updateComplete;
 
-		// 1. Verify Bootstrapper was called
-		expect(GameBootstrapper.prototype.bootstrap).toHaveBeenCalledWith(
-			element,
-			expect.any(Object),
-		);
-
 		// 2. Verify Services are attached to the App (host)
+		expect(element.storage).toBeDefined();
 		expect(element.heroState).toBeDefined();
 		expect(element.questState).toBeDefined();
 		expect(element.worldState).toBeDefined();
