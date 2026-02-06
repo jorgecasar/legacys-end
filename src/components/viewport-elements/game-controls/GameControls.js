@@ -21,7 +21,7 @@ export class GameControls extends SignalWatcher(LitElement) {
 	/** @override */
 	static styles = gameControlsStyles;
 
-	/** @typedef {import('../../../services/interfaces.js').ILoggerService} ILoggerService */
+	/** @typedef {import('../../../types/services.d.js').ILoggerService} ILoggerService */
 	/** @type {ILoggerService} */
 	@consume({ context: loggerContext })
 	accessor logger = /** @type {ILoggerService} */ (

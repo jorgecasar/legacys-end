@@ -7,8 +7,8 @@ import "./victory-screen.js";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
 
-/** @typedef {import("../../services/interfaces.js").ISessionService} ISessionService */
-/** @typedef {import("../../services/interfaces.js").IQuestController} IQuestController */
+/** @typedef {import("../../types/services.d.js").ISessionService} ISessionService */
+/** @typedef {import("../../types/services.d.js").IQuestController} IQuestController */
 /** @typedef {import("../../services/quest-registry-service.js").Quest} Quest */
 /** @typedef {import("./VictoryScreen.js").VictoryScreen} VictoryScreen */
 

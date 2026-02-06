@@ -14,7 +14,7 @@ import { victoryScreenStyles } from "./VictoryScreen.styles.js";
 /**
  * @typedef {import("../../services/quest-registry-service.js").Quest} Quest
  * @typedef {import("../../content/quests/quest-types.js").RewardConfig} RewardConfig
- * @typedef {import("../../services/interfaces.js").ILoggerService} ILoggerService
+ * @typedef {import("../../types/services.d.js").ILoggerService} ILoggerService
  */
 
 /**
@@ -35,10 +35,10 @@ export class VictoryScreen extends SignalWatcher(
 			/** @type {unknown} */ (null)
 		);
 
-	/** @type {import('../../services/interfaces.js').IQuestController} */
+	/** @type {import('../../types/services.d.js').IQuestController} */
 	@consume({ context: questControllerContext, subscribe: true })
 	accessor questController =
-		/** @type {import('../../services/interfaces.js').IQuestController} */ (
+		/** @type {import('../../types/services.d.js').IQuestController} */ (
 			/** @type {unknown} */ (null)
 		);
 

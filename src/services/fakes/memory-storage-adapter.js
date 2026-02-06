@@ -1,36 +1,41 @@
 /**
- * @typedef {import('../interfaces.js').IStorageAdapter} IStorageAdapter
+ * @typedef {import('../../types/services.d.js').IStorageAdapter} IStorageAdapter
+ * @typedef {import('../../types/common.d.js').JsonValue} JsonValue
  */
 
 export class MemoryStorageAdapter {
 	constructor() {
-		this.store = new Map();
+		/** @type {Map<string, JsonValue>} */
+		this.storage = new Map();
 	}
 
 	/**
 	 * @param {string} key
+	 * @returns {JsonValue | null}
 	 */
 	getItem(key) {
-		const val = this.store.get(key);
-		return val === undefined ? null : JSON.parse(val);
+		return this.storage.get(key) || null;
 	}
 
 	/**
 	 * @param {string} key
-	 * @param {any} value
+	 * @param {JsonValue} value
 	 */
 	setItem(key, value) {
-		this.store.set(key, JSON.stringify(value));
+		this.storage.set(key, value);
 	}
 
 	/**
 	 * @param {string} key
 	 */
 	removeItem(key) {
-		this.store.delete(key);
+		this.storage.delete(key);
 	}
 
+	/**
+	 * @returns {void}
+	 */
 	clear() {
-		this.store.clear();
+		this.storage.clear();
 	}
 }

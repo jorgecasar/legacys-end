@@ -6,8 +6,8 @@ import {
 } from "../generated/locales/locale-codes.js";
 
 /**
- * @typedef {import('./interfaces.js').ILoggerService} ILoggerService
- * @typedef {import('./interfaces.js').IStorageAdapter} IStorageAdapter
+ * @typedef {import('../types/services.d.js').ILoggerService} ILoggerService
+ * @typedef {import('../types/services.d.js').IStorageAdapter} IStorageAdapter
  * @typedef {Object} LocalizationServiceParams
  * @property {IStorageAdapter} storage
  * @property {ILoggerService|undefined} [logger]

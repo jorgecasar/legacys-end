@@ -1,11 +1,13 @@
+/**
+ * @typedef {import("./QuestHub.js").QuestHub} QuestHub
+ * @typedef {import("./components/quest-card/QuestCard.js").QuestCard} QuestCard
+ */
+
 import axe from "axe-core";
 import { html, render } from "lit";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { Difficulty } from "../../content/quests/quest-types.js";
 import "./quest-hub.js";
-
-/** @typedef {import("./QuestHub.js").QuestHub} QuestHub */
-/** @typedef {import("./components/quest-card/QuestCard.js").QuestCard} QuestCard */
 
 describe("QuestHub Component", () => {
 	/** @type {HTMLElement} */

@@ -19,47 +19,47 @@ import { questViewStyles } from "./quest-view.css.js";
  *
  * @element quest-view
  * @extends {LitElement}
- * @typedef {import('../../services/interfaces.js').ILoggerService} ILoggerService
+ * @typedef {import('../../types/game.d.js').IHeroStateService} IHeroStateService
+ * @typedef {import('../../types/game.d.js').IQuestStateService} IQuestStateService
+ * @typedef {import('../../types/game.d.js').IWorldStateService} IWorldStateService
+ * @typedef {import('../../types/services.d.js').IQuestController} IQuestController
+ * @typedef {import('../../types/services.d.js').ISessionService} ISessionService
+ * @typedef {import('../../types/services.d.js').ILoggerService} ILoggerService
  */
 export class QuestView extends SignalWatcher(
 	/** @type {new (...args: unknown[]) => import('lit').ReactiveElement} */ (
 		LitElement
 	),
 ) {
-	/** @type {import('../../services/interfaces.js').IQuestController} */
+	/** @type {IQuestController} */
 	@consume({ context: questControllerContext, subscribe: true })
-	accessor questController =
-		/** @type {import('../../services/interfaces.js').IQuestController} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor questController = /** @type {IQuestController} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../game/interfaces.js').IHeroStateService} */
+	/** @type {IHeroStateService} */
 	@consume({ context: heroStateContext, subscribe: true })
-	accessor heroState =
-		/** @type {import('../../game/interfaces.js').IHeroStateService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor heroState = /** @type {IHeroStateService} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../game/interfaces.js').IQuestStateService} */
+	/** @type {IQuestStateService} */
 	@consume({ context: questStateContext, subscribe: true })
-	accessor questState =
-		/** @type {import('../../game/interfaces.js').IQuestStateService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor questState = /** @type {IQuestStateService} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../game/interfaces.js').IWorldStateService} */
+	/** @type {IWorldStateService} */
 	@consume({ context: worldStateContext, subscribe: true })
-	accessor worldState =
-		/** @type {import('../../game/interfaces.js').IWorldStateService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor worldState = /** @type {IWorldStateService} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../services/session-service.js').SessionService} */
+	/** @type {ISessionService} */
 	@consume({ context: sessionContext, subscribe: true })
-	accessor sessionService =
-		/** @type {import('../../services/session-service.js').SessionService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor sessionService = /** @type {ISessionService} */ (
+		/** @type {unknown} */ (null)
+	);
 
 	/** @type {ILoggerService} */
 	@consume({ context: loggerContext })

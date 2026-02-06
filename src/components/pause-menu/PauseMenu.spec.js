@@ -1,3 +1,10 @@
+/**
+ * @typedef {import("../../types/game.d.js").IWorldStateService} IWorldStateService
+ * @typedef {import("../../types/services.d.js").IQuestController} IQuestController
+ * @typedef {import("../../types/services.d.js").ISessionService} ISessionService
+ * @typedef {import("./PauseMenu.js").PauseMenu} PauseMenu
+ */
+
 import { ContextProvider } from "@lit/context";
 import { Signal } from "@lit-labs/signals";
 import axe from "axe-core";
@@ -7,11 +14,6 @@ import "./pause-menu.js";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
 import { worldStateContext } from "../../game/contexts/world-context.js";
-
-/** @typedef {import("../../game/interfaces.js").IWorldStateService} IWorldStateService */
-/** @typedef {import("../../services/interfaces.js").IQuestController} IQuestController */
-/** @typedef {import("../../services/interfaces.js").ISessionService} ISessionService */
-/** @typedef {import("./PauseMenu.js").PauseMenu} PauseMenu */
 
 class TestContextWrapper extends LitElement {
 	/** @override */
@@ -53,21 +55,21 @@ class TestContextWrapper extends LitElement {
 	updated(changedProperties) {
 		if (changedProperties.has("worldState")) {
 			this.wsProvider.setValue(
-				/** @type {import("../../game/interfaces.js").IWorldStateService} */ (
+				/** @type {import("../../types/game.d.js").IWorldStateService} */ (
 					this.worldState ?? null
 				),
 			);
 		}
 		if (changedProperties.has("questController")) {
 			this.qcProvider.setValue(
-				/** @type {import("../../services/interfaces.js").IQuestController} */ (
+				/** @type {import("../../types/services.d.js").IQuestController} */ (
 					this.questController ?? null
 				),
 			);
 		}
 		if (changedProperties.has("sessionService")) {
 			this.sessionProvider.setValue(
-				/** @type {import("../../services/interfaces.js").ISessionService} */ (
+				/** @type {import("../../types/services.d.js").ISessionService} */ (
 					this.sessionService ?? null
 				),
 			);
@@ -112,6 +114,7 @@ describe("PauseMenu", () => {
 				prevSlide: vi.fn(),
 				setSlideIndex: vi.fn(),
 				resetSlideIndex: vi.fn(),
+				resetWorldState: vi.fn(),
 			})
 		);
 		wrapper.questController = /** @type {IQuestController} */ ({});

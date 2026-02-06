@@ -10,9 +10,9 @@ import { heroStateContext } from "../game/contexts/hero-context.js";
  */
 
 /**
- * @typedef {import('../services/interfaces.js').ILoggerService} ILoggerService
- * @typedef {import('../game/interfaces.js').IHeroStateService} IHeroStateService
- * @typedef {import('../services/interfaces.js').IQuestController} IQuestController
+ * @typedef {import('../types/services.d.js').ILoggerService} ILoggerService
+ * @typedef {import('../types/game.d.js').IHeroStateService} IHeroStateService
+ * @typedef {import('../types/services.d.js').IQuestController} IQuestController
  */
 
 /**

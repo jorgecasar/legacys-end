@@ -40,15 +40,15 @@ import { gameViewportStyles } from "./GameViewport.styles.js";
 /**
  * @typedef {import('../../content/quests/quest-types.js').LevelConfig} LevelConfig
  * @typedef {import('../../content/quests/quest-types.js').Rect} Rect
- * @typedef {import('../../game/interfaces.js').IHeroStateService} IHeroStateService
+ * @typedef {import('../../types/game.d.js').IHeroStateService} IHeroStateService
  * @typedef {import('../../contexts/dialog-context.js').DialogState} DialogState
- * @typedef {import('../../game/interfaces.js').IQuestStateService} IQuestStateService
- * @typedef {import('../../game/interfaces.js').IWorldStateService} IWorldStateService
- * @typedef {import('../../services/interfaces.js').IQuestController} IQuestController
- * @typedef {import('../../services/interfaces.js').ISessionService} ISessionService
- * @typedef {import('../../services/interfaces.js').ILocalizationService} ILocalizationService
- * @typedef {import('../../services/interfaces.js').IThemeService} IThemeService
- * @typedef {import('../../services/interfaces.js').ILoggerService} ILoggerService
+ * @typedef {import('../../types/game.d.js').IQuestStateService} IQuestStateService
+ * @typedef {import('../../types/game.d.js').IWorldStateService} IWorldStateService
+ * @typedef {import('../../types/services.d.js').IQuestController} IQuestController
+ * @typedef {import('../../types/services.d.js').ISessionService} ISessionService
+ * @typedef {import('../../types/services.d.js').ILocalizationService} ILocalizationService
+ * @typedef {import('../../types/services.d.js').IThemeService} IThemeService
+ * @typedef {import('../../types/services.d.js').ILoggerService} ILoggerService
  * @typedef {import('../../contexts/character-context.js').CharacterContext} CharacterContext
  * @typedef {import('lit').PropertyValues} PropertyValues
  */

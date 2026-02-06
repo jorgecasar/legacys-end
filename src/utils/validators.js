@@ -13,6 +13,11 @@ import {
 import { Result } from "./result.js";
 
 /**
+ * @typedef {import('../types/services.d.js').ThemeMode} ThemeMode
+ * @typedef {import('../types/game.d.js').HotSwitchState} HotSwitchState
+ */
+
+/**
  * @typedef {Object} ValidationError
  * @property {string} field - The field that failed validation
  * @property {string} message - The error message
@@ -115,10 +120,6 @@ export const ThemeModeValidator = {
 	VALID_MODES: Object.values(ThemeModes),
 
 	/**
-	 * @typedef {import('../core/constants.js').ThemeMode} ThemeMode
-	 */
-
-	/**
 	 * Validate theme mode
 	 * @param {unknown} mode
 	 * @returns {ValidationResult}
@@ -158,10 +159,6 @@ export const ThemeModeValidator = {
  */
 export const HotSwitchStateValidator = {
 	VALID_STATES: [...Object.values(HotSwitchStates), null],
-
-	/**
-	 * @typedef {import('../game/interfaces.js').HotSwitchState} HotSwitchState
-	 */
 
 	/**
 	 * Validate hot switch state

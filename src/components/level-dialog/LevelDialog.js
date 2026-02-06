@@ -20,8 +20,11 @@ import "./slides/narrative/level-dialog-slide-narrative.js";
 import "./slides/problem/level-dialog-slide-problem.js";
 import "./components/LevelDialogFooter.js";
 
-/** @typedef {import('../../content/quests/quest-types.js').LevelConfig} LevelConfig */
-/** @typedef {import('../../services/interfaces.js').ILoggerService} ILoggerService */
+/** @typedef {import('../../types/quests.d.js').LevelConfig} LevelConfig */
+/** @typedef {import('../../types/game.d.js').IQuestStateService} IQuestStateService */
+/** @typedef {import('../../types/game.d.js').IWorldStateService} IWorldStateService */
+/** @typedef {import('../../types/services.d.js').IQuestController} IQuestController */
+/** @typedef {import('../../types/services.d.js').ILoggerService} ILoggerService */
 
 /**
  * LevelDialog - Interactive dialog for level completion
@@ -31,26 +34,23 @@ import "./components/LevelDialogFooter.js";
  * @fires close - Fired when dialog is closed
  */
 export class LevelDialog extends SignalWatcher(LitElement) {
-	/** @type {import('../../services/interfaces.js').IQuestController} */
+	/** @type {IQuestController} */
 	@consume({ context: questControllerContext, subscribe: true })
-	accessor questController =
-		/** @type {import('../../services/interfaces.js').IQuestController} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor questController = /** @type {IQuestController} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../game/interfaces.js').IQuestStateService} */
+	/** @type {IQuestStateService} */
 	@consume({ context: questStateContext, subscribe: true })
-	accessor questState =
-		/** @type {import('../../game/interfaces.js').IQuestStateService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor questState = /** @type {IQuestStateService} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../game/interfaces.js').IWorldStateService} */
+	/** @type {IWorldStateService} */
 	@consume({ context: worldStateContext, subscribe: true })
-	accessor worldState =
-		/** @type {import('../../game/interfaces.js').IWorldStateService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor worldState = /** @type {IWorldStateService} */ (
+		/** @type {unknown} */ (null)
+	);
 
 	/** @type {ILoggerService} */
 	@consume({ context: loggerContext })

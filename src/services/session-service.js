@@ -1,3 +1,7 @@
+/**
+ * @typedef {import('../types/quests.d.js').Quest} Quest
+ */
+
 import { Signal } from "@lit-labs/signals";
 
 /**
@@ -12,9 +16,7 @@ export class SessionService {
 	constructor() {
 		this.isLoading = new Signal.State(false);
 		this.isInHub = new Signal.State(true);
-		this.currentQuest = new Signal.State(
-			/** @type {import('./quest-registry-service.js').Quest|null} */ (null),
-		);
+		this.currentQuest = new Signal.State(/** @type {Quest|null} */ (null));
 	}
 
 	/** @param {boolean} loading */
@@ -27,7 +29,7 @@ export class SessionService {
 		this.isInHub.set(inHub);
 	}
 
-	/** @param {import('./quest-registry-service.js').Quest|null} quest */
+	/** @param {Quest|null} quest */
 	setCurrentQuest(quest) {
 		this.currentQuest.set(quest);
 	}

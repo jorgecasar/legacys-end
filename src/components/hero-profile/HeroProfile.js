@@ -18,13 +18,14 @@ import {
 import { heroProfileStyles } from "./HeroProfile.styles.js";
 
 /**
- * @typedef {import('../../game/interfaces.js').IHeroStateService} IHeroStateService
+ * @typedef {import('../../types/game.d.js').IHeroStateService} IHeroStateService
  * @typedef {import('../../contexts/profile-context.js').Profile} Profile
  * @typedef {import('../../contexts/character-context.js').CharacterContext} CharacterContext
  * @typedef {import('../../contexts/api-clients-context.js').UserApiClients} UserApiClients
- * @typedef {import('../../services/interfaces.js').IThemeService} IThemeService
- * @typedef {import('../../services/interfaces.js').ILoggerService} ILoggerService
- * @typedef {import('../../services/interfaces.js').IQuestController} IQuestController
+ * @typedef {import('../../types/services.d.js').IThemeService} IThemeService
+ * @typedef {import('../../types/services.d.js').ILoggerService} ILoggerService
+ * @typedef {import('../../types/services.d.js').IQuestController} IQuestController
+ * @typedef {import('../../types/hosts.d.js').ProfileHost} ProfileHost
  */
 
 /**
@@ -53,9 +54,6 @@ export class HeroProfile extends SignalWatcher(
 	accessor heroState = /** @type {IHeroStateService} */ (
 		/** @type {unknown} */ (null)
 	);
-
-	/** @type {Profile} */
-	profile = /** @type {Profile} */ (/** @type {unknown} */ ({}));
 
 	/** @type {IThemeService} */
 	@consume({ context: themeContext, subscribe: true })
@@ -89,6 +87,9 @@ export class HeroProfile extends SignalWatcher(
 
 	/** @type {ServiceController | null} */
 	serviceController = null;
+
+	/** @type {Profile | null} */
+	profile = null;
 
 	/** @override */
 	static properties = {

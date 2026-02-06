@@ -23,29 +23,29 @@ import { gameZoneIndicatorStyles } from "./GameZoneIndicator.styles.js";
  * @property {Zone[]} zones - The list of zones to render.
  * @property {String} type - The type of zones to filter and render (e.g. 'THEME_CHANGE', 'CONTEXT_CHANGE').
  * @extends {LitElement}
- * @typedef {import('../../../services/interfaces.js').ILoggerService} ILoggerService
+ * @typedef {import('../../../types/services.d.js').ILoggerService} ILoggerService
+ * @typedef {import('../../../types/services.d.js').IQuestController} IQuestController
+ * @typedef {import('../../../types/services.d.js').IThemeService} IThemeService
+ * @typedef {import('../../../types/game.d.js').IHeroStateService} IHeroStateService
  */
 export class GameZoneIndicator extends SignalWatcher(LitElement) {
-	/** @type {import('../../../services/interfaces.js').IQuestController} */
+	/** @type {IQuestController} */
 	@consume({ context: questControllerContext, subscribe: true })
-	accessor questController =
-		/** @type {import('../../../services/interfaces.js').IQuestController} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor questController = /** @type {IQuestController} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../../services/interfaces.js').IThemeService} */
+	/** @type {IThemeService} */
 	@consume({ context: themeContext, subscribe: true })
-	accessor themeService =
-		/** @type {import('../../../services/interfaces.js').IThemeService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor themeService = /** @type {IThemeService} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../../game/interfaces.js').IHeroStateService} */
+	/** @type {IHeroStateService} */
 	@consume({ context: heroStateContext, subscribe: true })
-	accessor heroState =
-		/** @type {import('../../../game/interfaces.js').IHeroStateService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor heroState = /** @type {IHeroStateService} */ (
+		/** @type {unknown} */ (null)
+	);
 
 	/** @type {ILoggerService} */
 	@consume({ context: loggerContext })

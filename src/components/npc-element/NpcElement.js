@@ -28,18 +28,18 @@ import { npcElementStyles } from "./NpcElement.styles.js";
  * @attribute icon
  * @attribute action
  * @extends {LitElement}
+ * @typedef {import('../../types/game.d.js').IQuestStateService} IQuestStateService
  */
 export class NpcElement extends SignalWatcher(
 	/** @type {new (...args: unknown[]) => import('lit').ReactiveElement} */ (
 		LitElement
 	),
 ) {
-	/** @type {import('../../game/interfaces.js').IQuestStateService} */
+	/** @type {IQuestStateService} */
 	@consume({ context: questStateContext, subscribe: true })
-	accessor questState =
-		/** @type {import('../../game/interfaces.js').IQuestStateService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor questState = /** @type {IQuestStateService} */ (
+		/** @type {unknown} */ (null)
+	);
 
 	/** @override */
 	static properties = {

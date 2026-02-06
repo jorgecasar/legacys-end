@@ -1,7 +1,7 @@
 import { createContext } from "@lit/context";
 
 /**
- * @typedef {import("../services/interfaces.js").IProgressService} IProgressService
+ * @typedef {import("../types/services.d.js").IProgressService} IProgressService
  */
 
 /**

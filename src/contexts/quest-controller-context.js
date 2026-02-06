@@ -1,7 +1,7 @@
 import { createContext } from "@lit/context";
 
 /**
- * @typedef {import("../services/interfaces.js").IQuestController} IQuestController
+ * @typedef {import("../types/services.d.js").IQuestController} IQuestController
  */
 
 /**

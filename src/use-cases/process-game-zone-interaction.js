@@ -8,7 +8,7 @@ import { ZoneTypes } from "../core/constants.js";
 export class ProcessGameZoneInteractionUseCase {
 	/**
 	 * @typedef {Object} ZoneInteractionResult
-	 * @property {import('../core/constants.js').ZoneType} type
+	 * @property {import('../types/quests.d.js').ZoneType} type
 	 * @property {any} payload
 	 */
 

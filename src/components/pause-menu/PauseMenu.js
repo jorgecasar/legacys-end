@@ -14,26 +14,26 @@ import { pauseMenuStyles } from "./PauseMenu.styles.js";
 /**
  * @element pause-menu
  * @extends {LitElement}
- * @typedef {import('../../services/interfaces.js').ILoggerService} ILoggerService
+ * @typedef {import('../../types/services.d.js').ILoggerService} ILoggerService
+ * @typedef {import('../../types/game.d.js').IWorldStateService} IWorldStateService
+ * @typedef {import('../../types/services.d.js').IQuestController} IQuestController
  */
 export class PauseMenu extends SignalWatcher(
 	/** @type {new (...args: unknown[]) => import('lit').ReactiveElement} */ (
 		LitElement
 	),
 ) {
-	/** @type {import('../../game/interfaces.js').IWorldStateService} */
+	/** @type {IWorldStateService} */
 	@consume({ context: worldStateContext, subscribe: true })
-	accessor worldState =
-		/** @type {import('../../game/interfaces.js').IWorldStateService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor worldState = /** @type {IWorldStateService} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../services/interfaces.js').IQuestController} */
+	/** @type {IQuestController} */
 	@consume({ context: questControllerContext, subscribe: true })
-	accessor questController =
-		/** @type {import('../../services/interfaces.js').IQuestController} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor questController = /** @type {IQuestController} */ (
+		/** @type {unknown} */ (null)
+	);
 
 	/** @type {import('../../services/session-service.js').SessionService} */
 	@consume({ context: sessionContext, subscribe: true })

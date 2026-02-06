@@ -1,8 +1,9 @@
 import { vi } from "vitest";
 
 /**
- * @typedef {import('../interfaces.js').IStorageAdapter} IStorageAdapter
+ * @typedef {import('../../types/services.d.js').IStorageAdapter} IStorageAdapter
  */
+/** @typedef {import('../../types/services.d.js').ILoggerService} ILoggerService */
 
 /**
  * FakeStorageAdapter

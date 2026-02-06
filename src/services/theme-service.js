@@ -3,9 +3,9 @@ import { StorageKeys, ThemeModes } from "../core/constants.js";
 import { ThemeModeValidator } from "../utils/validators.js";
 
 /**
- * @typedef {import('../core/constants.js').ThemeMode} ThemeMode
- * @typedef {import('./interfaces.js').ILoggerService} ILoggerService
- * @typedef {import('./interfaces.js').IStorageAdapter} IStorageAdapter
+ * @typedef {import('../types/services.d.js').ThemeMode} ThemeMode
+ * @typedef {import('../types/services.d.js').ILoggerService} ILoggerService
+ * @typedef {import('../types/services.d.js').IStorageAdapter} IStorageAdapter
  */
 
 /**
@@ -38,7 +38,7 @@ export class ThemeService {
 		this.#storage = storage;
 		this.#storageKey = StorageKeys.THEME;
 
-		/** @type {Signal.State<import('../core/constants.js').ThemeMode>} */
+		/** @type {Signal.State<ThemeMode>} */
 		this.themeMode = new Signal.State(this.#loadStoredTheme());
 
 		// Apply initial theme

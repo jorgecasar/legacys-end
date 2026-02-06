@@ -1,8 +1,12 @@
 import { StorageKeys } from "../core/constants.js";
 import { LocalStorageAdapter } from "./storage-service.js";
 
-/** @typedef {import('./interfaces.js').IStorageAdapter} IStorageAdapter */
-/** @typedef {import('./interfaces.js').ILoggerService} ILoggerService */
+/**
+ * @typedef {import('../types/services.d.js').IStorageAdapter} IStorageAdapter
+ * @typedef {import('../types/services.d.js').ILoggerService} ILoggerService
+ * @typedef {import('../types/common.d.js').JSONSerializable} JSONSerializable
+ * @typedef {import('../services/quest-registry-service.js').QuestRegistryService} QuestRegistryService
+ */
 
 /**
  * @typedef {Object} ProgressStats
@@ -20,7 +24,7 @@ import { LocalStorageAdapter } from "./storage-service.js";
  * @property {string[]} unlockedQuests - List of IDs of available quests
  * @property {string[]} achievements - List of earned achievement IDs
  * @property {ProgressStats} stats - Aggregate statistics
- * @property {Record<string, Record<string, import('./interfaces.js').JsonValue>>} chapterStates - Persisted state per chapter (e.g. collected items)
+ * @property {Record<string, Record<string, JSONSerializable>>} chapterStates - Persisted state per chapter (e.g. collected items)
  */
 
 /**
@@ -369,7 +373,7 @@ export class ProgressService {
 	/**
 	 * Update state for a specific chapter (e.g. collected items).
 	 * @param {string} chapterId
-	 * @param {Record<string, import('./interfaces.js').JsonValue>} state
+	 * @param {Record<string, import('../types/common.d.js').JsonValue>} state
 	 */
 	setChapterState(chapterId, state) {
 		if (!this.progress.chapterStates) {
@@ -388,7 +392,7 @@ export class ProgressService {
 	/**
 	 * Get state for a specific chapter.
 	 * @param {string} chapterId
-	 * @returns {Record<string, import('./interfaces.js').JsonValue>}
+	 * @returns {Record<string, import('../types/common.d.js').JsonValue>}
 	 */
 	getChapterState(chapterId) {
 		return this.progress.chapterStates?.[chapterId] || {};

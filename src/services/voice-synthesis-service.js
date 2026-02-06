@@ -1,4 +1,6 @@
-/** @typedef {import('./interfaces.js').ILoggerService} ILoggerService */
+/**
+ * @typedef {import('../types/services.d.js').ILoggerService} ILoggerService
+ */
 
 /**
  * VoiceSynthesisService - Wrapper for Web Speech API

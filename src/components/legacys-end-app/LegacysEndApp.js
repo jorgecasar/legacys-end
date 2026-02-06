@@ -1,3 +1,24 @@
+/**
+ * @typedef {import("@awesome.me/webawesome/dist/components/dialog/dialog.js").default} DialogElement
+ * @typedef {import('../../contexts/character-context.js').CharacterContext} CharacterContext
+ * @typedef {import('../../contexts/profile-context.js').Profile} Profile
+ * @typedef {import('../../types/services.d.js').IThemeService} IThemeService
+ * @typedef {import('../../types/services.d.js').IProgressService} IProgressService
+ * @typedef {import('../../types/services.d.js').ILoggerService} ILoggerService
+ * @typedef {import('../../types/services.d.js').IStorageAdapter} IStorageAdapter
+ * @typedef {import('../../types/services.d.js').IAIService} IAIService
+ * @typedef {import('../../types/services.d.js').IVoiceSynthesisService} IVoiceSynthesisService
+ * @typedef {import('../../services/quest-registry-service.js').QuestRegistryService} QuestRegistryService
+ * @typedef {import('../../services/preloader-service.js').PreloaderService} PreloaderService
+ * @typedef {import('../../services/user-api-client.js').UserApiClients} UserApiClients
+ * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<symbol, CharacterContext>, import('lit').ReactiveElement>} CharacterContextProvider
+ * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<symbol, Profile>, import('lit').ReactiveElement>} ProfileContextProvider
+ * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<symbol, IThemeService>, import('lit').ReactiveElement>} ThemeContextProvider
+ * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<symbol, QuestRegistryService>, import('lit').ReactiveElement>} QuestRegistryContextProvider
+ * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<symbol, PreloaderService>, import('lit').ReactiveElement>} PreloaderContextProvider
+ * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<"api-clients", UserApiClients>, import('lit').ReactiveElement>} ApiClientsContextProvider
+ */
+
 import { provide } from "@lit/context";
 import { msg } from "@lit/localize";
 import { SignalWatcher } from "@lit-labs/signals";
@@ -32,27 +53,6 @@ import "../../pixel.css";
 import { AIService } from "../../services/ai-service.js";
 import { LoggerService } from "../../services/logger-service.js";
 import { VoiceSynthesisService } from "../../services/voice-synthesis-service.js";
-
-/**
- * @typedef {import("@awesome.me/webawesome/dist/components/dialog/dialog.js").default} DialogElement
- * @typedef {import('../../contexts/character-context.js').CharacterContext} CharacterContext
- * @typedef {import('../../contexts/profile-context.js').Profile} Profile
- * @typedef {import('../../services/interfaces.js').IThemeService} IThemeService
- * @typedef {import('../../services/interfaces.js').IProgressService} IProgressService
- * @typedef {import('../../services/interfaces.js').ILoggerService} ILoggerService
- * @typedef {import('../../services/interfaces.js').IStorageAdapter} IStorageAdapter
- * @typedef {import('../../services/interfaces.js').IAIService} IAIService
- * @typedef {import('../../services/interfaces.js').IVoiceSynthesisService} IVoiceSynthesisService
- * @typedef {import('../../services/quest-registry-service.js').QuestRegistryService} QuestRegistryService
- * @typedef {import('../../services/preloader-service.js').PreloaderService} PreloaderService
- * @typedef {import('../../services/user-api-client.js').UserApiClients} UserApiClients
- * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<symbol, CharacterContext>, import('lit').ReactiveElement>} CharacterContextProvider
- * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<symbol, Profile>, import('lit').ReactiveElement>} ProfileContextProvider
- * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<symbol, IThemeService>, import('lit').ReactiveElement>} ThemeContextProvider
- * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<symbol, QuestRegistryService>, import('lit').ReactiveElement>} QuestRegistryContextProvider
- * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<symbol, PreloaderService>, import('lit').ReactiveElement>} PreloaderContextProvider
- * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<"api-clients", UserApiClients>, import('lit').ReactiveElement>} ApiClientsContextProvider
- */
 
 /**
  * @element legacys-end-app

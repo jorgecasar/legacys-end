@@ -14,40 +14,46 @@ import {
 import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-transition.js";
 import { Router } from "../utils/router.js";
 
-/** @typedef {import('../services/interfaces.js').ILoggerService} ILoggerService */
+/**
+ * @typedef {import('../types/services.d.js').ILoggerService} ILoggerService
+ * @typedef {import('../types/services.d.js').IStorageAdapter} IStorageAdapter
+ * @typedef {import('../types/services.d.js').IProgressService} IProgressService
+ * @typedef {import('../services/quest-registry-service.js').QuestRegistryService} QuestRegistryService
+ * @typedef {import('../services/theme-service.js').ThemeService} ThemeService
+ */
 
 /**
  * @typedef {Object} ServicesContext
- * @property {import('../services/interfaces.js').IStorageAdapter} storage
- * @property {import('../services/interfaces.js').IProgressService} progressService
- * @property {import('../services/quest-registry-service.js').QuestRegistryService} registry
+ * @property {IStorageAdapter} storage
+ * @property {IProgressService} progressService
+ * @property {QuestRegistryService} registry
  * @property {Object} services
- * @property {import('../services/preloader-service.js').PreloaderService} preloader
- * @property {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} evaluateChapterTransition
- * @property {import('../services/localization-service.js').LocalizationService} localizationService
- * @property {import('../services/theme-service.js').ThemeService} themeService
- * @property {import('../services/session-service.js').SessionService} sessionService
- * @property {import('../game/services/hero-state-service.js').HeroStateService} heroState
- * @property {import('../game/services/quest-state-service.js').QuestStateService} questState
- * @property {import('../game/services/world-state-service.js').WorldStateService} worldState
+ * @property {PreloaderService} preloader
+ * @property {EvaluateChapterTransitionUseCase} evaluateChapterTransition
+ * @property {LocalizationService} localizationService
+ * @property {ThemeService} themeService
+ * @property {SessionService} sessionService
+ * @property {HeroStateService} heroState
+ * @property {QuestStateService} questState
+ * @property {WorldStateService} worldState
  */
 
 /**
  * @typedef {Object} GameContext
  * @property {ILoggerService | undefined} [logger]
- * @property {import('../services/interfaces.js').IStorageAdapter} storage
- * @property {import('../services/interfaces.js').IProgressService} progressService
- * @property {import('../utils/router.js').Router} router
+ * @property {IStorageAdapter} storage
+ * @property {IProgressService} progressService
+ * @property {Router} router
  * @property {Object} services
- * @property {import('../services/preloader-service.js').PreloaderService} preloader
- * @property {import('../services/quest-registry-service.js').QuestRegistryService} registry
- * @property {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} evaluateChapterTransition
- * @property {import('../services/localization-service.js').LocalizationService} localizationService
- * @property {import('../services/theme-service.js').ThemeService} themeService
- * @property {import('../services/session-service.js').SessionService} sessionService
- * @property {import('../game/services/hero-state-service.js').HeroStateService} heroState
- * @property {import('../game/services/quest-state-service.js').QuestStateService} questState
- * @property {import('../game/services/world-state-service.js').WorldStateService} worldState
+ * @property {PreloaderService} preloader
+ * @property {QuestRegistryService} registry
+ * @property {EvaluateChapterTransitionUseCase} evaluateChapterTransition
+ * @property {LocalizationService} localizationService
+ * @property {ThemeService} themeService
+ * @property {SessionService} sessionService
+ * @property {HeroStateService} heroState
+ * @property {QuestStateService} questState
+ * @property {WorldStateService} worldState
  */
 
 /**

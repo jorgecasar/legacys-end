@@ -13,10 +13,10 @@ import { questStateContext } from "../game/contexts/quest-context.js";
  */
 
 /**
- * @typedef {import('../game/interfaces.js').IHeroStateService} IHeroStateService
- * @typedef {import('../game/interfaces.js').IQuestStateService} IQuestStateService
- * @typedef {import('../services/interfaces.js').IQuestController} IQuestController
- * @typedef {import('../services/interfaces.js').ILoggerService} ILoggerService
+ * @typedef {import('../types/game.d.js').IHeroStateService} IHeroStateService
+ * @typedef {import('../types/game.d.js').IQuestStateService} IQuestStateService
+ * @typedef {import('../types/services.d.js').IQuestController} IQuestController
+ * @typedef {import('../types/services.d.js').ILoggerService} ILoggerService
  * @typedef {import('../use-cases/interact-with-npc.js').InteractWithNpcUseCase} InteractWithNpcUseCase
  */
 

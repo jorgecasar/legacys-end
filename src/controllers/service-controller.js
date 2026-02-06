@@ -13,10 +13,9 @@ import { HotSwitchStates } from "../core/constants.js";
 /** @typedef {import("../contexts/api-clients-context.js").UserApiClients} UserApiClients */
 
 /**
- * @typedef {import('../game/interfaces.js').IHeroStateService} IHeroStateService
- * @typedef {import('../services/interfaces.js').IQuestController} IQuestController
- * @typedef {import('../contexts/profile-context.js').Profile} Profile
- * @typedef {ReactiveControllerHost & { profile: Profile }} HostWithProfile
+ * @typedef {import('../types/game.d.js').IHeroStateService} IHeroStateService
+ * @typedef {import('../types/services.d.js').IQuestController} IQuestController
+ * @typedef {import('../types/hosts.d.js').ProfileHost} ProfileHost
  */
 
 /**
@@ -38,14 +37,14 @@ export class ServiceController {
 	#apiClients = null;
 
 	/**
-	 * @param {HostWithProfile} host
+	 * @param {ProfileHost} host
 	 * @param {object} dependencies
 	 * @param {IHeroStateService} dependencies.heroState
 	 * @param {IQuestController} dependencies.questController
 	 * @param {UserApiClients} dependencies.apiClients
 	 */
 	constructor(host, { heroState, questController, apiClients }) {
-		/** @type {HostWithProfile} */
+		/** @type {ProfileHost} */
 		this.host = host;
 
 		// Store injected dependencies
@@ -109,7 +108,7 @@ export class ServiceController {
 	/**
 	 * Get active service based on service type and hot switch state
 	 * @param {import('../content/quests/quest-types.js').ServiceType | string | null | undefined} serviceType - ServiceType from chapter data
-	 * @param {import('../game/interfaces.js').HotSwitchState | undefined} hotSwitchState - Current zone state (for dynamic injection)
+	 * @param {import('../types/game.d.js').HotSwitchState | undefined} hotSwitchState - Current zone state (for dynamic injection)
 	 * @returns {IUserApiClient | null} Active service or null
 	 */
 	getActiveService(serviceType, hotSwitchState) {

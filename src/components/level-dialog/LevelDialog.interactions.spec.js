@@ -19,12 +19,12 @@ import { heroStateContext } from "../../game/contexts/hero-context.js";
 import { questStateContext } from "../../game/contexts/quest-context.js";
 import { worldStateContext } from "../../game/contexts/world-context.js";
 
-/** @typedef {import("../../game/interfaces.js").IHeroStateService} IHeroStateService */
-/** @typedef {import("../../game/interfaces.js").IQuestStateService} IQuestStateService */
-/** @typedef {import("../../game/interfaces.js").IWorldStateService} IWorldStateService */
-/** @typedef {import("../../services/interfaces.js").IQuestController} IQuestController */
-/** @typedef {import("../../services/interfaces.js").ISessionService} ISessionService */
-/** @typedef {import("../../services/quest-registry-service.js").Quest} Quest */
+/** @typedef {import("../../types/game.d.js").IHeroStateService} IHeroStateService */
+/** @typedef {import("../../types/game.d.js").IQuestStateService} IQuestStateService */
+/** @typedef {import("../../types/game.d.js").IWorldStateService} IWorldStateService */
+/** @typedef {import("../../types/services.d.js").IQuestController} IQuestController */
+/** @typedef {import("../../types/services.d.js").ISessionService} ISessionService */
+/** @typedef {import("../../types/quests.d.js").Quest} Quest */
 
 class TestContextWrapper extends LitElement {
 	/** @override */
@@ -436,7 +436,7 @@ describe("QuestView Integration", () => {
 			})
 		);
 		wrapper.questState =
-			/** @type {import("../../game/interfaces.js").IQuestStateService} */ (
+			/** @type {import("../../types/game.d.js").IQuestStateService} */ (
 				/** @type {unknown} */ ({
 					resetQuestState: vi.fn(),
 					resetChapterState: vi.fn(),
@@ -460,20 +460,25 @@ describe("QuestView Integration", () => {
 					currentChapterId: { get: vi.fn(() => "ch1") },
 				})
 			);
-		wrapper.worldState =
-			/** @type {import("../../game/interfaces.js").IWorldStateService} */ (
-				/** @type {unknown} */ ({
-					setPaused: vi.fn(),
-					setShowDialog: vi.fn(),
-					setCurrentDialogText: vi.fn(),
-					setNextDialogText: vi.fn(),
-					isPaused: { get: vi.fn(() => false) },
-					showDialog: { get: vi.fn(() => true) },
-					currentDialogText: { get: vi.fn(() => "") },
-					nextDialogText: { get: vi.fn(() => "") },
-					currentSlideIndex: new Signal.State(0),
-				})
-			);
+		wrapper.worldState = /** @type {IWorldStateService} */ (
+			/** @type {unknown} */ ({
+				setPaused: vi.fn(),
+				setShowDialog: vi.fn(),
+				setCurrentDialogText: vi.fn(),
+				setNextDialogText: vi.fn(),
+				nextSlide: vi.fn(),
+				prevSlide: vi.fn(),
+				setSlideIndex: vi.fn(),
+				resetSlideIndex: vi.fn(),
+				resetWorldState: vi.fn(),
+				isPaused: { get: vi.fn(() => false) },
+				showDialog: { get: vi.fn(() => true) },
+				currentDialogText: { get: vi.fn(() => "") },
+				nextDialogText: { get: vi.fn(() => "") },
+				currentSlideIndex: new Signal.State(0),
+			})
+		);
+
 		wrapper.sessionService = /** @type {ISessionService} */ (
 			/** @type {unknown} */ ({
 				currentQuest: new Signal.State(
@@ -558,7 +563,7 @@ describe("QuestView Integration", () => {
 
 		const wrapper = new TestContextWrapper();
 		wrapper.worldState =
-			/** @type {import("../../game/interfaces.js").IWorldStateService} */ (
+			/** @type {import("../../types/game.d.js").IWorldStateService} */ (
 				/** @type {unknown} */ ({
 					isPaused: new Signal.State(false),
 					showDialog: new Signal.State(true), // Dialog open
@@ -568,11 +573,11 @@ describe("QuestView Integration", () => {
 				})
 			);
 		wrapper.questState =
-			/** @type {import("../../game/interfaces.js").IQuestStateService} */ (
+			/** @type {import("../../types/game.d.js").IQuestStateService} */ (
 				/** @type {unknown} */ ({ isQuestCompleted: new Signal.State(false) })
 			);
 		wrapper.heroState =
-			/** @type {import("../../game/interfaces.js").IHeroStateService} */ (
+			/** @type {import("../../types/game.d.js").IHeroStateService} */ (
 				/** @type {unknown} */ ({})
 			);
 		wrapper.sessionService = /** @type {ISessionService} */ (
@@ -613,7 +618,7 @@ describe("QuestView Integration", () => {
 
 		const wrapper = new TestContextWrapper();
 		wrapper.worldState =
-			/** @type {import("../../game/interfaces.js").IWorldStateService} */ (
+			/** @type {import("../../types/game.d.js").IWorldStateService} */ (
 				/** @type {unknown} */ ({
 					isPaused: new Signal.State(false),
 					showDialog: new Signal.State(true), // Dialog Open
@@ -624,11 +629,11 @@ describe("QuestView Integration", () => {
 				})
 			);
 		wrapper.questState =
-			/** @type {import("../../game/interfaces.js").IQuestStateService} */ (
+			/** @type {import("../../types/game.d.js").IQuestStateService} */ (
 				/** @type {unknown} */ ({ isQuestCompleted: new Signal.State(false) })
 			);
 		wrapper.heroState =
-			/** @type {import("../../game/interfaces.js").IHeroStateService} */ (
+			/** @type {import("../../types/game.d.js").IHeroStateService} */ (
 				/** @type {unknown} */ ({})
 			);
 		wrapper.sessionService = /** @type {ISessionService} */ (

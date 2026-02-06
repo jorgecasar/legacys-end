@@ -19,15 +19,15 @@ import { worldStateContext } from "../../game/contexts/world-context.js";
 import { GameViewport } from "./GameViewport.js";
 import "./game-viewport.js";
 
-/** @typedef {import('../../game/interfaces.js').IHeroStateService} IHeroStateService */
-/** @typedef {import('../../game/interfaces.js').IQuestStateService} IQuestStateService */
-/** @typedef {import('../../game/interfaces.js').IWorldStateService} IWorldStateService */
-/** @typedef {import('../../services/interfaces.js').IQuestController} IQuestController */
-/** @typedef {import('../../services/interfaces.js').ISessionService} ISessionService */
-/** @typedef {import('../../services/interfaces.js').ILocalizationService} ILocalizationService */
-/** @typedef {import('../../services/interfaces.js').IThemeService} IThemeService */
-/** @typedef {import('../../services/interfaces.js').IAIService} IAIService */
-/** @typedef {import('../../services/interfaces.js').IVoiceSynthesisService} IVoiceSynthesisService */
+/** @typedef {import('../../types/game.d.js').IHeroStateService} IHeroStateService */
+/** @typedef {import('../../types/game.d.js').IQuestStateService} IQuestStateService */
+/** @typedef {import('../../types/game.d.js').IWorldStateService} IWorldStateService */
+/** @typedef {import('../../types/services.d.js').IQuestController} IQuestController */
+/** @typedef {import('../../types/services.d.js').ISessionService} ISessionService */
+/** @typedef {import('../../types/services.d.js').ILocalizationService} ILocalizationService */
+/** @typedef {import('../../types/services.d.js').IThemeService} IThemeService */
+/** @typedef {import('../../types/services.d.js').IAIService} IAIService */
+/** @typedef {import('../../types/services.d.js').IVoiceSynthesisService} IVoiceSynthesisService */
 /** @typedef {import('../../services/session-service.js').SessionService} SessionService */
 /** @typedef {import('../../services/localization-service.js').LocalizationService} LocalizationService */
 /** @typedef {import('../../services/theme-service.js').ThemeService} ThemeService */
@@ -186,7 +186,7 @@ describe("GameViewport", () => {
 		const imageSrc = new Signal.State("");
 		const isEvolving = new Signal.State(false);
 		const hotSwitchState = new Signal.State(
-			/** @type {import('../../game/interfaces.js').HotSwitchState} */ (
+			/** @type {import('../../types/game.d.js').HotSwitchState} */ (
 				HotSwitchStates.LEGACY
 			),
 		);
@@ -267,6 +267,7 @@ describe("GameViewport", () => {
 			),
 			setSlideIndex: vi.fn((i) => currentSlideIndex.set(i)),
 			resetSlideIndex: vi.fn(() => currentSlideIndex.set(0)),
+			resetWorldState: vi.fn(),
 		};
 	};
 
@@ -294,42 +295,38 @@ describe("GameViewport", () => {
 		wrapper.heroState = createHeroStateMock();
 		wrapper.questState = createQuestStateMock();
 		wrapper.worldState = createWorldStateMock();
-		wrapper.sessionService =
-			/** @type {import('../../services/interfaces.js').ISessionService} */ (
-				/** @type {unknown} */ ({
-					isLoading: new Signal.State(false),
-					isInHub: new Signal.State(false),
-					currentQuest: new Signal.State(null),
-				})
-			);
-		wrapper.themeService =
-			/** @type {import('../../services/interfaces.js').IThemeService} */ (
-				/** @type {unknown} */ ({
-					themeMode: new Signal.State(ThemeModes.LIGHT),
-				})
-			);
-		wrapper.aiService =
-			/** @type {import('../../services/interfaces.js').IAIService} */ (
-				/** @type {unknown} */ ({
-					isEnabled: new Signal.State(false),
-					checkAvailability: vi.fn().mockResolvedValue("available"),
-					createSession: vi.fn().mockResolvedValue(undefined),
-					getSession: vi
-						.fn()
-						.mockReturnValue({ prompt: vi.fn(), destroy: vi.fn() }),
-					destroySession: vi.fn(),
-					getChatResponse: vi.fn(),
-				})
-			);
-		wrapper.voiceSynthesisService =
-			/** @type {import('../../services/interfaces.js').IVoiceSynthesisService} */ (
-				/** @type {unknown} */ ({
-					speak: vi.fn(),
-					cancel: vi.fn(),
-				})
-			);
+		wrapper.sessionService = /** @type {ISessionService} */ (
+			/** @type {unknown} */ ({
+				isLoading: new Signal.State(false),
+				isInHub: new Signal.State(false),
+				currentQuest: new Signal.State(null),
+			})
+		);
+		wrapper.themeService = /** @type {IThemeService} */ (
+			/** @type {unknown} */ ({
+				themeMode: new Signal.State(ThemeModes.LIGHT),
+			})
+		);
+		wrapper.aiService = /** @type {IAIService} */ (
+			/** @type {unknown} */ ({
+				isEnabled: new Signal.State(false),
+				checkAvailability: vi.fn().mockResolvedValue("available"),
+				createSession: vi.fn().mockResolvedValue(undefined),
+				getSession: vi
+					.fn()
+					.mockReturnValue({ prompt: vi.fn(), destroy: vi.fn() }),
+				destroySession: vi.fn(),
+				getChatResponse: vi.fn(),
+			})
+		);
+		wrapper.voiceSynthesisService = /** @type {IVoiceSynthesisService} */ (
+			/** @type {unknown} */ ({
+				speak: vi.fn(),
+				cancel: vi.fn(),
+			})
+		);
 		wrapper.localizationService =
-			/** @type {import('../../services/interfaces.js').ILocalizationService} */ (
+			/** @type {import('../../types/services.d.js').ILocalizationService} */ (
 				/** @type {unknown} */ ({
 					t: (/** @type {string} */ key) => key,
 					getLocale: () => "en-US",

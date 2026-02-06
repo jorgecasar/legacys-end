@@ -15,7 +15,7 @@
 
 export class Router {
 	/**
-	 * @param {import('../services/interfaces.js').ILoggerService} [logger]
+	 * @param {import('../types/services.d.js').ILoggerService} [logger]
 	 */
 	constructor(logger) {
 		/** @type {RouteDefinition[]} */

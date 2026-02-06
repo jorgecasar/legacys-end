@@ -183,7 +183,7 @@ describe("AIService", () => {
 		it("should track download progress", async () => {
 			const mockSession = { prompt: vi.fn(), destroy: vi.fn() };
 			const progressCallback = vi.fn();
-			/** @type {(e: import('./interfaces.js').AIDownloadProgressEvent) => void} */
+			/** @type {(e: import('../types/services.d.js').AIDownloadProgressEvent) => void} */
 			let downloadListener = (..._args) => {
 				throw new Error("Download listener not set");
 			};
@@ -196,7 +196,7 @@ describe("AIService", () => {
 							/** @type {any} */ listener,
 						) => {
 							downloadListener =
-								/** @type {(e: import('./interfaces.js').AIDownloadProgressEvent) => void} */ (
+								/** @type {(e: import('../types/services.d.js').AIDownloadProgressEvent) => void} */ (
 									listener
 								);
 						},

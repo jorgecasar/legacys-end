@@ -113,7 +113,7 @@ describe("VoiceController", () => {
 
 		// Manually instantiate DialogueGenerationService since private #updateDialogueService isn't triggered
 		controller.dialogueService = new DialogueGenerationService(
-			/** @type {import('../services/interfaces.js').IAIService} */ (
+			/** @type {import('../types/services.d.js').IAIService} */ (
 				controller.aiService
 			),
 			controller.logger,

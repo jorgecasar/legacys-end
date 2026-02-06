@@ -15,7 +15,7 @@ import { UIEvents } from "../../core/events.js";
  *
  * @typedef {import("../about-slides/AboutSlides.js").AboutSlides} AboutSlides
  * @typedef {import("../../content/quests/quest-types.js").Quest} Quest
- * @typedef {import("../../services/interfaces.js").ILoggerService} ILoggerService
+ * @typedef {import("../../types/services.d.js").ILoggerService} ILoggerService
  *
  * Displays available quests with:
  * - Quest cards for each available quest

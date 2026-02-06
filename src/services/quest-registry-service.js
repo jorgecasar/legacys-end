@@ -1,8 +1,8 @@
-import { getQuests, loadQuest } from "../content/quests/quests-data.js";
-
 /**
- * @typedef {import("../content/quests/quest-types.js").Quest} Quest
+ * @typedef {import("../types/quests.d.js").Quest} Quest
  */
+
+import { getQuests, loadQuest } from "../content/quests/quests-data.js";
 
 /**
  * Quest Registry Service

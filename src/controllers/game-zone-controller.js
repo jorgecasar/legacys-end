@@ -12,10 +12,10 @@ import { questStateContext } from "../game/contexts/quest-context.js";
  */
 
 /**
- * @typedef {import('../game/interfaces.js').IHeroStateService} IHeroStateService
- * @typedef {import('../game/interfaces.js').IQuestStateService} IQuestStateService
- * @typedef {import('../services/interfaces.js').IQuestController} IQuestController
- * @typedef {import('../services/interfaces.js').IThemeService} IThemeService
+ * @typedef {import('../types/game.d.js').IHeroStateService} IHeroStateService
+ * @typedef {import('../types/game.d.js').IQuestStateService} IQuestStateService
+ * @typedef {import('../types/services.d.js').IQuestController} IQuestController
+ * @typedef {import('../types/services.d.js').IThemeService} IThemeService
  */
 
 /**

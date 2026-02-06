@@ -21,9 +21,13 @@ import { UIEvents } from "../core/events.js";
 import { DialogueGenerationService } from "../services/dialogue-generation-service.js";
 
 /**
- * @typedef {import('../services/interfaces.js').IAIService} AIService
- * @typedef {import('../services/interfaces.js').IVoiceSynthesisService} VoiceSynthesisService
+ * @typedef {import('../types/services.d.js').IAIService} IAIService
+ * @typedef {import('../types/services.d.js').IVoiceSynthesisService} IVoiceSynthesisService
+ * @typedef {import('../types/services.d.js').ILoggerService} ILoggerService
+ * @typedef {import('../types/services.d.js').IQuestController} IQuestController
  * @typedef {import('../contexts/dialog-context.js').DialogState} DialogState
+ */
+/**
  * @typedef {Object} AISession
  * @property {function(string): Promise<string>} prompt
  * @property {function(): void} destroy
@@ -62,14 +66,14 @@ export class VoiceController {
 	constructor(host) {
 		this.host = host;
 
-		/** @type {AIService | null} */
+		/** @type {IAIService | null} */
 		this.aiService = null;
-		/** @type {VoiceSynthesisService | null} */
+		/** @type {IVoiceSynthesisService | null} */
 		this.voiceSynthesisService = null;
-		/** @type {import('../services/interfaces.js').ILocalizationService | null} */
+		/** @type {import('../types/services.d.js').ILocalizationService | null} */
 		this.localizationService = null;
 
-		/** @type {import('../services/interfaces.js').ILoggerService | undefined} */
+		/** @type {ILoggerService | undefined} */
 		this.logger = undefined;
 
 		this._aiInitialized = false;
@@ -152,10 +156,7 @@ export class VoiceController {
 			context: loggerContext,
 			subscribe: true,
 			callback: (service) => {
-				this.logger =
-					/** @type {import('../services/interfaces.js').ILoggerService} */ (
-						service
-					);
+				this.logger = /** @type {ILoggerService} */ (service);
 				this.#updateDialogueService();
 			},
 		});
@@ -644,9 +645,7 @@ ACTIONS: Interact, Pause, Help
 		if (this.aiService && this.logger) {
 			this.dialogueService = new DialogueGenerationService(
 				this.aiService,
-				/** @type {import('../services/interfaces.js').ILoggerService} */ (
-					this.logger
-				),
+				/** @type {ILoggerService} */ (this.logger),
 			);
 		}
 	}

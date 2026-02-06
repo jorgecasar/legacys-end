@@ -1,7 +1,7 @@
 import { createContext } from "@lit/context";
 
 /**
- * @typedef {import("../services/interfaces.js").IAIService} IAIService
+ * @typedef {import("../types/services.d.js").IAIService} IAIService
  */
 
 /**

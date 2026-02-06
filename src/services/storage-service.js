@@ -1,5 +1,8 @@
-/** @typedef {import('./interfaces.js').ILoggerService} ILoggerService */
-/** @typedef {import('./interfaces.js').IStorageAdapter} IStorageAdapter */
+/**
+ * @typedef {import('../types/services.d.js').ILoggerService} ILoggerService
+ * @typedef {import('../types/services.d.js').IStorageAdapter} IStorageAdapter
+ * @typedef {import('../types/common.d.js').JSONSerializable} JSONSerializable
+ */
 
 /**
  * LocalStorageAdapter
@@ -28,8 +31,9 @@ export class LocalStorageAdapter {
 	 * Get item from storage.
 	 * Parses JSON automatically.
 	 * @param {string} key - The key to retrieve
-	 * @returns {import('./interfaces.js').JsonValue | null} Parsed value or null if not found or error
+	 * @returns {JSONSerializable | null} Parsed value or null if not found or error
 	 */
+
 	getItem(key) {
 		try {
 			const item = this.#storage.getItem(key);
@@ -44,7 +48,7 @@ export class LocalStorageAdapter {
 	 * Set item in storage.
 	 * Stringifies value to JSON automatically.
 	 * @param {string} key - The key to set
-	 * @param {import('./interfaces.js').JsonValue} value - The value to store
+	 * @param {import('../types/common.d.js').JsonValue} value - The value to store
 	 */
 	setItem(key, value) {
 		try {

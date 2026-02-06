@@ -1,6 +1,6 @@
 import { Signal } from "@lit-labs/signals";
 
-/** @typedef {import('../interfaces.js').IWorldStateService} IWorldStateService */
+/** @typedef {import('../../types/game.d.js').IWorldStateService} IWorldStateService */
 
 /**
  * WorldStateService - Manages engine and environmental state
@@ -63,5 +63,13 @@ export class WorldStateService {
 
 	resetSlideIndex() {
 		this.currentSlideIndex.set(0);
+	}
+
+	resetWorldState() {
+		this.isPaused.set(false);
+		this.showDialog.set(false);
+		this.currentDialogText.set("");
+		this.nextDialogText.set("");
+		this.resetSlideIndex();
 	}
 }

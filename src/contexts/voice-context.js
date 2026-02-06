@@ -1,7 +1,7 @@
 import { createContext } from "@lit/context";
 
 /**
- * @typedef {import("../services/interfaces.js").IVoiceSynthesisService} IVoiceSynthesisService
+ * @typedef {import("../types/services.d.js").IVoiceSynthesisService} IVoiceSynthesisService
  */
 
 /**

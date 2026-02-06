@@ -20,24 +20,24 @@ import "@awesome.me/webawesome/dist/components/tag/tag.js";
  * @property {Boolean} active - Whether the exit zone is active (e.g. item collected).
  * @attribute active
  * @extends {LitElement}
- * @typedef {import('../../../services/interfaces.js').ILoggerService} ILoggerService
+ * @typedef {import('../../../types/services.d.js').ILoggerService} ILoggerService
+ * @typedef {import('../../../types/services.d.js').IQuestController} IQuestController
+ * @typedef {import('../../../types/game.d.js').IQuestStateService} IQuestStateService
  */
 export class GameExitZone extends SignalWatcher(
 	/** @type {Constructor<import('lit').LitElement>} */ (LitElement),
 ) {
-	/** @type {import('../../../services/interfaces.js').IQuestController} */
+	/** @type {IQuestController} */
 	@consume({ context: questControllerContext, subscribe: true })
-	accessor questController =
-		/** @type {import('../../../services/interfaces.js').IQuestController} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor questController = /** @type {IQuestController} */ (
+		/** @type {unknown} */ (null)
+	);
 
-	/** @type {import('../../../game/interfaces.js').IQuestStateService} */
+	/** @type {IQuestStateService} */
 	@consume({ context: questStateContext, subscribe: true })
-	accessor questState =
-		/** @type {import('../../../game/interfaces.js').IQuestStateService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor questState = /** @type {IQuestStateService} */ (
+		/** @type {unknown} */ (null)
+	);
 
 	/** @type {ILoggerService} */
 	@consume({ context: loggerContext })

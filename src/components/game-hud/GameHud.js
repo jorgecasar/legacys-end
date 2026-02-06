@@ -8,7 +8,8 @@ import { gameHudStyles } from "./GameHud.styles.js";
 /**
  * @element game-hud
  * @extends {LitElement}
- * @typedef {import('../../services/interfaces.js').ILoggerService} ILoggerService
+ * @typedef {import('../../types/services.d.js').ILoggerService} ILoggerService
+ * @typedef {import('../../types/game.d.js').IQuestStateService} IQuestStateService
  */
 export class GameHud extends SignalWatcher(
 	/** @type {new (...args: unknown[]) => import('lit').ReactiveElement} */ (
@@ -16,10 +17,9 @@ export class GameHud extends SignalWatcher(
 	),
 ) {
 	@consume({ context: questStateContext, subscribe: true })
-	accessor questState =
-		/** @type {import('../../game/interfaces.js').IQuestStateService} */ (
-			/** @type {unknown} */ (null)
-		);
+	accessor questState = /** @type {IQuestStateService} */ (
+		/** @type {unknown} */ (null)
+	);
 
 	/** @type {ILoggerService} */
 	@consume({ context: loggerContext })

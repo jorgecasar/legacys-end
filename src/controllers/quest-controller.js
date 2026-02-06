@@ -16,21 +16,20 @@ import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-
  * @typedef {import('lit').ReactiveController} ReactiveController
  * @typedef {import('lit').ReactiveControllerHost} ReactiveControllerHost
  * @typedef {import('lit').ReactiveElement} ReactiveElement
- */
-
-/**
+ *
  * @typedef {import("../services/quest-registry-service.js").Quest} Quest
  * @typedef {import("../content/quests/quest-types.js").LevelConfig} Chapter
- * @typedef {import('../services/interfaces.js').IProgressService} IProgressService
- * @typedef {import('../game/interfaces.js').IQuestStateService} IQuestStateService
- * @typedef {import('../services/interfaces.js').ILoggerService} ILoggerService
- * @typedef {import('../game/interfaces.js').IWorldStateService} IWorldStateService
- * @typedef {import('../game/interfaces.js').IHeroStateService} IHeroStateService
- * @typedef {import('../services/interfaces.js').ISessionService} ISessionService
+ * @typedef {import('../types/services.d.js').IProgressService} IProgressService
+ * @typedef {import('../types/game.d.js').IQuestStateService} IQuestStateService
+ * @typedef {import('../types/services.d.js').ILoggerService} ILoggerService
+ * @typedef {import('../types/game.d.js').IWorldStateService} IWorldStateService
+ * @typedef {import('../types/game.d.js').IHeroStateService} IHeroStateService
+ * @typedef {import('../types/services.d.js').ISessionService} ISessionService
  * @typedef {import('../services/quest-registry-service.js').QuestRegistryService} QuestRegistryService
  * @typedef {import('../services/preloader-service.js').PreloaderService} PreloaderService
  * @typedef {import('../utils/router.js').Router} Router
- * @typedef {import('../services/interfaces.js').QuestResult} QuestResult
+ * @typedef {import('../types/services.d.js').QuestResult} QuestResult
+ * @typedef {import('../types/services.d.js').EnrichedChapter} EnrichedChapter
  */
 
 /**
@@ -720,7 +719,7 @@ export class QuestController {
 			[ServiceType.MOCK]: HotSwitchStates.MOCK,
 		};
 
-		return /** @type {import('../game/interfaces.js').HotSwitchState} */ (
+		return /** @type {import('../types/game.d.js').HotSwitchState} */ (
 			mapping[serviceType] ?? null
 		);
 	}
@@ -746,7 +745,7 @@ export class QuestController {
 
 	/**
 	 * Get enriched data for current chapter
-	 * @returns {import('../services/interfaces.js').EnrichedChapter|null}
+	 * @returns {import('../types/services.d.js').EnrichedChapter|null}
 	 */
 	getCurrentChapterData() {
 		if (!this.currentChapter || !this.currentQuest) return null;

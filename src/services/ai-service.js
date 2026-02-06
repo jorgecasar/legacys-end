@@ -1,37 +1,15 @@
 import { Signal } from "@lit-labs/signals";
 
-/** @typedef {import('./interfaces.js').ILoggerService} ILoggerService */
-
 /**
- * Service for managing Chrome Built-in AI (Prompt API) sessions.
- * Supports multiple independent sessions identified by unique keys.
- *
- * @example
- * // Create sessions for different characters
- * await aiService.createSession("alarion", {
- *   language: "en",
- *   initialPrompts: [...]
- * });
- *
- * await aiService.createSession("rainwalker", {
- *   language: "en",
- *   initialPrompts: [...]
- * });
- *
- * // Retrieve and use sessions
- * const alarionSession = aiService.getSession("alarion");
- * const response = await alarionSession.prompt("Hello");
- *
- * // Cleanup
- * aiService.destroySession("alarion");
- * aiService.destroyAllSessions();
+ * @typedef {import('../types/services.d.js').ILoggerService} ILoggerService
+ * @typedef {import('../types/services.d.js').AIDownloadProgressEvent} AIDownloadProgressEvent
  */
 
 /**
  * @typedef {Object} AIOptions
  * @property {string} language
  * @property {{role: string, content: string}[]} [initialPrompts]
- * @property {function(import('./interfaces.js').AIDownloadProgressEvent): void} [onDownloadProgress]
+ * @property {function(AIDownloadProgressEvent): void} [onDownloadProgress]
  */
 
 export class AIService {
@@ -45,14 +23,14 @@ export class AIService {
 		this.availabilityStatus = "no";
 		/** @type {boolean} */
 		this.isAvailable = false;
-		/** @type {Map<string, import('./interfaces.js').AIModelSession>} */
+		/** @type {Map<string, import('../types/services.d.js').AIModelSession>} */
 		this.sessions = new Map();
 		this.isEnabled = new Signal.State(true);
 	}
 
 	/**
 	 * Private getter for Chrome Built-in AI (Prompt API)
-	 * @returns {import('./interfaces.js').AILanguageModel | undefined}
+	 * @returns {import('../types/services.d.js').AILanguageModel | undefined}
 	 */
 	get #ai() {
 		// @ts-expect-error - Chrome Built-in AI experimental API
@@ -108,7 +86,7 @@ export class AIService {
 	 * Create a new AI session with a unique identifier
 	 * @param {string} sessionId - Unique identifier for this session
 	 * @param {AIOptions} options - Session configuration
-	 * @returns {Promise<import('./interfaces.js').AIModelSession>} Created AI session
+	 * @returns {Promise<import('../types/services.d.js').AIModelSession>} Created AI session
 	 */
 	async createSession(sessionId, options) {
 		// Check if session already exists
@@ -161,7 +139,9 @@ export class AIService {
 
 			this.sessions.set(
 				sessionId,
-				/** @type {import('./interfaces.js').AIModelSession} */ (session),
+				/** @type {import('../types/services.d.js').AIModelSession} */ (
+					session
+				),
 			);
 			this.logger?.debug(`✅ Session "${sessionId}" created successfully`);
 			return session;
@@ -174,7 +154,7 @@ export class AIService {
 	/**
 	 * Download the AI model (for "downloadable" status)
 	 * @param {AIOptions} options - Download options
-	 * @returns {Promise<import('./interfaces.js').AIModelSession>} AI session after download
+	 * @returns {Promise<import('../types/services.d.js').AIModelSession>} AI session after download
 	 */
 	async downloadModel(options) {
 		this.logger?.info(
@@ -193,7 +173,7 @@ export class AIService {
 					m.addEventListener(
 						"downloadprogress",
 						(
-							/** @type {import('./interfaces.js').AIDownloadProgressEvent} */ e,
+							/** @type {import('../types/services.d.js').AIDownloadProgressEvent} */ e,
 						) => {
 							const progress = Math.round((e.loaded / e.total) * 100);
 							this.logger?.info(
@@ -224,7 +204,7 @@ export class AIService {
 	/**
 	 * Get an existing session by ID
 	 * @param {string} sessionId - Session identifier
-	 * @returns {import('./interfaces.js').AIModelSession|null} The session or null if not found
+	 * @returns {import('../types/services.d.js').AIModelSession|null} The session or null if not found
 	 */
 	getSession(sessionId) {
 		const session = this.sessions.get(sessionId);

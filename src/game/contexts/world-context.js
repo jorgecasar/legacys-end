@@ -1,5 +1,5 @@
-import { createContext } from "@lit/context";
+/** @typedef {import('../../types/game.d.js').IWorldStateService} IWorldStateService */
 
-/** @typedef {import('../interfaces.js').IWorldStateService} IWorldStateService */
+import { createContext } from "@lit/context";
 
 export const worldStateContext = createContext(Symbol("world-state"));

@@ -10,10 +10,6 @@ export const ThemeModes = {
 };
 
 /**
- * @typedef {typeof ThemeModes[keyof typeof ThemeModes]} ThemeMode
- */
-
-/**
  * Hot Switch States
  * @readonly
  * @enum {string}
@@ -23,10 +19,6 @@ export const HotSwitchStates = {
 	NEW: "new",
 	MOCK: "mock",
 };
-
-/**
- * @typedef {typeof HotSwitchStates[keyof typeof HotSwitchStates] | null} HotSwitchState
- */
 
 /**
  * Storage Keys
@@ -62,5 +54,45 @@ export const ZoneTypes = {
 };
 
 /**
- * @typedef {typeof ZoneTypes[keyof typeof ZoneTypes]} ZoneType
+ * Quest Status
+ * @readonly
+ * @enum {string}
  */
+export const QuestStatus = {
+	AVAILABLE: "available",
+	COMING_SOON: "coming_soon",
+	LOCKED: "locked",
+};
+
+/**
+ * Difficulty Levels
+ * @readonly
+ * @enum {string}
+ */
+export const Difficulty = {
+	BEGINNER: "beginner",
+	INTERMEDIATE: "intermediate",
+	ADVANCED: "advanced",
+	EXPERT: "expert",
+};
+
+/**
+ * Service Types
+ * @readonly
+ * @enum {string}
+ */
+export const ServiceType = {
+	LEGACY: "Legacy API",
+	MOCK: "Mock Service",
+	NEW: "New V2 API",
+};
+
+/**
+ * Maps HotSwitchStates to their corresponding ServiceType display names.
+ * @type {Record<string, string>}
+ */
+export const ServiceTypeMap = {
+	legacy: ServiceType.LEGACY,
+	new: ServiceType.NEW,
+	mock: ServiceType.MOCK,
+};

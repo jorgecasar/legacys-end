@@ -10,11 +10,11 @@ import { questStateContext } from "../../game/contexts/quest-context.js";
 import { worldStateContext } from "../../game/contexts/world-context.js";
 import "./level-dialog.js";
 
-/** @typedef {import("../../game/interfaces.js").IHeroStateService} IHeroStateService */
-/** @typedef {import("../../game/interfaces.js").IQuestStateService} IQuestStateService */
-/** @typedef {import("../../game/interfaces.js").IWorldStateService} IWorldStateService */
-/** @typedef {import("../../services/interfaces.js").IQuestController} IQuestController */
-/** @typedef {import("../../services/interfaces.js").ISessionService} ISessionService */
+/** @typedef {import("../../types/game.d.js").IHeroStateService} IHeroStateService */
+/** @typedef {import("../../types/game.d.js").IQuestStateService} IQuestStateService */
+/** @typedef {import("../../types/game.d.js").IWorldStateService} IWorldStateService */
+/** @typedef {import("../../types/services.d.js").IQuestController} IQuestController */
+/** @typedef {import("../../types/services.d.js").ISessionService} ISessionService */
 /** @typedef {import("../../services/quest-registry-service.js").Quest} Quest */
 /** @typedef {import("./LevelDialog.js").LevelDialog} LevelDialog */
 

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import "./game-hud.js";
 import axe from "axe-core";
 
-/** @typedef {import('../../game/interfaces.js').IQuestStateService} IQuestStateService */
+/** @typedef {import('../../types/game.d.js').IQuestStateService} IQuestStateService */
 /** @typedef {import("./GameHud.js").GameHud} GameHud */
 
 describe("GameHud Component", () => {

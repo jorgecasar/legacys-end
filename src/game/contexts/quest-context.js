@@ -1,5 +1,5 @@
-import { createContext } from "@lit/context";
+/** @typedef {import('../../types/game.d.js').IQuestStateService} IQuestStateService */
 
-/** @typedef {import('../interfaces.js').IQuestStateService} IQuestStateService */
+import { createContext } from "@lit/context";
 
 export const questStateContext = createContext(Symbol("quest-state"));

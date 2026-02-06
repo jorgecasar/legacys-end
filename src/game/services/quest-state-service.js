@@ -1,6 +1,6 @@
 import { Signal } from "@lit-labs/signals";
 
-/** @typedef {import('../interfaces.js').IQuestStateService} IQuestStateService */
+/** @typedef {import('../../types/game.d.js').IQuestStateService} IQuestStateService */
 
 /**
  * QuestStateService - Manages quest progress and goals

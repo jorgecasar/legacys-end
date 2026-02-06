@@ -1,7 +1,7 @@
 import { createContext } from "@lit/context";
 
 /**
- * @typedef {import("../services/interfaces.js").IThemeService} IThemeService
+ * @typedef {import("../types/services.d.js").IThemeService} IThemeService
  */
 
 /**
