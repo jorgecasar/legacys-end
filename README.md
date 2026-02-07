@@ -1,94 +1,57 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+<img width="1200" height="475" alt="Legacy's End Banner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Legacy's End - Developer Resume Game
+# Legacy's End
 
-A comprehensive RPG-style resume application built with Lit Web Components. It demonstrates modern web development practices including Clean Architecture, reactive state management, and component-driven design.
+> "To fix the world, you must first fix the code."
 
-## 🏗️ Architecture
+**Legacy's End** is an RPG adventure where you step into the boots of **Alarion**, a legendary developer summoned to save a digital world crumbling under the weight of "Legacy Code".
 
-The project follows **SOLID principles** and **Clean Architecture**, with a focus on decoupling, reactivity, and type safety.
+## 📖 The Story
 
-### Key Concepts
+The Kingdom of Code is in chaos.
+*   **The Glitch City** is flickering in and out of existence.
+*   **The Toxic Swamp** is overflowing with global style pollution.
+*   **The Glass Fortress** has no locks on its doors.
 
-*   **Context-Based Dependency Injection**: Services and controllers are injected via `@lit/context`, eliminating prop-drilling and decoupling components from concrete implementations.
-*   **Domain-Driven State**: Application state is split into focused domain services (`HeroStateService`, `QuestStateService`, `WorldStateService`) instead of a single monolith.
-*   **Reactive Signals**: Uses **Lit Signals** (`@lit-labs/signals`) for high-performance, fine-grained reactivity. Components only re-render when the specific signals they consume are updated.
-*   **Use Cases**: Complex business rules (e.g., `EvaluateChapterTransition`, `InteractWithNpc`) are encapsulated in pure, stateless Use Case classes.
-*   **Reactive Controllers**: Bridging logic between domain services and UI components is handled by specialized Lit Reactive Controllers.
-*   **Web Components**: UI is built with Lit, following a strict 4-file architecture pattern (Logic, Styles, Definition, Test).
+You must travel through these lands, learn the ancient arts of **Refactoring**, and heal the source code of reality itself.
 
-### Directory Structure
+## 🎮 How to Play
 
-*   `src/game/services/`: Domain-specific state services (Hero, Quest, World).
-*   `src/services/`: Global infrastructure services (Theme, Progress, Session).
-*   `src/controllers/`: Reactive controllers linking UI to logic.
-*   `src/use-cases/`: Pure business logic and domain rules.
-*   `src/components/`: Lit components organized by domain.
-*   `src/contexts/`: Lit context definitions for dependency injection.
-*   `src/utils/`: Shared utilities and helpers.
+### ⌨️ Controls
 
-## 🚀 Run Locally
+| Key | Action |
+| :--- | :--- |
+| **W / Arrow Up** | Move North |
+| **A / Arrow Left** | Move West |
+| **S / Arrow Down** | Move South |
+| **D / Arrow Right** | Move East |
+| **Space** | Interact / Talk to NPCs |
+| **Esc** | Pause Menu |
 
-**Prerequisites:** Node.js 18+
+### 🗣️ Voice Commands (Experimental)
 
-1.  **Install dependencies:**
+You can also control Alarion using your voice!
+*   "Move Left"
+*   "Interact"
+*   "Go to the shop"
+
+## 🚀 Installation & Launch
+
+To enter the world of Legacy's End:
+
+1.  **Install dependencies**:
     ```bash
     npm install
     ```
-2.  **Run the app:**
+
+2.  **Start the Game**:
     ```bash
     npm run dev
     ```
-    Currently running at http://localhost:8000 (default)
 
-## 🧪 Testing
+3.  Open your browser at `http://localhost:8000`.
 
-The project maintains a high standard of code quality with comprehensive test coverage.
-
-*   **Run all tests:** `npm run test`
-*   **Run with coverage:** `npm run test:coverage`
-*   **Lint code:** `npm run lint`
-*   **Type check:** `npm run lint:tsc`
-
-## 🛠 Recent Refactors
-
-### Phase 11: Domain-Driven Refactor & Context DI (February 2026)
-
-Major architectural shift to a modern, decoupled structure:
-
-*   🚀 **Decomposed GameState monolith** into domain-specific services (`Hero`, `Quest`, `World`).
-*   🔒 **Migrated to @lit/context** for service injection, removing legacy instantiation patterns.
-*   🧹 **Removed EventBus and CommandBus** in favor of direct service calls and reactive signals.
-*   🧪 **Hardened Type Safety** using JSDoc and strict TSC configuration.
-*   ✨ **Standardized Decorators** using TC39 standard decorators (`accessor` keyword).
-
-### Phase 10: Code Quality & Encapsulation (January 2026)
-
-Focused on improving component-level encapsulation and reducing duplication:
-- 🔒 **23 event handlers** converted to private methods (#)
-- 🧩 **8 helper methods** extracted for reusability
-- 📉 **~245 lines** of duplicate code eliminated
-- 📝 **Consistent logging** with `LoggerService` (removed raw console logs)
-
-## 📚 Documentation
-
-*   [Project Standards](docs/PROJECT_STANDARDS.md) - Coding standards and guidelines
-*   [Architecture Overview](docs/ARCHITECTURE.md) - High-level system design
-*   [Technical Reference](docs/TECHNICAL_REFERENCE.md) - Detailed module documentation
-*   [i18n Technical Glossary](docs/I18N_GLOSSARY.md) - Translation standards
-
-
-## 🤝 Contributing
-
-Please read [PROJECT_STANDARDS.md](docs/PROJECT_STANDARDS.md) before contributing. All code must:
-- Follow the 4-file component architecture
-- Include comprehensive tests (80%+ coverage)
-- Use JSDoc for all public APIs
-- Pass all linters (Biome, TSC)
-- Use private methods (#) for internal logic
-
-## 📄 License
-
-This project is part of a developer portfolio.
+---
+*Created by Jorge Casar*

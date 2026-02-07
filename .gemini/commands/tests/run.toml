@@ -1,5 +1,0 @@
-prompt = """
-Please execute the project's tests.
-!{npm test}
-"""
-description = "Run all project tests."
