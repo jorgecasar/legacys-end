@@ -36,12 +36,11 @@ jobs:
       - name: Run AI Agent
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
-          # Detect logic for model selection based on issue body
-          if grep -q "Gemini 1.5 Pro" <<EOF
-          ${{ github.event.issue.body }}
-          EOF
-          then
+          # Detect logic for model selection
+          if echo "$ISSUE_BODY" | grep -q "Gemini 1.5 Pro"; then
             AIDER_MODEL="gemini/gemini-1.5-pro"
           else
             AIDER_MODEL="gemini/gemini-1.5-flash"
@@ -52,10 +51,8 @@ jobs:
           BRANCH_NAME="feature/issue-${{ github.event.issue.number }}"
           git checkout -b $BRANCH_NAME
 
-          ISSUE_CONTEXT="Task: ${{ github.event.issue.title }}
-
-Details:
-${{ github.event.issue.body }}"
+          # Safe way to handle multi-line context
+          printf -v ISSUE_CONTEXT "Task: %s\n\nDetails:\n%s" "$ISSUE_TITLE" "$ISSUE_BODY"
           
           # Run Aider with the selected model
           aider --yes --model "$AIDER_MODEL" --message "$ISSUE_CONTEXT"
