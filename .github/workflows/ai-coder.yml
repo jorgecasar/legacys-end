@@ -3,6 +3,7 @@ name: AI Agent Developer
 on:
   issues:
     types: [opened, labeled]
+  workflow_dispatch:
 
 permissions:
   contents: write
