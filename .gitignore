@@ -122,3 +122,4 @@ storybook-static
 .rulesync/rules/*.local.md
 rulesync.local.jsonc
 !.rulesync/.aiignore
+.aider*
