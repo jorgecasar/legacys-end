@@ -1,0 +1,21 @@
+name: "📋 Task"
+description: "Create a new task, feature or refactoring request"
+title: "[TASK]: "
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: "Goal"
+      description: "What needs to be achieved?"
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: "Context"
+      description: "Relevant files, constraints or architectural rules."
+  - type: textarea
+    id: plan
+    attributes:
+      label: "Suggested Plan"
+      description: "Step-by-step instructions (optional)."

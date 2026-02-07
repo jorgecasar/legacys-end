@@ -1,0 +1,168 @@
+name: AI Agent Developer
+
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to process'
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+
+jobs:
+  ai-code:
+    if: |
+      (github.event_name == 'issues' && github.event.label.name == 'ai-agent') ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install AI Tool (Aider)
+        run: pip install -U aider-chat
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Cache Aider Repo Map
+        uses: actions/cache@v3
+        with:
+          path: .aider.tags.cache.v3
+          key: ${{ runner.os }}-aider-map-${{ hashFiles('**/*.js', '**/*.json') }}
+          restore-keys: |
+            ${{ runner.os }}-aider-map-
+
+      - name: Generate Rules with RuleSync
+        run: npx rulesync generate
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "AI Agent"
+          git config --global user.email "ai-agent@users.noreply.github.com"
+
+      - name: Run AI Agent
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUM: ${{ github.event.inputs.issue_number || github.event.issue.number }}
+          LITELLM_PREFER_AI_STUDIO: "true"
+        run: |
+          set -e
+          
+          # 1. Recuperar datos
+          echo "Fetching data for Issue #$ISSUE_NUM..."
+          ISSUE_DATA=$(gh issue view "$ISSUE_NUM" --json title,body,labels)
+          TITLE=$(echo "$ISSUE_DATA" | jq -r .title)
+          BODY=$(echo "$ISSUE_DATA" | jq -r .body)
+          
+          # 2. Determinar Modelo y Modo
+          MODEL_LABEL=$(echo "$ISSUE_DATA" | jq -r '.labels[].name' | grep "^model:" | head -n 1 || true)
+          MODEL_ID="gemini-2.5-flash"
+          EXTRA_ARGS=""
+
+          if [ ! -z "$MODEL_LABEL" ]; then
+            MODEL_ID=$(echo "$MODEL_LABEL" | cut -d':' -f2)
+          fi
+          
+          AIDER_MODEL="gemini/$MODEL_ID"
+          
+          if echo "$MODEL_ID" | grep -qiE "pro|3-"; then
+            EXTRA_ARGS="--architect"
+          fi
+
+          echo "### 🤖 AI Agent Report" >> $GITHUB_STEP_SUMMARY
+          echo "- **Model**: \`$AIDER_MODEL\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Architect Mode**: $([ -z "$EXTRA_ARGS" ] && echo "Off" || echo "On")" >> $GITHUB_STEP_SUMMARY
+
+          # 3. Preparar prompt (Instrucciones de la tarea únicamente)
+          cat <<EOF > aider_prompt.md
+          TASK: $TITLE
+          GOAL: $BODY
+          EOF
+
+          # 4. Reglas
+          RULES_ARGS=""
+          if [ -d ".agent" ]; then
+            for f in $(find .agent -name "*.md"); do
+              RULES_ARGS="$RULES_ARGS --read $f"
+            done
+          fi
+
+          # 5. Ejecutar con REINTENTOS
+          unset GOOGLE_APPLICATION_CREDENTIALS
+          unset GOOGLE_CLOUD_PROJECT
+          
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          SUCCESS=false
+
+          until [ $SUCCESS = true ] || [ $RETRY_COUNT -eq $MAX_RETRIES ]; do
+            echo "Attempt $((RETRY_COUNT + 1)) of $MAX_RETRIES..."
+            if aider --yes \
+              --model "$AIDER_MODEL" \
+              $EXTRA_ARGS \
+              --no-auto-commit \
+              --no-pretty \
+              --no-stream \
+              --map-tokens 2048 \
+              $RULES_ARGS \
+              --message-file aider_prompt.md; then
+              SUCCESS=true
+            else
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                echo "Rate limit hit. Sleeping 30s..."
+                sleep 30
+              fi
+            fi
+          done
+
+          if [ $SUCCESS = false ]; then
+            echo "❌ Failed after $MAX_RETRIES attempts."
+            exit 1
+          fi
+
+          # 6. Verificación
+          if git diff --quiet; then
+            echo "⚠️ No changes detected by Aider." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "✅ Changes applied. Opening PR..." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          rm aider_prompt.md
+          rm -rf .aider.tags.cache.v3
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: "ai-fix/issue-${{ github.event.inputs.issue_number || github.event.issue.number }}"
+          base: main
+          delete-branch: true
+          title: "🤖 AI Solution: ${{ github.event.issue.title || format('Manual Fix for Issue {0}', github.event.inputs.issue_number) }}"
+          body: |
+            This PR was automatically created by the AI Agent based on Issue #${{ github.event.issue.number }}.
+            
+            **Changes:**
+            - Automatically generated code changes.
+            
+            Closes #${{ github.event.issue.number }}
+          labels: automated-pr
