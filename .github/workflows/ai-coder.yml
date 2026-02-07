@@ -1,0 +1,131 @@
+name: AI Agent Developer
+
+on:
+  issues:
+    types: [opened, labeled]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to process'
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+
+jobs:
+  ai-code:
+    if: |
+      contains(github.event.issue.labels.*.name, 'ai-agent') ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install AI Tool (Aider)
+        run: pip install aider-chat
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm" # Caché automática para npm
+
+      - name: Cache Aider Repo Map
+        uses: actions/cache@v3
+        with:
+          path: .aider.tags.cache.v3
+          key: ${{ runner.os }}-aider-map-${{ hashFiles('**/*.js', '**/*.json') }}
+          restore-keys: |
+            ${{ runner.os }}-aider-map-
+
+      - name: Generate Rules with RuleSync
+        run: npx rulesync generate
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "AI Agent"
+          git config --global user.email "ai-agent@users.noreply.github.com"
+
+      - name: Run AI Agent
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUM: ${{ github.event.inputs.issue_number || github.event.issue.number }}
+          # Pasamos los datos como variables de entorno puras
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          # 1. Recuperar datos de la issue de forma segura
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "Fetching data for Issue #$ISSUE_NUM..."
+            TITLE=$(gh issue view "$ISSUE_NUM" --json title -q .title)
+            BODY=$(gh issue view "$ISSUE_NUM" --json body -q .body)
+          else
+            TITLE="$ISSUE_TITLE"
+            BODY="$ISSUE_BODY"
+          fi
+
+          # 2. Detectar modelo
+          AIDER_MODEL="gemini/gemini-1.5-flash"
+          if echo "$BODY" | grep -q "Gemini 1.5 Pro"; then
+            AIDER_MODEL="gemini/gemini-1.5-pro"
+          fi
+          echo "Selected Model: $AIDER_MODEL"
+
+          # 3. GUARDAR EL PROMPT (Sin expansión de variables de shell)
+          cat <<'EOF' > aider_prompt.md
+          Task: ${TITLE}
+
+          Details:
+          ${BODY}
+
+          IMPORTANT: Explore the repository and apply changes to all relevant files. 
+          Follow the rules and skills provided in the .agent directory.
+          Do not stop until the task is fully completed.
+          EOF
+          
+          # 4. Identificar archivos de reglas existentes
+          RULES_ARGS=""
+          if [ -d ".agent" ]; then
+            echo "Rules found in .agent directory:"
+            for f in $(find .agent -name "*.md"); do
+              echo " - Adding rule: $f"
+              RULES_ARGS="$RULES_ARGS --read $f"
+            done
+          fi
+
+          # 5. Ejecutar Aider
+          aider --yes \
+            --model "$AIDER_MODEL" \
+            --no-auto-commit \
+            --map-tokens 1024 \
+            $RULES_ARGS \
+            --message-file aider_prompt.md
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: "ai-fix/issue-${{ github.event.inputs.issue_number || github.event.issue.number }}"
+          base: main
+          delete-branch: true
+          title: "🤖 AI Solution: ${{ github.event.issue.title || format('Manual Fix for Issue {0}', github.event.inputs.issue_number) }}"
+          body: |
+            This PR was automatically created by the AI Agent based on Issue #${{ github.event.issue.number }}.
+            
+            **Changes:**
+            - Automatically generated code changes.
+            
+            Closes #${{ github.event.issue.number }}
+          labels: automated-pr
