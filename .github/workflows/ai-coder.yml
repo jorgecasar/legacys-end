@@ -61,6 +61,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           branch: feature/issue-${{ github.event.issue.number }}
           title: "🤖 AI Solution: ${{ github.event.issue.title }}"
           body: |
