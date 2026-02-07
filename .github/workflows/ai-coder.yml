@@ -1,0 +1,159 @@
+name: AI Agent Developer
+
+on:
+  issues:
+    types: [labeled]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to process'
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+
+jobs:
+  ai-code:
+    # Se ejecuta si:
+    # 1. Se añade la etiqueta 'ai-agent' a una Issue
+    # 2. Es un disparo manual
+    # 3. Se comenta en una PR que tiene la etiqueta 'automated-pr'
+    if: |
+      (github.event_name == 'issues' && github.event.label.name == 'ai-agent') ||
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.issue.labels.*.name, 'automated-pr'))
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install AI Tool (Aider)
+        run: pip install -U aider-chat
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Cache Aider Repo Map
+        uses: actions/cache@v3
+        with:
+          path: .aider.tags.cache.v3
+          key: ${{ runner.os }}-aider-map-${{ hashFiles('**/*.js', '**/*.json') }}
+          restore-keys: |
+            ${{ runner.os }}-aider-map-
+
+      - name: Generate Rules with RuleSync
+        run: npx rulesync generate
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "AI Agent"
+          git config --global user.email "ai-agent@users.noreply.github.com"
+
+      - name: Run AI Agent
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUM: ${{ github.event.inputs.issue_number || github.event.issue.number }}
+          LITELLM_PREFER_AI_STUDIO: "true"
+        run: |
+          set -e
+          
+          # 1. Determinar contexto (Nueva Issue o Comentario en PR)
+          if [ "${{ github.event_name }}" == "issue_comment" ]; then
+            echo "Context: PR Comment Feedback"
+            TITLE="Feedback on PR #${{ github.event.issue.number }}"
+            BODY="${{ github.event.comment.body }}"
+            # Obtener la rama de la PR
+            BRANCH_NAME=$(gh pr view "${{ github.event.issue.number }}" --json headRefName -q .headRefName)
+            git checkout "$BRANCH_NAME"
+          else
+            echo "Context: New Task / Manual"
+            ISSUE_DATA=$(gh issue view "$ISSUE_NUM" --json title,body,labels)
+            TITLE=$(echo "$ISSUE_DATA" | jq -r .title)
+            BODY=$(echo "$ISSUE_DATA" | jq -r .body)
+            BRANCH_NAME="ai-fix/issue-$ISSUE_NUM"
+          fi
+
+          # 2. Determinar Modelo
+          # Buscamos etiqueta model: o usamos fallback
+          MODEL_LABEL=$(gh issue view "${{ github.event.issue.number || github.event.inputs.issue_number }}" --json labels -q '.labels[].name' | grep "^model:" | head -n 1 || true)
+          MODEL_ID="gemini-2.0-flash"
+          if [ ! -z "$MODEL_LABEL" ]; then
+            MODEL_ID=$(echo "$MODEL_LABEL" | cut -d':' -f2)
+          fi
+          AIDER_MODEL="gemini/$MODEL_ID"
+          
+          echo "### 🤖 AI Agent Report" >> $GITHUB_STEP_SUMMARY
+          echo "- **Event**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Model**: \`$AIDER_MODEL\`" >> $GITHUB_STEP_SUMMARY
+
+          # 3. Preparar prompt
+          cat <<EOF > aider_prompt.md
+          TASK: $TITLE
+          GOAL: $BODY
+          EOF
+
+          # 4. Reglas
+          RULES_ARGS=""
+          if [ -d ".agent" ]; then
+            for f in $(find .agent -name "*.md"); do
+              RULES_ARGS="$RULES_ARGS --read $f"
+            done
+            # Añadir específicamente la nueva skill
+            if [ -f ".agent/skills/conventional-commits/SKILL.md" ]; then
+               RULES_ARGS="$RULES_ARGS --read .agent/skills/conventional-commits/SKILL.md"
+            fi
+          fi
+
+          # 5. Ejecutar Aider
+          unset GOOGLE_APPLICATION_CREDENTIALS
+          unset GOOGLE_CLOUD_PROJECT
+          
+          # Si estamos en un comentario, Aider debe saber que está corrigiendo
+          aider --yes \
+            --model "$AIDER_MODEL" \
+            --architect \
+            --no-auto-commit \
+            --no-pretty \
+            --no-stream \
+            --map-tokens 2048 \
+            $RULES_ARGS \
+            --message-file aider_prompt.md
+
+          # 6. Verificación y Limpieza
+          if git diff --quiet; then
+            echo "⚠️ No changes detected." >> $GITHUB_STEP_SUMMARY
+            if [ "${{ github.event_name }}" == "issue_comment" ]; then exit 0; fi # No fallar en comentarios
+            exit 1 
+          fi
+          
+          rm aider_prompt.md
+          rm -rf .aider.tags.cache.v3
+
+      - name: Update Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # Usamos la misma rama si es un comentario, o una nueva si es una issue
+          branch: ${{ github.event_name == 'issue_comment' && format('ai-fix/issue-{0}', github.event.issue.number) || format('ai-fix/issue-{0}', github.event.inputs.issue_number || github.event.issue.number) }}
+          base: main
+          delete-branch: false
+          title: "🤖 AI Solution: ${{ github.event.issue.title || github.event.inputs.issue_number || github.event.issue.number }}"
+          body: |
+            Automatically updated by AI Agent based on feedback.
+          labels: automated-pr

@@ -1,0 +1,48 @@
+name: "🤖 AI Agent Task"
+description: "Assign a task to the autonomous AI Agent"
+title: "[AI]: "
+labels: ["ai-agent"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### 🤖 AI Agent Instructions
+        When this issue is created or the `ai-agent` label is added, the automated workflow will attempt to solve it and open a Pull Request.
+  - type: dropdown
+    id: model
+    attributes:
+      label: "AI Model"
+      description: "Choose the brain for this task."
+      options:
+        - "gemini-3-pro"
+        - "gemini-3-flash"
+        - "gemini-2.5-pro"
+        - "gemini-2.5-flash"
+        - "gemini-2.5-flash-lite"
+        - "gemini-2.0-flash"
+        - "gemini-2.0-flash-lite"
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: "Goal"
+      description: "What should the agent achieve?"
+      placeholder: "e.g., Refactor the StorageService to use key prefixing."
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: "Context"
+      description: "Any relevant files or architectural constraints."
+      placeholder: "e.g., Use JSDoc for types, follow the Result pattern."
+  - type: textarea
+    id: plan
+    attributes:
+      label: "Suggested Plan (Checklist)"
+      description: "Step-by-step instructions for the agent."
+      placeholder: |
+        - [ ] Create X
+        - [ ] Update Y
+        - [ ] Add tests for Z

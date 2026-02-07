@@ -9,7 +9,7 @@ globs: ["**/*"]
 
 ## General Guidelines
 
-- Use TypeScript for all new code
+- Use JavaScript for all new code
 - Follow consistent naming conventions
 - Write self-documenting code with clear variable and function names
 - Prefer composition over inheritance
@@ -29,3 +29,9 @@ globs: ["**/*"]
 - Use dependency injection for better testability
 - Implement proper error handling
 - Follow single responsibility principle
+
+## Gold Standard (Reference Files)
+- **Services**: `src/services/storage-service.js`
+- **Components**: `src/components/reward-element/RewardElement.js`
+- **Use Cases**: `src/use-cases/evaluate-chapter-transition.js`
+- **Controllers**: `src/controllers/interaction-controller.js`
