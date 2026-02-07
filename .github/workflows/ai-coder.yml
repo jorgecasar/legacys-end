@@ -1,0 +1,75 @@
+name: AI Agent Developer
+
+on:
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+
+jobs:
+  ai-code:
+    if: contains(github.event.issue.labels.*.name, 'ai-agent')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Descarga todo el historial para que Aider entienda mejor el contexto
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install AI Tool (Aider)
+        run: pip install aider-chat
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "AI Agent"
+          git config --global user.email "ai-agent@users.noreply.github.com"
+
+      - name: Run AI Agent
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          # Detect logic for model selection based on issue body
+          if grep -q "Gemini 1.5 Pro" <<EOF
+          ${{ github.event.issue.body }}
+          EOF
+          then
+            AIDER_MODEL="gemini/gemini-1.5-pro"
+          else
+            AIDER_MODEL="gemini/gemini-1.5-flash"
+          fi
+          
+          echo "Selected Model: $AIDER_MODEL"
+
+          BRANCH_NAME="feature/issue-${{ github.event.issue.number }}"
+          git checkout -b $BRANCH_NAME
+
+          ISSUE_CONTEXT="Task: ${{ github.event.issue.title }}
+
+Details:
+${{ github.event.issue.body }}"
+          
+          # Run Aider with the selected model
+          aider --yes --model "$AIDER_MODEL" --message "$ISSUE_CONTEXT"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          branch: feature/issue-${{ github.event.issue.number }}
+          title: "🤖 AI Solution: ${{ github.event.issue.title }}"
+          body: |
+            This PR was automatically created by the AI Agent based on Issue #${{ github.event.issue.number }}.
+            
+            **Changes:**
+            - Automatically generated code changes.
+            
+            Closes #${{ github.event.issue.number }}
+          labels: automated-pr
