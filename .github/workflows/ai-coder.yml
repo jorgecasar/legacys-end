@@ -49,20 +49,19 @@ jobs:
           
           echo "Selected Model: $AIDER_MODEL"
 
-          BRANCH_NAME="feature/issue-${{ github.event.issue.number }}"
-          git checkout -b $BRANCH_NAME
-
           # Safe way to handle multi-line context
           printf -v ISSUE_CONTEXT "Task: %s\n\nDetails:\n%s" "$ISSUE_TITLE" "$ISSUE_BODY"
           
-          # Run Aider with the selected model
+          # Run Aider with the selected model on the current checked-out code
           aider --yes --model "$AIDER_MODEL" --message "$ISSUE_CONTEXT"
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: feature/issue-${{ github.event.issue.number }}
+          branch: "ai-fix/issue-${{ github.event.issue.number }}"
+          base: main
+          delete-branch: true
           title: "🤖 AI Solution: ${{ github.event.issue.title }}"
           body: |
             This PR was automatically created by the AI Agent based on Issue #${{ github.event.issue.number }}.
