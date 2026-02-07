@@ -1,6 +1,7 @@
 # [Task Title] <!-- id: [unique-id] -->
 
 > **Status**: [Backlog/Todo/Doing/Done]
+> **Priority**: [01-99]
 > **Created**: [YYYY-MM-DD]
 > **Last Updated**: [YYYY-MM-DD]
 
