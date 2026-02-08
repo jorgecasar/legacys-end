@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { checkA11y, injectAxe } from "axe-playwright";
 
 test.describe("Quest Journey E2E", () => {
 	test.beforeEach(async ({ page }) => {
@@ -19,6 +20,8 @@ test.describe("Quest Journey E2E", () => {
 		const app = page.locator("legacys-end-app");
 		await expect(app).toBeAttached();
 		await expect(app.locator("quest-hub")).toBeVisible({ timeout: 10000 });
+
+		await injectAxe(page);
 	});
 
 	test("should complete a full quest journey: Hub -> Quest -> Chapter 1 -> Hub -> Resume -> Chapter 2 -> Victory", async ({
@@ -34,6 +37,10 @@ test.describe("Quest Journey E2E", () => {
 		await expect(hub.locator("quest-card").first()).toBeVisible();
 		await expect(auraCard).toBeVisible();
 
+		await checkA11y(page, "legacys-end-app", {
+			rules: { "color-contrast": { enabled: false } },
+		});
+
 		// Snapshot: Quest Hub
 		await expect(page).toHaveScreenshot("quest-hub.png");
 
@@ -47,6 +54,10 @@ test.describe("Quest Journey E2E", () => {
 		// Wait for viewport to stabilize for snapshot
 		const viewport = gameView.locator("game-viewport");
 		await expect(viewport).toBeVisible();
+
+		await checkA11y(page, "legacys-end-app", {
+			rules: { "color-contrast": { enabled: false } }
+		});
 
 		// Snapshot: Quest View (Initial)
 		await expect(page).toHaveScreenshot("quest-view.png");
@@ -85,6 +96,10 @@ test.describe("Quest Journey E2E", () => {
 
 		// Wait for the content container to be attached to ensure internal rendering
 		await expect(dialog.locator(".dialog-content")).toBeAttached();
+
+		await checkA11y(page, "legacys-end-app", {
+			rules: { "color-contrast": { enabled: false } },
+		});
 
 		// Snapshot: Level Dialog
 		await expect(page).toHaveScreenshot("level-dialog.png", {
@@ -142,6 +157,10 @@ test.describe("Quest Journey E2E", () => {
 		});
 		expect(chapterId).toBe("hall-of-fragments");
 
+		await checkA11y(page, "legacys-end-app", {
+			rules: { "color-contrast": { enabled: false } },
+		});
+
 		// Snapshot: Quest Chapter 2
 		await expect(page).toHaveScreenshot("quest-chapter-2.png");
 
@@ -152,6 +171,9 @@ test.describe("Quest Journey E2E", () => {
 		});
 
 		await expect(hub).toBeVisible();
+		await checkA11y(page, "legacys-end-app", {
+			rules: { "color-contrast": { enabled: false } },
+		});
 
 		// --- 5. Resume Quest ---
 		// Re-find card and click Continue/Resume
@@ -198,6 +220,10 @@ test.describe("Quest Journey E2E", () => {
 
 		// Wait a bit for animations to settle (pop-in delay)
 		await page.waitForTimeout(1500);
+
+		await checkA11y(page, "legacys-end-app", {
+			rules: { "color-contrast": { enabled: false } },
+		});
 
 		// Snapshot: Victory Screen
 		await expect(page).toHaveScreenshot("victory-screen.png");
