@@ -3,6 +3,8 @@
  */
 
 import { getQuests, loadQuest } from "../content/quests/quests-data.js";
+import { QuestValidator } from "../utils/validators.js"; // New import
+import { Result } from "../utils/result.js"; // New import
 
 /**
  * Quest Registry Service
@@ -31,16 +33,29 @@ export class QuestRegistryService {
 	}
 
 	/**
-	 * Load full quest data including chapters
+	 * Load full quest data including chapters and validate it.
 	 * @param {string} questId
-	 * @returns {Promise<Quest|undefined>}
+	 * @returns {Promise<Result<Quest, import("../utils/validators.js").ValidationError[]>>}
 	 */
 	async loadQuestData(questId) {
 		const quest = await loadQuest(questId);
-		if (quest) {
-			this.questCache[questId] = quest;
+		if (!quest) {
+			return Result.Err([
+				{
+					field: "questId",
+					message: `Quest with ID '${questId}' not found.`,
+					value: questId,
+				},
+			]);
 		}
-		return quest;
+
+		const validationResult = QuestValidator.validateResult(quest);
+
+		if (validationResult.isOk()) {
+			this.questCache[questId] = validationResult.value;
+		}
+		// Returns Result.Ok(quest) if valid, or Result.Err(errors) if invalid.
+		return validationResult;
 	}
 
 	/**
