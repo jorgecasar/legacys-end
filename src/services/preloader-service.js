@@ -41,27 +41,4 @@ export class PreloaderService {
 	preloadImages(urls) {
 		return Promise.all(urls.map((url) => this.preloadImage(url)));
 	}
-
-	/**
-	 * Preload assets for a chapter
-	 * Extracts asset URLs from chapter data
-	 * @param {import("../content/quests/quest-types.js").Chapter | undefined} chapter
-	 * @returns {Promise<void>}
-	 */
-	async preloadChapter(chapter) {
-		if (!chapter) return;
-
-		const assetsToLoad = [];
-
-		if (chapter.background) {
-			assetsToLoad.push(chapter.background);
-		}
-
-		// Add other assets here (e.g., character images, item icons) if they are in the chapter data
-		// For now, we mainly focus on large background images
-
-		if (assetsToLoad.length > 0) {
-			await this.preloadImages(assetsToLoad);
-		}
-	}
 }
