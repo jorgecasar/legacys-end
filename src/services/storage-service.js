@@ -12,16 +12,17 @@
  */
 export class LocalStorageAdapter {
 	/**
-	 * @param {Object} [options]
-	 * @param {ILoggerService} [options.logger]
+	 * @param {object} [options] - Options for the LocalStorageAdapter.
+	 * @param {ILoggerService} [options.logger] - Logger service instance.
 	 */
 	constructor(options = {}) {
+		/** @private @type {ILoggerService | undefined} */
 		this.logger = options.logger;
 	}
 
 	/**
-	 * Private getter for browser localStorage
-	 * @returns {Storage}
+	 * Private getter for browser localStorage.
+	 * @returns {Storage} The browser's localStorage object.
 	 */
 	get #storage() {
 		return window.localStorage;
@@ -73,6 +74,8 @@ export class LocalStorageAdapter {
 
 	/**
 	 * Clear all items from storage.
+	 * Removes all key-value pairs from the underlying storage.
+	 * @returns {void}
 	 */
 	clear() {
 		try {
