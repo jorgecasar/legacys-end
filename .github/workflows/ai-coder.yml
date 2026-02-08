@@ -99,7 +99,7 @@ jobs:
           # 2. Determinar Modelo
           # Buscamos etiqueta model: o usamos fallback
           MODEL_LABEL=$(gh issue view "${{ github.event.issue.number || github.event.inputs.issue_number }}" --json labels -q '.labels[].name' | grep "^model:" | head -n 1 || true)
-          MODEL_ID="gemini-2.0-flash"
+          MODEL_ID="gemini-2.5-flash"
           if [ ! -z "$MODEL_LABEL" ]; then
             MODEL_ID=$(echo "$MODEL_LABEL" | cut -d':' -f2)
           fi
