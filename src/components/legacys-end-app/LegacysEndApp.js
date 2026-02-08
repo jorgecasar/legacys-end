@@ -3,7 +3,7 @@
  * @typedef {import('../../contexts/profile-context.js').Profile} Profile
  * @typedef {import('../../services/user-api-client.js').UserApiClients} UserApiClients
  * @typedef {import('@lit/context').ContextProvider<import('@lit/context').Context<"api-clients", UserApiClients>, import('lit').ReactiveElement>} ApiClientsContextProvider
- * @typedef {import('../../types/services.d.js').IStorageAdapter} IStorageAdapter
+ * @typedef {import('../../services/storage-service.js').LocalStorageAdapter} LocalStorageAdapter
  * @typedef {import('../../types/services.d.js').IProgressService} IProgressService
  * @typedef {import('../../types/services.d.js').IAIService} IAIService
  * @typedef {import('../../types/services.d.js').IVoiceSynthesisService} IVoiceSynthesisService
@@ -18,7 +18,6 @@ import "../quest-hub/quest-hub.js";
 import "../game-viewport/game-viewport.js";
 import "../pause-menu/pause-menu.js";
 import "@awesome.me/webawesome/dist/components/spinner/spinner.js";
-import { ROUTES } from "../../constants/routes.js";
 import { aiContext } from "../../contexts/ai-context.js";
 import { apiClientsContext } from "../../contexts/api-clients-context.js";
 import { localizationContext } from "../../contexts/localization-context.js";
@@ -31,34 +30,15 @@ import { questRegistryContext } from "../../contexts/quest-registry-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
 import { themeContext } from "../../contexts/theme-context.js";
 import { voiceContext } from "../../contexts/voice-context.js";
-import { QuestController } from "../../controllers/quest-controller.js";
 import { ThemeModes } from "../../core/constants.js";
 import { heroStateContext } from "../../game/contexts/hero-context.js";
 import { questStateContext } from "../../game/contexts/quest-context.js";
 import { worldStateContext } from "../../game/contexts/world-context.js";
-import { Router } from "../../utils/router.js";
 import { legacysEndAppStyles } from "./LegacysEndApp.styles.js";
 import "@awesome.me/webawesome/dist/styles/webawesome.css";
 import "../../pixel.css";
-import { HeroStateService } from "../../game/services/hero-state-service.js";
-import { QuestStateService } from "../../game/services/quest-state-service.js";
-import { WorldStateService } from "../../game/services/world-state-service.js";
-import { AIService } from "../../services/ai-service.js";
-import { LocalizationService } from "../../services/localization-service.js";
 import { LoggerService } from "../../services/logger-service.js";
-import { PreloaderService } from "../../services/preloader-service.js";
-import { ProgressService } from "../../services/progress-service.js";
-import { QuestRegistryService } from "../../services/quest-registry-service.js";
-import { SessionService } from "../../services/session-service.js";
-import { LocalStorageAdapter } from "../../services/storage-service.js";
-import { ThemeService } from "../../services/theme-service.js";
-import {
-	LegacyUserApiClient,
-	MockUserApiClient,
-	NewUserApiClient,
-} from "../../services/user-api-client.js";
-import { VoiceSynthesisService } from "../../services/voice-synthesis-service.js";
-import { EvaluateChapterTransitionUseCase } from "../../use-cases/evaluate-chapter-transition.js";
+import { BootstrapService } from "../../services/bootstrap-service.js";
 
 /**
  * @element legacys-end-app
@@ -71,7 +51,7 @@ export class LegacysEndApp extends SignalWatcher(LitElement) {
 	accessor logger = new LoggerService();
 
 	/** @type {UserApiClients} */
-	@provide({ context: apiClientsContext })
+	@provide({ context: apiClientsContext }) // This needs to match the structure defined in apiClientsContext.js
 	accessor services = {};
 
 	@provide({ context: profileContext })
@@ -79,105 +59,105 @@ export class LegacysEndApp extends SignalWatcher(LitElement) {
 
 	// --- Application Services ---
 	// Global services managing app-level features, persistence, and UI state.
-	/** @type {import('../../services/session-service.js').SessionService} */
+	/** @type {import('../../services/session-service.js').SessionService} */ // Retain type for accessor
 	@provide({ context: sessionContext })
 	@state()
 	accessor sessionService =
 		/** @type {import('../../services/session-service.js').SessionService} */ (
 			/** @type {unknown} */ (null)
 		);
-
-	/** @type {import('../../services/theme-service.js').ThemeService} */
+ 
+	/** @type {import('../../services/theme-service.js').ThemeService} */ // Retain type for accessor
 	@provide({ context: themeContext })
 	@state()
 	accessor themeService =
 		/** @type {import('../../services/theme-service.js').ThemeService} */ (
 			/** @type {unknown} */ (null)
 		);
-
-	/** @type {import('../../services/localization-service.js').LocalizationService} */
+ 
+	/** @type {import('../../services/localization-service.js').LocalizationService} */ // Retain type for accessor
 	@provide({ context: localizationContext })
 	@state()
 	accessor localizationService =
 		/** @type {import('../../services/localization-service.js').LocalizationService} */ (
 			/** @type {unknown} */ (null)
 		);
-
-	/** @type {IProgressService} */
+ 
+	/** @type {IProgressService} */ // Retain type for accessor
 	@provide({ context: progressContext })
 	accessor progressService = /** @type {IProgressService} */ (
 		/** @type {unknown} */ (null)
 	);
-
-	/** @type {import('../../services/preloader-service.js').PreloaderService} */
+ 
+	/** @type {import('../../services/preloader-service.js').PreloaderService} */ // Retain type for accessor
 	@provide({ context: preloaderContext })
 	accessor preloaderService =
 		/** @type {import('../../services/preloader-service.js').PreloaderService} */ (
 			/** @type {unknown} */ (null)
 		);
-
-	/** @type {import('../../services/quest-registry-service.js').QuestRegistryService} */
+ 
+	/** @type {import('../../services/quest-registry-service.js').QuestRegistryService} */ // Retain type for accessor
 	@provide({ context: questRegistryContext })
 	accessor registry =
 		/** @type {import('../../services/quest-registry-service.js').QuestRegistryService} */ (
 			/** @type {unknown} */ (null)
 		);
-
-	/** @type {IAIService} */
+ 
+	/** @type {IAIService} */ // Retain type for accessor
 	@provide({ context: aiContext })
 	accessor aiService = /** @type {IAIService} */ (
 		/** @type {unknown} */ (null)
 	);
-
-	/** @type {IVoiceSynthesisService} */
+ 
+	/** @type {IVoiceSynthesisService} */ // Retain type for accessor
 	@provide({ context: voiceContext })
 	accessor voiceSynthesisService = /** @type {IVoiceSynthesisService} */ (
 		/** @type {unknown} */ (null)
 	);
-
+ 
 	// --- Game State (Reactive) ---
-	// Domain-specific state containers for the game engine.
-	/** @type {import('../../game/services/quest-state-service.js').QuestStateService} */
+	// Domain-specific state containers for the game engine. // Existing JSDoc, will move class instantiation to BootstrapService
+	/** @type {import('../../game/services/quest-state-service.js').QuestStateService} */ // Retain type for accessor
 	@provide({ context: questStateContext })
 	@state()
 	accessor questState =
 		/** @type {import('../../game/services/quest-state-service.js').QuestStateService} */ (
 			/** @type {unknown} */ (null)
 		);
-
-	/** @type {import('../../game/services/world-state-service.js').WorldStateService} */
+ 
+	/** @type {import('../../game/services/world-state-service.js').WorldStateService} */ // Retain type for accessor
 	@provide({ context: worldStateContext })
 	@state()
 	accessor worldState =
 		/** @type {import('../../game/services/world-state-service.js').WorldStateService} */ (
 			/** @type {unknown} */ (null)
 		);
-
-	/** @type {import('../../game/services/hero-state-service.js').HeroStateService} */
+ 
+	/** @type {import('../../game/services/hero-state-service.js').HeroStateService} */ // Retain type for accessor
 	@provide({ context: heroStateContext })
 	@state()
 	accessor heroState =
 		/** @type {import('../../game/services/hero-state-service.js').HeroStateService} */ (
 			/** @type {unknown} */ (null)
 		);
-
+ 
 	// --- Controllers ---
-	// Orchestrators that bind state, services, and UI logic.
-	/** @type {import('../../controllers/quest-controller.js').QuestController} */
+	// Orchestrators that bind state, services, and UI logic. // Existing JSDoc, will move class instantiation to BootstrapService
+	/** @type {import('../../controllers/quest-controller.js').QuestController} */ // Retain type for accessor
 	@provide({ context: questControllerContext })
 	accessor questController =
 		/** @type {import('../../controllers/quest-controller.js').QuestController} */ (
 			/** @type {unknown} */ (null)
 		);
-
+ 
 	// --- Internal Component State ---
-	/** @type {import('../../utils/router.js').Router} */
+	/** @type {import('../../utils/router.js').Router} */ // Retain type for accessor
 	router = /** @type {import('../../utils/router.js').Router} */ (
 		/** @type {unknown} */ (null)
 	);
-
-	/** @type {IStorageAdapter} */
-	storage = /** @type {IStorageAdapter} */ (/** @type {unknown} */ (null));
+ 
+	/** @type {LocalStorageAdapter} */ // Retain type for accessor
+	storage = /** @type {LocalStorageAdapter} */ (/** @type {unknown} */ (null));
 
 	@state() accessor chapterId = "";
 	@state() accessor hasSeenIntro = false;
@@ -194,71 +174,31 @@ export class LegacysEndApp extends SignalWatcher(LitElement) {
 
 	async initGame() {
 		this.logger.info("LegacysEndApp: Starting initialization...");
-
+ 
 		try {
-			// 1. Core Services
-			this.storage = new LocalStorageAdapter({ logger: this.logger });
-			this.themeService = new ThemeService({
-				storage: this.storage,
-				logger: this.logger,
-			});
-			this.registry = new QuestRegistryService();
-			this.progressService = new ProgressService(
-				this.storage,
-				this.registry,
-				this.logger,
-			);
-			this.localizationService = new LocalizationService({
-				storage: this.storage,
-				logger: this.logger,
-			});
-
-			this.localizationService.onLocaleChange(() => {
-				this.registry.invalidateQuestCache();
-			});
-
-			// 2. API Services
-			this.services = {
-				legacy: new LegacyUserApiClient(),
-				mock: new MockUserApiClient(),
-				new: new NewUserApiClient(),
-			};
-
-			// 3. App Services
-			this.sessionService = new SessionService();
-			this.preloaderService = new PreloaderService({ logger: this.logger });
-			this.aiService = new AIService({ logger: this.logger });
-			this.voiceSynthesisService = new VoiceSynthesisService({
-				logger: this.logger,
-			});
-			this.evaluateChapterTransition = new EvaluateChapterTransitionUseCase();
-
-			// 4. Game State
-			this.heroState = new HeroStateService();
-			this.questState = new QuestStateService();
-			this.worldState = new WorldStateService();
-
-			// 5. Internal Utilities
-			this.router = new Router(this.logger);
-
-			// 6. Controller
-			this.questController = new QuestController(this, {
-				logger: this.logger,
-				registry: this.registry,
-				progressService: this.progressService,
-				preloaderService: this.preloaderService,
-				state: this.questState,
-				sessionService: this.sessionService,
-				worldState: this.worldState,
-				heroState: this.heroState,
-				router: this.router,
-			});
-
-			this.router.init();
-
-			if (window.location.pathname === "/" || window.location.pathname === "") {
-				this.router.navigate(ROUTES.HUB, true);
-			}
+			// The logger is already initialized as an accessor property and provided via context.
+			// Pass the existing logger instance to BootstrapService.
+			const bootstrapService = new BootstrapService(this.logger);
+			const initializedServices = await bootstrapService.initialize(this);
+ 
+			// Assign the initialized services and utilities to LegacysEndApp properties
+			this.storage = initializedServices.storage;
+			this.themeService = initializedServices.themeService;
+			this.registry = initializedServices.registry;
+			this.progressService = initializedServices.progressService;
+			this.localizationService = initializedServices.localizationService;
+			this.services = initializedServices.services;
+			this.sessionService = initializedServices.sessionService;
+			this.preloaderService = initializedServices.preloaderService;
+			this.aiService = initializedServices.aiService;
+			this.voiceSynthesisService = initializedServices.voiceSynthesisService;
+			// Note: evaluateChapterTransition is a UseCase, not an accessor, so direct assignment is fine.
+			this.evaluateChapterTransition = initializedServices.evaluateChapterTransition;
+			this.heroState = initializedServices.heroState;
+			this.questState = initializedServices.questState;
+			this.worldState = initializedServices.worldState;
+			this.router = initializedServices.router;
+			this.questController = initializedServices.questController;
 
 			this.logger.info("LegacysEndApp: Initialization complete.");
 			this.requestUpdate();
