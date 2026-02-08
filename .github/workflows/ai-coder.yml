@@ -59,6 +59,13 @@ jobs:
       - name: Generate Rules with RuleSync
         run: npx rulesync generate
 
+      - name: Sync Skills to Gemini CLI
+        run: |
+          mkdir -p .gemini/skills
+          if [ -d ".agent/skills" ]; then
+            cp -r .agent/skills/* .gemini/skills/
+          fi
+
       - name: Configure Git
         run: |
           git config --global user.name "AI Agent"
