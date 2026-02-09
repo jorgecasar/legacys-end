@@ -93,7 +93,15 @@ export async function main(modelId, issueNumber) {
         INSTRUCTIONS:
         1. Analyze project rules and task.
         2. Propose necessary file changes.
-        3. Return JSON ONLY: { "thought": "...", "changes": [{ "path": "...", "content": "..." }] }
+        3. Return a valid JSON object following exactly this structure:
+           {
+             "thought": "Brief explanation of your approach",
+             "changes": [
+               { "path": "relative/path/to/file", "content": "Full new content of the file" }
+             ]
+           }
+        
+        IMPORTANT: Your entire response must be a single JSON object. Do not include any text before or after the JSON block.
         `;
 
 		// 4. EJECUTAR COMANDO GEMINI CLI (Stream Mode)
