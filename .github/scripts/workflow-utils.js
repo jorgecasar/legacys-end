@@ -55,10 +55,12 @@ export const STATUS_OPTIONS = {
 	DONE: "98236657",
 };
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
- * Realiza una consulta GraphQL a GitHub usando fetch nativo
+ * Realiza una consulta GraphQL a GitHub usando fetch nativo con reintentos
  */
-export async function graphql(query, variables = {}) {
+export async function graphql(query, variables = {}, retries = 3) {
 	validateEnv(["GITHUB_TOKEN"]);
 	const response = await fetch("https://api.github.com/graphql", {
 		method: "POST",
@@ -68,6 +70,13 @@ export async function graphql(query, variables = {}) {
 		},
 		body: JSON.stringify({ query, variables }),
 	});
+
+	if (response.status === 429 && retries > 0) {
+		const retryAfter = response.headers.get("Retry-After") || 5;
+		console.error(`⚠️ HTTP 429 detectado. Reintentando en ${retryAfter}s...`);
+		await sleep(retryAfter * 1000);
+		return graphql(query, variables, retries - 1);
+	}
 
 	if (!response.ok) {
 		const text = await response.text();
@@ -82,18 +91,50 @@ export async function graphql(query, variables = {}) {
 }
 
 /**
- * Ejecuta un comando gh CLI
+ * Ejecuta un comando gh CLI con reintentos para errores 429
  */
-export function gh(args) {
+export function gh(args, retries = 3) {
 	try {
 		return execSync(`gh ${args}`, { encoding: "utf8" }).trim();
 	} catch (error) {
-		console.error(`Error executing gh ${args}:`, error.stdout || error.message);
+		const output = error.stdout || error.message || "";
+		const errorMsg = error.stderr || "";
+
+		if ((output.includes("429") || errorMsg.includes("429")) && retries > 0) {
+			console.error("⚠️ GitHub CLI limitando velocidad (429). Reintentando...");
+			execSync("sleep 5"); // Pausa simple síncrona
+			return gh(args, retries - 1);
+		}
+
+		console.error(`Error executing gh ${args}:`, errorMsg || output);
 		throw error;
 	}
 }
 
 // --- Lógica de Negocio ---
+
+export async function getIssueData(issueNumber) {
+	const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
+	const query = `
+    query($owner: String!, $repo: String!, $number: Int!) {
+      repository(owner: $owner, name: $repo) {
+        issue(number: $number) {
+          id
+          title
+          body
+          labels(first: 20) { nodes { name } }
+          state
+        }
+      }
+    }
+  `;
+	const data = await graphql(query, {
+		owner,
+		repo,
+		number: Number(issueNumber),
+	});
+	return data.repository.issue;
+}
 
 export async function getProjectItemId(issueNumber) {
 	validateEnv(["PROJECT_ID"]);
@@ -515,10 +556,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 					);
 					process.exit(1);
 				}
-				const labelsData = JSON.parse(
-					gh(`issue view ${issueNumber} --json labels`),
-				);
-				const labels = labelsData.labels.map((l) => l.name);
+
+				const issueData = await getIssueData(issueNumber);
+				const labels = issueData.labels.nodes.map((l) => l.name);
 				if (labels.includes("blocked"))
 					gh(`issue edit ${issueNumber} --remove-label blocked`);
 				process.exit(0);
