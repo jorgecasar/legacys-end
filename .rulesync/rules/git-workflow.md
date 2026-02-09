@@ -18,4 +18,4 @@ description: "Git branching and merging strategy"
 ## Commits
 - All commits must follow the **Conventional Commits** specification (see `conventional-commits` skill).
 - Keep commits atomic and focused on a single change.
-- **CI/CD Optimization**: Add `[skip ci]` to the commit message for changes that do not affect the application's deployment or production behavior (e.g., updates to documentation, internal AI rules, or Markdown files).
+- **CI/CD Optimization**: Use `[skip ci]` ONLY for changes that have ZERO impact on application logic, build, or tests (e.g., pure documentation updates, internal AI rule tweaks, or `.md` files outside of `src`). If a single `.js` or `.test.js` file is touched, CI MUST run.

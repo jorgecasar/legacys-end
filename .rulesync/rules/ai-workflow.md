@@ -6,7 +6,10 @@ globs: ["**/*"]
 
 # AI Agent Autonomous Workflow
 
-When you are acting as an autonomous agent (e.g., triggered by GitHub Actions), you MUST follow these steps to ensure high-quality contributions:
+## Workflow Mandates (STRICT)
+- **No Direct Pushes to Main**: You MUST NEVER push code changes directly to the `main` branch. All feature work, bug fixes, or refactors MUST be done in a feature branch.
+- **PR Mandate**: You MUST always create a Pull Request (`gh pr create`) when resolving a task, unless explicitly told otherwise by the user.
+- **CI Validation**: Code changes MUST ALWAYS trigger CI. Never use `[skip ci]` for commits that include logic, tests, or architectural changes.
 
 ## 1. Analysis & Planning
 - Thoroughly analyze the issue or feedback.
