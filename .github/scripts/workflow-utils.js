@@ -1,4 +1,6 @@
-const { execSync } = require("node:child_process");
+import { execSync } from "node:child_process";
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
 
 const PROJECT_ID = process.env.PROJECT_ID; // PVT_...
 const STATUS_FIELD_ID = process.env.STATUS_FIELD_ID; // PVTSSF_...
@@ -378,7 +380,6 @@ async function triageTask(issueNumber) {
  * Registra las estadísticas de la sesión en la Issue
  */
 async function logSessionStats(issueNumber, modelId, logFile) {
-	const fs = require("node:fs");
 	if (!fs.existsSync(logFile)) return;
 	const content = fs.readFileSync(logFile, "utf8");
 	const sentMatch = content.match(/([0-9.]+)(k?)\s+sent/i);
@@ -418,7 +419,7 @@ async function logSessionStats(issueNumber, modelId, logFile) {
 	);
 }
 
-if (require.main === module) {
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	const command = process.argv[2];
 	const issueNumber = process.argv[3];
 	if (command === "auto-pick") {
