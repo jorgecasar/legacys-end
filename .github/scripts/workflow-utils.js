@@ -2,6 +2,17 @@ import { execSync } from "node:child_process";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 
+// --- Cargar variables de entorno local si existen (.env o .env.local) ---
+for (const envFile of [".env.local", ".env"]) {
+	if (fs.existsSync(envFile)) {
+		try {
+			process.loadEnvFile(envFile);
+		} catch (e) {
+			console.error(`⚠️ No se pudo cargar ${envFile}:`, e.message);
+		}
+	}
+}
+
 // --- Configuración y Validación de Entorno ---
 const PROJECT_ID = process.env.PROJECT_ID;
 const STATUS_FIELD_ID = process.env.STATUS_FIELD_ID;

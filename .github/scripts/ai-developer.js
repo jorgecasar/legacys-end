@@ -3,6 +3,17 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+// --- Cargar variables de entorno local si existen (.env o .env.local) ---
+for (const envFile of [".env.local", ".env"]) {
+	if (fs.existsSync(envFile)) {
+		try {
+			process.loadEnvFile(envFile);
+		} catch (e) {
+			console.error(`⚠️ No se pudo cargar ${envFile}:`, e.message);
+		}
+	}
+}
+
 // --- Dependencias para Mocking ---
 export const deps = {
 	execSync,
