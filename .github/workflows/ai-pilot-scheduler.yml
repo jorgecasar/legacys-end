@@ -41,3 +41,5 @@ jobs:
       issue_number: ${{ needs.auto-pick.outputs.issue_number }}
     secrets:
       PROJECT_PAT: ${{ secrets.PROJECT_PAT }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
