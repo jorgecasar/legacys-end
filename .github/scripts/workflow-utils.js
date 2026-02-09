@@ -47,7 +47,12 @@ async function graphql(query, variables = {}) {
  * Ejecuta un comando gh CLI para utilidades secundarias
  */
 function gh(args) {
-	return execSync(`gh ${args}`, { encoding: "utf8" }).trim();
+	try {
+		return execSync(`gh ${args}`, { encoding: "utf8" }).trim();
+	} catch (error) {
+		console.error(`Error executing gh ${args}:`, error.message);
+		throw error;
+	}
 }
 
 /**
@@ -75,6 +80,30 @@ async function getProjectItemId(issueNumber) {
 		(n) => n.content && n.content.number === Number(issueNumber),
 	);
 	return item ? item.id : null;
+}
+
+/**
+ * Busca el ID de un campo por nombre
+ */
+async function getFieldId(fieldName) {
+	const query = `
+    query($projectId: ID!) {
+      node(id: $projectId) {
+        ... on ProjectV2 {
+          fields(first: 50) {
+            nodes {
+              ... on ProjectV2Field { id name }
+              ... on ProjectV2SingleSelectField { id name }
+              ... on ProjectV2IterationField { id name }
+            }
+          }
+        }
+      }
+    }
+  `;
+	const data = await graphql(query, { projectId: PROJECT_ID });
+	const field = data.node.fields.nodes.find((f) => f.name === fieldName);
+	return field ? field.id : null;
 }
 
 /**
@@ -112,7 +141,12 @@ async function addIssueToProject(issueUrl) {
  */
 async function updateProjectStatus(issueNumber, statusName, branchName = null) {
 	const itemId = await getProjectItemId(issueNumber);
-	if (!itemId) return;
+	if (!itemId) {
+		console.log(
+			`Issue #${issueNumber} not found in project. Skipping status update.`,
+		);
+		return;
+	}
 
 	const statusId = STATUS_OPTIONS[statusName];
 	if (statusId) {
@@ -134,9 +168,161 @@ async function updateProjectStatus(issueNumber, statusName, branchName = null) {
 	}
 
 	if (branchName) {
-		// Lógica para actualizar campo texto "Branch" si existe...
-		// (Podemos añadirla si es necesario, siguiendo el mismo patrón fetch)
+		const branchFieldId = await getFieldId("Branch");
+		if (branchFieldId) {
+			const query = `
+        mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $branch: String!) {
+          updateProjectV2ItemFieldValue(input: {
+            projectId: $projectId, itemId: $itemId, fieldId: $fieldId,
+            value: { text: $branch }
+          }) { clientMutationId }
+        }
+      `;
+			await graphql(query, {
+				projectId: PROJECT_ID,
+				itemId,
+				fieldId: branchFieldId,
+				branch: branchName,
+			});
+			console.log(`Updated Issue #${issueNumber} with branch ${branchName}`);
+		}
 	}
+}
+
+/**
+ * Verifica si las dependencias de una issue están cerradas.
+ */
+async function getOpenDependencies(issueNumber) {
+	const issueData = JSON.parse(gh(`issue view ${issueNumber} --json body`));
+	const issueBody = issueData.body;
+
+	const depRegex = /Depends on #(\d+)/g;
+	const textDependencies = [];
+	let match = depRegex.exec(issueBody);
+	while (match !== null) {
+		textDependencies.push(match[1]);
+		match = depRegex.exec(issueBody);
+	}
+
+	const query = `
+    query($owner: String!, $repo: String!, $issueNumber: Int!) {
+      repository(owner: $owner, name: $repo) {
+        issue(number: $issueNumber) {
+          blockedBy(first: 50) { nodes { number state } }
+          trackedIssues(first: 50) { nodes { number state } }
+        }
+      }
+    }
+  `;
+	const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
+	const data = await graphql(query, {
+		owner,
+		repo,
+		issueNumber: Number(issueNumber),
+	});
+	const issue = data.repository.issue;
+
+	const allDeps = [
+		...textDependencies.map((id) => ({ number: Number(id), type: "text" })),
+		...issue.blockedBy.nodes.map((dep) => ({
+			number: dep.number,
+			state: dep.state,
+			type: "native",
+		})),
+		...issue.trackedIssues.nodes.map((dep) => ({
+			number: dep.number,
+			state: dep.state,
+			type: "native",
+		})),
+	];
+
+	const openDeps = [];
+	for (const dep of allDeps) {
+		let isClosed = false;
+		if (dep.type === "native") {
+			isClosed = dep.state === "CLOSED";
+		} else {
+			const state = gh(`issue view ${dep.number} --json state -q .state`);
+			isClosed = state === "CLOSED";
+		}
+		if (!isClosed) openDeps.push(dep.number);
+	}
+	return [...new Set(openDeps)];
+}
+
+/**
+ * Busca la siguiente tarea para trabajar automáticamente siguiendo una prioridad estricta
+ */
+async function autoPickTask() {
+	const query = `
+    query($projectId: ID!) {
+      node(id: $projectId) {
+        ... on ProjectV2 {
+          items(last: 100) {
+            nodes {
+              id
+              content {
+                ... on Issue {
+                  number
+                  state
+                  milestone { number title }
+                  labels(first: 10) { nodes { name } }
+                }
+              }
+              fieldValues(first: 10) {
+                nodes {
+                  ... on ProjectV2ItemFieldSingleSelectValue {
+                    optionId
+                    field { ... on ProjectV2FieldCommon { name } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+	const data = await graphql(query, { projectId: PROJECT_ID });
+	const items = data.node.items.nodes;
+
+	const openIssues = items.filter((item) => {
+		if (!item.content || item.content.state !== "OPEN") return false;
+		const labels = item.content.labels.nodes.map((l) => l.name);
+		return !labels.includes("blocked");
+	});
+
+	if (openIssues.length === 0) return null;
+
+	const getStatusId = (item) => {
+		const field = item.fieldValues.nodes.find(
+			(fv) => fv.field && fv.field.name === "Status",
+		);
+		return field ? field.optionId : null;
+	};
+
+	const activeMilestones = openIssues
+		.map((i) => (i.content.milestone ? i.content.milestone.number : 999))
+		.sort((a, b) => a - b);
+
+	const lowestMilestoneNum = activeMilestones[0];
+
+	const milestoneIssues = openIssues.filter((i) => {
+		const mNum = i.content.milestone ? i.content.milestone.number : 999;
+		return mNum === lowestMilestoneNum;
+	});
+
+	const paused = milestoneIssues.find(
+		(i) => getStatusId(i) === STATUS_OPTIONS.PAUSED_429,
+	);
+	if (paused) return paused.content.number;
+
+	const todo = milestoneIssues.find(
+		(i) => getStatusId(i) === STATUS_OPTIONS.TODO,
+	);
+	if (todo) return todo.content.number;
+
+	return null;
 }
 
 /**
@@ -149,29 +335,121 @@ async function triageTask(issueNumber) {
 	const currentModelLabel = issueData.labels.find((l) =>
 		l.name.startsWith("model:"),
 	);
+
 	if (currentModelLabel) {
 		console.log(currentModelLabel.name.split(":")[1]);
 		return;
 	}
 
-	const prompt = `Analyze this GitHub Issue and assign the most efficient Gemini model ID:
-    gemini-3-pro-preview (complex), gemini-3-flash-preview (standard), gemini-2.5-flash-lite (trivial).
+	const prompt = `Analyze this GitHub Issue and assign the most efficient Gemini model available. 
+    Available Models & Capabilities:
+    - gemini-3-pro-preview: State-of-the-art reasoning, complex agentic tasks, architectural changes.
+    - gemini-3-flash-preview: Frontier intelligence + speed. Balanced for logic and scale.
+    - gemini-2.5-pro: Complex coding reasoning, long context analysis (stable).
+    - gemini-2.5-flash: Best price-performance, high-volume tasks with thinking.
+    - gemini-2.5-flash-lite: Fastest, cost-efficient for trivial tasks.
+    - gemini-2.0-flash: Legacy workhorse (available until March 31, 2026).
+
+    Selection Criteria:
+    1. TRIVIAL (Docs, CSS): gemini-2.5-flash-lite
+    2. MICRO (Single fixes, renames): gemini-2.0-flash
+    3. SIMPLE (Standard bugs, UI): gemini-3-flash-preview
+    4. MEDIUM (New features, unit tests): gemini-2.5-pro
+    5. COMPLEX (Core logic, algorithms): gemini-3-pro-preview
+    6. CRITICAL (Arch, security): gemini-3-pro-preview
+
+    Return ONLY the model ID.
     TITLE: ${issueData.title}
     BODY: ${issueData.body}`;
 
-	const response = await fetch(
-		`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${process.env.GEMINI_API_KEY}`,
-		{
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-		},
-	);
+	try {
+		const response = await fetch(
+			`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${process.env.GEMINI_API_KEY}`,
+			{
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+			},
+		);
 
-	const data = await response.json();
-	const modelId = data.candidates[0].content.parts[0].text.trim();
-	gh(`issue edit ${issueNumber} --add-label "model:${modelId}"`);
-	console.log(modelId);
+		const data = await response.json();
+
+		if (
+			!data.candidates ||
+			!data.candidates[0] ||
+			!data.candidates[0].content
+		) {
+			console.error("API Response Error:", JSON.stringify(data));
+			throw new Error("Invalid API response format");
+		}
+
+		const modelId = data.candidates[0].content.parts[0].text.trim();
+		const validModels = [
+			"gemini-3-pro-preview",
+			"gemini-3-flash-preview",
+			"gemini-2.5-pro",
+			"gemini-2.5-flash",
+			"gemini-2.5-flash-lite",
+			"gemini-2.0-flash",
+		];
+		const finalModel = validModels.includes(modelId)
+			? modelId
+			: "gemini-3-flash-preview";
+		gh(`issue edit ${issueNumber} --add-label "model:${finalModel}"`);
+		console.log(finalModel);
+	} catch (error) {
+		console.error("Triage failed, fallback to flash:", error.message);
+		console.log("gemini-3-flash-preview");
+	}
+}
+
+/**
+ * Registra las estadísticas de la sesión en la Issue
+ */
+async function logSessionStats(issueNumber, modelId, logFile) {
+	if (!fs.existsSync(logFile)) return;
+	const content = fs.readFileSync(logFile, "utf8");
+	const sentMatch = content.match(/([0-9.]+)(k?)\s+sent/i);
+	const recvMatch = content.match(/([0-9.]+)(k?)\s+received/i);
+	const costMatch = content.match(/Cost:.*?\$([0-9.]+)\s+session/i);
+	if (!sentMatch || !recvMatch) return;
+
+	const parseTokens = (val, unit) => {
+		let num = parseFloat(val);
+		if (unit.toLowerCase() === "k") num *= 1000;
+		return Math.round(num);
+	};
+
+	const inputTokens = parseTokens(sentMatch[1], sentMatch[2]);
+	const outputTokens = parseTokens(recvMatch[1], recvMatch[2]);
+	const cost = costMatch
+		? parseFloat(costMatch[1])
+		: (inputTokens / 1000000) * (PRICING[modelId]?.input || 0.5) +
+			(outputTokens / 1000000) * (PRICING[modelId]?.output || 3.0);
+
+	const issueData = JSON.parse(gh(`issue view ${issueNumber} --json comments`));
+	const statsComment = issueData.comments.find((c) =>
+		c.body.includes("<!-- session-stats -->"),
+	);
+	const sessions = statsComment
+		? JSON.parse(statsComment.body.match(/```json\n([\s\S]*?)\n```/)[1])
+		: [];
+
+	sessions.push({
+		date: new Date().toISOString(),
+		model: modelId,
+		input: inputTokens,
+		output: outputTokens,
+		cost: parseFloat(cost.toFixed(6)),
+	});
+
+	const totalCost = sessions.reduce((sum, s) => sum + s.cost, 0);
+	const commentBody = `### 📊 AI Session Report <!-- session-stats -->\n| Session | Model | Tokens (I/O) | Cost |\n| :--- | :--- | :--- | :--- |\n${sessions.map((s, i) => `| #${i + 1} | \`${s.model}\` | ${s.input}/${s.output} | $${s.cost} |`).join("\n")}\n\n**Total Sessions:** ${sessions.length}\n**Total Estimated Cost:** **$${totalCost.toFixed(6)}**\n\n<details><summary>Raw Data</summary>\n\n\`\`\`json\n${JSON.stringify(sessions, null, 2)}\n\`\`\`\n</details>`;
+
+	const cmd = statsComment ? `--edit-last` : "";
+	gh(
+		`issue comment ${issueNumber} ${cmd} --body "${commentBody.replace(/"/g, '\\"').replace(/\n/g, "\\n")}"`,
+	);
 }
 
 // Lógica de ejecución principal
@@ -179,16 +457,51 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	const command = process.argv[2];
 	const issueNumber = process.argv[3];
 
-	if (command === "add-to-project") {
+	if (command === "auto-pick") {
+		autoPickTask().then((num) => {
+			if (num) {
+				console.log(num);
+				process.exit(0);
+			} else {
+				process.exit(1);
+			}
+		});
+	} else if (command === "add-to-project") {
 		addIssueToProject(process.argv[3]).then(() => process.exit(0));
 	} else if (command === "triage-task") {
 		triageTask(issueNumber).then(() => process.exit(0));
+	} else if (command === "log-session-stats") {
+		logSessionStats(issueNumber, process.argv[4], process.argv[5]).then(() =>
+			process.exit(0),
+		);
+	} else if (command === "check-deps") {
+		getOpenDependencies(issueNumber).then((openDeps) => {
+			if (openDeps.length > 0) {
+				const depTasks = openDeps.map((depNum) => {
+					const depUrl = `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${depNum}`;
+					return addIssueToProject(depUrl).then(() =>
+						updateProjectStatus(depNum, "TODO"),
+					);
+				});
+				Promise.all(depTasks).then(() => {
+					gh(`issue edit ${issueNumber} --add-label blocked`);
+					gh(
+						`issue comment ${issueNumber} --body "🚫 Tarea bloqueada por: ${openDeps.map((n) => `#${n}`).join(", ")}. He movido las dependencias a TODO para desbloquear esta tarea."`,
+					);
+					process.exit(1);
+				});
+			} else {
+				const labels = gh(
+					`issue view ${issueNumber} --json labels -q '.labels[].name'`,
+				);
+				if (labels.includes("blocked"))
+					gh(`issue edit ${issueNumber} --remove-label blocked`);
+				process.exit(0);
+			}
+		});
 	} else if (command === "set-status") {
 		updateProjectStatus(issueNumber, process.argv[4], process.argv[5]).then(
 			() => process.exit(0),
 		);
-	} else if (command === "check-deps") {
-		// (Se mantiene la lógica de checkDependencies usando fetch si se prefiere)
-		process.exit(0);
 	}
 }
