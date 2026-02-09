@@ -19,6 +19,7 @@ function gh(args) {
 
 export function parseAIResponse(text) {
 	try {
+		// Eliminar posibles bloques de código markdown
 		const jsonStr = text.replace(/```json|```/g, "").trim();
 		return JSON.parse(jsonStr);
 	} catch (error) {
@@ -39,71 +40,39 @@ export function getProjectRules(rulesDir = ".rulesync/rules") {
 		.join("\n\n");
 }
 
-async function getAccessToken() {
-	const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
-	const clientId = process.env.GOOGLE_CLIENT_ID;
-	const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-
-	if (!refreshToken || !clientId || !clientSecret) return null;
-
-	try {
-		const response = await fetch("https://oauth2.googleapis.com/token", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				client_id: clientId,
-				client_secret: clientSecret,
-				refresh_token: refreshToken,
-				grant_type: "refresh_token",
-			}),
-		});
-
-		const data = await response.json();
-		return data.access_token;
-	} catch (error) {
-		console.error("⚠️ Error refreshing OAuth token:", error.message);
-		return null;
-	}
-}
-
 export async function main(modelId, issueNumber) {
-	const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-	const accessToken = await getAccessToken();
+	const apiKey = (
+		process.env.GEMINI_API_KEY ||
+		process.env.GOOGLE_API_KEY ||
+		""
+	).trim();
 
-	if (!apiKey && !accessToken) {
-		console.error(
-			"❌ Missing Auth: Need GEMINI_API_KEY or GOOGLE_REFRESH_TOKEN",
-		);
+	if (!apiKey || !issueNumber) {
+		console.error("❌ Missing GEMINI_API_KEY/GOOGLE_API_KEY or ISSUE_NUMBER");
 		process.exit(1);
 	}
 
 	console.error(
-		`🚀 Starting Native Agent with model ${modelId} for Issue #${issueNumber}`,
+		`🚀 Starting AI Agent [REST Mode] with model ${modelId} for Issue #${issueNumber}`,
+	);
+	console.error(
+		`ℹ️ Auth: Using API Key (Starts: ${apiKey.substring(0, 4)}... Length: ${apiKey.length})`,
 	);
 
-	const headers = { "Content-Type": "application/json" };
-	let url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`;
-
-	if (accessToken) {
-		console.error("🔐 Authenticated using Google AI Pro (OAuth Bearer)");
-		headers["Authorization"] = `Bearer ${accessToken}`;
-	} else {
-		console.error("ℹ️ Using standard API Key");
-		url += `?key=${apiKey.trim()}`;
-	}
+	const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
 
 	try {
-		// 1. Contexto de la Issue
+		// 1. Obtener contexto de la Issue
 		const issueData = JSON.parse(
 			gh(`issue view ${issueNumber} --json title,body`),
 		);
 
-		// 2. Archivos disponibles
+		// 2. Escaneo rápido de archivos
 		const fileList = deps.execSync('find src -maxdepth 3 -not -path "*/.*"', {
 			encoding: "utf8",
 		});
 
-		// 3. Reglas
+		// 3. Cargar reglas
 		const rules = getProjectRules();
 
 		const prompt = `
@@ -118,20 +87,21 @@ export async function main(modelId, issueNumber) {
 
     INSTRUCTIONS:
     1. Identify the files that need to be created or modified.
-    2. Return a JSON object with the following structure:
+    2. Read their content if necessary.
+    3. Return a JSON object with the following structure:
        {
          "thought": "Brief explanation of the plan",
          "changes": [
            { "path": "src/path/to/file.js", "content": "FULL NEW CONTENT" }
          ]
        }
-    4. Do NOT include any text before or after the JSON.
+    4. Return ONLY the JSON object. No other text.
     5. Always follow the project standards: ESM, node: protocol, double quotes, Result pattern for errors.
     `;
 
 		const response = await fetch(url, {
 			method: "POST",
-			headers: headers,
+			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
 				contents: [{ parts: [{ text: prompt }] }],
 			}),
@@ -146,7 +116,9 @@ export async function main(modelId, issueNumber) {
 		}
 
 		if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
-			throw new Error(`Unexpected API Response: ${JSON.stringify(result)}`);
+			throw new Error(
+				`Unexpected API Response Format. Check if model ${modelId} is available in your region.`,
+			);
 		}
 
 		const plan = parseAIResponse(result.candidates[0].content.parts[0].text);
@@ -167,7 +139,6 @@ export async function main(modelId, issueNumber) {
 	}
 }
 
-// Ejecutar si es el script principal
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	const modelId = process.argv[2] || "gemini-3-flash-preview";
 	const issueNum = process.argv[3];
