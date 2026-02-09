@@ -536,14 +536,22 @@ export class QuestController {
 			currentIndex: this.currentChapterIndex,
 		});
 
-		if (result.action === "COMPLETE") {
-			this.completeQuest();
-		} else {
-			// Advance ONLY if there is NO exit zone.
-			// If there is an exit zone, the CollisionController will call advanceChapter when the player walks into it.
-			if (!this.currentChapter.exitZone) {
-				this.nextChapter();
+		if (result.isOk()) {
+			const { action } = result.unwrap();
+			if (action === "COMPLETE") {
+				this.completeQuest();
+			} else {
+				// Advance ONLY if there is NO exit zone.
+				// If there is an exit zone, the CollisionController will call advanceChapter when the player walks into it.
+				if (!this.currentChapter.exitZone) {
+					this.nextChapter();
+				}
 			}
+		} else {
+			this.#logger?.error(
+				"QuestController: Failed to evaluate chapter transition",
+				result.unwrapErr(),
+			);
 		}
 	}
 

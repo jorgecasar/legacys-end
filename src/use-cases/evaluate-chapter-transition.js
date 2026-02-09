@@ -1,3 +1,5 @@
+import { Result } from "../utils/result.js";
+
 /**
  * EvaluateChapterTransitionUseCase
  *
@@ -15,23 +17,33 @@ export class EvaluateChapterTransitionUseCase {
 	 * Execute the evaluation
 	 * @param {Object} params
 	 * @param {import('../services/quest-registry-service.js').Quest} [params.quest]
-	 * @param {number} params.currentIndex
-	 * @returns {TransitionResult}
+	 * @param {number} params.currentIndex - The current index of the chapter
+	 * @returns {Result<TransitionResult, Error>}
 	 */
 	execute({ quest, currentIndex }) {
 		if (!quest || !quest.chapterIds) {
-			return { action: "NONE" };
+			return /** @type {Result<TransitionResult, Error>} */ (
+				/** @type {any} */ (
+					Result.Err(new Error("Quest or quest chapter IDs are not provided."))
+				)
+			);
 		}
 
 		const nextIndex = currentIndex + 1;
 		if (nextIndex < quest.chapterIds.length) {
-			return {
-				action: "ADVANCE",
-				nextIndex,
-				nextChapterId: quest.chapterIds[nextIndex] || "",
-			};
+			return /** @type {Result<TransitionResult, Error>} */ (
+				/** @type {any} */ (
+					Result.Ok({
+						action: "ADVANCE",
+						nextIndex,
+						nextChapterId: quest.chapterIds[nextIndex] || "",
+					})
+				)
+			);
 		}
 
-		return { action: "COMPLETE" };
+		return /** @type {Result<TransitionResult, Error>} */ (
+			/** @type {any} */ (Result.Ok({ action: "COMPLETE" }))
+		);
 	}
 }

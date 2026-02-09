@@ -1,15 +1,6 @@
 import assert from "node:assert";
-import * as child_process from "node:child_process";
-import * as fs from "node:fs";
 import { beforeEach, describe, it, mock } from "node:test";
-import {
-	addIssueToProject,
-	autoPickTask,
-	getProjectItemId,
-	graphql,
-	STATUS_OPTIONS,
-	updateProjectStatus,
-} from "./workflow-utils.js";
+import { autoPickTask, getProjectItemId, graphql } from "./workflow-utils.js";
 
 // Mock global fetch
 global.fetch = mock.fn();

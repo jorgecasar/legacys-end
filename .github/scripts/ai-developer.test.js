@@ -1,5 +1,4 @@
 import assert from "node:assert";
-import path from "node:path";
 import { beforeEach, describe, it, mock } from "node:test";
 import { deps, getProjectRules, parseAIResponse } from "./ai-developer.js";
 

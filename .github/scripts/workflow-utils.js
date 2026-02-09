@@ -422,11 +422,11 @@ export async function triageTask(issueNumber) {
 			gh(
 				`label create "model:${finalModel}" --color "fbca04" --description "AI Model assigned to this task"`,
 			);
-		} catch (e) {}
+		} catch (_e) {}
 
 		gh(`issue edit ${issueNumber} --add-label "model:${finalModel}"`);
 		process.stdout.write(finalModel);
-	} catch (error) {
+	} catch (_error) {
 		clearTimeout(timeoutId);
 		console.error("⚠️ Triage failed, fallback to gemini-2.5-flash-lite");
 		process.stdout.write("gemini-2.5-flash-lite");

@@ -3,10 +3,8 @@ import { beforeEach, describe, it, mock } from "node:test";
 import {
 	deps,
 	exec,
-	getCommitsInRange,
 	getCommitsToAnalyze,
 	getGzipSize,
-	getLoC,
 	parseArgs,
 } from "./analyze-history.js";
 
