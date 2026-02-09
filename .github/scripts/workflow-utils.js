@@ -387,13 +387,13 @@ export async function triageTask(issueNumber) {
 			throw new Error("Invalid API response format");
 		}
 
-		const modelId = data.candidates[0].content.parts[0].text.trim();
 		const validModels = [
 			"gemini-3-pro-preview",
-			"gemini-2.0-flash",
-			"gemini-2.0-flash-lite",
+			"gemini-3-flash-preview",
 			"gemini-2.5-pro",
 			"gemini-2.5-flash",
+			"gemini-2.5-flash-lite",
+			"gemini-2.0-flash",
 		];
 		const finalModel = validModels.includes(modelId)
 			? modelId
