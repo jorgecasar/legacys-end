@@ -2,9 +2,18 @@ import { execSync } from "node:child_process";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 
+// --- Configuración y Validación de Entorno ---
 const PROJECT_ID = process.env.PROJECT_ID;
 const STATUS_FIELD_ID = process.env.STATUS_FIELD_ID;
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+
+function validateEnv(required = []) {
+	for (const key of required) {
+		if (!process.env[key]) {
+			throw new Error(`Environment variable ${key} is missing.`);
+		}
+	}
+}
 
 export const PRICING = {
 	"gemini-3-pro-preview": { input: 2.0, output: 12.0 },
@@ -23,18 +32,26 @@ export const STATUS_OPTIONS = {
 	DONE: "98236657",
 };
 
+// --- Comunicación con APIs ---
+
 /**
  * Realiza una consulta GraphQL a GitHub usando fetch nativo
  */
 export async function graphql(query, variables = {}) {
+	validateEnv(["GITHUB_TOKEN"]);
 	const response = await fetch("https://api.github.com/graphql", {
 		method: "POST",
 		headers: {
-			Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+			Authorization: `Bearer ${GITHUB_TOKEN}`,
 			"Content-Type": "application/json",
 		},
 		body: JSON.stringify({ query, variables }),
 	});
+
+	if (!response.ok) {
+		const text = await response.text();
+		throw new Error(`HTTP Error ${response.status}: ${text}`);
+	}
 
 	const result = await response.json();
 	if (result.errors) {
@@ -44,21 +61,21 @@ export async function graphql(query, variables = {}) {
 }
 
 /**
- * Ejecuta un comando gh CLI para utilidades secundarias
+ * Ejecuta un comando gh CLI
  */
 export function gh(args) {
 	try {
 		return execSync(`gh ${args}`, { encoding: "utf8" }).trim();
 	} catch (error) {
-		console.error(`Error executing gh ${args}:`, error.message);
+		console.error(`Error executing gh ${args}:`, error.stdout || error.message);
 		throw error;
 	}
 }
 
-/**
- * Busca el Item ID de una Issue en el Proyecto
- */
+// --- Lógica de Negocio ---
+
 export async function getProjectItemId(issueNumber) {
+	validateEnv(["PROJECT_ID"]);
 	const query = `
     query($projectId: ID!) {
       node(id: $projectId) {
@@ -75,17 +92,15 @@ export async function getProjectItemId(issueNumber) {
       }
     }
   `;
-	const data = await graphql(query, { projectId: process.env.PROJECT_ID });
+	const data = await graphql(query, { projectId: PROJECT_ID });
 	const item = data.node.items.nodes.find(
 		(n) => n.content && n.content.number === Number(issueNumber),
 	);
 	return item ? item.id : null;
 }
 
-/**
- * Busca el ID de un campo por nombre
- */
 export async function getFieldId(fieldName) {
+	validateEnv(["PROJECT_ID"]);
 	const query = `
     query($projectId: ID!) {
       node(id: $projectId) {
@@ -101,16 +116,14 @@ export async function getFieldId(fieldName) {
       }
     }
   `;
-	const data = await graphql(query, { projectId: process.env.PROJECT_ID });
+	const data = await graphql(query, { projectId: PROJECT_ID });
 	const field = data.node.fields.nodes.find((f) => f.name === fieldName);
 	return field ? field.id : null;
 }
 
-/**
- * Añade una issue al proyecto si no está ya en él
- */
 export async function addIssueToProject(issueUrl) {
 	try {
+		validateEnv(["PROJECT_ID"]);
 		const issueNumber = issueUrl.split("/").pop();
 		const issueData = JSON.parse(gh(`issue view ${issueNumber} --json id`));
 		const issueId = issueData.id;
@@ -123,7 +136,7 @@ export async function addIssueToProject(issueUrl) {
       }
     `;
 		const data = await graphql(query, {
-			projectId: process.env.PROJECT_ID,
+			projectId: PROJECT_ID,
 			contentId: issueId,
 		});
 		console.log(
@@ -136,9 +149,6 @@ export async function addIssueToProject(issueUrl) {
 	}
 }
 
-/**
- * Cambia el estado y opcionalmente la rama de un item en el proyecto
- */
 export async function updateProjectStatus(
 	issueNumber,
 	statusName,
@@ -154,6 +164,7 @@ export async function updateProjectStatus(
 
 	const statusId = STATUS_OPTIONS[statusName];
 	if (statusId) {
+		validateEnv(["STATUS_FIELD_ID"]);
 		const query = `
       mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
         updateProjectV2ItemFieldValue(input: {
@@ -163,9 +174,9 @@ export async function updateProjectStatus(
       }
     `;
 		await graphql(query, {
-			projectId: process.env.PROJECT_ID,
+			projectId: PROJECT_ID,
 			itemId,
-			fieldId: process.env.STATUS_FIELD_ID,
+			fieldId: STATUS_FIELD_ID,
 			optionId: statusId,
 		});
 		console.log(`Updated Issue #${issueNumber} to status ${statusName}`);
@@ -183,7 +194,7 @@ export async function updateProjectStatus(
         }
       `;
 			await graphql(query, {
-				projectId: process.env.PROJECT_ID,
+				projectId: PROJECT_ID,
 				itemId,
 				fieldId: branchFieldId,
 				branch: branchName,
@@ -193,9 +204,6 @@ export async function updateProjectStatus(
 	}
 }
 
-/**
- * Verifica si las dependencias de una issue están cerradas.
- */
 export async function getOpenDependencies(issueNumber) {
 	const issueData = JSON.parse(gh(`issue view ${issueNumber} --json body`));
 	const issueBody = issueData.body;
@@ -254,9 +262,6 @@ export async function getOpenDependencies(issueNumber) {
 	return [...new Set(openDeps)];
 }
 
-/**
- * Busca la siguiente tarea para trabajar automáticamente siguiendo una prioridad estricta
- */
 export async function autoPickTask() {
 	const query = `
     query($projectId: ID!) {
@@ -287,7 +292,7 @@ export async function autoPickTask() {
       }
     }
   `;
-	const data = await graphql(query, { projectId: process.env.PROJECT_ID });
+	const data = await graphql(query, { projectId: PROJECT_ID });
 	const items = data.node.items.nodes;
 
 	const openIssues = items.filter((item) => {
@@ -329,10 +334,8 @@ export async function autoPickTask() {
 	return null;
 }
 
-/**
- * Realiza el triaje de una issue
- */
 export async function triageTask(issueNumber) {
+	validateEnv(["GEMINI_API_KEY"]);
 	const issueData = JSON.parse(
 		gh(`issue view ${issueNumber} --json title,body,labels`),
 	);
@@ -345,71 +348,38 @@ export async function triageTask(issueNumber) {
 		return;
 	}
 
-	const prompt = `Analyze this GitHub Issue and assign the most efficient Gemini model available. 
-    Available Models & Capabilities:
-    - gemini-3-pro-preview: State-of-the-art reasoning, complex agentic tasks, architectural changes.
-    - gemini-3-flash-preview: Frontier intelligence + speed. Balanced for logic and scale.
-    - gemini-2.5-pro: Complex coding reasoning, long context analysis (stable).
-    - gemini-2.5-flash: Best price-performance, high-volume tasks with thinking.
-    - gemini-2.5-flash-lite: Fastest, cost-efficient for trivial tasks.
-    - gemini-2.0-flash: Legacy workhorse (available until March 31, 2026).
+	const prompt = `Analyze this GitHub Issue and assign the most efficient Gemini model available (Feb 2026). Return ONLY ID: gemini-3-pro-preview (complex), gemini-3-flash-preview (standard), gemini-2.5-flash-lite (trivial). TITLE: ${issueData.title} BODY: ${issueData.body}`;
 
-    Selection Criteria:
-    1. TRIVIAL (Docs, CSS): gemini-2.5-flash-lite
-    2. MICRO (Single fixes, renames): gemini-2.0-flash
-    3. SIMPLE (Standard bugs, UI): gemini-3-flash-preview
-    4. MEDIUM (New features, unit tests): gemini-2.5-pro
-    5. COMPLEX (Core logic, algorithms): gemini-3-pro-preview
-    6. CRITICAL (Arch, security): gemini-3-pro-preview
+	const response = await fetch(
+		`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${process.env.GEMINI_API_KEY}`,
+		{
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+		},
+	);
 
-    Return ONLY the model ID.
-    TITLE: ${issueData.title}
-    BODY: ${issueData.body}`;
-
-	try {
-		const response = await fetch(
-			`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${process.env.GEMINI_API_KEY}`,
-			{
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-			},
-		);
-
-		const data = await response.json();
-
-		if (
-			!data.candidates ||
-			!data.candidates[0] ||
-			!data.candidates[0].content
-		) {
-			console.error("API Response Error:", JSON.stringify(data));
-			throw new Error("Invalid API response format");
-		}
-
-		const modelId = data.candidates[0].content.parts[0].text.trim();
-		const validModels = [
-			"gemini-3-pro-preview",
-			"gemini-3-flash-preview",
-			"gemini-2.5-pro",
-			"gemini-2.5-flash",
-			"gemini-2.5-flash-lite",
-			"gemini-2.0-flash",
-		];
-		const finalModel = validModels.includes(modelId)
-			? modelId
-			: "gemini-3-flash-preview";
-		gh(`issue edit ${issueNumber} --add-label "model:${finalModel}"`);
-		console.log(finalModel);
-	} catch (error) {
-		console.error("Triage failed, fallback to flash:", error.message);
-		console.log("gemini-3-flash-preview");
+	const data = await response.json();
+	if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+		throw new Error(`Invalid Triage API Response: ${JSON.stringify(data)}`);
 	}
+
+	const modelId = data.candidates[0].content.parts[0].text.trim();
+	const validModels = [
+		"gemini-3-pro-preview",
+		"gemini-3-flash-preview",
+		"gemini-2.5-pro",
+		"gemini-2.5-flash",
+		"gemini-2.5-flash-lite",
+		"gemini-2.0-flash",
+	];
+	const finalModel = validModels.includes(modelId)
+		? modelId
+		: "gemini-3-flash-preview";
+	gh(`issue edit ${issueNumber} --add-label "model:${finalModel}"`);
+	console.log(finalModel);
 }
 
-/**
- * Registra las estadísticas de la sesión en la Issue
- */
 export async function logSessionStats(issueNumber, modelId, logFile) {
 	if (!fs.existsSync(logFile)) return;
 	const content = fs.readFileSync(logFile, "utf8");
@@ -456,56 +426,63 @@ export async function logSessionStats(issueNumber, modelId, logFile) {
 	);
 }
 
-// Lógica de ejecución principal
+// --- Punto de Entrada CLI ---
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	const command = process.argv[2];
 	const issueNumber = process.argv[3];
 
-	if (command === "auto-pick") {
-		autoPickTask().then((num) => {
-			if (num) {
-				console.log(num);
+	(async () => {
+		try {
+			if (command === "auto-pick") {
+				const num = await autoPickTask();
+				if (num) {
+					console.log(num);
+					process.exit(0);
+				} else {
+					console.error("No tasks to pick.");
+					process.exit(1);
+				}
+			} else if (command === "add-to-project") {
+				await addIssueToProject(process.argv[3]);
 				process.exit(0);
-			} else {
-				process.exit(1);
-			}
-		});
-	} else if (command === "add-to-project") {
-		addIssueToProject(process.argv[3]).then(() => process.exit(0));
-	} else if (command === "triage-task") {
-		triageTask(issueNumber).then(() => process.exit(0));
-	} else if (command === "log-session-stats") {
-		logSessionStats(issueNumber, process.argv[4], process.argv[5]).then(() =>
-			process.exit(0),
-		);
-	} else if (command === "check-deps") {
-		getOpenDependencies(issueNumber).then((openDeps) => {
-			if (openDeps.length > 0) {
-				const depTasks = openDeps.map((depNum) => {
-					const depUrl = `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${depNum}`;
-					return addIssueToProject(depUrl).then(() =>
-						updateProjectStatus(depNum, "TODO"),
-					);
-				});
-				Promise.all(depTasks).then(() => {
+			} else if (command === "triage-task") {
+				await triageTask(issueNumber);
+				process.exit(0);
+			} else if (command === "log-session-stats") {
+				await logSessionStats(issueNumber, process.argv[4], process.argv[5]);
+				process.exit(0);
+			} else if (command === "check-deps") {
+				const openDeps = await getOpenDependencies(issueNumber);
+				if (openDeps.length > 0) {
+					for (const depNum of openDeps) {
+						await addIssueToProject(
+							`https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${depNum}`,
+						);
+						await updateProjectStatus(depNum, "TODO");
+					}
 					gh(`issue edit ${issueNumber} --add-label blocked`);
 					gh(
-						`issue comment ${issueNumber} --body "🚫 Tarea bloqueada por: ${openDeps.map((n) => `#${n}`).join(", ")}. He movido las dependencias a TODO para desbloquear esta tarea."`,
+						`issue comment ${issueNumber} --body "🚫 Tarea bloqueada por: ${openDeps.map((n) => `#${n}`).join(", ")}. He movido las dependencias a TODO."`,
 					);
 					process.exit(1);
-				});
-			} else {
-				const labels = gh(
-					`issue view ${issueNumber} --json labels -q '.labels[].name'`,
-				);
+				}
+				const labels = JSON.parse(
+					gh(`issue view ${issueNumber} --json labels`),
+				).labels.map((l) => l.name);
 				if (labels.includes("blocked"))
 					gh(`issue edit ${issueNumber} --remove-label blocked`);
 				process.exit(0);
+			} else if (command === "set-status") {
+				await updateProjectStatus(
+					issueNumber,
+					process.argv[4],
+					process.argv[5],
+				);
+				process.exit(0);
 			}
-		});
-	} else if (command === "set-status") {
-		updateProjectStatus(issueNumber, process.argv[4], process.argv[5]).then(
-			() => process.exit(0),
-		);
-	}
+		} catch (error) {
+			console.error(`💥 Execution Failed: ${error.message}`);
+			process.exit(1);
+		}
+	})();
 }
