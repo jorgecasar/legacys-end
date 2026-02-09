@@ -75,7 +75,14 @@ export default defineConfig(({ mode }) => {
 			},
 		},
 		test: {
-			exclude: ["**/e2e/**", "**/node_modules/**", "**/dist/**"],
+			exclude: [
+				"**/e2e/**",
+				"**/node_modules/**",
+				"**/dist/**",
+				".github/scripts/**",
+				"scripts/analyze-history.js",
+				"scripts/analyze-history.test.js",
+			],
 			silent: false,
 			browser: {
 				enabled: true,
