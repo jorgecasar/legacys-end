@@ -371,29 +371,25 @@ export async function autoPickTask() {
 export async function triageTask(issueNumber) {
 	validateEnv(["GEMINI_API_KEY"]);
 	const issueData = JSON.parse(
-		gh(`issue view ${issueNumber} --json title,body,labels`),
+		gh(`issue view ${issueNumber} --json title,labels`),
 	);
 	const currentModelLabel = issueData.labels.find((l) =>
 		l.name.startsWith("model:"),
 	);
 
 	if (currentModelLabel) {
-		console.log(currentModelLabel.name.split(":")[1]);
+		process.stdout.write(currentModelLabel.name.split(":")[1]);
 		return;
 	}
 
-	const prompt = `Analyze this GitHub Issue and assign the most efficient Gemini model ID:
-    gemini-3-pro-preview (complex), gemini-3-flash-preview (standard), gemini-2.0-flash (stable), gemini-2.5-flash-lite (trivial).
-    TITLE: ${issueData.title}
-    BODY: ${issueData.body}`;
+	const prompt = `Model ID for task "${issueData.title}". Labels: ${issueData.labels.map((l) => l.name).join(",")}. Return ONLY: gemini-3-pro-preview, gemini-3-flash-preview, or gemini-2.5-flash-lite.`;
 
-	// Timeout de 20 segundos para evitar que el workflow se cuelgue
 	const controller = new AbortController();
 	const timeoutId = setTimeout(() => controller.abort(), 20000);
 
 	try {
 		const response = await fetch(
-			`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${process.env.GEMINI_API_KEY}`,
+			`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
 			{
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -405,11 +401,7 @@ export async function triageTask(issueNumber) {
 		clearTimeout(timeoutId);
 		const data = await response.json();
 
-		if (
-			!data.candidates ||
-			!data.candidates[0] ||
-			!data.candidates[0].content
-		) {
+		if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
 			throw new Error("Invalid API response format");
 		}
 
@@ -424,25 +416,20 @@ export async function triageTask(issueNumber) {
 		];
 		const finalModel = validModels.includes(modelId)
 			? modelId
-			: "gemini-3-flash-preview";
+			: "gemini-2.5-flash-lite";
 
-		// Asegurar que la etiqueta existe antes de añadirla
 		try {
 			gh(
 				`label create "model:${finalModel}" --color "fbca04" --description "AI Model assigned to this task"`,
 			);
-		} catch (e) {
-			// Ignorar si existe
-		}
+		} catch (e) {}
 
 		gh(`issue edit ${issueNumber} --add-label "model:${finalModel}"`);
 		process.stdout.write(finalModel);
 	} catch (error) {
 		clearTimeout(timeoutId);
-		console.error(
-			"⚠️ Triage timed out or failed, fallback to gemini-3-flash-preview",
-		);
-		process.stdout.write("gemini-3-flash-preview");
+		console.error("⚠️ Triage failed, fallback to gemini-2.5-flash-lite");
+		process.stdout.write("gemini-2.5-flash-lite");
 	}
 }
 
