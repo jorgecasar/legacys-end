@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       issue_number:
-        description: 'Issue number to process'
+        description: "Issue number to process"
         required: false
 
 permissions:
@@ -47,8 +47,6 @@ jobs:
 
       - name: Extract Info
         id: info
-        env:
-          GITHUB_TOKEN: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
         run: |
           if [ "${{ github.event_name }}" == "issue_comment" ]; then
             echo "num=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
@@ -80,7 +78,6 @@ jobs:
       issue_number: ${{ needs.handle-event.outputs.issue_number }}
       is_comment: ${{ needs.handle-event.outputs.is_comment == 'true' }}
       comment_body: ${{ needs.handle-event.outputs.comment_body }}
-        secrets:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          PROJECT_PAT: ${{ secrets.PROJECT_PAT }}
-    
+    secrets:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      PROJECT_PAT: ${{ secrets.PROJECT_PAT }}

@@ -139,7 +139,7 @@ export async function addIssueToProject(issueUrl) {
 			projectId: PROJECT_ID,
 			contentId: issueId,
 		});
-		console.log(
+		console.error(
 			`Issue added/verified. Item ID: ${data.addProjectV2ItemById.item.id}`,
 		);
 		return data.addProjectV2ItemById.item.id;
@@ -156,7 +156,7 @@ export async function updateProjectStatus(
 ) {
 	const itemId = await getProjectItemId(issueNumber);
 	if (!itemId) {
-		console.log(
+		console.error(
 			`Issue #${issueNumber} not found in project. Skipping status update.`,
 		);
 		return;
@@ -179,7 +179,7 @@ export async function updateProjectStatus(
 			fieldId: STATUS_FIELD_ID,
 			optionId: statusId,
 		});
-		console.log(`Updated Issue #${issueNumber} to status ${statusName}`);
+		console.error(`Updated Issue #${issueNumber} to status ${statusName}`);
 	}
 
 	if (branchName) {
@@ -199,7 +199,7 @@ export async function updateProjectStatus(
 				fieldId: branchFieldId,
 				branch: branchName,
 			});
-			console.log(`Updated Issue #${issueNumber} with branch ${branchName}`);
+			console.error(`Updated Issue #${issueNumber} with branch ${branchName}`);
 		}
 	}
 }
@@ -210,7 +210,9 @@ export async function getOpenDependencies(issueNumber) {
 
 	const depRegex = /Depends on #(\d+)/g;
 	const textDependencies = [];
-	let match = depRegex.exec(issueBody);
+	let match;
+	// Fix Biome assignment in expression warning
+	match = depRegex.exec(issueBody);
 	while (match !== null) {
 		textDependencies.push(match[1]);
 		match = depRegex.exec(issueBody);
@@ -466,9 +468,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 					);
 					process.exit(1);
 				}
-				const labels = JSON.parse(
+				const labelsData = JSON.parse(
 					gh(`issue view ${issueNumber} --json labels`),
-				).labels.map((l) => l.name);
+				);
+				const labels = labelsData.labels.map((l) => l.name);
 				if (labels.includes("blocked"))
 					gh(`issue edit ${issueNumber} --remove-label blocked`);
 				process.exit(0);
