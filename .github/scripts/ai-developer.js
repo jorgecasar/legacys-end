@@ -42,14 +42,21 @@ export function getProjectRules(rulesDir = ".rulesync/rules") {
 }
 
 export async function main(modelId, issueNumber) {
-	const apiKey = process.env.GEMINI_API_KEY;
+	const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 	if (!apiKey || !issueNumber) {
-		console.error("❌ Missing GEMINI_API_KEY or ISSUE_NUMBER");
+		console.error("❌ Missing GEMINI_API_KEY/GOOGLE_API_KEY or ISSUE_NUMBER");
+		console.error(
+			`- API Key present: ${!!apiKey} (Length: ${apiKey?.length || 0})`,
+		);
+		console.error(`- Issue Number: ${issueNumber}`);
 		process.exit(1);
 	}
 
 	console.error(
 		`🚀 Starting Native Agent with model ${modelId} for Issue #${issueNumber}`,
+	);
+	console.error(
+		`ℹ️ API Key loaded (starts with: ${apiKey.substring(0, 4)}... length: ${apiKey.length})`,
 	);
 
 	try {
