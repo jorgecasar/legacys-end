@@ -16,6 +16,7 @@ permissions:
   pull-requests: write
   issues: write
   repository-projects: read
+  id-token: write
 
 jobs:
   handle-event:
@@ -79,5 +80,4 @@ jobs:
       is_comment: ${{ needs.handle-event.outputs.is_comment == 'true' }}
       comment_body: ${{ needs.handle-event.outputs.comment_body }}
     secrets:
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       PROJECT_PAT: ${{ secrets.PROJECT_PAT }}

@@ -10,6 +10,7 @@ permissions:
   pull-requests: write
   issues: write
   repository-projects: read
+  id-token: write
 
 jobs:
   auto-pick:
@@ -39,5 +40,4 @@ jobs:
     with:
       issue_number: ${{ needs.auto-pick.outputs.issue_number }}
     secrets:
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       PROJECT_PAT: ${{ secrets.PROJECT_PAT }}
