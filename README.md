@@ -59,7 +59,7 @@ This project follows a clean architectural pattern and utilizes AI-driven develo
 
 - **Architecture**: Separated into Domain (Use Cases), Infrastructure (Services), and UI (Lit Components).
 - **Task Management**: We use a file-based Kanban system in `docs/tasks/`.
-- **AI Agent**: You can automate task resolution by creating a GitHub Issue with the label `ai-agent`. The project will automatically trigger a workflow to solve the task and open a PR. See [AI Agent Workflow](docs/AI_AGENT_WORKFLOW.md) for details.
+- **AI Agent**: You can automate task resolution by mentioning `@gemini-cli` in a GitHub Issue or Pull Request. The agent will automatically trigger a workflow to solve the task and open a PR. See [AI Agent Workflow](docs/AI_AGENT_WORKFLOW.md) for details.
 
 ---
 *Created by Jorge Casar*

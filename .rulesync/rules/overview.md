@@ -17,7 +17,7 @@ globs: ["**/*"]
 
 ## Code Style
 
-- Use 2 spaces for indentation
+- Use tabs for indentation
 - Use semicolons
 - Use double quotes for strings
 - Use trailing commas in multi-line objects and arrays

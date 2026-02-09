@@ -6,18 +6,12 @@ Este proyecto utiliza un sistema de triaje para delegar tareas a agentes de IA d
 
 1.  **Crea una Issue**: Usa la plantilla **📋 Task** para describir la tarea.
 2.  **Triaje (Opcional)**: Como mantenedor, puedes añadir etiquetas de contexto o prioridad.
-3.  **Asignación**: Cuando decidas que la tarea debe ser resuelta por la IA, añade la etiqueta:
-    *   `ai-agent`
-4.  **Elección de Modelo (Opcional)**: Por defecto se usará `gemini-2.0-flash`. Si quieres un modelo específico, añade una etiqueta con el formato `model:NOMBRE`:
-    *   `model:gemini-3-pro` (Máxima capacidad)
-    *   `model:gemini-2.5-flash`
-    *   `model:gemini-2.0-flash-lite`
-5.  **Ejecución**: El agente se activará inmediatamente al recibir la etiqueta `ai-agent`.
+3.  **Ejecución**: Menciona al agente en un comentario con `@gemini-cli` seguido de las instrucciones. El agente analizará la Issue y propondrá una solución.
 
 ## 🛠️ Comandos Manuales
 
-Si quieres forzar la ejecución de una Issue específica sin quitar/poner etiquetas:
-1. Ve a **Actions** > **AI Agent Developer**.
+Si quieres forzar la ejecución de una Issue específica:
+1. Ve a **Actions** > **Gemini Autonomous Agent**.
 2. Pulsa **Run workflow**.
 3. Introduce el número de la Issue.
 
