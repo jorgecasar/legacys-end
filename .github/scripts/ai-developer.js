@@ -42,21 +42,20 @@ export function getProjectRules(rulesDir = ".rulesync/rules") {
 }
 
 export async function main(modelId, issueNumber) {
-	const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+	let apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 	if (!apiKey || !issueNumber) {
 		console.error("❌ Missing GEMINI_API_KEY/GOOGLE_API_KEY or ISSUE_NUMBER");
-		console.error(
-			`- API Key present: ${!!apiKey} (Length: ${apiKey?.length || 0})`,
-		);
-		console.error(`- Issue Number: ${issueNumber}`);
 		process.exit(1);
 	}
+
+	// Limpieza crítica de espacios/saltos de línea invisibles
+	apiKey = apiKey.trim();
 
 	console.error(
 		`🚀 Starting Native Agent with model ${modelId} for Issue #${issueNumber}`,
 	);
 	console.error(
-		`ℹ️ API Key loaded (starts with: ${apiKey.substring(0, 4)}... length: ${apiKey.length})`,
+		`ℹ️ API Key verified (Starts: ${apiKey.substring(0, 4)}... Ends: ...${apiKey.slice(-2)} Length: ${apiKey.length})`,
 	);
 
 	try {
