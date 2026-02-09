@@ -22,6 +22,20 @@
 			"command": "npx",
 			"args": ["-y", "@upstash/context7-mcp"],
 			"env": {}
+		},
+		"github": {
+			"type": "stdio",
+			"command": "docker",
+			"args": [
+				"run",
+				"-i",
+				"--rm",
+				"-e",
+				"GITHUB_PERSONAL_ACCESS_TOKEN",
+				"ghcr.io/github/github-mcp-server",
+				"stdio"
+			],
+			"env": {}
 		}
 	}
 }
