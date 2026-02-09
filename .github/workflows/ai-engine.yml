@@ -1,0 +1,226 @@
+name: AI Engine
+
+on:
+  workflow_call:
+    inputs:
+      issue_number:
+        required: true
+        type: string
+      is_comment:
+        required: false
+        type: boolean
+        default: false
+      comment_body:
+        required: false
+        type: string
+    secrets:
+      GEMINI_API_KEY:
+        required: true
+
+jobs:
+  develop:
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_ID: "PVT_kwHOAA562c4BOtC-"
+      PROJECT_NUMBER: 2
+      STATUS_FIELD_ID: "PVTSSF_lAHOAA562c4BOtC-zg9U7KE"
+      ISSUE_NUM: ${{ inputs.issue_number }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Check Dependencies
+        run: |
+          node .github/scripts/workflow-utils.js check-deps $ISSUE_NUM || {
+            echo "::error::Blocked by dependency"
+            exit 1
+          }
+
+      - name: Triage Task
+        id: triage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          echo "Determining best model for task..."
+          MODEL_ID=$(node .github/scripts/workflow-utils.js triage-task $ISSUE_NUM)
+          echo "Selected Model: $MODEL_ID"
+          echo "model_id=$MODEL_ID" >> $GITHUB_OUTPUT
+
+      - name: Update Status to In Progress
+        run: |
+          if [ "${{ inputs.is_comment }}" == "true" ]; then
+            BRANCH_NAME=$(gh pr view "$ISSUE_NUM" --json headRefName -q .headRefName)
+          else
+            BRANCH_NAME="ai-fix/issue-$ISSUE_NUM"
+          fi
+          node .github/scripts/workflow-utils.js set-status $ISSUE_NUM IN_PROGRESS "$BRANCH_NAME"
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install AI Tool (Aider)
+        run: pip install -U aider-chat
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "AI Agent"
+          git config --global user.email "ai-agent@users.noreply.github.com"
+          git config --global pull.rebase true
+
+      - name: Run AI Agent
+        id: run-aider
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          LITELLM_PREFER_AI_STUDIO: "true"
+        run: |
+          # 1. Preparar Rama
+          if [ "${{ inputs.is_comment }}" == "true" ]; then
+            BRANCH_NAME=$(gh pr view "$ISSUE_NUM" --json headRefName -q .headRefName)
+            git checkout "$BRANCH_NAME"
+            TITLE="Feedback on PR #$ISSUE_NUM"
+            BODY="${{ inputs.comment_body }}"
+          else
+            BRANCH_NAME="ai-fix/issue-$ISSUE_NUM"
+            if git ls-remote --exit-code --heads origin "$BRANCH_NAME"; then
+              git fetch origin "$BRANCH_NAME"
+              git checkout "$BRANCH_NAME"
+            else
+              git checkout -b "$BRANCH_NAME"
+            fi
+            ISSUE_DATA=$(gh issue view "$ISSUE_NUM" --json title,body)
+            TITLE=$(echo "$ISSUE_DATA" | jq -r .title)
+            BODY=$(echo "$ISSUE_DATA" | jq -r .body)
+          fi
+
+          # 2. Rebase
+          git fetch origin main
+          git rebase origin/main || { echo "Rebase failed"; exit 1; }
+
+          # 3. Modelos y Fallbacks
+          PRIMARY_MODEL="${{ steps.triage.outputs.model_id }}"
+          MODELS_TO_TRY=("$PRIMARY_MODEL" "gemini-3-flash-preview" "gemini-2.5-flash" "gemini-2.0-flash")
+          
+          cat <<EOF > aider_prompt.md
+          TASK: $TITLE
+          GOAL: $BODY
+          EOF
+          RULES_ARGS=""
+          if [ -d ".gemini/skills" ]; then
+            for f in $(find .gemini/skills -name "SKILL.md"); do RULES_ARGS="$RULES_ARGS --read $f"; done
+          fi
+
+          # 4. Bucle de Ejecución con Reintentos y Fallback
+          AIDER_EXIT_CODE=1
+          FINAL_MODEL=""
+          for CURRENT_MODEL in "${MODELS_TO_TRY[@]}"; do
+            echo "🚀 Intentando con modelo: $CURRENT_MODEL"
+            FINAL_MODEL=$CURRENT_MODEL
+            MAX_RETRIES=2
+            RETRY_COUNT=0
+            while [ $RETRY_COUNT -le $MAX_RETRIES ]; do
+              set +e
+              aider --yes --model "gemini/$CURRENT_MODEL" --architect --no-auto-commit --no-pretty --no-stream --map-tokens 1024 $RULES_ARGS --message-file aider_prompt.md 2>&1 | tee aider_output.log
+              AIDER_EXIT_CODE=$?
+              set -e
+              if [ $AIDER_EXIT_CODE -eq 0 ]; then break 2; fi
+              if grep -qiE "429|rate limit" aider_output.log; then
+                if grep -qi "quota" aider_output.log; then
+                  echo "❌ Cuota diaria agotada para $CURRENT_MODEL."
+                  break
+                fi
+                RETRY_COUNT=$((RETRY_COUNT+1))
+                echo "⚠️ RPM/TPM limit en $CURRENT_MODEL. Reintento $RETRY_COUNT/$MAX_RETRIES en 30s..."
+                sleep 30
+              else
+                echo "❌ Error crítico. Abortando."
+                break 2
+              fi
+            done
+          done
+          echo "final_model=$FINAL_MODEL" >> $GITHUB_OUTPUT
+
+          # 5. Finalizar Commit
+          if [ $AIDER_EXIT_CODE -eq 0 ]; then
+            if git diff --quiet; then
+              echo "status=no_changes" >> $GITHUB_OUTPUT
+            else
+              git add .
+              if git log origin/main..HEAD | grep -q "wip:"; then git reset --soft origin/main; git add .; fi
+              COMMIT_MSG=$(git log -1 --pretty=%B | grep -v "wip:" || echo "feat: solve issue #$ISSUE_NUM")
+              git commit -m "$COMMIT_MSG" --no-verify
+              echo "status=success" >> $GITHUB_OUTPUT
+              git push origin HEAD --force-with-lease
+            fi
+          elif grep -qiE "429|rate limit" aider_output.log; then
+            echo "RATE_LIMITED=true" >> $GITHUB_ENV
+            echo "status=paused" >> $GITHUB_OUTPUT
+            git add .
+            if ! git diff --staged --quiet; then
+              git commit -m "wip: progress on #$ISSUE_NUM (rate limited)" --no-verify
+              git push origin HEAD --force-with-lease
+            fi
+          else
+            echo "::error::Aider failed with code $AIDER_EXIT_CODE"
+            exit $AIDER_EXIT_CODE
+          fi
+
+      - name: Log Session Stats
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          MODEL_ID="${{ steps.run-aider.outputs.final_model }}"
+          node .github/scripts/workflow-utils.js log-session-stats $ISSUE_NUM "$MODEL_ID" aider_output.log >> $GITHUB_STEP_SUMMARY || true
+
+      - name: Upload Session Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-session-${{ inputs.issue_number }}-${{ github.run_id }}
+          path: |
+            aider_output.log
+            aider_prompt.md
+          retention-days: 7
+
+      - name: Update Pull Request
+        if: steps.run-aider.outputs.status == 'success' || env.RATE_LIMITED == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ai-fix/issue-${{ inputs.issue_number }}
+          base: main
+          title: "${{ env.RATE_LIMITED == 'true' && '🤖 [WIP] AI Solution' || '🤖 AI Solution' }}: Issue #${{ inputs.issue_number }}"
+          body: |
+            ${{ env.RATE_LIMITED == 'true' && '⚠️ **Note:** Incomplete due to Rate Limit.' || 'Automatically generated by AI Agent.' }}
+            Closes #${{ inputs.issue_number }}
+          labels: automated-pr
+
+      - name: Update Project Status
+        run: |
+          if [ "${{ inputs.is_comment }}" == "true" ]; then
+            BRANCH_NAME=$(gh pr view "$ISSUE_NUM" --json headRefName -q .headRefName)
+          else
+            BRANCH_NAME="ai-fix/issue-$ISSUE_NUM"
+          fi
+          
+          if [ "${{ steps.run-aider.outputs.status }}" == "success" ]; then
+            node .github/scripts/workflow-utils.js set-status $ISSUE_NUM REVIEW "$BRANCH_NAME"
+            if [ "${{ inputs.is_comment }}" == "true" ]; then
+               gh pr comment "$ISSUE_NUM" --body "✅ Correcciones aplicadas y rebasadas."
+            fi
+          elif [ "${{ env.RATE_LIMITED }}" == "true" ]; then
+            node .github/scripts/workflow-utils.js set-status $ISSUE_NUM PAUSED_429 "$BRANCH_NAME"
+            gh issue comment $ISSUE_NUM --body "⚠️ Pausado por 429. Guardado en \`$BRANCH_NAME\`."
+          fi

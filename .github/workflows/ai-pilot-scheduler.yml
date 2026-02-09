@@ -1,0 +1,36 @@
+name: AI Pilot (Auto-Scheduler)
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Cada hora
+  workflow_dispatch: # Permite lanzar el piloto automático manualmente
+
+jobs:
+  auto-pick:
+    runs-on: ubuntu-latest
+    outputs:
+      issue_number: ${{ steps.pick.outputs.num }}
+    env:
+      PROJECT_ID: "PVT_kwHOAA562c4BOtC-"
+      STATUS_FIELD_ID: "PVTSSF_lAHOAA562c4BOtC-zg9U7KE"
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pick Next Task
+        id: pick
+        run: |
+          NUM=$(node .github/scripts/workflow-utils.js auto-pick)
+          if [ ! -z "$NUM" ]; then
+            echo "num=$NUM" >> $GITHUB_OUTPUT
+            # Asegurar que está en el proyecto
+            node .github/scripts/workflow-utils.js add-to-project "https://github.com/${{ github.repository }}/issues/$NUM"
+          fi
+
+  run-engine:
+    needs: auto-pick
+    if: needs.auto-pick.outputs.issue_number != ''
+    uses: ./.github/workflows/ai-engine.yml
+    with:
+      issue_number: ${{ needs.auto-pick.outputs.issue_number }}
+    secrets:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}

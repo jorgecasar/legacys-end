@@ -1,0 +1,34 @@
+name: Project Automation
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  finalize-task:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_ID: "PVT_kwHOAA562c4BOtC-"
+      STATUS_FIELD_ID: "PVTSSF_lAHOAA562c4BOtC-zg9U7KE"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Identify Issue and Update Status
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Extraer el número de issue del cuerpo de la PR (buscando "Closes #XX")
+          ISSUE_NUM=$(echo "${{ github.event.pull_request.body }}" | grep -oEi "Closes #([0-9]+)" | grep -oEi "[0-9]+")
+          if [ ! -z "$ISSUE_NUM" ]; then
+            echo "Finalizing Issue #$ISSUE_NUM"
+            node .github/scripts/workflow-utils.js set-status $ISSUE_NUM DONE
+          else
+            echo "No linked issue found in PR body."
+          fi
