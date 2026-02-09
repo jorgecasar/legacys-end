@@ -31,7 +31,7 @@ jobs:
     env:
       PROJECT_ID: "PVT_kwHOAA562c4BOtC-"
       STATUS_FIELD_ID: "PVTSSF_lAHOAA562c4BOtC-zg9U7KE"
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
     outputs:
       issue_number: ${{ steps.info.outputs.num }}
       is_comment: ${{ steps.info.outputs.is_comment }}
@@ -48,7 +48,7 @@ jobs:
       - name: Extract Info
         id: info
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
         run: |
           if [ "${{ github.event_name }}" == "issue_comment" ]; then
             echo "num=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT

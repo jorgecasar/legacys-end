@@ -19,7 +19,7 @@ jobs:
     env:
       PROJECT_ID: "PVT_kwHOAA562c4BOtC-"
       STATUS_FIELD_ID: "PVTSSF_lAHOAA562c4BOtC-zg9U7KE"
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - name: Pick Next Task

@@ -25,7 +25,7 @@ jobs:
       PROJECT_NUMBER: 2
       STATUS_FIELD_ID: "PVTSSF_lAHOAA562c4BOtC-zg9U7KE"
       ISSUE_NUM: ${{ inputs.issue_number }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout code
@@ -48,7 +48,7 @@ jobs:
       - name: Triage Task
         id: triage
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           echo "Determining best model for task..."
@@ -179,7 +179,7 @@ jobs:
       - name: Log Session Stats
         if: always()
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
         run: |
           MODEL_ID="${{ steps.run-aider.outputs.final_model }}"
           node .github/scripts/workflow-utils.js log-session-stats $ISSUE_NUM "$MODEL_ID" aider_output.log >> $GITHUB_STEP_SUMMARY || true

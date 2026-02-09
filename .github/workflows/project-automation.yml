@@ -22,7 +22,7 @@ jobs:
 
       - name: Identify Issue and Update Status
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
         run: |
           # Extraer el número de issue del cuerpo de la PR (buscando "Closes #XX")
           ISSUE_NUM=$(echo "${{ github.event.pull_request.body }}" | grep -oEi "Closes #([0-9]+)" | grep -oEi "[0-9]+")
