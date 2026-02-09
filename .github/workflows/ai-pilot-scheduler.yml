@@ -5,6 +5,12 @@ on:
     - cron: '0 * * * *' # Cada hora
   workflow_dispatch: # Permite lanzar el piloto automático manualmente
 
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  repository-projects: read
+
 jobs:
   auto-pick:
     runs-on: ubuntu-latest

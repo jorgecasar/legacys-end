@@ -2,29 +2,35 @@ name: AI Event Handler
 
 on:
   issues:
-    types: [opened]
+    types: [opened, edited, labeled]
   issue_comment:
     types: [created]
   project_v2_item:
-    types: [edited, converted]
+    types: [created, edited, converted]
   workflow_dispatch:
     inputs:
       issue_number:
         description: 'Issue number to process'
         required: false
 
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  repository-projects: read
+
 jobs:
   handle-event:
     # Ejecutar si:
-    # 1. Nueva issue
+    # 1. Nueva issue o editada/etiquetada
     # 2. Comentario en PR automatizada
     # 3. Cambio en el proyecto (mover a Todo)
     # 4. Disparo manual
     if: |
-      (github.event_name == 'issues' && github.event.action == 'opened') ||
+      github.event_name == 'issues' ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.issue.labels.*.name, 'automated-pr')) ||
-      (github.event_name == 'project_v2_item' && (github.event.action == 'edited' || github.event.action == 'converted')) ||
-      (github.event_name == 'workflow_dispatch')
+      github.event_name == 'project_v2_item' ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     outputs:
       issue_number: ${{ steps.info.outputs.num }}
