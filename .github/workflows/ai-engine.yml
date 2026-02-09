@@ -36,7 +36,7 @@ jobs:
       STATUS_FIELD_ID: "PVTSSF_lAHOAA562c4BOtC-zg9U7KE"
       ISSUE_NUM: ${{ inputs.issue_number }}
       GITHUB_TOKEN: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
-      GEMINI_USE_ADC: "true"
+      GOOGLE_GENAI_USE_VERTEXAI: "true"
       GOOGLE_CLOUD_PROJECT: "legacys-end"
       GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
       GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
@@ -86,7 +86,7 @@ jobs:
       - name: Run Gemini CLI Engine
         id: run-agent
         env:
-          GEMINI_USE_ADC: "true"
+          GOOGLE_GENAI_USE_VERTEXAI: "true"
           GOOGLE_CLOUD_PROJECT: "legacys-end"
         run: |
           # 1. Preparar Rama
