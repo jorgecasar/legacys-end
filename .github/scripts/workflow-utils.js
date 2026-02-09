@@ -357,7 +357,7 @@ export async function triageTask(issueNumber) {
 	}
 
 	const prompt = `Analyze this GitHub Issue and assign the most efficient Gemini model ID:
-    gemini-3-pro-preview (complex), gemini-2.0-flash (standard), gemini-2.0-flash-lite (trivial).
+    gemini-3-pro-preview (complex), gemini-3-flash-preview (standard), gemini-2.0-flash (stable), gemini-2.5-flash-lite (trivial).
     TITLE: ${issueData.title}
     BODY: ${issueData.body}`;
 
@@ -387,6 +387,7 @@ export async function triageTask(issueNumber) {
 			throw new Error("Invalid API response format");
 		}
 
+		const modelId = data.candidates[0].content.parts[0].text.trim();
 		const validModels = [
 			"gemini-3-pro-preview",
 			"gemini-3-flash-preview",
@@ -398,6 +399,16 @@ export async function triageTask(issueNumber) {
 		const finalModel = validModels.includes(modelId)
 			? modelId
 			: "gemini-2.0-flash";
+
+		// Asegurar que la etiqueta existe antes de añadirla
+		try {
+			gh(
+				`label create "model:${finalModel}" --color "fbca04" --description "AI Model assigned to this task"`,
+			);
+		} catch (e) {
+			// Ignorar si existe
+		}
+
 		gh(`issue edit ${issueNumber} --add-label "model:${finalModel}"`);
 		console.log(finalModel);
 	} catch (error) {
