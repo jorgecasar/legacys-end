@@ -1,0 +1,4 @@
+# Desactivar reintentos internos para que el workflow pueda cambiar de modelo inmediatamente
+- name: "aider/extra_params"
+  extra_params:
+    num_retries: 0
