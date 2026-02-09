@@ -2,11 +2,9 @@ name: AI Event Handler
 
 on:
   issues:
-    types: [opened, edited, labeled]
+    types: [opened, edited, labeled, milestoned]
   issue_comment:
     types: [created]
-  project_v2_item:
-    types: [created, edited, converted]
   workflow_dispatch:
     inputs:
       issue_number:
@@ -22,14 +20,12 @@ permissions:
 jobs:
   handle-event:
     # Ejecutar si:
-    # 1. Nueva issue o editada/etiquetada
+    # 1. Nueva issue, editada o etiquetada (especialmente con ai-agent)
     # 2. Comentario en PR automatizada
-    # 3. Cambio en el proyecto (mover a Todo)
-    # 4. Disparo manual
+    # 3. Disparo manual
     if: |
       github.event_name == 'issues' ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.issue.labels.*.name, 'automated-pr')) ||
-      github.event_name == 'project_v2_item' ||
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     outputs:
@@ -37,7 +33,14 @@ jobs:
       is_comment: ${{ steps.info.outputs.is_comment }}
       comment_body: ${{ steps.info.outputs.comment_body }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
       - name: Extract Info
         id: info
         env:
@@ -47,34 +50,27 @@ jobs:
             echo "num=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
             echo "is_comment=true" >> $GITHUB_OUTPUT
             echo "comment_body=${{ github.event.comment.body }}" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event_name }}" == "project_v2_item" ]; then
-            # Extraer número de issue de un item de proyecto
-            # Solo si el cambio es en la columna Status y es 'Todo'
-            STATUS_VALUE=$(echo '${{ github.event.project_v2_item.content_type }}')
-            if [ "$STATUS_VALUE" == "Issue" ]; then
-              ISSUE_NUM=$(gh api graphql -f query='query($id: ID!) { node(id: $id) { ... on ProjectV2Item { content { ... on Issue { number } } } } }' -F id=${{ github.event.project_v2_item.node_id }} --jq '.data.node.content.number')
-              
-              # Verificar si el estado actual es Todo
-              # (El evento edited se dispara para cualquier campo, el auto-pick lo confirmará después)
-              echo "num=$ISSUE_NUM" >> $GITHUB_OUTPUT
-              echo "is_comment=false" >> $GITHUB_OUTPUT
-            fi
           else
             NUM="${{ github.event.inputs.issue_number || github.event.issue.number }}"
-            if [ -z "$NUM" ]; then
-              # Modo Piloto Automático: auto-pick
+            
+            # Si no hay número (disparo por etiqueta o edición sin número claro)
+            if [ -z "$NUM" ] || [ "$NUM" == "null" ]; then
+              echo "No explicit issue number. Running auto-pick..."
               NUM=$(node .github/scripts/workflow-utils.js auto-pick)
             fi
             
-            if [ ! -z "$NUM" ]; then
-              echo "num=$NUM" >> $GITHUB_OUTPUT
-              echo "is_comment=false" >> $GITHUB_OUTPUT
+            echo "num=$NUM" >> $GITHUB_OUTPUT
+            echo "is_comment=false" >> $GITHUB_OUTPUT
+            
+            if [ ! -z "$NUM" ] && [ "$NUM" != "null" ]; then
+              # Asegurar que la issue está en el proyecto
               node .github/scripts/workflow-utils.js add-to-project "https://github.com/${{ github.repository }}/issues/$NUM"
             fi
           fi
 
   run-engine:
     needs: handle-event
+    if: needs.handle-event.outputs.issue_number != '' && needs.handle-event.outputs.issue_number != 'null'
     uses: ./.github/workflows/ai-engine.yml
     with:
       issue_number: ${{ needs.handle-event.outputs.issue_number }}
