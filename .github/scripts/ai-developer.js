@@ -59,7 +59,7 @@ export async function main(modelId, issueNumber) {
 		`ℹ️ Auth: Using API Key (Starts: ${apiKey.substring(0, 4)}... Length: ${apiKey.length})`,
 	);
 
-	const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
+	const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`;
 
 	try {
 		// 1. Obtener contexto de la Issue
@@ -101,7 +101,10 @@ export async function main(modelId, issueNumber) {
 
 		const response = await fetch(url, {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				"x-goog-api-key": apiKey,
+			},
 			body: JSON.stringify({
 				contents: [{ parts: [{ text: prompt }] }],
 			}),
