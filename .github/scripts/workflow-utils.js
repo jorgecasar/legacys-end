@@ -420,6 +420,55 @@ export async function autoPickTask() {
 	return null;
 }
 
+export async function triageTask(issueNumber) {
+	const issueData = await getIssueData(issueNumber);
+	const currentModelLabel = issueData.labels.nodes.find((l) =>
+		l.name.startsWith("model:"),
+	);
+
+	if (currentModelLabel) {
+		process.stdout.write(currentModelLabel.name.split(":")[1]);
+		return;
+	}
+
+	const prompt = `Model ID for task "${issueData.title}". Labels: ${issueData.labels.nodes.map((l) => l.name).join(",")}. Return ONLY: gemini-3-pro-preview, gemini-3-flash-preview, or gemini-2.5-flash-lite.`;
+
+	try {
+		// Usar la CLI de Gemini para el triaje
+		const modelId = execSync(
+			`gemini --model gemini-2.5-flash-lite --prompt "${prompt}"`,
+			{
+				encoding: "utf8",
+				env: { ...process.env },
+			},
+		).trim();
+
+		const validModels = [
+			"gemini-3-pro-preview",
+			"gemini-3-flash-preview",
+			"gemini-2.5-pro",
+			"gemini-2.5-flash",
+			"gemini-2.5-flash-lite",
+			"gemini-2.0-flash",
+		];
+		const finalModel = validModels.includes(modelId)
+			? modelId
+			: "gemini-2.5-flash-lite";
+
+		try {
+			gh(
+				`label create "model:${finalModel}" --color "fbca04" --description "AI Model assigned to this task"`,
+			);
+		} catch (_e) {}
+
+		gh(`issue edit ${issueNumber} --add-label "model:${finalModel}"`);
+		process.stdout.write(finalModel);
+	} catch (_error) {
+		console.error("⚠️ Triage failed, fallback to gemini-2.5-flash-lite");
+		process.stdout.write("gemini-2.5-flash-lite");
+	}
+}
+
 export async function logSessionStats(issueNumber, modelId, logFile) {
 	if (!fs.existsSync(logFile)) return;
 	const content = fs.readFileSync(logFile, "utf8");
@@ -483,6 +532,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 				}
 			} else if (command === "add-to-project") {
 				await addIssueToProject(process.argv[3]);
+				process.exit(0);
+			} else if (command === "triage-task") {
+				await triageTask(issueNumber);
 				process.exit(0);
 			} else if (command === "log-session-stats") {
 				await logSessionStats(issueNumber, process.argv[4], process.argv[5]);

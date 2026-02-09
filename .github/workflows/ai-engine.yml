@@ -60,27 +60,21 @@ jobs:
             exit 1
           }
 
+      - name: Install Gemini CLI
+        run: npm install -g @google/gemini-cli
+
       - name: Triage Task
         id: triage
-        uses: google-github-actions/run-gemini-cli@v0
-        with:
-          gemini_model: 'gemini-2.5-flash-lite'
-          prompt: |
-            Identify the best model ID for the task "${{ github.event.issue.title }}". 
-            Labels: ${{ join(github.event.issue.labels.*.name, ', ') }}. 
-            Return ONLY one of: gemini-3-pro-preview, gemini-3-flash-preview, or gemini-2.5-flash-lite.
-          gcp_project_id: 'legacys-end'
-          use_vertex_ai: true
         env:
+          GITHUB_TOKEN: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
           GOOGLE_GENAI_USE_VERTEXAI: "true"
-
-      - name: Set Selected Model
+          GOOGLE_CLOUD_PROJECT: "legacys-end"
         run: |
-          # Limpiar la salida por si hay ruido
-          MODEL_ID=$(echo "${{ steps.triage.outputs.text }}" | grep -oE "gemini-[^ ]+" | head -n 1)
+          echo "Determining best model for task..."
+          MODEL_ID=$(node .github/scripts/workflow-utils.js triage-task $ISSUE_NUM)
           echo "Selected Model: $MODEL_ID"
           echo "model_id=$MODEL_ID" >> $GITHUB_OUTPUT
 
