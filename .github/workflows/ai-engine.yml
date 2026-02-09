@@ -16,12 +16,8 @@ on:
     secrets:
       PROJECT_PAT:
         required: false
-      GOOGLE_CLIENT_ID:
-        required: false
-      GOOGLE_CLIENT_SECRET:
-        required: false
-      GOOGLE_REFRESH_TOKEN:
-        required: false
+      GEMINI_API_KEY:
+        required: true
 
 jobs:
   develop:
@@ -36,12 +32,7 @@ jobs:
       STATUS_FIELD_ID: "PVTSSF_lAHOAA562c4BOtC-zg9U7KE"
       ISSUE_NUM: ${{ inputs.issue_number }}
       GITHUB_TOKEN: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
-      GOOGLE_GENAI_USE_VERTEXAI: "true"
-      GOOGLE_CLOUD_PROJECT: "legacys-end"
-      GOOGLE_CLOUD_LOCATION: "us-central1"
-      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-      GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
     steps:
       - name: Checkout code
@@ -61,14 +52,21 @@ jobs:
             exit 1
           }
 
-      - name: Install Gemini CLI
-        run: npm install -g @google/gemini-cli
-
       - name: Triage Task
         id: triage
+        uses: google-github-actions/run-gemini-cli@v0
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          gemini_model: 'gemini-2.5-flash-lite'
+          prompt: |
+            Identify the best model ID for the task "${{ github.event.issue.title }}". 
+            Labels: ${{ join(github.event.issue.labels.*.name, ', ') }}. 
+            Return ONLY one of: gemini-3-pro-preview, gemini-3-flash-preview, or gemini-2.5-flash-lite.
+
+      - name: Set Selected Model
         run: |
-          echo "Determining best model for task..."
-          MODEL_ID=$(node .github/scripts/workflow-utils.js triage-task $ISSUE_NUM)
+          # Limpiar la salida por si hay ruido
+          MODEL_ID=$(echo "${{ steps.triage.outputs.text }}" | grep -oE "gemini-[^ ]+" | head -n 1)
           echo "Selected Model: $MODEL_ID"
           echo "model_id=$MODEL_ID" >> $GITHUB_OUTPUT
 
@@ -84,6 +82,8 @@ jobs:
 
       - name: Run Gemini CLI Engine
         id: run-agent
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           # 1. Preparar Rama
           BRANCH_NAME="ai-fix/issue-$ISSUE_NUM"
@@ -97,7 +97,7 @@ jobs:
           git fetch origin main
           git rebase origin/main || { echo "Rebase failed"; exit 1; }
 
-          # 2. Ejecutar comando gemini
+          # 2. Ejecutar comando gemini (La acción ya instaló la CLI)
           MODEL_ID="${{ steps.triage.outputs.model_id }}"
           if node .github/scripts/ai-developer.js "$MODEL_ID" "$ISSUE_NUM"; then
             echo "status=success" >> $GITHUB_OUTPUT
