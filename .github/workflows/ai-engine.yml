@@ -14,8 +14,6 @@ on:
         required: false
         type: string
     secrets:
-      GEMINI_API_KEY:
-        required: false
       PROJECT_PAT:
         required: false
       GCP_WORKLOAD_IDENTITY_PROVIDER:
@@ -75,7 +73,6 @@ jobs:
         id: triage
         env:
           GITHUB_TOKEN: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           echo "Determining best model for task..."
           MODEL_ID=$(node .github/scripts/workflow-utils.js triage-task $ISSUE_NUM)
@@ -95,7 +92,6 @@ jobs:
       - name: Run Gemini CLI Engine
         id: run-agent
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_USE_ADC: "true"
           GOOGLE_CLOUD_PROJECT: "legacys-end"
         run: |

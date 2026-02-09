@@ -37,14 +37,8 @@ export function getProjectRules(rulesDir = ".rulesync/rules") {
 }
 
 export async function main(modelId, issueNumber) {
-	const apiKey = (
-		process.env.GEMINI_API_KEY ||
-		process.env.GOOGLE_API_KEY ||
-		""
-	).trim();
-
-	if (!apiKey || !issueNumber) {
-		console.error("❌ Missing GEMINI_API_KEY or ISSUE_NUMBER");
+	if (!issueNumber) {
+		console.error("❌ Missing ISSUE_NUMBER");
 		process.exit(1);
 	}
 
@@ -84,7 +78,7 @@ export async function main(modelId, issueNumber) {
 		);
 
 		const gemini = deps.spawn("gemini", ["--model", modelId, prompt], {
-			env: { ...process.env, GEMINI_API_KEY: apiKey },
+			env: { ...process.env },
 		});
 
 		let response = "";

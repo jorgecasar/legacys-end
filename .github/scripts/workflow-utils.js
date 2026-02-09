@@ -369,10 +369,6 @@ export async function autoPickTask() {
 }
 
 export async function triageTask(issueNumber) {
-	const useAdc = process.env.GEMINI_USE_ADC === "true";
-	if (!useAdc) {
-		validateEnv(["GEMINI_API_KEY"]);
-	}
 	const issueData = JSON.parse(
 		gh(`issue view ${issueNumber} --json title,labels`),
 	);
@@ -387,39 +383,16 @@ export async function triageTask(issueNumber) {
 
 	const prompt = `Model ID for task "${issueData.title}". Labels: ${issueData.labels.map((l) => l.name).join(",")}. Return ONLY: gemini-3-pro-preview, gemini-3-flash-preview, or gemini-2.5-flash-lite.`;
 
-	const controller = new AbortController();
-	const timeoutId = setTimeout(() => controller.abort(), 20000);
-
 	try {
-		const baseUrl =
-			"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent";
-		const url = useAdc
-			? baseUrl
-			: `${baseUrl}?key=${process.env.GEMINI_API_KEY}`;
-		const headers = { "Content-Type": "application/json" };
-
-		if (useAdc) {
-			const token = execSync("gcloud auth print-access-token", {
+		// Usar la CLI de Gemini para el triaje
+		const modelId = execSync(
+			`gemini --model gemini-2.5-flash-lite "${prompt}"`,
+			{
 				encoding: "utf8",
-			}).trim();
-			headers.Authorization = `Bearer ${token}`;
-		}
+				env: { ...process.env },
+			},
+		).trim();
 
-		const response = await fetch(url, {
-			method: "POST",
-			headers,
-			body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-			signal: controller.signal,
-		});
-
-		clearTimeout(timeoutId);
-		const data = await response.json();
-
-		if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
-			throw new Error("Invalid API response format");
-		}
-
-		const modelId = data.candidates[0].content.parts[0].text.trim();
 		const validModels = [
 			"gemini-3-pro-preview",
 			"gemini-3-flash-preview",
@@ -441,7 +414,6 @@ export async function triageTask(issueNumber) {
 		gh(`issue edit ${issueNumber} --add-label "model:${finalModel}"`);
 		process.stdout.write(finalModel);
 	} catch (_error) {
-		clearTimeout(timeoutId);
 		console.error("⚠️ Triage failed, fallback to gemini-2.5-flash-lite");
 		process.stdout.write("gemini-2.5-flash-lite");
 	}
