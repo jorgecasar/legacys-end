@@ -158,7 +158,15 @@ jobs:
             else
               git add .
               if git log origin/main..HEAD | grep -q "wip:"; then git reset --soft origin/main; git add .; fi
+              
               COMMIT_MSG=$(git log -1 --pretty=%B | grep -v "wip:" || echo "feat: solve issue #$ISSUE_NUM")
+              
+              # Lógica de detección de [skip ci]
+              # Si no hay cambios en src, public o archivos de build, saltar CI
+              if ! git diff --staged --name-only | grep -qE "^(src/|public/|index\.html|package\.json|vite\.config\.js)"; then
+                COMMIT_MSG="$COMMIT_MSG [skip ci]"
+              fi
+
               git commit -m "$COMMIT_MSG" --no-verify
               echo "status=success" >> $GITHUB_OUTPUT
               git push origin HEAD --force-with-lease
