@@ -233,7 +233,10 @@ function checkDependencies(issueNumber) {
 }
 
 /**
- * Busca la siguiente tarea para trabajar automáticamente
+ * Busca la siguiente tarea para trabajar automáticamente siguiendo una prioridad estricta:
+ * 1. Identifica el Milestone activo más bajo.
+ * 2. Dentro de ese Milestone, busca tareas Paused (429).
+ * 3. Si no hay, busca tareas Todo.
  */
 function autoPickTask() {
 	const query = `
@@ -247,6 +250,7 @@ function autoPickTask() {
                 ... on Issue {
                   number
                   state
+                  milestone { number title }
                   labels(first: 10) { nodes { name } }
                 }
               }
@@ -269,12 +273,14 @@ function autoPickTask() {
 	);
 	const items = result.data.node.items.nodes;
 
-	// Filtrar solo issues abiertas y que no estén bloqueadas
-	const availableIssues = items.filter((item) => {
+	// 1. Filtrar solo issues abiertas y que no estén bloqueadas
+	const openIssues = items.filter((item) => {
 		if (!item.content || item.content.state !== "OPEN") return false;
 		const labels = item.content.labels.nodes.map((l) => l.name);
 		return !labels.includes("blocked");
 	});
+
+	if (openIssues.length === 0) return null;
 
 	const getStatus = (item) => {
 		const field = item.fieldValues.nodes.find(
@@ -283,14 +289,26 @@ function autoPickTask() {
 		return field ? field.optionId : null;
 	};
 
-	// 1. Prioridad: Paused (429) - Retomar trabajo interrumpido
-	const paused = availableIssues.find(
+	// 2. Encontrar el Milestone más bajo que tiene tareas pendientes
+	const activeMilestones = openIssues
+		.map((i) => (i.content.milestone ? i.content.milestone.number : 999))
+		.sort((a, b) => a - b);
+
+	const lowestMilestoneNum = activeMilestones[0];
+
+	// 3. Filtrar issues solo de ese Milestone
+	const milestoneIssues = openIssues.filter((i) => {
+		const mNum = i.content.milestone ? i.content.milestone.number : 999;
+		return mNum === lowestMilestoneNum;
+	});
+
+	// 4. Prioridad dentro del Milestone: Paused > Todo
+	const paused = milestoneIssues.find(
 		(i) => getStatus(i) === STATUS_OPTIONS.PAUSED_429,
 	);
 	if (paused) return paused.content.number;
 
-	// 2. Prioridad: Todo - Empezar trabajo nuevo
-	const todo = availableIssues.find(
+	const todo = milestoneIssues.find(
 		(i) => getStatus(i) === STATUS_OPTIONS.TODO,
 	);
 	if (todo) return todo.content.number;
