@@ -55,11 +55,9 @@ export async function main(modelId, issueNumber) {
 	console.error(
 		`🚀 Starting AI Agent [REST Mode] with model ${modelId} for Issue #${issueNumber}`,
 	);
-	console.error(
-		`ℹ️ Auth: Using API Key (Starts: ${apiKey.substring(0, 4)}... Length: ${apiKey.length})`,
-	);
 
-	const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`;
+	// Autenticación DUAL: URL + Header para máxima compatibilidad
+	const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
 
 	try {
 		// 1. Obtener contexto de la Issue
@@ -110,7 +108,13 @@ export async function main(modelId, issueNumber) {
 			}),
 		});
 
-		const result = await response.json();
+		const text = await response.text();
+		let result;
+		try {
+			result = JSON.parse(text);
+		} catch (e) {
+			throw new Error(`Server returned non-JSON response: ${text}`);
+		}
 
 		if (result.error) {
 			throw new Error(
@@ -120,7 +124,7 @@ export async function main(modelId, issueNumber) {
 
 		if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
 			throw new Error(
-				`Unexpected API Response Format. Check if model ${modelId} is available in your region.`,
+				`Unexpected API Response Format. Model might be overloaded or unavailable.`,
 			);
 		}
 
