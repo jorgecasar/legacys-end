@@ -149,7 +149,7 @@ export async function addIssueToProject(issueUrl) {
 			projectId: PROJECT_ID,
 			contentId: issueId,
 		});
-		console.log(`✅ Issue añadida/verificada en el proyecto.`);
+		console.error(`✅ Issue añadida/verificada en el proyecto.`);
 		return data.addProjectV2ItemById.item.id;
 	} catch (error) {
 		console.error("❌ Error adding issue to project:", error.message);
@@ -164,7 +164,7 @@ export async function updateProjectStatus(
 ) {
 	const itemId = await getProjectItemId(issueNumber);
 	if (!itemId) {
-		console.log(`⚠️ Issue #${issueNumber} no encontrada en el proyecto.`);
+		console.error(`⚠️ Issue #${issueNumber} no encontrada en el proyecto.`);
 		return;
 	}
 
@@ -303,13 +303,18 @@ export async function autoPickTask() {
 	const data = await graphql(query, { projectId: PROJECT_ID });
 	const items = data.node.items.nodes;
 
+	console.error(`🔍 Analizando ${items.length} elementos en el proyecto...`);
+
 	const openIssues = items.filter((item) => {
 		if (!item.content || item.content.state !== "OPEN") return false;
 		const labels = item.content.labels.nodes.map((l) => l.name);
 		return !labels.includes("blocked");
 	});
 
-	if (openIssues.length === 0) return null;
+	if (openIssues.length === 0) {
+		console.error("❌ No hay issues abiertas y desbloqueadas en el proyecto.");
+		return null;
+	}
 
 	const getStatusId = (item) => {
 		const field = item.fieldValues.nodes.find(
@@ -318,11 +323,21 @@ export async function autoPickTask() {
 		return field ? field.optionId : null;
 	};
 
+	// Log de estados para debug
+	openIssues.forEach((i) => {
+		console.error(
+			`- Issue #${i.content.number}: Estado=${getStatusId(i)}, Milestone=${i.content.milestone?.number || "None"}`,
+		);
+	});
+
 	const activeMilestones = openIssues
 		.map((i) => (i.content.milestone ? i.content.milestone.number : 999))
 		.sort((a, b) => a - b);
 
 	const lowestMilestoneNum = activeMilestones[0];
+	console.error(
+		`🎯 Milestone objetivo: ${lowestMilestoneNum === 999 ? "Ninguno" : lowestMilestoneNum}`,
+	);
 
 	const milestoneIssues = openIssues.filter((i) => {
 		const mNum = i.content.milestone ? i.content.milestone.number : 999;
@@ -332,13 +347,24 @@ export async function autoPickTask() {
 	const paused = milestoneIssues.find(
 		(i) => getStatusId(i) === STATUS_OPTIONS.PAUSED_429,
 	);
-	if (paused) return paused.content.number;
+	if (paused) {
+		console.error(
+			`🚀 Reanudando Issue #${paused.content.number} (Pausada por 429)`,
+		);
+		return paused.content.number;
+	}
 
 	const todo = milestoneIssues.find(
 		(i) => getStatusId(i) === STATUS_OPTIONS.TODO,
 	);
-	if (todo) return todo.content.number;
+	if (todo) {
+		console.error(`🚀 Iniciando Issue #${todo.content.number} (Todo)`);
+		return todo.content.number;
+	}
 
+	console.error(
+		"❌ No hay tareas en estado TODO o PAUSED para el milestone actual.",
+	);
 	return null;
 }
 
@@ -477,7 +503,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 					process.stdout.write(num.toString());
 					process.exit(0);
 				} else {
-					console.error("No tasks to pick.");
 					process.exit(1);
 				}
 			} else if (command === "add-to-project") {
