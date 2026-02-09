@@ -152,15 +152,15 @@ function updateProjectStatus(issueNumber, statusName, branchName = null) {
 }
 
 /**
- * Verifica si las dependencias de una issue están cerradas
+ * Verifica si las dependencias de una issue están cerradas.
+ * Devuelve la lista de dependencias abiertas.
  */
-function checkDependencies(issueNumber) {
+function getOpenDependencies(issueNumber) {
 	const issueData = JSON.parse(
 		gh(`issue view ${issueNumber} --json body,number`),
 	);
 	const issueBody = issueData.body;
 
-	// 1. Verificar dependencias por texto "Depends on #123"
 	const depRegex = /Depends on #(\d+)/g;
 	const textDependencies = [];
 	let match = depRegex.exec(issueBody);
@@ -169,23 +169,12 @@ function checkDependencies(issueNumber) {
 		match = depRegex.exec(issueBody);
 	}
 
-	// 2. Verificar dependencias nativas de GitHub (blockedBy y trackedIssues)
 	const query = `
     query($owner: String!, $repo: String!, $issueNumber: Int!) {
       repository(owner: $owner, name: $repo) {
         issue(number: $issueNumber) {
-          blockedBy(first: 50) {
-            nodes {
-              number
-              state
-            }
-          }
-          trackedIssues(first: 50) {
-            nodes {
-              number
-              state
-            }
-          }
+          blockedBy(first: 50) { nodes { number state } }
+          trackedIssues(first: 50) { nodes { number state } }
         }
       }
     }
@@ -198,24 +187,21 @@ function checkDependencies(issueNumber) {
 	);
 	const issue = gqlResult.data.repository.issue;
 
-	const blockedBy = issue.blockedBy.nodes;
-	const trackedIssues = issue.trackedIssues.nodes;
-
-	// Combinar todas las dependencias
 	const allDeps = [
-		...textDependencies.map((id) => ({ number: id, type: "text" })),
-		...blockedBy.map((dep) => ({
+		...textDependencies.map((id) => ({ number: Number(id), type: "text" })),
+		...issue.blockedBy.nodes.map((dep) => ({
 			number: dep.number,
 			state: dep.state,
 			type: "native",
 		})),
-		...trackedIssues.map((dep) => ({
+		...issue.trackedIssues.nodes.map((dep) => ({
 			number: dep.number,
 			state: dep.state,
 			type: "native",
 		})),
 	];
 
+	const openDeps = [];
 	for (const dep of allDeps) {
 		let isClosed = false;
 		if (dep.type === "native") {
@@ -224,19 +210,13 @@ function checkDependencies(issueNumber) {
 			const state = gh(`issue view ${dep.number} --json state -q .state`);
 			isClosed = state === "CLOSED";
 		}
-
-		if (!isClosed) {
-			return { ok: false, blockedBy: dep.number };
-		}
+		if (!isClosed) openDeps.push(dep.number);
 	}
-	return { ok: true };
+	return [...new Set(openDeps)];
 }
 
 /**
- * Busca la siguiente tarea para trabajar automáticamente siguiendo una prioridad estricta:
- * 1. Identifica el Milestone activo más bajo.
- * 2. Dentro de ese Milestone, busca tareas Paused (429).
- * 3. Si no hay, busca tareas Todo.
+ * Busca la siguiente tarea para trabajar automáticamente siguiendo una prioridad estricta
  */
 function autoPickTask() {
 	const query = `
@@ -273,7 +253,6 @@ function autoPickTask() {
 	);
 	const items = result.data.node.items.nodes;
 
-	// 1. Filtrar solo issues abiertas y que no estén bloqueadas
 	const openIssues = items.filter((item) => {
 		if (!item.content || item.content.state !== "OPEN") return false;
 		const labels = item.content.labels.nodes.map((l) => l.name);
@@ -289,20 +268,17 @@ function autoPickTask() {
 		return field ? field.optionId : null;
 	};
 
-	// 2. Encontrar el Milestone más bajo que tiene tareas pendientes
 	const activeMilestones = openIssues
 		.map((i) => (i.content.milestone ? i.content.milestone.number : 999))
 		.sort((a, b) => a - b);
 
 	const lowestMilestoneNum = activeMilestones[0];
 
-	// 3. Filtrar issues solo de ese Milestone
 	const milestoneIssues = openIssues.filter((i) => {
 		const mNum = i.content.milestone ? i.content.milestone.number : 999;
 		return mNum === lowestMilestoneNum;
 	});
 
-	// 4. Prioridad dentro del Milestone: Paused > Todo
 	const paused = milestoneIssues.find(
 		(i) => getStatus(i) === STATUS_OPTIONS.PAUSED_429,
 	);
@@ -320,7 +296,6 @@ function autoPickTask() {
  * Añade una issue al proyecto si no está ya en él
  */
 function addIssueToProject(issueUrl) {
-	// Primero intentamos añadirlo. Si ya existe, gh simplemente devuelve el ID existente.
 	try {
 		const projectNumber = process.env.PROJECT_NUMBER || 2;
 		const owner = process.env.GITHUB_REPOSITORY_OWNER;
@@ -329,7 +304,6 @@ function addIssueToProject(issueUrl) {
 				`project item-add ${projectNumber} --owner ${owner} --url ${issueUrl} --format json`,
 			),
 		);
-		console.log(`Issue added/verified in project. Item ID: ${result.id}`);
 		return result.id;
 	} catch (error) {
 		console.error("Error adding issue to project:", error.message);
@@ -338,7 +312,7 @@ function addIssueToProject(issueUrl) {
 }
 
 /**
- * Realiza el triaje de una issue para determinar el modelo ideal entre los disponibles en Feb 2026
+ * Realiza el triaje de una issue para determinar el modelo ideal
  */
 async function triageTask(issueNumber) {
 	const issueData = JSON.parse(
@@ -355,14 +329,6 @@ async function triageTask(issueNumber) {
 
 	const prompt = `
     Analyze this GitHub Issue and assign the most efficient Gemini model available. 
-    Available Models & Capabilities:
-    - gemini-3-pro-preview: State-of-the-art reasoning, complex agentic tasks, architectural changes.
-    - gemini-3-flash-preview: Frontier intelligence + speed. Balanced for logic and scale.
-    - gemini-2.5-pro: Complex coding reasoning, long context analysis (stable).
-    - gemini-2.5-flash: Best price-performance, high-volume tasks with thinking.
-    - gemini-2.5-flash-lite: Fastest, cost-efficient for trivial tasks.
-    - gemini-2.0-flash: Legacy workhorse (available until March 31, 2026).
-
     Selection Criteria:
     1. TRIVIAL (Docs, CSS): gemini-2.5-flash-lite
     2. MICRO (Single fixes, renames): gemini-2.0-flash
@@ -372,7 +338,6 @@ async function triageTask(issueNumber) {
     6. CRITICAL (Arch, security): gemini-3-pro-preview
 
     Return ONLY the model ID.
-
     TITLE: ${issueData.title}
     BODY: ${issueData.body}
   `;
@@ -391,7 +356,6 @@ async function triageTask(issueNumber) {
 
 		const data = await response.json();
 		const modelId = data.candidates[0].content.parts[0].text.trim();
-
 		const validModels = [
 			"gemini-3-pro-preview",
 			"gemini-3-flash-preview",
@@ -400,15 +364,12 @@ async function triageTask(issueNumber) {
 			"gemini-2.5-flash-lite",
 			"gemini-2.0-flash",
 		];
-
 		const finalModel = validModels.includes(modelId)
 			? modelId
 			: "gemini-3-flash-preview";
-
 		gh(`issue edit ${issueNumber} --add-label "model:${finalModel}"`);
 		console.log(finalModel);
 	} catch (error) {
-		console.error("Triage failed:", error.message);
 		console.log("gemini-3-flash-preview");
 	}
 }
@@ -419,50 +380,29 @@ async function triageTask(issueNumber) {
 async function logSessionStats(issueNumber, modelId, logFile) {
 	const fs = require("node:fs");
 	if (!fs.existsSync(logFile)) return;
-
 	const content = fs.readFileSync(logFile, "utf8");
-
-	// Soportar formato: Tokens: 17k sent, 2.5k received. Cost: $0.01 message, $0.04 session.
 	const sentMatch = content.match(/([0-9.]+)(k?)\s+sent/i);
 	const recvMatch = content.match(/([0-9.]+)(k?)\s+received/i);
 	const costMatch = content.match(/Cost:.*?\$([0-9.]+)\s+session/i);
-
-	if (!sentMatch || !recvMatch) {
-		console.log("No token usage found in logs.");
-		return;
-	}
-
+	if (!sentMatch || !recvMatch) return;
 	const parseTokens = (val, unit) => {
 		let num = parseFloat(val);
 		if (unit.toLowerCase() === "k") num *= 1000;
 		return Math.round(num);
 	};
-
 	const inputTokens = parseTokens(sentMatch[1], sentMatch[2]);
 	const outputTokens = parseTokens(recvMatch[1], recvMatch[2]);
-
-	let cost;
-	if (costMatch) {
-		cost = parseFloat(costMatch[1]);
-	} else {
-		// Fallback a cálculo manual si no está en el log
-		const prices = PRICING[modelId] || PRICING["gemini-3-flash-preview"];
-		cost =
-			(inputTokens / 1000000) * prices.input +
-			(outputTokens / 1000000) * prices.output;
-	}
-
+	const cost = costMatch
+		? parseFloat(costMatch[1])
+		: (inputTokens / 1000000) * (PRICING[modelId]?.input || 0.5) +
+			(outputTokens / 1000000) * (PRICING[modelId]?.output || 3.0);
 	const issueData = JSON.parse(gh(`issue view ${issueNumber} --json comments`));
 	const statsComment = issueData.comments.find((c) =>
 		c.body.includes("<!-- session-stats -->"),
 	);
-
-	let sessions = [];
-	if (statsComment) {
-		const jsonMatch = statsComment.body.match(/```json\n([\s\S]*?)\n```/);
-		if (jsonMatch) sessions = JSON.parse(jsonMatch[1]);
-	}
-
+	const sessions = statsComment
+		? JSON.parse(statsComment.body.match(/```json\n([\s\S]*?)\n```/)[1])
+		: [];
 	sessions.push({
 		date: new Date().toISOString(),
 		model: modelId,
@@ -470,91 +410,59 @@ async function logSessionStats(issueNumber, modelId, logFile) {
 		output: outputTokens,
 		cost: parseFloat(cost.toFixed(6)),
 	});
-
 	const totalCost = sessions.reduce((sum, s) => sum + s.cost, 0);
-	const totalSessions = sessions.length;
-
-	const commentBody = `
-### 📊 AI Session Report <!-- session-stats -->
-| Session | Model | Tokens (I/O) | Cost |
-| :--- | :--- | :--- | :--- |
-${sessions.map((s, i) => `| #${i + 1} | \`${s.model}\` | ${s.input}/${s.output} | $${s.cost} |`).join("\n")}
-
-**Total Sessions:** ${totalSessions}
-**Total Estimated Cost:** **$${totalCost.toFixed(6)}**
-
-<details>
-<summary>Raw Data</summary>
-
-\`\`\`json
-${JSON.stringify(sessions, null, 2)}
-\`\`\`
-</details>
-`;
-
-	if (statsComment) {
-		gh(
-			`issue comment ${issueNumber} --edit-last --body "${commentBody.replace(/"/g, '\\"').replace(/\n/g, "\\n")}"`,
-		);
-	} else {
-		gh(
-			`issue comment ${issueNumber} --body "${commentBody.replace(/"/g, '\\"').replace(/\n/g, "\\n")}"`,
-		);
-	}
-
-	console.log(`SESSION_COST=${cost.toFixed(6)}`);
-	console.log(`TOTAL_TASK_COST=${totalCost.toFixed(6)}`);
+	const commentBody = `### 📊 AI Session Report <!-- session-stats -->\n| Session | Model | Tokens (I/O) | Cost |\n| :--- | :--- | :--- | :--- |\n${sessions.map((s, i) => `| #${i + 1} | \`${s.model}\` | ${s.input}/${s.output} | $${s.cost} |`).join("\n")}\n\n**Total Sessions:** ${sessions.length}\n**Total Estimated Cost:** **$${totalCost.toFixed(6)}**\n\n<details><summary>Raw Data</summary>\n\n\`\`\`json\n${JSON.stringify(sessions, null, 2)}\n\`\`\`\n</details>`;
+	const cmd = statsComment ? `--edit-last` : "";
+	gh(
+		`issue comment ${issueNumber} ${cmd} --body "${commentBody.replace(/"/g, '\\"').replace(/\n/g, "\\n")}"`,
+	);
 }
 
-// Exportar funciones si se usa como módulo o ejecutar si se llama directamente
 if (require.main === module) {
 	const command = process.argv[2];
 	const issueNumber = process.argv[3];
-
 	if (command === "auto-pick") {
 		const pickedNumber = autoPickTask();
 		if (pickedNumber) {
 			console.log(pickedNumber);
 			process.exit(0);
 		} else {
-			console.error("No tasks found in Paused or Todo.");
 			process.exit(1);
 		}
 	}
-
 	if (command === "add-to-project") {
-		const issueUrl = process.argv[3];
-		addIssueToProject(issueUrl);
+		addIssueToProject(process.argv[3]);
 		process.exit(0);
 	}
-
 	if (command === "triage-task") {
 		triageTask(issueNumber).then(() => process.exit(0));
 	} else if (command === "log-session-stats") {
-		const modelId = process.argv[4];
-		const logFile = process.argv[5];
-		logSessionStats(issueNumber, modelId, logFile).then(() => process.exit(0));
+		logSessionStats(issueNumber, process.argv[4], process.argv[5]).then(() =>
+			process.exit(0),
+		);
 	} else if (command === "check-deps") {
-		const result = checkDependencies(issueNumber);
-		if (!result.ok) {
-			console.log(`Issue #${issueNumber} is blocked by #${result.blockedBy}`);
+		const openDeps = getOpenDependencies(issueNumber);
+		if (openDeps.length > 0) {
+			for (const depNum of openDeps) {
+				addIssueToProject(
+					`https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${depNum}`,
+				);
+				updateProjectStatus(depNum, "TODO");
+			}
 			gh(`issue edit ${issueNumber} --add-label blocked`);
 			gh(
-				`issue comment ${issueNumber} --body "🚫 Tarea bloqueada por la dependencia #${result.blockedBy}. Por favor, resuelve la dependencia antes de reintentar."`,
+				`issue comment ${issueNumber} --body "🚫 Tarea bloqueada por: ${openDeps.map((n) => `#${n}`).join(", ")}. He movido las dependencias a TODO para desbloquear esta tarea."`,
 			);
 			process.exit(1);
 		}
 		const labels = gh(
 			`issue view ${issueNumber} --json labels -q '.labels[].name'`,
 		);
-		if (labels.includes("blocked")) {
+		if (labels.includes("blocked"))
 			gh(`issue edit ${issueNumber} --remove-label blocked`);
-		}
 		process.exit(0);
 	} else if (command === "set-status") {
-		const status = process.argv[4];
-		const branch = process.argv[5];
-		updateProjectStatus(issueNumber, status, branch);
+		updateProjectStatus(issueNumber, process.argv[4], process.argv[5]);
 		process.exit(0);
 	}
 }
