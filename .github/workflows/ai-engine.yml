@@ -38,6 +38,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
       GOOGLE_GENAI_USE_VERTEXAI: "true"
       GOOGLE_CLOUD_PROJECT: "legacys-end"
+      GOOGLE_CLOUD_LOCATION: "us-central1"
       GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
       GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
       GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
@@ -65,13 +66,6 @@ jobs:
 
       - name: Triage Task
         id: triage
-        env:
-          GITHUB_TOKEN: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
-          GOOGLE_GENAI_USE_VERTEXAI: "true"
-          GOOGLE_CLOUD_PROJECT: "legacys-end"
         run: |
           echo "Determining best model for task..."
           MODEL_ID=$(node .github/scripts/workflow-utils.js triage-task $ISSUE_NUM)
@@ -90,12 +84,6 @@ jobs:
 
       - name: Run Gemini CLI Engine
         id: run-agent
-        env:
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
-          GOOGLE_CLOUD_PROJECT: "legacys-end"
-          GOOGLE_GENAI_USE_VERTEXAI: "true"
         run: |
           # 1. Preparar Rama
           BRANCH_NAME="ai-fix/issue-$ISSUE_NUM"
@@ -109,8 +97,8 @@ jobs:
           git fetch origin main
           git rebase origin/main || { echo "Rebase failed"; exit 1; }
 
-          # 2. Ejecutar comando gemini (La acción ya instaló la CLI)
-          MODEL_ID="${{ steps.triage.outputs.text }}"
+          # 2. Ejecutar comando gemini
+          MODEL_ID="${{ steps.triage.outputs.model_id }}"
           if node .github/scripts/ai-developer.js "$MODEL_ID" "$ISSUE_NUM"; then
             echo "status=success" >> $GITHUB_OUTPUT
           else
