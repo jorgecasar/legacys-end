@@ -2,7 +2,6 @@ import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // --- Dependencias para Mocking ---
 export const deps = {
@@ -12,7 +11,6 @@ export const deps = {
 	readdirSync: fs.readdirSync,
 	existsSync: fs.existsSync,
 	mkdirSync: fs.mkdirSync,
-	GoogleGenerativeAI,
 };
 
 function gh(args) {
@@ -48,18 +46,24 @@ async function getAccessToken() {
 
 	if (!refreshToken || !clientId || !clientSecret) return null;
 
-	const response = await fetch("https://oauth2.googleapis.com/token", {
-		method: "POST",
-		body: JSON.stringify({
-			client_id: clientId,
-			client_secret: clientSecret,
-			refresh_token: refreshToken,
-			grant_type: "refresh_token",
-		}),
-	});
+	try {
+		const response = await fetch("https://oauth2.googleapis.com/token", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				client_id: clientId,
+				client_secret: clientSecret,
+				refresh_token: refreshToken,
+				grant_type: "refresh_token",
+			}),
+		});
 
-	const data = await response.json();
-	return data.access_token;
+		const data = await response.json();
+		return data.access_token;
+	} catch (error) {
+		console.error("⚠️ Error refreshing OAuth token:", error.message);
+		return null;
+	}
 }
 
 export async function main(modelId, issueNumber) {
@@ -77,22 +81,29 @@ export async function main(modelId, issueNumber) {
 		`🚀 Starting Native Agent with model ${modelId} for Issue #${issueNumber}`,
 	);
 
+	const headers = { "Content-Type": "application/json" };
+	let url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`;
+
 	if (accessToken) {
-		console.error("🔐 Authenticated using Google AI Pro (User Identity)");
+		console.error("🔐 Authenticated using Google AI Pro (OAuth Bearer)");
+		headers["Authorization"] = `Bearer ${accessToken}`;
+	} else {
+		console.error("ℹ️ Using standard API Key");
+		url += `?key=${apiKey.trim()}`;
 	}
 
 	try {
-		// 1. Obtener contexto de la Issue
+		// 1. Contexto de la Issue
 		const issueData = JSON.parse(
 			gh(`issue view ${issueNumber} --json title,body`),
 		);
 
-		// 2. Escaneo rápido de archivos
+		// 2. Archivos disponibles
 		const fileList = deps.execSync('find src -maxdepth 3 -not -path "*/.*"', {
 			encoding: "utf8",
 		});
 
-		// 3. Cargar reglas
+		// 3. Reglas
 		const rules = getProjectRules();
 
 		const prompt = `
@@ -118,19 +129,34 @@ export async function main(modelId, issueNumber) {
     5. Always follow the project standards: ESM, node: protocol, double quotes, Result pattern for errors.
     `;
 
-		const auth = accessToken || apiKey.trim();
-		const genAI = new deps.GoogleGenerativeAI(auth);
-		const model = genAI.getGenerativeModel({ model: modelId });
-		const result = await model.generateContent(prompt);
-		const response = await result.response;
-		const plan = parseAIResponse(response.text());
+		const response = await fetch(url, {
+			method: "POST",
+			headers: headers,
+			body: JSON.stringify({
+				contents: [{ parts: [{ text: prompt }] }],
+			}),
+		});
+
+		const result = await response.json();
+
+		if (result.error) {
+			throw new Error(
+				`API Error ${result.error.code}: ${result.error.message}`,
+			);
+		}
+
+		if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
+			throw new Error(`Unexpected API Response: ${JSON.stringify(result)}`);
+		}
+
+		const plan = parseAIResponse(result.candidates[0].content.parts[0].text);
 
 		console.error(`📝 Plan: ${plan.thought}`);
 
 		for (const change of plan.changes) {
 			const dir = path.dirname(change.path);
 			if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-			deps.writeFileSync(change.path, change.content);
+			fs.writeFileSync(change.path, change.content);
 			console.error(`✅ Updated: ${change.path}`);
 		}
 
