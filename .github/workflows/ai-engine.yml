@@ -16,9 +16,11 @@ on:
     secrets:
       PROJECT_PAT:
         required: false
-      GCP_WORKLOAD_IDENTITY_PROVIDER:
+      GOOGLE_CLIENT_ID:
         required: false
-      GCP_SERVICE_ACCOUNT:
+      GOOGLE_CLIENT_SECRET:
+        required: false
+      GOOGLE_REFRESH_TOKEN:
         required: false
 
 jobs:
@@ -36,8 +38,9 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
       GEMINI_USE_ADC: "true"
       GOOGLE_CLOUD_PROJECT: "legacys-end"
-      GCP_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-      GCP_SA: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
 
     steps:
       - name: Checkout code
@@ -49,25 +52,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24"
-
-      - name: Authenticate to Google Cloud
-        if: env.GEMINI_USE_ADC == 'true' && env.GCP_PROVIDER != ''
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ env.GCP_PROVIDER }}
-          service_account: ${{ env.GCP_SA }}
-
-      - name: Set up Cloud SDK
-        if: env.GEMINI_USE_ADC == 'true' && env.GCP_SA != ''
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Verify ADC
-        run: |
-          if [ ! -z "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
-            echo "✅ GOOGLE_APPLICATION_CREDENTIALS is set."
-          else
-            echo "ℹ️ ADC not configured, relying on local environment or keys."
-          fi
 
       - name: Install Gemini CLI
         run: npm install -g @google/gemini-cli
