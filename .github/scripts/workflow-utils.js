@@ -393,7 +393,7 @@ export async function triageTask(issueNumber) {
 
 	try {
 		const response = await fetch(
-			`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+			`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${process.env.GEMINI_API_KEY}`,
 			{
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -424,7 +424,7 @@ export async function triageTask(issueNumber) {
 		];
 		const finalModel = validModels.includes(modelId)
 			? modelId
-			: "gemini-2.0-flash";
+			: "gemini-3-flash-preview";
 
 		// Asegurar que la etiqueta existe antes de añadirla
 		try {
@@ -439,8 +439,10 @@ export async function triageTask(issueNumber) {
 		process.stdout.write(finalModel);
 	} catch (error) {
 		clearTimeout(timeoutId);
-		console.error("⚠️ Triage timed out or failed, fallback to gemini-2.0-flash");
-		process.stdout.write("gemini-2.0-flash");
+		console.error(
+			"⚠️ Triage timed out or failed, fallback to gemini-3-flash-preview",
+		);
+		process.stdout.write("gemini-3-flash-preview");
 	}
 }
 
