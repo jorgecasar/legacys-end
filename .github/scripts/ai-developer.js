@@ -27,11 +27,17 @@ export const deps = {
 
 export function parseAIResponse(text) {
 	try {
-		const jsonStr = text.replace(/```json|```/g, "").trim();
-		return JSON.parse(jsonStr);
+		// 1. Intentar encontrar un bloque de código JSON con regex
+		const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/);
+		const cleanText = jsonMatch ? jsonMatch[1] : text;
+
+		// 2. Limpiar posibles restos de markdown si no se encontró bloque
+		const finalJson = cleanText.replace(/```json|```/g, "").trim();
+
+		return JSON.parse(finalJson);
 	} catch (error) {
 		throw new Error(
-			`Failed to parse AI response as JSON: ${error.message}\nRaw text: ${text}`,
+			`Failed to parse AI response as JSON: ${error.message}\nRaw text snippet: ${text.substring(0, 200)}...`,
 		);
 	}
 }
@@ -65,21 +71,28 @@ export async function main(modelId, issueNumber) {
 			}),
 		);
 
-		// 2. Escaneo de archivos
+		// 2. Escaneo de archivos y reglas
 		const fileList = deps.execSync('find src -maxdepth 3 -not -path "*/.*"', {
 			encoding: "utf8",
 		});
+		const rules = getProjectRules();
 
 		// 3. Preparar Prompt
 		const prompt = `
         You are an elite developer agent. 
+        
+        PROJECT RULES:
+        ${rules}
+
         TASK: ${issueData.title}
         GOAL: ${issueData.body}
+        
         AVAILABLE FILES:
         ${fileList}
+        
         INSTRUCTIONS:
-        1. Analyze project rules.
-        2. Modify files.
+        1. Analyze project rules and task.
+        2. Propose necessary file changes.
         3. Return JSON ONLY: { "thought": "...", "changes": [{ "path": "...", "content": "..." }] }
         `;
 
