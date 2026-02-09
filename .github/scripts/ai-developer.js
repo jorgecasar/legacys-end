@@ -17,34 +17,6 @@ function gh(args) {
 	return deps.execSync(`gh ${args}`, { encoding: "utf8" }).trim();
 }
 
-async function getAccessToken() {
-	const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
-	const clientId = process.env.GOOGLE_CLIENT_ID;
-	const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-
-	if (!refreshToken || !clientId || !clientSecret) return null;
-
-	try {
-		const response = await fetch("https://oauth2.googleapis.com/token", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				client_id: clientId,
-				client_secret: clientSecret,
-				refresh_token: refreshToken,
-				grant_type: "refresh_token",
-			}),
-		});
-
-		const data = await response.json();
-		if (data.error) throw new Error(data.error_description || data.error);
-		return data.access_token;
-	} catch (error) {
-		console.error("⚠️ OAuth Refresh Error:", error.message);
-		return null;
-	}
-}
-
 export function parseAIResponse(text) {
 	try {
 		const jsonStr = text.replace(/```json|```/g, "").trim();
@@ -68,16 +40,16 @@ export function getProjectRules(rulesDir = ".rulesync/rules") {
 }
 
 export async function main(modelId, issueNumber) {
+	// Limpieza estricta de la API Key
 	const apiKey = (
 		process.env.GEMINI_API_KEY ||
 		process.env.GOOGLE_API_KEY ||
 		""
 	).trim();
-	const accessToken = await getAccessToken();
 
-	if (!apiKey && !accessToken) {
+	if (!apiKey || apiKey.length < 10) {
 		console.error(
-			"❌ Missing Auth: Set GEMINI_API_KEY or GOOGLE_REFRESH_TOKEN/CLIENT_ID/SECRET",
+			"❌ Invalid or missing API Key. Please check your .env or GEMINI_API_KEY variable.",
 		);
 		process.exit(1);
 	}
@@ -85,23 +57,12 @@ export async function main(modelId, issueNumber) {
 	console.error(
 		`🚀 Starting AI Agent with model ${modelId} for Issue #${issueNumber}`,
 	);
+	console.error(
+		`ℹ️ Auth: Using AI Studio Pro Key (Starts: ${apiKey.substring(0, 4)}...)`,
+	);
 
-	let url;
-	const headers = { "Content-Type": "application/json" };
-
-	if (accessToken) {
-		console.error("🔐 Auth: Using Google OAuth (Personal Pro Identity)");
-		headers["Authorization"] = `Bearer ${accessToken}`;
-		// Endpoint de Vertex AI (Soporta OAuth con cloud-platform scope)
-		// Nota: Requiere un Project ID. Intentaremos usar uno genérico o del entorno.
-		const projectId =
-			process.env.GOOGLE_CLOUD_PROJECT || "gen-lang-client-0739017663";
-		url = `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/${modelId}:streamGenerateContent`;
-	} else {
-		console.error("ℹ️ Auth: Using standard API Key");
-		headers["x-goog-api-key"] = apiKey;
-		url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`;
-	}
+	// Endpoint de AI Studio (Soporta Gemini 3 Pro Preview)
+	const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
 
 	try {
 		const issueData = JSON.parse(
@@ -122,12 +83,12 @@ export async function main(modelId, issueNumber) {
     INSTRUCTIONS:
     1. Identify files to modify.
     2. Return a JSON object: { "thought": "...", "changes": [{ "path": "...", "content": "..." }] }
-    3. Return ONLY JSON. No other text.
+    3. Return ONLY JSON.
     `;
 
 		const response = await fetch(url, {
 			method: "POST",
-			headers: headers,
+			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
 				contents: [{ parts: [{ text: prompt }] }],
 			}),
@@ -135,14 +96,10 @@ export async function main(modelId, issueNumber) {
 
 		const text = await response.text();
 		let result;
-
 		try {
-			// Vertex AI devuelve un stream (array de objetos) en streamGenerateContent
-			// Si es el endpoint normal de AI Studio, es un objeto único.
-			const parsed = JSON.parse(text);
-			result = Array.isArray(parsed) ? parsed[0] : parsed;
+			result = JSON.parse(text);
 		} catch (e) {
-			throw new Error(`Server returned non-JSON response: ${text}`);
+			throw new Error(`Server returned non-JSON: ${text}`);
 		}
 
 		if (result.error) {
@@ -151,15 +108,13 @@ export async function main(modelId, issueNumber) {
 			);
 		}
 
-		// En Vertex AI el campo puede variar ligeramente, normalizamos:
-		const candidates =
-			result.candidates ||
-			(Array.isArray(result) ? result[0].candidates : null);
-		if (!candidates?.[0]?.content?.parts?.[0]?.text) {
-			throw new Error(`Unexpected Response Format: ${text}`);
+		if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
+			throw new Error(
+				`No candidates in response. Check quota or safety filters.`,
+			);
 		}
 
-		const plan = parseAIResponse(candidates[0].content.parts[0].text);
+		const plan = parseAIResponse(result.candidates[0].content.parts[0].text);
 		console.error(`📝 Plan: ${plan.thought}`);
 
 		for (const change of plan.changes) {
@@ -177,7 +132,7 @@ export async function main(modelId, issueNumber) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-	const modelId = process.argv[2] || "gemini-1.5-pro"; // Modelos de Vertex usan nombres distintos
+	const modelId = process.argv[2] || "gemini-3-flash-preview";
 	const issueNum = process.argv[3];
 	main(modelId, issueNum);
 }
