@@ -3,6 +3,38 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+// --- Dependencias para Mocking ---
+export const deps = {
+	execSync,
+	readFileSync: fs.readFileSync,
+	writeFileSync: fs.writeFileSync,
+	readdirSync: fs.readdirSync,
+	existsSync: fs.existsSync,
+	mkdirSync: fs.mkdirSync,
+};
+
+export function parseAIResponse(text) {
+	try {
+		const jsonStr = text.replace(/```json|```/g, "").trim();
+		return JSON.parse(jsonStr);
+	} catch (error) {
+		throw new Error(
+			`Failed to parse AI response as JSON: ${error.message}\nRaw text: ${text}`,
+		);
+	}
+}
+
+export function getProjectRules(rulesDir = ".rulesync/rules") {
+	if (!deps.existsSync(rulesDir)) return "";
+	return deps
+		.readdirSync(rulesDir)
+		.map((f) => {
+			const content = deps.readFileSync(path.join(rulesDir, f), "utf8");
+			return `RULE [${f}]:\n${content}`;
+		})
+		.join("\n\n");
+}
+
 export async function main(modelId, issueNumber) {
 	const apiKey = (
 		process.env.GEMINI_API_KEY ||
@@ -22,17 +54,17 @@ export async function main(modelId, issueNumber) {
 	try {
 		// 1. Obtener contexto de la Issue
 		const issueData = JSON.parse(
-			execSync(`gh issue view ${issueNumber} --json title,body`, {
+			deps.execSync(`gh issue view ${issueNumber} --json title,body`, {
 				encoding: "utf8",
 			}),
 		);
 
 		// 2. Escaneo de archivos
-		const fileList = execSync('find src -maxdepth 3 -not -path "*/.*"', {
+		const fileList = deps.execSync('find src -maxdepth 3 -not -path "*/.*"', {
 			encoding: "utf8",
 		});
 
-		// 3. Preparar Prompt para el CLI
+		// 3. Preparar Prompt
 		const prompt = `
         You are an elite developer agent. 
         TASK: ${issueData.title}
@@ -42,32 +74,29 @@ export async function main(modelId, issueNumber) {
         ${fileList}
 
         INSTRUCTIONS:
-        1. Analyze the project rules in .rulesync/rules/
-        2. Modify the necessary files in src/
-        3. Return a JSON object with your plan and changes:
-           { "thought": "...", "changes": [{ "path": "...", "content": "..." }] }
+        1. Analyze the project rules.
+        2. Modify necessary files.
+        3. Return a JSON object: { "thought": "...", "changes": [{ "path": "...", "content": "..." }] }
         `;
 
 		// 4. EJECUTAR COMANDO GEMINI CLI
-		// Usamos el comando 'gemini' directamente como pides
 		const geminiCmd = `gemini --model ${modelId} "${prompt.replace(/"/g, '\\"')}"`;
 		console.error("📡 Calling Gemini CLI...");
 
-		const response = execSync(geminiCmd, {
+		const response = deps.execSync(geminiCmd, {
 			encoding: "utf8",
 			env: { ...process.env, GEMINI_API_KEY: apiKey },
 		});
 
 		// 5. Procesar respuesta
-		const jsonStr = response.replace(/```json|```/g, "").trim();
-		const plan = JSON.parse(jsonStr);
+		const plan = parseAIResponse(response);
 
 		console.error(`📝 Plan: ${plan.thought}`);
 
 		for (const change of plan.changes) {
 			const dir = path.dirname(change.path);
-			if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-			fs.writeFileSync(change.path, change.content);
+			if (!deps.existsSync(dir)) deps.mkdirSync(dir, { recursive: true });
+			deps.writeFileSync(change.path, change.content);
 			console.error(`✅ Updated: ${change.path}`);
 		}
 
