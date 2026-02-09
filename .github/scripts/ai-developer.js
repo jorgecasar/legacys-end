@@ -17,9 +17,36 @@ function gh(args) {
 	return deps.execSync(`gh ${args}`, { encoding: "utf8" }).trim();
 }
 
+async function getAccessToken() {
+	const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+	const clientId = process.env.GOOGLE_CLIENT_ID;
+	const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+	if (!refreshToken || !clientId || !clientSecret) return null;
+
+	try {
+		const response = await fetch("https://oauth2.googleapis.com/token", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				client_id: clientId,
+				client_secret: clientSecret,
+				refresh_token: refreshToken,
+				grant_type: "refresh_token",
+			}),
+		});
+
+		const data = await response.json();
+		if (data.error) throw new Error(data.error_description || data.error);
+		return data.access_token;
+	} catch (error) {
+		console.error("⚠️ OAuth Refresh Error:", error.message);
+		return null;
+	}
+}
+
 export function parseAIResponse(text) {
 	try {
-		// Eliminar posibles bloques de código markdown
 		const jsonStr = text.replace(/```json|```/g, "").trim();
 		return JSON.parse(jsonStr);
 	} catch (error) {
@@ -46,63 +73,61 @@ export async function main(modelId, issueNumber) {
 		process.env.GOOGLE_API_KEY ||
 		""
 	).trim();
+	const accessToken = await getAccessToken();
 
-	if (!apiKey || !issueNumber) {
-		console.error("❌ Missing GEMINI_API_KEY/GOOGLE_API_KEY or ISSUE_NUMBER");
+	if (!apiKey && !accessToken) {
+		console.error(
+			"❌ Missing Auth: Set GEMINI_API_KEY or GOOGLE_REFRESH_TOKEN/CLIENT_ID/SECRET",
+		);
 		process.exit(1);
 	}
 
 	console.error(
-		`🚀 Starting AI Agent [REST Mode] with model ${modelId} for Issue #${issueNumber}`,
+		`🚀 Starting AI Agent with model ${modelId} for Issue #${issueNumber}`,
 	);
 
-	// Autenticación DUAL: URL + Header para máxima compatibilidad
-	const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
+	let url;
+	const headers = { "Content-Type": "application/json" };
+
+	if (accessToken) {
+		console.error("🔐 Auth: Using Google OAuth (Personal Pro Identity)");
+		headers["Authorization"] = `Bearer ${accessToken}`;
+		// Endpoint de Vertex AI (Soporta OAuth con cloud-platform scope)
+		// Nota: Requiere un Project ID. Intentaremos usar uno genérico o del entorno.
+		const projectId =
+			process.env.GOOGLE_CLOUD_PROJECT || "gen-lang-client-0739017663";
+		url = `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/${modelId}:streamGenerateContent`;
+	} else {
+		console.error("ℹ️ Auth: Using standard API Key");
+		headers["x-goog-api-key"] = apiKey;
+		url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`;
+	}
 
 	try {
-		// 1. Obtener contexto de la Issue
 		const issueData = JSON.parse(
 			gh(`issue view ${issueNumber} --json title,body`),
 		);
-
-		// 2. Escaneo rápido de archivos
 		const fileList = deps.execSync('find src -maxdepth 3 -not -path "*/.*"', {
 			encoding: "utf8",
 		});
-
-		// 3. Cargar reglas
 		const rules = getProjectRules();
 
 		const prompt = `
     TASK: ${issueData.title}
     GOAL: ${issueData.body}
-
     PROJECT RULES:
     ${rules}
-
     AVAILABLE FILES (src/):
     ${fileList}
-
     INSTRUCTIONS:
-    1. Identify the files that need to be created or modified.
-    2. Read their content if necessary.
-    3. Return a JSON object with the following structure:
-       {
-         "thought": "Brief explanation of the plan",
-         "changes": [
-           { "path": "src/path/to/file.js", "content": "FULL NEW CONTENT" }
-         ]
-       }
-    4. Return ONLY the JSON object. No other text.
-    5. Always follow the project standards: ESM, node: protocol, double quotes, Result pattern for errors.
+    1. Identify files to modify.
+    2. Return a JSON object: { "thought": "...", "changes": [{ "path": "...", "content": "..." }] }
+    3. Return ONLY JSON. No other text.
     `;
 
 		const response = await fetch(url, {
 			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"x-goog-api-key": apiKey,
-			},
+			headers: headers,
 			body: JSON.stringify({
 				contents: [{ parts: [{ text: prompt }] }],
 			}),
@@ -110,8 +135,12 @@ export async function main(modelId, issueNumber) {
 
 		const text = await response.text();
 		let result;
+
 		try {
-			result = JSON.parse(text);
+			// Vertex AI devuelve un stream (array de objetos) en streamGenerateContent
+			// Si es el endpoint normal de AI Studio, es un objeto único.
+			const parsed = JSON.parse(text);
+			result = Array.isArray(parsed) ? parsed[0] : parsed;
 		} catch (e) {
 			throw new Error(`Server returned non-JSON response: ${text}`);
 		}
@@ -122,14 +151,15 @@ export async function main(modelId, issueNumber) {
 			);
 		}
 
-		if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
-			throw new Error(
-				`Unexpected API Response Format. Model might be overloaded or unavailable.`,
-			);
+		// En Vertex AI el campo puede variar ligeramente, normalizamos:
+		const candidates =
+			result.candidates ||
+			(Array.isArray(result) ? result[0].candidates : null);
+		if (!candidates?.[0]?.content?.parts?.[0]?.text) {
+			throw new Error(`Unexpected Response Format: ${text}`);
 		}
 
-		const plan = parseAIResponse(result.candidates[0].content.parts[0].text);
-
+		const plan = parseAIResponse(candidates[0].content.parts[0].text);
 		console.error(`📝 Plan: ${plan.thought}`);
 
 		for (const change of plan.changes) {
@@ -147,7 +177,7 @@ export async function main(modelId, issueNumber) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-	const modelId = process.argv[2] || "gemini-3-flash-preview";
+	const modelId = process.argv[2] || "gemini-1.5-pro"; // Modelos de Vertex usan nombres distintos
 	const issueNum = process.argv[3];
 	main(modelId, issueNum);
 }
