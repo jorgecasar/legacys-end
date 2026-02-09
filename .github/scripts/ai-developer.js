@@ -111,7 +111,7 @@ export async function main(modelId, issueNumber) {
 
 		const gemini = deps.spawn(
 			"gemini",
-			["--non-interactive", "--model", modelId, prompt],
+			["--model", modelId, "--prompt", prompt],
 			{
 				env: { ...process.env },
 			},
