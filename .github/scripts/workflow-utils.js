@@ -15,6 +15,18 @@ function validateEnv(required = []) {
 	}
 }
 
+// Log diagnóstico (Seguro)
+if (GITHUB_TOKEN) {
+	if (
+		GITHUB_TOKEN.startsWith("ghp_") ||
+		GITHUB_TOKEN.startsWith("github_pat_")
+	) {
+		console.log("🔐 Usando un Personal Access Token (PAT) detectado.");
+	} else {
+		console.log("ℹ️ Usando el GITHUB_TOKEN por defecto de la integración.");
+	}
+}
+
 export const PRICING = {
 	"gemini-3-pro-preview": { input: 2.0, output: 12.0 },
 	"gemini-3-flash-preview": { input: 0.5, output: 3.0 },
@@ -31,8 +43,6 @@ export const STATUS_OPTIONS = {
 	REVIEW: "0d3401d0",
 	DONE: "98236657",
 };
-
-// --- Comunicación con APIs ---
 
 /**
  * Realiza una consulta GraphQL a GitHub usando fetch nativo
@@ -139,12 +149,10 @@ export async function addIssueToProject(issueUrl) {
 			projectId: PROJECT_ID,
 			contentId: issueId,
 		});
-		console.error(
-			`Issue added/verified. Item ID: ${data.addProjectV2ItemById.item.id}`,
-		);
+		console.log(`✅ Issue añadida/verificada en el proyecto.`);
 		return data.addProjectV2ItemById.item.id;
 	} catch (error) {
-		console.error("Error adding issue to project:", error.message);
+		console.error("❌ Error adding issue to project:", error.message);
 		return null;
 	}
 }
@@ -156,9 +164,7 @@ export async function updateProjectStatus(
 ) {
 	const itemId = await getProjectItemId(issueNumber);
 	if (!itemId) {
-		console.error(
-			`Issue #${issueNumber} not found in project. Skipping status update.`,
-		);
+		console.log(`⚠️ Issue #${issueNumber} no encontrada en el proyecto.`);
 		return;
 	}
 
@@ -179,7 +185,7 @@ export async function updateProjectStatus(
 			fieldId: STATUS_FIELD_ID,
 			optionId: statusId,
 		});
-		console.error(`Updated Issue #${issueNumber} to status ${statusName}`);
+		console.log(`✅ Issue #${issueNumber} movida a ${statusName}`);
 	}
 
 	if (branchName) {
@@ -199,7 +205,7 @@ export async function updateProjectStatus(
 				fieldId: branchFieldId,
 				branch: branchName,
 			});
-			console.error(`Updated Issue #${issueNumber} with branch ${branchName}`);
+			console.log(`✅ Campo Branch actualizado a: ${branchName}`);
 		}
 	}
 }
@@ -211,7 +217,7 @@ export async function getOpenDependencies(issueNumber) {
 	const depRegex = /Depends on #(\d+)/g;
 	const textDependencies = [];
 	let match;
-	// Fix Biome assignment in expression warning
+	// Fix Biome warning
 	match = depRegex.exec(issueBody);
 	while (match !== null) {
 		textDependencies.push(match[1]);
@@ -441,7 +447,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 					console.log(num);
 					process.exit(0);
 				} else {
-					console.error("No tasks to pick.");
 					process.exit(1);
 				}
 			} else if (command === "add-to-project") {
