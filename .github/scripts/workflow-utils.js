@@ -15,15 +15,15 @@ function validateEnv(required = []) {
 	}
 }
 
-// Log diagnóstico (Seguro)
+// Log diagnóstico (Seguro) - Redirect to stderr
 if (GITHUB_TOKEN) {
 	if (
 		GITHUB_TOKEN.startsWith("ghp_") ||
 		GITHUB_TOKEN.startsWith("github_pat_")
 	) {
-		console.log("🔐 Usando un Personal Access Token (PAT) detectado.");
+		console.error("🔐 Usando un Personal Access Token (PAT) detectado.");
 	} else {
-		console.log("ℹ️ Usando el GITHUB_TOKEN por defecto de la integración.");
+		console.error("ℹ️ Usando el GITHUB_TOKEN por defecto de la integración.");
 	}
 }
 
@@ -185,7 +185,7 @@ export async function updateProjectStatus(
 			fieldId: STATUS_FIELD_ID,
 			optionId: statusId,
 		});
-		console.log(`✅ Issue #${issueNumber} movida a ${statusName}`);
+		console.error(`✅ Issue #${issueNumber} movida a ${statusName}`);
 	}
 
 	if (branchName) {
@@ -205,7 +205,7 @@ export async function updateProjectStatus(
 				fieldId: branchFieldId,
 				branch: branchName,
 			});
-			console.log(`✅ Campo Branch actualizado a: ${branchName}`);
+			console.error(`✅ Campo Branch actualizado a: ${branchName}`);
 		}
 	}
 }
@@ -410,11 +410,11 @@ export async function triageTask(issueNumber) {
 		}
 
 		gh(`issue edit ${issueNumber} --add-label "model:${finalModel}"`);
-		console.log(finalModel);
+		process.stdout.write(finalModel);
 	} catch (error) {
 		clearTimeout(timeoutId);
 		console.error("⚠️ Triage timed out or failed, fallback to gemini-2.0-flash");
-		console.log("gemini-2.0-flash");
+		process.stdout.write("gemini-2.0-flash");
 	}
 }
 
@@ -474,7 +474,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 			if (command === "auto-pick") {
 				const num = await autoPickTask();
 				if (num) {
-					console.log(num);
+					process.stdout.write(num.toString());
 					process.exit(0);
 				} else {
 					console.error("No tasks to pick.");
