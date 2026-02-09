@@ -9,6 +9,19 @@ const ROOT = path.resolve(__dirname, "..");
 const TEMP_DIR = path.join(ROOT, ".history-temp");
 const BUN = "/Users/jorgecasar/.bun/bin/bun";
 
+// Wrapper for dependencies to allow mocking in Node.js test runner
+export const deps = {
+	execSync,
+	readFileSync: fs.readFileSync,
+	writeFileSync: fs.writeFileSync,
+	appendFileSync: fs.appendFileSync,
+	existsSync: fs.existsSync,
+	statSync: fs.statSync,
+	rmSync: fs.rmSync,
+	copyFileSync: fs.copyFileSync,
+	gzipSync: zlib.gzipSync,
+};
+
 const HELP_TEXT = `
 Usage: node scripts/analyze-history.js [options]
 
@@ -59,15 +72,15 @@ Notes:
 
 export function exec(cmd, cwd = ROOT) {
 	try {
-		return execSync(cmd, { cwd, encoding: "utf8", stdio: "pipe" });
+		return deps.execSync(cmd, { cwd, encoding: "utf8", stdio: "pipe" });
 	} catch {
 		return null;
 	}
 }
 
 export function getGzipSize(filePath) {
-	const content = fs.readFileSync(filePath);
-	return zlib.gzipSync(content).length;
+	const content = deps.readFileSync(filePath);
+	return deps.gzipSync(content).length;
 }
 
 export function getLoC(dir) {
@@ -99,10 +112,10 @@ export async function analyzeCommit(hash, tempDir) {
 
 	try {
 		const pkgPath = path.join(tempDir, "package.json");
-		if (!fs.existsSync(pkgPath)) {
+		if (!deps.existsSync(pkgPath)) {
 			throw new Error("No package.json found");
 		}
-		const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+		const pkg = JSON.parse(deps.readFileSync(pkgPath, "utf8"));
 
 		// Project Stats
 		metrics.project.dependencies = Object.keys(pkg.dependencies || {}).length;
@@ -125,10 +138,10 @@ export async function analyzeCommit(hash, tempDir) {
 
 		// Merge current build-related devDependencies for consistent builds
 		const currentPkg = JSON.parse(
-			fs.readFileSync(path.join(ROOT, "package.json"), "utf8"),
+			deps.readFileSync(path.join(ROOT, "package.json"), "utf8"),
 		);
 		const tempPkgPath = path.join(tempDir, "package.json");
-		const tempPkg = JSON.parse(fs.readFileSync(tempPkgPath, "utf8"));
+		const tempPkg = JSON.parse(deps.readFileSync(tempPkgPath, "utf8"));
 
 		// Build-related packages to merge
 		const buildPackages = [
@@ -148,7 +161,7 @@ export async function analyzeCommit(hash, tempDir) {
 			}
 		}
 
-		fs.writeFileSync(tempPkgPath, JSON.stringify(tempPkg, null, 2));
+		deps.writeFileSync(tempPkgPath, JSON.stringify(tempPkg, null, 2));
 
 		exec(`${BUN} install`, tempDir);
 
@@ -156,10 +169,13 @@ export async function analyzeCommit(hash, tempDir) {
 		const currentViteConfig = path.join(ROOT, "vite.config.js");
 		const tempViteConfig = path.join(tempDir, "vite.config.js");
 
-		if (!fs.existsSync(tempViteConfig) && fs.existsSync(currentViteConfig)) {
-			fs.copyFileSync(currentViteConfig, tempViteConfig);
+		if (
+			!deps.existsSync(tempViteConfig) &&
+			deps.existsSync(currentViteConfig)
+		) {
+			deps.copyFileSync(currentViteConfig, tempViteConfig);
 			console.log("Using current vite.config.js for build (missing in commit)");
-		} else if (fs.existsSync(tempViteConfig)) {
+		} else if (deps.existsSync(tempViteConfig)) {
 			console.log("Using commit's original vite.config.js");
 		}
 
@@ -168,7 +184,7 @@ export async function analyzeCommit(hash, tempDir) {
 
 		// Bundle metrics
 		const distDir = path.join(tempDir, "dist");
-		if (fs.existsSync(distDir)) {
+		if (deps.existsSync(distDir)) {
 			const jsFilesRaw = exec(`find ${distDir} -name "*.js"`, tempDir);
 			const jsFiles = jsFilesRaw
 				? jsFilesRaw.trim().split("\n").filter(Boolean)
@@ -178,7 +194,7 @@ export async function analyzeCommit(hash, tempDir) {
 			metrics.bundle.totalGzipSize = 0;
 
 			for (const file of jsFiles) {
-				const stats = fs.statSync(file);
+				const stats = deps.statSync(file);
 				metrics.bundle.totalRawSize += stats.size;
 				metrics.bundle.totalGzipSize += getGzipSize(file);
 			}
@@ -194,8 +210,8 @@ export async function analyzeCommit(hash, tempDir) {
 				tempDir,
 			);
 
-			if (fs.existsSync(testResultPath)) {
-				const testData = JSON.parse(fs.readFileSync(testResultPath, "utf8"));
+			if (deps.existsSync(testResultPath)) {
+				const testData = JSON.parse(deps.readFileSync(testResultPath, "utf8"));
 				metrics.tests.total = testData.numTotalTests || 0;
 				metrics.tests.passed = testData.numPassedTests || 0;
 				metrics.tests.failed = testData.numFailedTests || 0;
@@ -324,8 +340,8 @@ export async function main() {
 
 	// Load existing history and Prune stale entries
 	let history = [];
-	if (fs.existsSync(outputPath)) {
-		const raw = fs.readFileSync(outputPath, "utf8");
+	if (deps.existsSync(outputPath)) {
+		const raw = deps.readFileSync(outputPath, "utf8");
 		history = raw
 			.trim()
 			.split("\n")
@@ -349,7 +365,7 @@ export async function main() {
 			`Pruning ${history.length - validHistory.length} stale entries...`,
 		);
 		const ndjson = validHistory.map((item) => JSON.stringify(item)).join("\n");
-		fs.writeFileSync(outputPath, ndjson ? `${ndjson}\n` : "");
+		deps.writeFileSync(outputPath, ndjson ? `${ndjson}\n` : "");
 	} else {
 		console.log("No stale entries found.");
 	}
@@ -372,8 +388,8 @@ export async function main() {
 	try {
 		exec(`git worktree remove -f ${TEMP_DIR}`);
 	} catch {}
-	if (fs.existsSync(TEMP_DIR)) {
-		fs.rmSync(TEMP_DIR, { recursive: true, force: true });
+	if (deps.existsSync(TEMP_DIR)) {
+		deps.rmSync(TEMP_DIR, { recursive: true, force: true });
 	}
 	exec("git worktree prune");
 	exec(`git worktree add ${TEMP_DIR} HEAD`);
@@ -439,13 +455,13 @@ export async function main() {
 				} else {
 					// Append immediately for new commits
 					validHistory.push(metrics);
-					fs.appendFileSync(outputPath, `${JSON.stringify(metrics)}\n`);
+					deps.appendFileSync(outputPath, `${JSON.stringify(metrics)}\n`);
 					console.log(`Saved metrics for ${hash}`);
 				}
 
 				// Always update the .json file for the UI after each commit
 				const jsonPath = path.join(ROOT, "public", "bundle-history.json");
-				fs.writeFileSync(jsonPath, JSON.stringify(validHistory, null, 2));
+				deps.writeFileSync(jsonPath, JSON.stringify(validHistory, null, 2));
 
 				// If using --force, rewrite the .jsonl after each update to keep it consistent
 				if (options.force) {
@@ -460,7 +476,7 @@ export async function main() {
 					const ndjson = validHistory
 						.map((item) => JSON.stringify(item))
 						.join("\n");
-					fs.writeFileSync(outputPath, `${ndjson}\n`);
+					deps.writeFileSync(outputPath, `${ndjson}\n`);
 				}
 			}
 		}
@@ -474,7 +490,7 @@ export async function main() {
 
 		// Also update a standard .json file (array) for the UI
 		const jsonPath = path.join(ROOT, "bundle-history.json");
-		fs.writeFileSync(jsonPath, JSON.stringify(validHistory, null, 2));
+		deps.writeFileSync(jsonPath, JSON.stringify(validHistory, null, 2));
 		console.log(`Updated UI data in ${jsonPath}`);
 	}
 

@@ -14,7 +14,7 @@
 		"format": "biome check --write .",
 		"test": "npm run test:browser && npm run test:node",
 		"test:browser": "vitest run src/",
-		"test:node": "vitest run --browser.enabled=false .github/scripts/ scripts/analyze-history.test.js",
+		"test:node": "node --test .github/scripts/*.test.js scripts/*.test.js",
 		"test:watch": "vitest",
 		"test:coverage": "vitest run --coverage",
 		"test:ui": "vitest --ui",

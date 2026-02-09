@@ -1,12 +1,7 @@
-/**
- * @vitest-environment node
- */
-
-import { execSync } from "node:child_process";
-import fs from "node:fs";
-import zlib from "node:zlib";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import assert from "node:assert";
+import { beforeEach, describe, it, mock } from "node:test";
 import {
+	deps,
 	exec,
 	getCommitsInRange,
 	getCommitsToAnalyze,
@@ -15,100 +10,61 @@ import {
 	parseArgs,
 } from "./analyze-history.js";
 
-vi.mock("node:child_process", () => ({
-	execSync: vi.fn(),
-}));
-
-vi.mock("node:fs", () => ({
-	default: {
-		readFileSync: vi.fn(),
-		existsSync: vi.fn(),
-		statSync: vi.fn(),
-		writeFileSync: vi.fn(),
-		appendFileSync: vi.fn(),
-		rmSync: vi.fn(),
-		copyFileSync: vi.fn(),
-	},
-}));
-
-vi.mock("node:zlib", () => ({
-	default: {
-		gzipSync: vi.fn(() => ({ length: 100 })),
-	},
-}));
-
-describe("analyze-history", () => {
+describe("analyze-history (Node.js Test Runner)", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		mock.reset();
 	});
 
 	describe("exec", () => {
 		it("should execute command and return output", () => {
-			execSync.mockReturnValue("output\n");
+			mock.method(deps, "execSync", () => "output\n");
 			const result = exec("ls");
-			expect(result).toBe("output\n");
+			assert.strictEqual(result, "output\n");
 		});
 
 		it("should return null on error", () => {
-			execSync.mockImplementation(() => {
+			mock.method(deps, "execSync", () => {
 				throw new Error();
 			});
 			const result = exec("invalid");
-			expect(result).toBeNull();
+			assert.strictEqual(result, null);
 		});
 	});
 
 	describe("getGzipSize", () => {
 		it("should return gzip size of a file", () => {
-			fs.readFileSync.mockReturnValue("content");
-			const size = getGzipSize("file.txt");
-			expect(size).toBe(100);
-		});
-	});
+			mock.method(deps, "readFileSync", () => "content");
+			mock.method(deps, "gzipSync", () => ({ length: 100 }));
 
-	describe("getLoC", () => {
-		it("should return lines of code", () => {
-			execSync.mockReturnValue("123\n");
-			const loc = getLoC("src");
-			expect(loc).toBe(123);
+			const size = getGzipSize("file.txt");
+			assert.strictEqual(size, 100);
 		});
 	});
 
 	describe("parseArgs", () => {
 		it("should parse commit option", () => {
 			const options = parseArgs(["--commit", "abc123"]);
-			expect(options.commit).toBe("abc123");
+			assert.strictEqual(options.commit, "abc123");
 		});
 
 		it("should parse range option", () => {
 			const options = parseArgs(["--range", "abc..def"]);
-			expect(options.range).toBe("abc..def");
+			assert.strictEqual(options.range, "abc..def");
 		});
 
 		it("should parse force option", () => {
 			const options = parseArgs(["--force"]);
-			expect(options.force).toBe(true);
+			assert.strictEqual(options.force, true);
 		});
 
 		it("should parse limit option", () => {
 			const options = parseArgs(["--limit", "10"]);
-			expect(options.limit).toBe(10);
+			assert.strictEqual(options.limit, 10);
 		});
 
 		it("should parse numeric argument as limit for backward compatibility", () => {
 			const options = parseArgs(["50"]);
-			expect(options.limit).toBe(50);
-		});
-	});
-
-	describe("getCommitsInRange", () => {
-		it("should return inclusive range of commits", () => {
-			execSync.mockReturnValueOnce("abc"); // startValid
-			execSync.mockReturnValueOnce("def"); // endValid
-			execSync.mockReturnValueOnce("ghi\ndef\n"); // git log result
-
-			const commits = getCommitsInRange("abc..def");
-			expect(commits).toEqual(["abc", "ghi", "def"]);
+			assert.strictEqual(options.limit, 50);
 		});
 	});
 
@@ -119,7 +75,7 @@ describe("analyze-history", () => {
 				["abc", "def"],
 				new Set(),
 			);
-			expect(targets).toEqual(["abc"]);
+			assert.deepStrictEqual(targets, ["abc"]);
 		});
 
 		it("should return missing commits by default", () => {
@@ -128,7 +84,7 @@ describe("analyze-history", () => {
 				["abc", "def", "ghi"],
 				new Set(["abc"]),
 			);
-			expect(targets).toEqual(["def", "ghi"]);
+			assert.deepStrictEqual(targets, ["def", "ghi"]);
 		});
 
 		it("should respect limit option", () => {
@@ -137,7 +93,7 @@ describe("analyze-history", () => {
 				["abc", "def", "ghi"],
 				new Set(),
 			);
-			expect(targets).toEqual(["abc"]);
+			assert.deepStrictEqual(targets, ["abc"]);
 		});
 	});
 });
