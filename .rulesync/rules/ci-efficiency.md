@@ -1,25 +1,26 @@
 # CI Efficiency Rule
 
-To save GitHub Actions minutes and optimize the feedback loop, agents MUST follow these commit guidelines:
+To save GitHub Actions minutes and optimize the feedback loop, all agents (including the current one) MUST follow these commit guidelines:
 
 ## When to use [skip ci]
 
-Add `[skip ci]` to the commit message in the following cases:
-1.  **Intermediate Work**: Any "WIP" (Work In Progress) commit made during rate-limit pauses.
-2.  **Non-Deployable Changes**: Commits that only affect:
-    - Documentation (`*.md`).
-    - CI/CD Workflows (`.github/workflows/`).
-    - Internal Agent Rules (`.rulesync/`, `.gemini/`).
-    - Local configuration files that don't affect the production build (e.g., `.gitignore`, `.lintstagedrc`).
+Add `[skip ci]` to the commit message for any change that **does not affect the production deployment**. This includes:
+1.  **Documentation**: Any `*.md` files.
+2.  **Workflows & Automation**: `.github/workflows/` and `.github/scripts/`.
+3.  **Internal Rules**: `.rulesync/` rules and `.gemini/` skills.
+4.  **Local Config**: `.gitignore`, `.lintstagedrc`, `.biome.json`, etc.
+5.  **Test-only changes**: New or updated test files that do not touch production code.
+6.  **Intermediate Work**: Any "WIP" commit during rate-limit pauses.
 
 ## When NOT to use [skip ci]
 
 **DO NOT** add `[skip ci]` if the changes include:
-- Any file inside `src/`.
+- Any file inside `src/` (excluding tests).
 - Any file inside `public/`.
-- Root files affecting the build or app behavior (`package.json`, `vite.config.js`, `index.html`).
-- New or updated tests.
+- `index.html`.
+- Production dependencies changes in `package.json`.
+- Build configuration (`vite.config.js`) that affects the production output.
 
-## Implementation in Workflows
+## Implementation Standard
 
-The AI Engine is responsible for automatically detecting if a task's final output requires a CI run or if it can be safely skipped using this logic.
+Every time the agent (manual or automatic) performs a commit, it must evaluate if the files staged for commit require a new deployment. If they don't, the suffix `[skip ci]` must be appended to the commit message.
