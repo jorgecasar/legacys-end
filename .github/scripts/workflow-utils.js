@@ -369,7 +369,10 @@ export async function autoPickTask() {
 }
 
 export async function triageTask(issueNumber) {
-	validateEnv(["GEMINI_API_KEY"]);
+	const useAdc = process.env.GEMINI_USE_ADC === "true";
+	if (!useAdc) {
+		validateEnv(["GEMINI_API_KEY"]);
+	}
 	const issueData = JSON.parse(
 		gh(`issue view ${issueNumber} --json title,labels`),
 	);
@@ -388,15 +391,26 @@ export async function triageTask(issueNumber) {
 	const timeoutId = setTimeout(() => controller.abort(), 20000);
 
 	try {
-		const response = await fetch(
-			`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
-			{
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-				signal: controller.signal,
-			},
-		);
+		const baseUrl =
+			"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent";
+		const url = useAdc
+			? baseUrl
+			: `${baseUrl}?key=${process.env.GEMINI_API_KEY}`;
+		const headers = { "Content-Type": "application/json" };
+
+		if (useAdc) {
+			const token = execSync("gcloud auth print-access-token", {
+				encoding: "utf8",
+			}).trim();
+			headers.Authorization = `Bearer ${token}`;
+		}
+
+		const response = await fetch(url, {
+			method: "POST",
+			headers,
+			body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+			signal: controller.signal,
+		});
 
 		clearTimeout(timeoutId);
 		const data = await response.json();

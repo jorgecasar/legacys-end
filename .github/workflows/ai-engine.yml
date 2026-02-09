@@ -15,19 +15,29 @@ on:
         type: string
     secrets:
       GEMINI_API_KEY:
-        required: true
+        required: false
       PROJECT_PAT:
+        required: false
+      GCP_WORKLOAD_IDENTITY_PROVIDER:
+        required: false
+      GCP_SERVICE_ACCOUNT:
         required: false
 
 jobs:
   develop:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
     env:
       PROJECT_ID: "PVT_kwHOAA562c4BOtC-"
       PROJECT_NUMBER: 2
       STATUS_FIELD_ID: "PVTSSF_lAHOAA562c4BOtC-zg9U7KE"
       ISSUE_NUM: ${{ inputs.issue_number }}
       GITHUB_TOKEN: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
+      GEMINI_USE_ADC: "true"
+      GOOGLE_CLOUD_PROJECT: "legacys-end"
 
     steps:
       - name: Checkout code
@@ -39,6 +49,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24"
+
+      - name: Authenticate to Google Cloud
+        if: env.GEMINI_USE_ADC == 'true'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        if: env.GEMINI_USE_ADC == 'true'
+        uses: google-github-actions/setup-gcloud@v2
 
       - name: Install Gemini CLI
         run: npm install -g @google/gemini-cli
@@ -75,6 +96,8 @@ jobs:
         id: run-agent
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_USE_ADC: "true"
+          GOOGLE_CLOUD_PROJECT: "legacys-end"
         run: |
           # 1. Preparar Rama
           BRANCH_NAME="ai-fix/issue-$ISSUE_NUM"
