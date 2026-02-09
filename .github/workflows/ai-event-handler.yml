@@ -28,6 +28,10 @@ jobs:
       (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.issue.labels.*.name, 'automated-pr')) ||
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    env:
+      PROJECT_ID: "PVT_kwHOAA562c4BOtC-"
+      STATUS_FIELD_ID: "PVTSSF_lAHOAA562c4BOtC-zg9U7KE"
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
       issue_number: ${{ steps.info.outputs.num }}
       is_comment: ${{ steps.info.outputs.is_comment }}
