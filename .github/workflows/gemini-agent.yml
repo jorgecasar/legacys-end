@@ -74,4 +74,5 @@ jobs:
             ${{ github.event.comment.body || github.event.inputs.prompt || 'Please analyze the current issue and propose a solution.' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_PERSONAL_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUM: ${{ github.event.inputs.issue_number || github.event.issue.number || github.event.pull_request.number }}
