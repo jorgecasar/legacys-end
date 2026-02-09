@@ -356,36 +356,55 @@ export async function triageTask(issueNumber) {
 		return;
 	}
 
-	const prompt = `Analyze this GitHub Issue and assign the most efficient Gemini model available (Feb 2026). Return ONLY ID: gemini-3-pro-preview (complex), gemini-3-flash-preview (standard), gemini-2.5-flash-lite (trivial). TITLE: ${issueData.title} BODY: ${issueData.body}`;
+	const prompt = `Analyze this GitHub Issue and assign the most efficient Gemini model ID:
+    gemini-3-pro-preview (complex), gemini-2.0-flash (standard), gemini-2.0-flash-lite (trivial).
+    TITLE: ${issueData.title}
+    BODY: ${issueData.body}`;
 
-	const response = await fetch(
-		`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${process.env.GEMINI_API_KEY}`,
-		{
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-		},
-	);
+	// Timeout de 20 segundos para evitar que el workflow se cuelgue
+	const controller = new AbortController();
+	const timeoutId = setTimeout(() => controller.abort(), 20000);
 
-	const data = await response.json();
-	if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
-		throw new Error(`Invalid Triage API Response: ${JSON.stringify(data)}`);
+	try {
+		const response = await fetch(
+			`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+			{
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+				signal: controller.signal,
+			},
+		);
+
+		clearTimeout(timeoutId);
+		const data = await response.json();
+
+		if (
+			!data.candidates ||
+			!data.candidates[0] ||
+			!data.candidates[0].content
+		) {
+			throw new Error("Invalid API response format");
+		}
+
+		const modelId = data.candidates[0].content.parts[0].text.trim();
+		const validModels = [
+			"gemini-3-pro-preview",
+			"gemini-2.0-flash",
+			"gemini-2.0-flash-lite",
+			"gemini-2.5-pro",
+			"gemini-2.5-flash",
+		];
+		const finalModel = validModels.includes(modelId)
+			? modelId
+			: "gemini-2.0-flash";
+		gh(`issue edit ${issueNumber} --add-label "model:${finalModel}"`);
+		console.log(finalModel);
+	} catch (error) {
+		clearTimeout(timeoutId);
+		console.error("⚠️ Triage timed out or failed, fallback to gemini-2.0-flash");
+		console.log("gemini-2.0-flash");
 	}
-
-	const modelId = data.candidates[0].content.parts[0].text.trim();
-	const validModels = [
-		"gemini-3-pro-preview",
-		"gemini-3-flash-preview",
-		"gemini-2.5-pro",
-		"gemini-2.5-flash",
-		"gemini-2.5-flash-lite",
-		"gemini-2.0-flash",
-	];
-	const finalModel = validModels.includes(modelId)
-		? modelId
-		: "gemini-3-flash-preview";
-	gh(`issue edit ${issueNumber} --add-label "model:${finalModel}"`);
-	console.log(finalModel);
 }
 
 export async function logSessionStats(issueNumber, modelId, logFile) {
@@ -447,6 +466,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 					console.log(num);
 					process.exit(0);
 				} else {
+					console.error("No tasks to pick.");
 					process.exit(1);
 				}
 			} else if (command === "add-to-project") {
