@@ -25,11 +25,11 @@ The following models were evaluated based on official Google AI Studio / Cloud p
 | Model | Series | Cost (Input/Output per 1M) | RPM (Requests/Min) | RPD (Requests/Day) | Reasoning Level |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **`gemini-3-pro-preview`** | 3 | $2.00 / $12.00 | 2 | 50 | Ultra High |
-| **`gemini-3-flash-preview`** | 3 | $0.50 / $3.00 | 15 | 1,500 | High |
+| **`gemini-3-flash-preview`** | 3 | $0.50 / $3.00 | 5 (Real) | 20 (Real) | High |
 | **`gemini-2.5-pro`** | 2.5 | $1.25 / $5.00 | 2 | 50 | Very High |
-| **`gemini-2.5-flash`** | 2.5 | $0.10 / $0.40 | 15 | 1,500 | Medium-High |
-| **`gemini-2.5-flash-lite`** | 2.5 | $0.05 / $0.20 | 30 | 2,000 | Low-Medium |
-| **`gemini-2.0-flash`** | 2.0 | $0.10 / $0.40 | 15 | 1,500 | Medium (Stable) |
+| **`gemini-2.5-flash`** | 2.5 | $0.10 / $0.40 | 5 (Real) | 20 (Real) | Medium-High |
+| **`gemini-2.5-flash-lite`** | 2.5 | $0.05 / $0.20 | 10 (Real) | 50 (Est) | Low-Medium |
+| **`gemini-2.0-flash`** | 2.0 | $0.10 / $0.40 | 5 (Real) | 20 (Real) | Medium (Stable) |
 
 ## Decision Outcome
 
