@@ -50,11 +50,11 @@ const createValidationResult = (errors) => ({
 const toResult = (validation, value) => {
 	if (validation.isValid) {
 		return /** @type {Result<T, ValidationError[]>} */ (
-			/** @type {unknown} */ (Result.Ok(value))
+			/** @type {unknown} */ (Result.success(value))
 		);
 	}
 	return /** @type {Result<T, ValidationError[]>} */ (
-		Result.Err(validation.errors)
+		Result.failure(validation.errors)
 	);
 };
 

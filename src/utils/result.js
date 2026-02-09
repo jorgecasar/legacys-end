@@ -1,220 +1,241 @@
-/**
- * Result Type - Represents the outcome of an operation that may fail
- *
- * This pattern makes error handling explicit and composable.
- * Instead of throwing exceptions or returning null, operations return
- * a Result that can be either Ok (success) or Err (failure).
- * Result Type - Explicit Error Handling
- *
- * Represents the result of an operation that can either succeed or fail.
- * Inspired by Rust's Result<T, E> type.
- *
- * Usage:
- * ```js
- * const result = Result.Ok(42);
- * const error = Result.Err(new Error("Failed"));
- * ```
- */
+import { AppError } from "../core/errors.js";
 
 /**
- * Result class for explicit error handling
- * Can be either Ok (success) or Err (failure)
+ * Result pattern implementation for consistent error handling.
+ * Inspired by Rust's Result<T, E> type.
+ *
  * @template T
  * @template E
  */
 export class Result {
+	/** @type {T | null} */
+	#value;
+	/** @type {E | null} */
+	#error;
+	/** @type {boolean} */
+	#isSuccess;
+
 	/**
 	 * @private
-	 * @param {T | null} value
+	 * @param {boolean} isSuccess
 	 * @param {E | null} error
+	 * @param {T | null} value
 	 */
-	constructor(value, error) {
-		this._value = value;
-		this._error = error;
-		this.ok = error === null;
+	constructor(isSuccess, error, value) {
+		this.#isSuccess = isSuccess;
+		this.#error = error;
+		this.#value = value;
+		Object.freeze(this);
+	}
+
+	get isSuccess() {
+		return this.#isSuccess;
+	}
+
+	get isFailure() {
+		return !this.#isSuccess;
 	}
 
 	/**
-	 * Create a successful Result
-	 * @template T
-	 * @param {T} value - The success value
-	 * @returns {Result<T, null>}
+	 * @deprecated Use isSuccess
 	 */
-	static Ok(value) {
-		return new Result(value, null);
+	get ok() {
+		return this.#isSuccess;
 	}
 
 	/**
-	 * Create a failed Result
-	 * @template E
-	 * @param {E} error - The error
-	 * @returns {Result<null, E>}
-	 */
-	static Err(error) {
-		return new Result(null, error);
-	}
-
-	/**
-	 * Check if the result is successful
-	 * @returns {boolean}
-	 */
-	isOk() {
-		return this.ok;
-	}
-
-	/**
-	 * Check if the result is an error
-	 * @returns {boolean}
-	 */
-	isErr() {
-		return !this.ok;
-	}
-
-	/**
-	 * Get the value, throwing if this is an error
 	 * @returns {T}
-	 * @throws {Error} If this is an Err
-	 */
-	unwrap() {
-		if (this.isErr()) {
-			throw this.error;
-		}
-		return /** @type {T} */ (this._value);
-	}
-
-	/**
-	 * Get the value or a default if it's an error
-	 * @param {T} defaultValue - The default value to return on error
-	 * @returns {T}
-	 */
-	unwrapOr(defaultValue) {
-		return this.isOk() ? /** @type {T} */ (this._value) : defaultValue;
-	}
-
-	/**
-	 * Get the error, throwing if this is a success
-	 * @returns {E}
-	 * @throws {Error} If this is an Ok
-	 */
-	unwrapErr() {
-		if (this.isOk()) {
-			throw new Error("Called unwrapErr on an Ok value");
-		}
-		return /** @type {E} */ (this._error);
-	}
-
-	/**
-	 * Map the success value
-	 * @template U
-	 * @param {function(T): U} fn - The mapping function
-	 * @returns {Result<U, E>}
-	 */
-	map(fn) {
-		if (this.isOk()) {
-			// @ts-expect-error - We know value is T
-			return Result.Ok(fn(this._value));
-		}
-		// @ts-expect-error - We know error is E
-		return Result.Err(this._error);
-	}
-
-	/**
-	 * Map the error value
-	 * @template F
-	 * @param {function(E): F} fn - The mapping function
-	 * @returns {Result<T, F>}
-	 */
-	mapErr(fn) {
-		if (this.isErr()) {
-			// @ts-expect-error - We know error is E
-			return Result.Err(fn(this._error));
-		}
-		// @ts-expect-error - We know value is T
-		return Result.Ok(this._value);
-	}
-
-	/**
-	 * Chain operations that return Results
-	 * @template U
-	 * @template F
-	 * @param {function(T): Result<U, F>} fn - The function to chain
-	 * @returns {Result<U, E | F>}
-	 */
-	andThen(fn) {
-		if (this.isOk()) {
-			// @ts-expect-error - We know value is T
-			return fn(this._value);
-		}
-		// @ts-expect-error - We know error is E
-		return Result.Err(this._error);
-	}
-
-	/**
-	 * Get value or compute from error
-	 * @param {function(E): T} fn - Function to compute value from error
-	 * @returns {T}
-	 */
-	unwrapOrElse(fn) {
-		// @ts-expect-error - We know types match logic
-		return this.isOk() ? this._value : fn(this._error);
-	}
-
-	/**
-	 * Pattern match on the Result
-	 * @template R
-	 * @param {Object} handlers
-	 * @param {function(T): R} handlers.ok - Handler for success
-	 * @param {function(E): R} handlers.err - Handler for error
-	 * @returns {R}
-	 */
-	match(handlers) {
-		// @ts-expect-error - types match logic
-		return this.isOk() ? handlers.ok(this._value) : handlers.err(this._error);
-	}
-
-	/**
-	 * Get the value property (for compatibility)
-	 * @returns {T | null}
+	 * @throws {Error} If this is a failure result.
 	 */
 	get value() {
-		return this._value;
+		if (!this.#isSuccess) {
+			throw new Error("Cannot get the value from a failure result.");
+		}
+		return /** @type {T} */ (this.#value);
 	}
 
 	/**
-	 * Get the error property (for compatibility)
 	 * @returns {E | null}
 	 */
 	get error() {
-		return this._error;
+		return this.#error;
+	}
+
+	/**
+	 * Create a successful result.
+	 * @template T
+	 * @param {T} [value]
+	 * @returns {Result<T, any>}
+	 */
+	static success(value) {
+		return new Result(true, null, value ?? null);
+	}
+
+	/**
+	 * Create a successful result (alias for success).
+	 * @template T
+	 * @param {T} value
+	 * @returns {Result<T, any>}
+	 */
+	static Ok(value) {
+		return Result.success(value);
+	}
+
+	/**
+	 * Create a failure result.
+	 * @template E
+	 * @param {E | string} error
+	 * @returns {Result<any, E | AppError>}
+	 */
+	static failure(error) {
+		const actualError = typeof error === "string" ? new AppError(error) : error;
+		return new Result(false, /** @type {E | AppError} */ (actualError), null);
+	}
+
+	/**
+	 * Create a failure result (alias for failure).
+	 * @template E
+	 * @param {E} error
+	 * @returns {Result<any, E>}
+	 */
+	static Err(error) {
+		return new Result(false, error, null);
+	}
+
+	/** @returns {boolean} */
+	isOk() {
+		return this.#isSuccess;
+	}
+
+	/** @returns {boolean} */
+	isErr() {
+		return !this.#isSuccess;
+	}
+
+	/**
+	 * Get the value, throwing if this is an error.
+	 * @returns {T}
+	 */
+	unwrap() {
+		return this.value;
+	}
+
+	/**
+	 * Get the value or a default if it's an error.
+	 * @param {T} defaultValue
+	 * @returns {T}
+	 */
+	unwrapOr(defaultValue) {
+		return this.#isSuccess ? /** @type {T} */ (this.#value) : defaultValue;
+	}
+
+	/**
+	 * Get the error, throwing if this is a success.
+	 * @returns {E}
+	 */
+	unwrapErr() {
+		if (this.#isSuccess) {
+			throw new Error("Called unwrapErr on a success result.");
+		}
+		return /** @type {E} */ (this.#error);
+	}
+
+	/**
+	 * Map the success value.
+	 * @template U
+	 * @param {function(T): U} fn
+	 * @returns {Result<U, E>}
+	 */
+	map(fn) {
+		if (this.#isSuccess) {
+			return /** @type {Result<U, E>} */ (
+				Result.success(fn(/** @type {T} */ (this.#value)))
+			);
+		}
+		return /** @type {Result<U, E>} */ (/** @type {unknown} */ (this));
+	}
+
+	/**
+	 * Map the error value.
+	 * @template F
+	 * @param {function(E): F} fn
+	 * @returns {Result<T, F>}
+	 */
+	mapErr(fn) {
+		if (!this.#isSuccess) {
+			return /** @type {Result<T, F>} */ (
+				Result.failure(fn(/** @type {E} */ (this.#error)))
+			);
+		}
+		return /** @type {Result<T, F>} */ (/** @type {unknown} */ (this));
+	}
+
+	/**
+	 * Chain operations that return Results.
+	 * @template U
+	 * @template F
+	 * @param {function(T): Result<U, F>} fn
+	 * @returns {Result<U, E | F>}
+	 */
+	andThen(fn) {
+		if (this.#isSuccess) {
+			return fn(/** @type {T} */ (this.#value));
+		}
+		return /** @type {Result<U, E | F>} */ (/** @type {unknown} */ (this));
+	}
+
+	/**
+	 * Get value or compute from error.
+	 * @param {function(E): T} fn
+	 * @returns {T}
+	 */
+	unwrapOrElse(fn) {
+		return this.#isSuccess
+			? /** @type {T} */ (this.#value)
+			: fn(/** @type {E} */ (this.#error));
+	}
+
+	/**
+	 * Pattern match on the Result.
+	 * @template R
+	 * @param {Object} handlers
+	 * @param {function(T): R} handlers.ok
+	 * @param {function(E): R} handlers.err
+	 * @returns {R}
+	 */
+	match(handlers) {
+		return this.#isSuccess
+			? handlers.ok(/** @type {T} */ (this.#value))
+			: handlers.err(/** @type {E} */ (this.#error));
 	}
 }
 
 /**
- * Wrap an async function to return a Result
+ * Wrap an async function to return a Result.
  * @template T
- * @param {function(): Promise<T>} fn - Async function to wrap
- * @returns {Promise<Result<T, unknown>>}
+ * @param {function(): Promise<T>} fn
+ * @returns {Promise<Result<T, any>>}
  */
 export async function tryAsync(fn) {
 	try {
 		const value = await fn();
-		return Result.Ok(value);
+		return Result.success(value);
 	} catch (error) {
-		return /** @type {Result<T, unknown>} */ (Result.Err(error));
+		return Result.failure(error);
 	}
 }
 
 /**
- * Wrap a sync function to return a Result
+ * Wrap a sync function to return a Result.
  * @template T
- * @param {function(): T} fn - Function to wrap
- * @returns {Result<T, unknown>}
+ * @param {function(): T} fn
+ * @returns {Result<T, any>}
  */
 export function trySync(fn) {
 	try {
 		const value = fn();
-		return Result.Ok(value);
+		return Result.success(value);
 	} catch (error) {
-		return /** @type {Result<T, unknown>} */ (Result.Err(error));
+		return Result.failure(error);
 	}
 }
