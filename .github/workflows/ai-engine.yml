@@ -36,6 +36,8 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.PROJECT_PAT || secrets.GITHUB_TOKEN }}
       GEMINI_USE_ADC: "true"
       GOOGLE_CLOUD_PROJECT: "legacys-end"
+      GCP_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SA: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
     steps:
       - name: Checkout code
@@ -49,24 +51,22 @@ jobs:
           node-version: "24"
 
       - name: Authenticate to Google Cloud
-        if: env.GEMINI_USE_ADC == 'true'
+        if: env.GEMINI_USE_ADC == 'true' && env.GCP_PROVIDER != ''
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ env.GCP_PROVIDER }}
+          service_account: ${{ env.GCP_SA }}
 
       - name: Set up Cloud SDK
-        if: env.GEMINI_USE_ADC == 'true'
+        if: env.GEMINI_USE_ADC == 'true' && env.GCP_SA != ''
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Verify ADC
-        if: env.GEMINI_USE_ADC == 'true'
         run: |
           if [ ! -z "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
             echo "✅ GOOGLE_APPLICATION_CREDENTIALS is set."
-            ls -l $GOOGLE_APPLICATION_CREDENTIALS
           else
-            echo "❌ GOOGLE_APPLICATION_CREDENTIALS is NOT set."
+            echo "ℹ️ ADC not configured, relying on local environment or keys."
           fi
 
       - name: Install Gemini CLI
