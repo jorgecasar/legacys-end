@@ -18,15 +18,30 @@ How can we optimize the use of AI models to ensure high-quality output while max
 *   **Cost Efficiency**: Lightweight models are significantly cheaper (or free).
 *   **Resilience**: The system should not stop if a single model reaches its rate limit.
 
-## Considered Options
+## Considered Options & Model Evaluation
 
-*   **Option 1: Single Model**: Use a single powerful model (e.g., Gemini 3 Pro) for everything.
-*   **Option 2: Static Mapping**: Assign models based on labels manually.
-*   **Option 3: Automated Triage with Auto-Fallback**: An automated step analyzes the task complexity and assigns the best model, with dynamic fallback if rate limited.
+The following models were evaluated based on official Google AI Studio / Cloud pricing and quota data for February 2026 (Free Tier estimates):
+
+| Model | Series | Cost (Input/Output per 1M) | RPM (Requests/Min) | RPD (Requests/Day) | Reasoning Level |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`gemini-3-pro-preview`** | 3 | $2.00 / $12.00 | 2 | 50 | Ultra High |
+| **`gemini-3-flash-preview`** | 3 | $0.50 / $3.00 | 15 | 1,500 | High |
+| **`gemini-2.5-pro`** | 2.5 | $1.25 / $5.00 | 2 | 50 | Very High |
+| **`gemini-2.5-flash`** | 2.5 | $0.10 / $0.40 | 15 | 1,500 | Medium-High |
+| **`gemini-2.5-flash-lite`** | 2.5 | $0.05 / $0.20 | 30 | 2,000 | Low-Medium |
+| **`gemini-2.0-flash`** | 2.0 | $0.10 / $0.40 | 15 | 1,500 | Medium (Stable) |
 
 ## Decision Outcome
 
-Chosen option: **Option 3: Automated Triage with Auto-Fallback**, because it provides the best balance between quality, reliability, and quota optimization.
+Chosen option: **Option 3: Automated Triage with Auto-Fallback**, implementing a tiered model hierarchy.
+
+### Justification & Final Argument
+
+The decision is driven by the fact that **Gemini quotas are independent per model series**. By implementing a triage system, we achieve three critical objectives:
+
+1.  **Total Daily Throughput**: Using a single model would limit the agent to ~1,500 requests per day. By spreading tasks across Gemini 3, 2.5, and 2.0 series, we effectively triple the project's capacity to ~4,500-5,000 automated requests per day.
+2.  **Strategic Reasoning**: High-reasoning models (Pro series) have extremely low RPD (50). We reserve these scarce "Pro" credits exclusively for complex architectural or logical changes, while using the virtually infinite "Flash" credits for standard features and bug fixes.
+3.  **Zero-Stop Resilience**: The auto-fallback logic ensures that the "Auto-Pilot" never halts. If the premium `3-pro` quota is exhausted, the system seamlessly downgrades to `3-flash` or `2.5-pro`. While quality may slightly vary, the progress of the task is never interrupted by technical limits.
 
 ### Hierarchy Definition (Feb 2026)
 
