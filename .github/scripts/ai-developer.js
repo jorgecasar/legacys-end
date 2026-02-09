@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { execSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 // --- Dependencias para Mocking ---
 export const deps = {
 	execSync,
+	spawn,
 	readFileSync: fs.readFileSync,
 	writeFileSync: fs.writeFileSync,
 	readdirSync: fs.readdirSync,
@@ -69,24 +70,40 @@ export async function main(modelId, issueNumber) {
         You are an elite developer agent. 
         TASK: ${issueData.title}
         GOAL: ${issueData.body}
-        
         AVAILABLE FILES:
         ${fileList}
-
         INSTRUCTIONS:
-        1. Analyze the project rules.
-        2. Modify necessary files.
-        3. Return a JSON object: { "thought": "...", "changes": [{ "path": "...", "content": "..." }] }
+        1. Analyze project rules.
+        2. Modify files.
+        3. Return JSON ONLY: { "thought": "...", "changes": [{ "path": "...", "content": "..." }] }
         `;
 
-		// 4. EJECUTAR COMANDO GEMINI CLI
-		const geminiCmd = `gemini --model ${modelId} "${prompt.replace(/"/g, '\\"')}"`;
-		console.error("📡 Calling Gemini CLI...");
+		// 4. EJECUTAR COMANDO GEMINI CLI (Stream Mode)
+		console.error(
+			"📡 Calling Gemini CLI (this may take a minute for Pro models)...",
+		);
 
-		const response = deps.execSync(geminiCmd, {
-			encoding: "utf8",
+		const gemini = deps.spawn("gemini", ["--model", modelId, prompt], {
 			env: { ...process.env, GEMINI_API_KEY: apiKey },
 		});
+
+		let response = "";
+		gemini.stdout.on("data", (data) => {
+			response += data.toString();
+		});
+
+		gemini.stderr.on("data", (data) => {
+			// Redirigir logs internos del CLI a stderr para visibilidad
+			process.stderr.write(data);
+		});
+
+		const exitCode = await new Promise((resolve) =>
+			gemini.on("close", resolve),
+		);
+
+		if (exitCode !== 0) {
+			throw new Error(`Gemini CLI exited with code ${exitCode}`);
+		}
 
 		// 5. Procesar respuesta
 		const plan = parseAIResponse(response);
@@ -95,8 +112,8 @@ export async function main(modelId, issueNumber) {
 
 		for (const change of plan.changes) {
 			const dir = path.dirname(change.path);
-			if (!deps.existsSync(dir)) deps.mkdirSync(dir, { recursive: true });
-			deps.writeFileSync(change.path, change.content);
+			if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+			fs.writeFileSync(change.path, change.content);
 			console.error(`✅ Updated: ${change.path}`);
 		}
 
