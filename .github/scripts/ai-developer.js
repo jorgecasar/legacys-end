@@ -41,22 +41,45 @@ export function getProjectRules(rulesDir = ".rulesync/rules") {
 		.join("\n\n");
 }
 
+async function getAccessToken() {
+	const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+	const clientId = process.env.GOOGLE_CLIENT_ID;
+	const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+	if (!refreshToken || !clientId || !clientSecret) return null;
+
+	const response = await fetch("https://oauth2.googleapis.com/token", {
+		method: "POST",
+		body: JSON.stringify({
+			client_id: clientId,
+			client_secret: clientSecret,
+			refresh_token: refreshToken,
+			grant_type: "refresh_token",
+		}),
+	});
+
+	const data = await response.json();
+	return data.access_token;
+}
+
 export async function main(modelId, issueNumber) {
-	let apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-	if (!apiKey || !issueNumber) {
-		console.error("❌ Missing GEMINI_API_KEY/GOOGLE_API_KEY or ISSUE_NUMBER");
+	const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+	const accessToken = await getAccessToken();
+
+	if (!apiKey && !accessToken) {
+		console.error(
+			"❌ Missing Auth: Need GEMINI_API_KEY or GOOGLE_REFRESH_TOKEN",
+		);
 		process.exit(1);
 	}
-
-	// Limpieza crítica de espacios/saltos de línea invisibles
-	apiKey = apiKey.trim();
 
 	console.error(
 		`🚀 Starting Native Agent with model ${modelId} for Issue #${issueNumber}`,
 	);
-	console.error(
-		`ℹ️ API Key verified (Starts: ${apiKey.substring(0, 4)}... Ends: ...${apiKey.slice(-2)} Length: ${apiKey.length})`,
-	);
+
+	if (accessToken) {
+		console.error("🔐 Authenticated using Google AI Pro (User Identity)");
+	}
 
 	try {
 		// 1. Obtener contexto de la Issue
@@ -95,7 +118,8 @@ export async function main(modelId, issueNumber) {
     5. Always follow the project standards: ESM, node: protocol, double quotes, Result pattern for errors.
     `;
 
-		const genAI = new deps.GoogleGenerativeAI(apiKey);
+		const auth = accessToken || apiKey.trim();
+		const genAI = new deps.GoogleGenerativeAI(auth);
 		const model = genAI.getGenerativeModel({ model: modelId });
 		const result = await model.generateContent(prompt);
 		const response = await result.response;
@@ -105,7 +129,7 @@ export async function main(modelId, issueNumber) {
 
 		for (const change of plan.changes) {
 			const dir = path.dirname(change.path);
-			if (!deps.existsSync(dir)) deps.mkdirSync(dir, { recursive: true });
+			if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 			deps.writeFileSync(change.path, change.content);
 			console.error(`✅ Updated: ${change.path}`);
 		}
