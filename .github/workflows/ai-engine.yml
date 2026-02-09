@@ -86,7 +86,9 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           LITELLM_PREFER_AI_STUDIO: "true"
-          LITELLM_MAX_RETRIES: "0" # Forzar a fallar inmediatamente
+          LITELLM_MAX_RETRIES: "0"
+          LITELLM_RETRY_AFTER: "0"
+          NUM_RETRIES: "0"
         run: |
           # 1. Preparar Rama
           if [ "${{ inputs.is_comment }}" == "true" ]; then
@@ -111,9 +113,9 @@ jobs:
           git fetch origin main
           git rebase origin/main || { echo "Rebase failed"; exit 1; }
 
-          # 3. Jerarquía de Modelos (Sin duplicados)
+          # 3. Jerarquía de Modelos
           PRIMARY_MODEL="${{ steps.triage.outputs.model_id }}"
-          MODELS_TO_TRY=("$PRIMARY_MODEL" "gemini-3-pro-preview" "gemini-3-flash-preview" "gemini-2.5-flash" "gemini-2.0-flash")
+          MODELS_TO_TRY=("$PRIMARY_MODEL" "gemini-3-flash-preview" "gemini-3-pro-preview" "gemini-2.5-flash" "gemini-2.0-flash")
           MODELS_TO_TRY=($(echo "${MODELS_TO_TRY[@]}" | tr ' ' '\n' | awk '!a[$0]++'))
           
           cat <<EOF > aider_prompt.md
@@ -125,36 +127,34 @@ jobs:
             for f in $(find .gemini/skills -name "SKILL.md"); do RULES_ARGS="$RULES_ARGS --read $f"; done
           fi
 
-          # 4. Bucle de Ejecución Robusto
+          # 4. Bucle de Ejecución
           AIDER_EXIT_CODE=1
           FINAL_MODEL=""
           for CURRENT_MODEL in "${MODELS_TO_TRY[@]}"; do
             echo "🚀 Intentando con modelo: $CURRENT_MODEL"
             FINAL_MODEL=$CURRENT_MODEL
-            MAX_RETRIES=2
+            MAX_RETRIES=1
             RETRY_COUNT=0
             while [ $RETRY_COUNT -le $MAX_RETRIES ]; do
               set +e
-              # Usar variables de entorno para minimizar reintentos de LiteLLM
               aider --yes --model "gemini/$CURRENT_MODEL" --architect --no-auto-commit --no-pretty --no-stream --map-tokens 1024 $RULES_ARGS --message-file aider_prompt.md 2>&1 | tee aider_output.log
               AIDER_EXIT_CODE=$?
               set -e
               
               if [ $AIDER_EXIT_CODE -eq 0 ]; then break 2; fi
               
-              # Detección de errores fatales de cuota
-              if grep -qiE "limit: 0|quota exceeded|RESOURCE_EXHAUSTED" aider_output.log; then
-                echo "❌ Cuota diaria AGOTADA para $CURRENT_MODEL. Saltando al siguiente modelo..."
-                break
+              # Detección de errores fatales (429 limit:0 o 503 saturación)
+              if grep -qiE "limit: 0|quota exceeded|RESOURCE_EXHAUSTED|503|ServiceUnavailable|UNAVAILABLE" aider_output.log; then
+                echo "❌ Modelo saturado o sin cuota ($CURRENT_MODEL). Saltando..."
+                break 
               fi
               
-              # Reintentos solo para errores temporales (RPM/TPM)
               if grep -qiE "429|rate limit" aider_output.log; then
                 RETRY_COUNT=$((RETRY_COUNT+1))
-                echo "⚠️ Límite temporal (RPM/TPM) en $CURRENT_MODEL. Reintento $RETRY_COUNT/$MAX_RETRIES en 30s..."
-                sleep 30
+                echo "⚠️ Límite temporal en $CURRENT_MODEL. Reintento $RETRY_COUNT/$MAX_RETRIES en 15s..."
+                sleep 15
               else
-                echo "❌ Error desconocido o crítico. Intentando con siguiente modelo."
+                echo "❌ Error desconocido. Probando siguiente modelo."
                 break
               fi
             done
@@ -176,12 +176,12 @@ jobs:
               echo "status=success" >> $GITHUB_OUTPUT
               git push origin HEAD --force-with-lease
             fi
-          elif grep -qiE "429|rate limit|limit: 0|quota exceeded" aider_output.log; then
+          elif grep -qiE "429|rate limit|limit: 0|503|UNAVAILABLE" aider_output.log; then
             echo "RATE_LIMITED=true" >> $GITHUB_ENV
             echo "status=paused" >> $GITHUB_OUTPUT
             git add .
             if ! git diff --staged --quiet; then
-              git commit -m "wip: progress on #$ISSUE_NUM (rate limited) [skip ci]" --no-verify
+              git commit -m "wip: progress on #$ISSUE_NUM (service limits) [skip ci]" --no-verify
               git push origin HEAD --force-with-lease
             fi
           else
@@ -209,5 +209,5 @@ jobs:
             node .github/scripts/workflow-utils.js set-status $ISSUE_NUM REVIEW "$BRANCH_NAME"
           elif [ "${{ env.RATE_LIMITED }}" == "true" ]; then
             node .github/scripts/workflow-utils.js set-status $ISSUE_NUM PAUSED_429 "$BRANCH_NAME"
-            gh issue comment $ISSUE_NUM --body "⚠️ Pausado por falta de cuota diaria. El trabajo se ha guardado en la rama \`$BRANCH_NAME\` y se reanudará automáticamente."
+            gh issue comment $ISSUE_NUM --body "⚠️ Pausado por límites de servicio (429/503). Guardado en \`$BRANCH_NAME\`."
           fi

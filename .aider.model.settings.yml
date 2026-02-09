@@ -1,4 +1,5 @@
-# Desactivar reintentos internos para que el workflow pueda cambiar de modelo inmediatamente
-- name: "aider/extra_params"
+# Configuración estricta para desactivar reintentos en CUALQUIER modelo
+- name: global
   extra_params:
     num_retries: 0
+    request_timeout: 120
