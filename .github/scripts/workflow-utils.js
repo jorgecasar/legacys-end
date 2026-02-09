@@ -397,7 +397,7 @@ export async function triageTask(issueNumber) {
 	try {
 		// Usar la CLI de Gemini para el triaje
 		const modelId = execSync(
-			`gemini --model gemini-2.5-flash-lite "${prompt}"`,
+			`gemini --non-interactive --model gemini-2.5-flash-lite "${prompt}"`,
 			{
 				encoding: "utf8",
 				env: { ...process.env },

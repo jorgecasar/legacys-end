@@ -109,9 +109,13 @@ export async function main(modelId, issueNumber) {
 			"📡 Calling Gemini CLI (this may take a minute for Pro models)...",
 		);
 
-		const gemini = deps.spawn("gemini", ["--model", modelId, prompt], {
-			env: { ...process.env },
-		});
+		const gemini = deps.spawn(
+			"gemini",
+			["--non-interactive", "--model", modelId, prompt],
+			{
+				env: { ...process.env },
+			},
+		);
 
 		let response = "";
 		gemini.stdout.on("data", (data) => {
