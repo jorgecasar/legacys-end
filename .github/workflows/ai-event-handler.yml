@@ -79,7 +79,4 @@ jobs:
       issue_number: ${{ needs.handle-event.outputs.issue_number }}
       is_comment: ${{ needs.handle-event.outputs.is_comment == 'true' }}
       comment_body: ${{ needs.handle-event.outputs.comment_body }}
-    secrets:
-      PROJECT_PAT: ${{ secrets.PROJECT_PAT }}
-      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+    secrets: inherit
