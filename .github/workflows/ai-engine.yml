@@ -168,7 +168,7 @@ jobs:
             echo "status=paused" >> $GITHUB_OUTPUT
             git add .
             if ! git diff --staged --quiet; then
-              git commit -m "wip: progress on #$ISSUE_NUM (rate limited)" --no-verify
+              git commit -m "wip: progress on #$ISSUE_NUM (rate limited) [skip ci]" --no-verify
               git push origin HEAD --force-with-lease
             fi
           else
