@@ -6,7 +6,7 @@ const PROJECT_ID = process.env.PROJECT_ID;
 const STATUS_FIELD_ID = process.env.STATUS_FIELD_ID;
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
-const PRICING = {
+export const PRICING = {
 	"gemini-3-pro-preview": { input: 2.0, output: 12.0 },
 	"gemini-3-flash-preview": { input: 0.5, output: 3.0 },
 	"gemini-2.5-pro": { input: 1.25, output: 5.0 },
@@ -15,7 +15,7 @@ const PRICING = {
 	"gemini-2.0-flash": { input: 0.1, output: 0.4 },
 };
 
-const STATUS_OPTIONS = {
+export const STATUS_OPTIONS = {
 	TODO: "f75ad846",
 	IN_PROGRESS: "47fc9ee4",
 	PAUSED_429: "8842b2d9",
@@ -26,11 +26,11 @@ const STATUS_OPTIONS = {
 /**
  * Realiza una consulta GraphQL a GitHub usando fetch nativo
  */
-async function graphql(query, variables = {}) {
+export async function graphql(query, variables = {}) {
 	const response = await fetch("https://api.github.com/graphql", {
 		method: "POST",
 		headers: {
-			Authorization: `Bearer ${GITHUB_TOKEN}`,
+			Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
 			"Content-Type": "application/json",
 		},
 		body: JSON.stringify({ query, variables }),
@@ -46,7 +46,7 @@ async function graphql(query, variables = {}) {
 /**
  * Ejecuta un comando gh CLI para utilidades secundarias
  */
-function gh(args) {
+export function gh(args) {
 	try {
 		return execSync(`gh ${args}`, { encoding: "utf8" }).trim();
 	} catch (error) {
@@ -58,7 +58,7 @@ function gh(args) {
 /**
  * Busca el Item ID de una Issue en el Proyecto
  */
-async function getProjectItemId(issueNumber) {
+export async function getProjectItemId(issueNumber) {
 	const query = `
     query($projectId: ID!) {
       node(id: $projectId) {
@@ -75,7 +75,7 @@ async function getProjectItemId(issueNumber) {
       }
     }
   `;
-	const data = await graphql(query, { projectId: PROJECT_ID });
+	const data = await graphql(query, { projectId: process.env.PROJECT_ID });
 	const item = data.node.items.nodes.find(
 		(n) => n.content && n.content.number === Number(issueNumber),
 	);
@@ -85,7 +85,7 @@ async function getProjectItemId(issueNumber) {
 /**
  * Busca el ID de un campo por nombre
  */
-async function getFieldId(fieldName) {
+export async function getFieldId(fieldName) {
 	const query = `
     query($projectId: ID!) {
       node(id: $projectId) {
@@ -101,7 +101,7 @@ async function getFieldId(fieldName) {
       }
     }
   `;
-	const data = await graphql(query, { projectId: PROJECT_ID });
+	const data = await graphql(query, { projectId: process.env.PROJECT_ID });
 	const field = data.node.fields.nodes.find((f) => f.name === fieldName);
 	return field ? field.id : null;
 }
@@ -109,7 +109,7 @@ async function getFieldId(fieldName) {
 /**
  * Añade una issue al proyecto si no está ya en él
  */
-async function addIssueToProject(issueUrl) {
+export async function addIssueToProject(issueUrl) {
 	try {
 		const issueNumber = issueUrl.split("/").pop();
 		const issueData = JSON.parse(gh(`issue view ${issueNumber} --json id`));
@@ -123,7 +123,7 @@ async function addIssueToProject(issueUrl) {
       }
     `;
 		const data = await graphql(query, {
-			projectId: PROJECT_ID,
+			projectId: process.env.PROJECT_ID,
 			contentId: issueId,
 		});
 		console.log(
@@ -139,7 +139,11 @@ async function addIssueToProject(issueUrl) {
 /**
  * Cambia el estado y opcionalmente la rama de un item en el proyecto
  */
-async function updateProjectStatus(issueNumber, statusName, branchName = null) {
+export async function updateProjectStatus(
+	issueNumber,
+	statusName,
+	branchName = null,
+) {
 	const itemId = await getProjectItemId(issueNumber);
 	if (!itemId) {
 		console.log(
@@ -159,9 +163,9 @@ async function updateProjectStatus(issueNumber, statusName, branchName = null) {
       }
     `;
 		await graphql(query, {
-			projectId: PROJECT_ID,
+			projectId: process.env.PROJECT_ID,
 			itemId,
-			fieldId: STATUS_FIELD_ID,
+			fieldId: process.env.STATUS_FIELD_ID,
 			optionId: statusId,
 		});
 		console.log(`Updated Issue #${issueNumber} to status ${statusName}`);
@@ -179,7 +183,7 @@ async function updateProjectStatus(issueNumber, statusName, branchName = null) {
         }
       `;
 			await graphql(query, {
-				projectId: PROJECT_ID,
+				projectId: process.env.PROJECT_ID,
 				itemId,
 				fieldId: branchFieldId,
 				branch: branchName,
@@ -192,7 +196,7 @@ async function updateProjectStatus(issueNumber, statusName, branchName = null) {
 /**
  * Verifica si las dependencias de una issue están cerradas.
  */
-async function getOpenDependencies(issueNumber) {
+export async function getOpenDependencies(issueNumber) {
 	const issueData = JSON.parse(gh(`issue view ${issueNumber} --json body`));
 	const issueBody = issueData.body;
 
@@ -253,7 +257,7 @@ async function getOpenDependencies(issueNumber) {
 /**
  * Busca la siguiente tarea para trabajar automáticamente siguiendo una prioridad estricta
  */
-async function autoPickTask() {
+export async function autoPickTask() {
 	const query = `
     query($projectId: ID!) {
       node(id: $projectId) {
@@ -283,7 +287,7 @@ async function autoPickTask() {
       }
     }
   `;
-	const data = await graphql(query, { projectId: PROJECT_ID });
+	const data = await graphql(query, { projectId: process.env.PROJECT_ID });
 	const items = data.node.items.nodes;
 
 	const openIssues = items.filter((item) => {
@@ -328,7 +332,7 @@ async function autoPickTask() {
 /**
  * Realiza el triaje de una issue
  */
-async function triageTask(issueNumber) {
+export async function triageTask(issueNumber) {
 	const issueData = JSON.parse(
 		gh(`issue view ${issueNumber} --json title,body,labels`),
 	);
@@ -406,7 +410,7 @@ async function triageTask(issueNumber) {
 /**
  * Registra las estadísticas de la sesión en la Issue
  */
-async function logSessionStats(issueNumber, modelId, logFile) {
+export async function logSessionStats(issueNumber, modelId, logFile) {
 	if (!fs.existsSync(logFile)) return;
 	const content = fs.readFileSync(logFile, "utf8");
 	const sentMatch = content.match(/([0-9.]+)(k?)\s+sent/i);

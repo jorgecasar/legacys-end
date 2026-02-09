@@ -13,6 +13,7 @@
 		"lint:tsc": "tsc --noEmit",
 		"format": "biome check --write .",
 		"test": "vitest run",
+		"test:node": "vitest run --browser.enabled=false",
 		"test:watch": "vitest",
 		"test:coverage": "vitest run --coverage",
 		"test:ui": "vitest --ui",

@@ -57,7 +57,7 @@ Notes:
   - The script creates a temporary worktree for each commit analysis
 `;
 
-function exec(cmd, cwd = ROOT) {
+export function exec(cmd, cwd = ROOT) {
 	try {
 		return execSync(cmd, { cwd, encoding: "utf8", stdio: "pipe" });
 	} catch {
@@ -65,19 +65,19 @@ function exec(cmd, cwd = ROOT) {
 	}
 }
 
-function getGzipSize(filePath) {
+export function getGzipSize(filePath) {
 	const content = fs.readFileSync(filePath);
 	return zlib.gzipSync(content).length;
 }
 
-function getLoC(dir) {
+export function getLoC(dir) {
 	// More robust way to get total lines of code for JS files
 	const result = exec(`find ${dir} -name "*.js" -exec cat {} + | wc -l`);
 	if (!result) return 0;
 	return parseInt(result.trim(), 10) || 0;
 }
 
-async function analyzeCommit(hash, tempDir) {
+export async function analyzeCommit(hash, tempDir) {
 	console.log(`\n--- Analyzing commit: ${hash} ---`);
 
 	// Checkout the specific commit in the temp directory
@@ -141,10 +141,10 @@ async function analyzeCommit(hash, tempDir) {
 			"@babel/plugin-proposal-decorators",
 		];
 
-		for (const pkg of buildPackages) {
-			if (currentPkg.devDependencies?.[pkg]) {
+		for (const pkgName of buildPackages) {
+			if (currentPkg.devDependencies?.[pkgName]) {
 				tempPkg.devDependencies = tempPkg.devDependencies || {};
-				tempPkg.devDependencies[pkg] = currentPkg.devDependencies[pkg];
+				tempPkg.devDependencies[pkgName] = currentPkg.devDependencies[pkgName];
 			}
 		}
 
@@ -221,8 +221,7 @@ async function analyzeCommit(hash, tempDir) {
 /**
  * Parse CLI arguments
  */
-function parseArgs() {
-	const args = process.argv.slice(2);
+export function parseArgs(argv = process.argv.slice(2)) {
 	const options = {
 		commit: null,
 		range: null,
@@ -230,19 +229,19 @@ function parseArgs() {
 		limit: null,
 	};
 
-	for (let i = 0; i < args.length; i++) {
-		const arg = args[i];
+	for (let i = 0; i < argv.length; i++) {
+		const arg = argv[i];
 		if (arg === "--help" || arg === "-h") {
 			console.log(HELP_TEXT);
 			process.exit(0);
-		} else if (arg === "--commit" && args[i + 1]) {
-			options.commit = args[++i];
-		} else if (arg === "--range" && args[i + 1]) {
-			options.range = args[++i];
+		} else if (arg === "--commit" && argv[i + 1]) {
+			options.commit = argv[++i];
+		} else if (arg === "--range" && argv[i + 1]) {
+			options.range = argv[++i];
 		} else if (arg === "--force") {
 			options.force = true;
-		} else if (arg === "--limit" && args[i + 1]) {
-			options.limit = parseInt(args[++i], 10);
+		} else if (arg === "--limit" && argv[i + 1]) {
+			options.limit = parseInt(argv[++i], 10);
 		} else if (!arg.startsWith("--")) {
 			// Backward compatibility: first numeric arg is limit
 			const num = parseInt(arg, 10);
@@ -258,7 +257,7 @@ function parseArgs() {
 /**
  * Get commits in a range (inclusive of both start and end)
  */
-function getCommitsInRange(range) {
+export function getCommitsInRange(range) {
 	const parts = range.split(/\.{2,3}/);
 	if (parts.length < 2) return [range];
 
@@ -288,7 +287,7 @@ function getCommitsInRange(range) {
 /**
  * Get commits to analyze based on options
  */
-function getCommitsToAnalyze(options, allCommits, analyzedHashes) {
+export function getCommitsToAnalyze(options, allCommits, analyzedHashes) {
 	if (options.commit) {
 		console.log(`Analyzing specific commit: ${options.commit}`);
 		return [options.commit];
@@ -309,7 +308,7 @@ function getCommitsToAnalyze(options, allCommits, analyzedHashes) {
 	return missingCommits;
 }
 
-async function main() {
+export async function main() {
 	const options = parseArgs();
 
 	const logRaw = exec("git log --format=%h --reverse");
@@ -482,4 +481,6 @@ async function main() {
 	console.log(`\nDone! History updated in ${outputPath}`);
 }
 
-main();
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+	main();
+}
