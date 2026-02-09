@@ -59,14 +59,19 @@ jobs:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           gemini_model: 'gemini-2.5-flash-lite'
           prompt: |
-            Identify the best model ID for the task "${{ github.event.issue.title }}". 
-            Labels: ${{ join(github.event.issue.labels.*.name, ', ') }}. 
-            Return ONLY one of: gemini-3-pro-preview, gemini-3-flash-preview, or gemini-2.5-flash-lite.
+            Identify the best Gemini model ID for the task: "${{ github.event.issue.title }}".
+            Context labels: ${{ join(github.event.issue.labels.*.name, ', ') }}.
+            Available options: gemini-3-pro-preview, gemini-3-flash-preview, gemini-2.5-flash-lite.
+            Return ONLY the model ID string.
 
       - name: Set Selected Model
+        id: selected-model
         run: |
-          # Limpiar la salida por si hay ruido
-          MODEL_ID=$(echo "${{ steps.triage.outputs.text }}" | grep -oE "gemini-[^ ]+" | head -n 1)
+          # Extract only the model ID from the response (handling potential noise)
+          MODEL_ID=$(echo "${{ steps.triage.outputs.text }}" | grep -oE "gemini-[a-zA-Z0-9.-]+" | head -n 1)
+          if [ -z "$MODEL_ID" ]; then
+            MODEL_ID="gemini-2.5-flash-lite"
+          fi
           echo "Selected Model: $MODEL_ID"
           echo "model_id=$MODEL_ID" >> $GITHUB_OUTPUT
 
@@ -98,7 +103,7 @@ jobs:
           git rebase origin/main || { echo "Rebase failed"; exit 1; }
 
           # 2. Ejecutar comando gemini (La acción ya instaló la CLI)
-          MODEL_ID="${{ steps.triage.outputs.model_id }}"
+          MODEL_ID="${{ steps.selected-model.outputs.model_id }}"
           if node .github/scripts/ai-developer.js "$MODEL_ID" "$ISSUE_NUM"; then
             echo "status=success" >> $GITHUB_OUTPUT
           else
