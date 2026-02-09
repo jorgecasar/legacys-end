@@ -4,6 +4,8 @@ This project uses ES modules for all Node.js code, including scripts.
 
 ## Standards
 
+- **Node.js Version**: The project requires **Node.js 24** or higher.
+- **ESNext Support**: Since we use Node.js 24, all supported **ESNext** features (Top-level await, stable features, etc.) are available and encouraged.
 - **File Extension**: Use `.js` for all Node.js files.
 - **Module System**: Always use ES modules (`import`/`export`). **DO NOT** use CommonJS (`require`/`module.exports`).
 - **package.json**: The root `package.json` contains `"type": "module"`, which enforces ESM for all `.js` files.
