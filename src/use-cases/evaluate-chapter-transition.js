@@ -1,3 +1,13 @@
+import { DomainError } from "../core/errors.js";
+import { Result } from "../utils/result.js";
+
+/**
+ * @typedef {Object} TransitionResult
+ * @property {'ADVANCE' | 'COMPLETE' | 'NONE'} action
+ * @property {string} [nextChapterId]
+ * @property {number} [nextIndex]
+ */
+
 /**
  * EvaluateChapterTransitionUseCase
  *
@@ -5,33 +15,28 @@
  */
 export class EvaluateChapterTransitionUseCase {
 	/**
-	 * @typedef {Object} TransitionResult
-	 * @property {'ADVANCE' | 'COMPLETE' | 'NONE'} action
-	 * @property {string} [nextChapterId]
-	 * @property {number} [nextIndex]
-	 */
-
-	/**
 	 * Execute the evaluation
 	 * @param {Object} params
 	 * @param {import('../services/quest-registry-service.js').Quest} [params.quest]
 	 * @param {number} params.currentIndex
-	 * @returns {TransitionResult}
+	 * @returns {Result<TransitionResult, DomainError>}
 	 */
 	execute({ quest, currentIndex }) {
 		if (!quest || !quest.chapterIds) {
-			return { action: "NONE" };
+			return Result.failure(
+				new DomainError("Invalid quest or missing chapters", "INVALID_QUEST"),
+			);
 		}
 
 		const nextIndex = currentIndex + 1;
 		if (nextIndex < quest.chapterIds.length) {
-			return {
+			return Result.success({
 				action: "ADVANCE",
 				nextIndex,
 				nextChapterId: quest.chapterIds[nextIndex] || "",
-			};
+			});
 		}
 
-		return { action: "COMPLETE" };
+		return Result.success({ action: "COMPLETE" });
 	}
 }

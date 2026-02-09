@@ -518,7 +518,17 @@ export class QuestController {
 			currentIndex: this.currentChapterIndex,
 		});
 
-		if (result.action === "COMPLETE") {
+		if (result.isFailure) {
+			this.#logger?.error("Transition evaluation failed", result.error);
+			return;
+		}
+
+		const { action } =
+			/** @type {import('../use-cases/evaluate-chapter-transition.js').TransitionResult} */ (
+				result.value
+			);
+
+		if (action === "COMPLETE") {
 			this.completeQuest();
 		} else {
 			// Advance ONLY if there is NO exit zone.

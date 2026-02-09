@@ -4,18 +4,23 @@ import { EvaluateChapterTransitionUseCase } from "./evaluate-chapter-transition.
 describe("EvaluateChapterTransitionUseCase", () => {
 	const useCase = new EvaluateChapterTransitionUseCase();
 
-	it("should return NONE if quest is invalid", () => {
+	it("should return failure if quest is invalid", () => {
 		const result = useCase.execute({
 			quest: /** @type {any} */ (null),
 			currentIndex: 0,
 		});
-		expect(result).toEqual({ action: "NONE" });
+		expect(result.isFailure).toBe(true);
+		expect(
+			/** @type {import('../core/errors.js').DomainError} */ (result.error)
+				.code,
+		).toBe("INVALID_QUEST");
 	});
 
 	it("should return ADVANCE if there is a next chapter", () => {
 		const quest = /** @type {any} */ ({ chapterIds: ["1", "2", "3"] });
 		const result = useCase.execute({ quest, currentIndex: 0 });
-		expect(result).toEqual({
+		expect(result.isSuccess).toBe(true);
+		expect(result.value).toEqual({
 			action: "ADVANCE",
 			nextIndex: 1,
 			nextChapterId: "2",
@@ -25,6 +30,7 @@ describe("EvaluateChapterTransitionUseCase", () => {
 	it("should return COMPLETE if it is the last chapter", () => {
 		const quest = /** @type {any} */ ({ chapterIds: ["1", "2"] });
 		const result = useCase.execute({ quest, currentIndex: 1 });
-		expect(result).toEqual({ action: "COMPLETE" });
+		expect(result.isSuccess).toBe(true);
+		expect(result.value).toEqual({ action: "COMPLETE" });
 	});
 });
