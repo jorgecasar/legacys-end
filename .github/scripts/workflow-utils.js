@@ -295,18 +295,32 @@ function autoPickTask() {
 }
 
 /**
- * Añade una issue al proyecto si no está ya en él
+ * Añade una issue al proyecto si no está ya en él usando GraphQL para mayor compatibilidad
  */
 function addIssueToProject(issueUrl) {
 	try {
-		const projectNumber = process.env.PROJECT_NUMBER || 2;
-		const owner = process.env.GITHUB_REPOSITORY_OWNER;
+		// 1. Obtener el Node ID de la Issue a partir de la URL
+		const issueNumber = issueUrl.split("/").pop();
+		const issueData = JSON.parse(gh(`issue view ${issueNumber} --json id`));
+		const issueId = issueData.id;
+
+		// 2. Añadir al proyecto usando el PROJECT_ID (Node ID)
+		const query = `
+      mutation($projectId: ID!, $contentId: ID!) {
+        addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
+          item { id }
+        }
+      }
+    `;
 		const result = JSON.parse(
 			gh(
-				`project item-add ${projectNumber} --owner ${owner} --url ${issueUrl} --format json`,
+				`api graphql -f query='${query}' -F projectId=${PROJECT_ID} -F contentId=${issueId}`,
 			),
 		);
-		return result.id;
+		console.log(
+			`Issue added/verified in project. Item ID: ${result.data.addProjectV2ItemById.item.id}`,
+		);
+		return result.data.addProjectV2ItemById.item.id;
 	} catch (error) {
 		console.error("Error adding issue to project:", error.message);
 		return null;
