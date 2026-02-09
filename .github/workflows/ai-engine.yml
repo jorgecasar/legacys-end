@@ -88,7 +88,6 @@ jobs:
           LITELLM_PREFER_AI_STUDIO: "true"
           LITELLM_MAX_RETRIES: "0"
           LITELLM_RETRY_AFTER: "0"
-          NUM_RETRIES: "0"
         run: |
           # 1. Preparar Rama
           if [ "${{ inputs.is_comment }}" == "true" ]; then
@@ -109,13 +108,13 @@ jobs:
             BODY=$(echo "$ISSUE_DATA" | jq -r .body)
           fi
 
-          # 2. Rebase
           git fetch origin main
           git rebase origin/main || { echo "Rebase failed"; exit 1; }
 
-          # 3. Jerarquía de Modelos
+          # 2. Jerarquía de Modelos (Mezclar Series para evitar 503 localizados)
           PRIMARY_MODEL="${{ steps.triage.outputs.model_id }}"
-          MODELS_TO_TRY=("$PRIMARY_MODEL" "gemini-3-flash-preview" "gemini-3-pro-preview" "gemini-2.5-flash" "gemini-2.0-flash")
+          # Alternamos entre series para maximizar disponibilidad
+          MODELS_TO_TRY=("$PRIMARY_MODEL" "gemini-3-flash-preview" "gemini-2.5-flash" "gemini-3-pro-preview" "gemini-2.0-flash")
           MODELS_TO_TRY=($(echo "${MODELS_TO_TRY[@]}" | tr ' ' '\n' | awk '!a[$0]++'))
           
           cat <<EOF > aider_prompt.md
@@ -127,7 +126,7 @@ jobs:
             for f in $(find .gemini/skills -name "SKILL.md"); do RULES_ARGS="$RULES_ARGS --read $f"; done
           fi
 
-          # 4. Bucle de Ejecución
+          # 3. Bucle de Ejecución con Cooldown
           AIDER_EXIT_CODE=1
           FINAL_MODEL=""
           for CURRENT_MODEL in "${MODELS_TO_TRY[@]}"; do
@@ -143,25 +142,28 @@ jobs:
               
               if [ $AIDER_EXIT_CODE -eq 0 ]; then break 2; fi
               
-              # Detección de errores fatales (429 limit:0 o 503 saturación)
+              # CASO 1: Saturación Total (503) o Límite Diario (limit: 0)
               if grep -qiE "limit: 0|quota exceeded|RESOURCE_EXHAUSTED|503|ServiceUnavailable|UNAVAILABLE" aider_output.log; then
-                echo "❌ Modelo saturado o sin cuota ($CURRENT_MODEL). Saltando..."
-                break 
+                echo "❌ Fallo crítico de disponibilidad en $CURRENT_MODEL. Esperando enfriamiento de 60s antes de cambiar de serie..."
+                sleep 60
+                break # Salta al siguiente modelo
               fi
               
+              # CASO 2: Límite de Ratio (429 RPM)
               if grep -qiE "429|rate limit" aider_output.log; then
                 RETRY_COUNT=$((RETRY_COUNT+1))
-                echo "⚠️ Límite temporal en $CURRENT_MODEL. Reintento $RETRY_COUNT/$MAX_RETRIES en 15s..."
-                sleep 15
+                echo "⚠️ Límite de peticiones por minuto (RPM) en $CURRENT_MODEL. Enfriando 60s para reintento $RETRY_COUNT/$MAX_RETRIES..."
+                sleep 60
               else
-                echo "❌ Error desconocido. Probando siguiente modelo."
+                echo "❌ Error desconocido. Saltando al siguiente modelo tras 10s."
+                sleep 10
                 break
               fi
             done
           done
           echo "final_model=$FINAL_MODEL" >> $GITHUB_OUTPUT
 
-          # 5. Finalizar Commit
+          # 4. Finalizar Commit
           if [ $AIDER_EXIT_CODE -eq 0 ]; then
             if git diff --quiet; then
               echo "status=no_changes" >> $GITHUB_OUTPUT
@@ -209,5 +211,5 @@ jobs:
             node .github/scripts/workflow-utils.js set-status $ISSUE_NUM REVIEW "$BRANCH_NAME"
           elif [ "${{ env.RATE_LIMITED }}" == "true" ]; then
             node .github/scripts/workflow-utils.js set-status $ISSUE_NUM PAUSED_429 "$BRANCH_NAME"
-            gh issue comment $ISSUE_NUM --body "⚠️ Pausado por límites de servicio (429/503). Guardado en \`$BRANCH_NAME\`."
+            gh issue comment $ISSUE_NUM --body "⚠️ Pausado por saturación de la API (503/429). Guardado en \`$BRANCH_NAME\`. Se reanudará automáticamente en la próxima ventana."
           fi
