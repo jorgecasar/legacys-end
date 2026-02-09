@@ -16,6 +16,8 @@ on:
     secrets:
       GEMINI_API_KEY:
         required: true
+      PROJECT_PAT:
+        required: false
 
 jobs:
   develop:
