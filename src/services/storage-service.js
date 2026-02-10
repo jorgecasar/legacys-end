@@ -1,7 +1,5 @@
 /**
- * @typedef {import('../types/services.d.js').ILoggerService} ILoggerService
- * @typedef {import('../types/services.d.js').IStorageAdapter} IStorageAdapter
- * @typedef {import('../types/common.d.js').JSONSerializable} JSONSerializable
+ * LocalStorageAdapter
  */
 
 /**
