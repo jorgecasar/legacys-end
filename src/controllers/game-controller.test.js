@@ -2,7 +2,7 @@ import { Signal } from "@lit-labs/signals";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { loggerContext } from "../contexts/logger-context.js";
 import { questControllerContext } from "../contexts/quest-controller-context.js";
-import { heroStateContext } from "../game/contexts/hero-context.js";
+import { gameStoreContext } from "../core/store.js";
 import { GameController } from "./game-controller.js";
 
 // Mock @lit/context to handle dependency injection in tests
@@ -36,7 +36,7 @@ describe("GameController", () => {
 	/** @type {any} */
 	let mockLogger;
 	/** @type {any} */
-	let mockHeroState;
+	let mockGameStore;
 	/** @type {any} */
 	let mockQuestController;
 
@@ -51,8 +51,10 @@ describe("GameController", () => {
 			debug: vi.fn(),
 		};
 
-		mockHeroState = {
-			pos: new Signal.State({ x: 50, y: 15 }),
+		mockGameStore = {
+			hero: {
+				pos: new Signal.State({ x: 50, y: 15 }),
+			},
 		};
 
 		mockQuestController = {
@@ -93,7 +95,7 @@ describe("GameController", () => {
 		};
 
 		inject(loggerContext, mockLogger);
-		inject(heroStateContext, mockHeroState);
+		inject(gameStoreContext, mockGameStore);
 		inject(questControllerContext, mockQuestController);
 	};
 

@@ -1,6 +1,9 @@
 import { Signal } from "@lit-labs/signals";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { questControllerContext } from "../contexts/quest-controller-context.js";
+import { themeContext } from "../contexts/theme-context.js";
 import { HotSwitchStates, ZoneTypes } from "../core/constants.js";
+import { gameStoreContext } from "../core/store.js";
 import { GameZoneController } from "./game-zone-controller.js";
 
 // Mock @lit/context to handle dependency injection in tests
@@ -32,9 +35,7 @@ describe("GameZoneController", () => {
 
 	// Mock services
 	/** @type {any} */
-	let mockHeroState;
-	/** @type {any} */
-	let mockQuestState;
+	let mockGameStore;
 	/** @type {any} */
 	let mockQuestController;
 	/** @type {any} */
@@ -52,14 +53,15 @@ describe("GameZoneController", () => {
 		heroPos = new Signal.State({ x: 50, y: 50 });
 		hasCollectedItem = new Signal.State(false);
 
-		mockHeroState = {
-			pos: heroPos,
-			hotSwitchState: new Signal.State(HotSwitchStates.LEGACY),
-			setHotSwitchState: vi.fn(),
-		};
-
-		mockQuestState = {
-			hasCollectedItem: hasCollectedItem,
+		mockGameStore = {
+			hero: {
+				pos: heroPos,
+				hotSwitchState: new Signal.State(HotSwitchStates.LEGACY),
+				setHotSwitchState: vi.fn(),
+			},
+			quest: {
+				hasCollectedItem: hasCollectedItem,
+			},
 		};
 
 		mockQuestController = {
@@ -90,13 +92,19 @@ describe("GameZoneController", () => {
 			...useCases,
 		});
 
-		// Manual injection via the stored callbacks from the mock ContextConsumer
-		const callbacks = Array.from(contextMocks.values());
-		// heroState, questState, questController, themeService
-		if (callbacks[0]) callbacks[0](mockHeroState);
-		if (callbacks[1]) callbacks[1](mockQuestState);
-		if (callbacks[2]) callbacks[2](mockQuestController);
-		if (callbacks[3]) callbacks[3](mockThemeService);
+		// Manual injection
+		/**
+		 * @param {import("@lit/context").Context<unknown, unknown>} context
+		 * @param {unknown} mock
+		 */
+		const inject = (context, mock) => {
+			const callback = contextMocks.get(context);
+			if (callback) callback(mock);
+		};
+
+		inject(gameStoreContext, mockGameStore);
+		inject(questControllerContext, mockQuestController);
+		inject(themeContext, mockThemeService);
 	};
 
 	it("should initialize correctly", () => {
@@ -224,10 +232,10 @@ describe("GameZoneController", () => {
 			heroPos.set({ x: 50, y: 50 });
 			controller.hostUpdate();
 
-			expect(mockHeroState.setHotSwitchState).toHaveBeenCalledWith(
+			expect(mockGameStore.hero.setHotSwitchState).toHaveBeenCalledWith(
 				HotSwitchStates.NEW,
 			);
-			expect(mockHeroState.setHotSwitchState).toHaveBeenCalledTimes(1);
+			expect(mockGameStore.hero.setHotSwitchState).toHaveBeenCalledTimes(1);
 		});
 	});
 });

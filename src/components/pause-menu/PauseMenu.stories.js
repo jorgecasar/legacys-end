@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { worldStateContext } from "../../game/contexts/world-context.js";
+import { gameStoreContext } from "../../core/store.js";
 import "../../utils/context-provider.js";
 import "./pause-menu.js";
 
@@ -16,16 +16,18 @@ export const Open = {
 	decorators: [
 		/** @param {any} story */
 		(story) => {
-			const mockWorldState = {
-				isPaused: { get: () => true },
-				setPaused: () => {},
-				restart: () => {},
-				returnToHub: () => {},
+			const mockGameStore = {
+				world: {
+					isPaused: { get: () => true },
+					setPaused: () => {},
+					restart: () => {},
+					returnToHub: () => {},
+				},
 			};
 			return html`
         <div style="width: 100vw; height: 100vh; background: #222; display: flex; align-items: center; justify-content: center;">
           <p style="color: white; font-family: 'Pixel', sans-serif;">The game is background-paused</p>
-          <context-provider .context="${worldStateContext}" .value="${mockWorldState}">
+          <context-provider .context="${gameStoreContext}" .value="${mockGameStore}">
             ${story()}
           </context-provider>
         </div>

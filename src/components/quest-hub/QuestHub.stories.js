@@ -4,11 +4,6 @@ import "./quest-hub.js";
 export default {
 	title: "Pages/QuestHub",
 	component: "quest-hub",
-	argTypes: {
-		"quest-select": { action: "quest-select" },
-		"quest-continue": { action: "quest-continue" },
-		"reset-progress": { action: "reset-progress" },
-	},
 };
 
 const mockQuests = [

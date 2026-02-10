@@ -16,9 +16,7 @@ import { CollisionController } from "../../controllers/collision-controller.js";
 import { GameController } from "../../controllers/game-controller.js";
 import { GameZoneController } from "../../controllers/game-zone-controller.js";
 import { InteractionController } from "../../controllers/interaction-controller.js";
-import { heroStateContext } from "../../game/contexts/hero-context.js";
-import { questStateContext } from "../../game/contexts/quest-context.js";
-import { worldStateContext } from "../../game/contexts/world-context.js";
+import { gameStoreContext } from "../../core/store.js";
 import { InteractWithNpcUseCase } from "../../use-cases/interact-with-npc.js";
 import { ProcessGameZoneInteractionUseCase } from "../../use-cases/process-game-zone-interaction.js";
 import {
@@ -62,9 +60,9 @@ export class GameViewport extends SignalWatcher(
 		LitElement
 	),
 ) {
-	/** @type {IHeroStateService} */
-	@consume({ context: heroStateContext, subscribe: true })
-	accessor heroState = /** @type {IHeroStateService} */ (
+	/** @type {import('../../core/store.js').GameStore} */
+	@consume({ context: gameStoreContext, subscribe: true })
+	accessor gameStore = /** @type {import('../../core/store.js').GameStore} */ (
 		/** @type {unknown} */ (null)
 	);
 
@@ -79,17 +77,17 @@ export class GameViewport extends SignalWatcher(
 		currentDialogText: null,
 	};
 
-	/** @type {IQuestStateService} */
-	@consume({ context: questStateContext, subscribe: true })
-	accessor questState = /** @type {IQuestStateService} */ (
-		/** @type {unknown} */ (null)
-	);
+	get heroState() {
+		return this.gameStore?.hero;
+	}
 
-	/** @type {IWorldStateService} */
-	@consume({ context: worldStateContext, subscribe: true })
-	accessor worldState = /** @type {IWorldStateService} */ (
-		/** @type {unknown} */ (null)
-	);
+	get questState() {
+		return this.gameStore?.quest;
+	}
+
+	get worldState() {
+		return this.gameStore?.world;
+	}
 
 	/** @type {IQuestController} */
 	@consume({ context: questControllerContext, subscribe: true })

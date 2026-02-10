@@ -7,9 +7,7 @@ import { progressContext } from "../contexts/progress-context.js";
 import { questRegistryContext } from "../contexts/quest-registry-context.js";
 import { sessionContext } from "../contexts/session-context.js";
 import { HotSwitchStates } from "../core/constants.js";
-import { heroStateContext } from "../game/contexts/hero-context.js";
-import { questStateContext } from "../game/contexts/quest-context.js";
-import { worldStateContext } from "../game/contexts/world-context.js";
+import { gameStoreContext } from "../core/store.js";
 import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-transition.js";
 
 /**
@@ -178,12 +176,16 @@ export class QuestController {
 			});
 		}
 
-		if (!this.#state) {
+		if (!this.#state || !this.#worldState || !this.#heroState) {
 			new ContextConsumer(hostElement, {
-				context: questStateContext,
+				context: gameStoreContext,
 				subscribe: true,
-				callback: (service) => {
-					this.#state = /** @type {IQuestStateService} */ (service);
+				callback: (store) => {
+					if (store) {
+						this.#state = store.quest;
+						this.#worldState = store.world;
+						this.#heroState = store.hero;
+					}
 				},
 			});
 		}
@@ -194,26 +196,6 @@ export class QuestController {
 				subscribe: true,
 				callback: (service) => {
 					this.#sessionService = /** @type {ISessionService} */ (service);
-				},
-			});
-		}
-
-		if (!this.#worldState) {
-			new ContextConsumer(hostElement, {
-				context: worldStateContext,
-				subscribe: true,
-				callback: (service) => {
-					this.#worldState = /** @type {IWorldStateService} */ (service);
-				},
-			});
-		}
-
-		if (!this.#heroState) {
-			new ContextConsumer(hostElement, {
-				context: heroStateContext,
-				subscribe: true,
-				callback: (service) => {
-					this.#heroState = /** @type {IHeroStateService} */ (service);
 				},
 			});
 		}

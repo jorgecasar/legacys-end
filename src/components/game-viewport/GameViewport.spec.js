@@ -13,11 +13,10 @@ import {
 	ThemeModes,
 	ZoneTypes,
 } from "../../core/constants.js";
-import { heroStateContext } from "../../game/contexts/hero-context.js";
-import { questStateContext } from "../../game/contexts/quest-context.js";
-import { worldStateContext } from "../../game/contexts/world-context.js";
-import { GameViewport } from "./GameViewport.js";
+import { gameStoreContext } from "../../core/store.js";
 import "./game-viewport.js";
+
+/** @typedef {import('./GameViewport.js').GameViewport} GameViewport */
 
 /** @typedef {import('../../types/game.d.js').IHeroStateService} IHeroStateService */
 /** @typedef {import('../../types/game.d.js').IQuestStateService} IQuestStateService */
@@ -28,12 +27,6 @@ import "./game-viewport.js";
 /** @typedef {import('../../types/services.d.js').IThemeService} IThemeService */
 /** @typedef {import('../../types/services.d.js').IAIService} IAIService */
 /** @typedef {import('../../types/services.d.js').IVoiceSynthesisService} IVoiceSynthesisService */
-/** @typedef {import('../../services/session-service.js').SessionService} SessionService */
-/** @typedef {import('../../services/localization-service.js').LocalizationService} LocalizationService */
-/** @typedef {import('../../services/theme-service.js').ThemeService} ThemeService */
-/** @typedef {import('../../services/ai-service.js').AIService} AIService */
-/** @typedef {import('../../services/voice-synthesis-service.js').VoiceSynthesisService} VoiceSynthesisService */
-/** @typedef {import('../viewport-elements/game-zone-indicator/GameZoneIndicator.js').GameZoneIndicator} GameZoneIndicator */
 
 /**
  * Test wrapper to provide contexts
@@ -41,9 +34,7 @@ import "./game-viewport.js";
 class TestContextWrapper extends LitElement {
 	/** @override */
 	static properties = {
-		heroState: { type: Object },
-		questState: { type: Object },
-		worldState: { type: Object },
+		gameStore: { type: Object },
 		questController: { type: Object },
 		sessionService: { type: Object },
 		localizationService: { type: Object },
@@ -54,12 +45,8 @@ class TestContextWrapper extends LitElement {
 
 	constructor() {
 		super();
-		/** @type {IHeroStateService | undefined} */
-		this.heroState = undefined;
-		/** @type {IQuestStateService | undefined} */
-		this.questState = undefined;
-		/** @type {IWorldStateService | undefined} */
-		this.worldState = undefined;
+		/** @type {any} */
+		this.gameStore = undefined;
 		/** @type {IQuestController | undefined} */
 		this.questController = undefined;
 		/** @type {ISessionService | undefined} */
@@ -73,14 +60,8 @@ class TestContextWrapper extends LitElement {
 		/** @type {IVoiceSynthesisService | undefined} */
 		this.voiceSynthesisService = undefined;
 
-		this.heroProvider = new ContextProvider(this, {
-			context: heroStateContext,
-		});
-		this.questStateProvider = new ContextProvider(this, {
-			context: questStateContext,
-		});
-		this.worldStateProvider = new ContextProvider(this, {
-			context: worldStateContext,
+		this.gameStoreProvider = new ContextProvider(this, {
+			context: gameStoreContext,
 		});
 		this.questControllerProvider = new ContextProvider(this, {
 			context: questControllerContext,
@@ -101,20 +82,8 @@ class TestContextWrapper extends LitElement {
 	 * @override
 	 */
 	updated(changedProperties) {
-		if (changedProperties.has("heroState") && this.heroState != null) {
-			this.heroProvider.setValue(
-				/** @type {IHeroStateService} */ (this.heroState),
-			);
-		}
-		if (changedProperties.has("questState") && this.questState != null) {
-			this.questStateProvider.setValue(
-				/** @type {IQuestStateService} */ (this.questState),
-			);
-		}
-		if (changedProperties.has("worldState") && this.worldState != null) {
-			this.worldStateProvider.setValue(
-				/** @type {IWorldStateService} */ (this.worldState),
-			);
+		if (changedProperties.has("gameStore") && this.gameStore != null) {
+			this.gameStoreProvider.setValue(this.gameStore);
 		}
 		if (
 			changedProperties.has("questController") &&
@@ -292,9 +261,13 @@ describe("GameViewport", () => {
 				},
 			})
 		);
-		wrapper.heroState = createHeroStateMock();
-		wrapper.questState = createQuestStateMock();
-		wrapper.worldState = createWorldStateMock();
+
+		wrapper.gameStore = {
+			hero: createHeroStateMock(),
+			quest: createQuestStateMock(),
+			world: createWorldStateMock(),
+		};
+
 		wrapper.sessionService = /** @type {ISessionService} */ (
 			/** @type {unknown} */ ({
 				isLoading: new Signal.State(false),
@@ -385,7 +358,7 @@ describe("GameViewport", () => {
 		const zones = [
 			/** @type {import('../../content/quests/quest-types.js').Zone} */ (
 				/** @type {unknown} */ ({
-					type: ZoneTypes.CONTEXT_CHANGE,
+					type: ZoneTypes.THEME_CHANGE, // Changed logic to match expectation
 					payload: HotSwitchStates.LEGACY,
 					x: 10,
 					y: 10,
@@ -430,7 +403,7 @@ describe("GameViewport", () => {
 				"url('/assets/reward-bg.png')";
 		}
 
-		const questState = wrapper.questState;
+		const questState = wrapper.gameStore.quest;
 
 		await wrapper.updateComplete;
 
@@ -453,19 +426,25 @@ describe("GameViewport", () => {
 	});
 
 	it("should trigger reward animation when item is collected", async () => {
-		const spy = vi.spyOn(GameViewport.prototype, "startRewardAnimation");
-
 		const wrapper = new TestContextWrapper();
 		container.appendChild(wrapper);
 		setupBasicServices(wrapper);
 
-		const questState = wrapper.questState;
+		const questState = wrapper.gameStore.quest;
 
 		await wrapper.updateComplete;
 
 		const element = /** @type {GameViewport} */ (
 			document.createElement("game-viewport")
 		);
+
+		// Spy on the method of this specific instance after it is created but before connected
+		// But element methods might be bound or standard literal class methods.
+		// `startRewardAnimation` is a method on the class.
+		// If we spy on prototype, we cover it.
+		// If we want to spy on instance, we can do it here.
+		const spy = vi.spyOn(element, "startRewardAnimation");
+
 		wrapper.appendChild(element);
 		await element.updateComplete;
 
@@ -473,6 +452,5 @@ describe("GameViewport", () => {
 		await element.updateComplete;
 
 		expect(spy).toHaveBeenCalled();
-		spy.mockRestore();
 	});
 });

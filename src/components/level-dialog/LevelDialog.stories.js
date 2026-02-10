@@ -15,11 +15,6 @@ export default {
       </div>
     `,
 	],
-	argTypes: {
-		complete: { action: "complete" },
-		close: { action: "close" },
-		"slide-changed": { action: "slide-changed" },
-	},
 };
 
 /** @param {any} args */

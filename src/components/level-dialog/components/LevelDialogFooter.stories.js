@@ -6,9 +6,6 @@ export default {
 	component: "level-dialog-footer",
 	argTypes: {
 		currentSlideIndex: { control: { type: "number", min: 0, max: 4 } },
-		prev: { action: "prev" },
-		next: { action: "next" },
-		complete: { action: "complete" },
 	},
 };
 

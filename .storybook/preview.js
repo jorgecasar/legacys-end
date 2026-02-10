@@ -9,12 +9,7 @@ import { questControllerContext } from "../src/contexts/quest-controller-context
 import { questRegistryContext } from "../src/contexts/quest-registry-context.js";
 import { sessionContext } from "../src/contexts/session-context.js";
 import { themeContext } from "../src/contexts/theme-context.js";
-import { heroStateContext } from "../src/game/contexts/hero-context.js";
-import { questStateContext } from "../src/game/contexts/quest-context.js";
-import { worldStateContext } from "../src/game/contexts/world-context.js";
-import { HeroStateService } from "../src/game/services/hero-state-service.js";
-import { QuestStateService } from "../src/game/services/quest-state-service.js";
-import { WorldStateService } from "../src/game/services/world-state-service.js";
+import { GameStore, gameStoreContext } from "../src/core/store.js";
 import { LocalizationService } from "../src/services/localization-service.js";
 import { LoggerService } from "../src/services/logger-service.js";
 import { ProgressService } from "../src/services/progress-service.js";
@@ -31,9 +26,7 @@ import "../src/pixel.css";
 const logger = new LoggerService();
 const storage = new LocalStorageAdapter();
 const registry = new QuestRegistryService();
-const worldState = new WorldStateService();
-const questState = new QuestStateService();
-const heroState = new HeroStateService();
+const gameStore = new GameStore();
 
 // Mock Quest Controller
 const questController = {
@@ -109,8 +102,8 @@ const preview = {
 					value: new ProgressService(storage, registry, logger),
 				});
 				new ContextProvider(root, {
-					context: heroStateContext,
-					value: heroState,
+					context: gameStoreContext,
+					value: gameStore,
 				});
 				new ContextProvider(root, {
 					context: profileContext,
@@ -119,14 +112,6 @@ const preview = {
 				new ContextProvider(root, {
 					context: characterContext,
 					value: { suit: { image: "" } },
-				});
-				new ContextProvider(root, {
-					context: worldStateContext,
-					value: worldState,
-				});
-				new ContextProvider(root, {
-					context: questStateContext,
-					value: questState,
 				});
 				new ContextProvider(root, {
 					context: questControllerContext,

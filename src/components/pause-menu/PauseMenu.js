@@ -8,7 +8,7 @@ import { html, LitElement } from "lit";
 import { loggerContext } from "../../contexts/logger-context.js";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
-import { worldStateContext } from "../../game/contexts/world-context.js";
+import { gameStoreContext } from "../../core/store.js";
 import { pauseMenuStyles } from "./PauseMenu.styles.js";
 
 /**
@@ -23,11 +23,15 @@ export class PauseMenu extends SignalWatcher(
 		LitElement
 	),
 ) {
-	/** @type {IWorldStateService} */
-	@consume({ context: worldStateContext, subscribe: true })
-	accessor worldState = /** @type {IWorldStateService} */ (
+	/** @type {import('../../core/store.js').GameStore} */
+	@consume({ context: gameStoreContext, subscribe: true })
+	accessor gameStore = /** @type {import('../../core/store.js').GameStore} */ (
 		/** @type {unknown} */ (null)
 	);
+
+	get worldState() {
+		return this.gameStore?.world;
+	}
 
 	/** @type {IQuestController} */
 	@consume({ context: questControllerContext, subscribe: true })

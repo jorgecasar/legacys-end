@@ -55,7 +55,7 @@ test.describe("Quest Journey E2E", () => {
 		// Move Hero close to NPC (using evaluate to access internal state for stability/speed)
 		await page.evaluate(() => {
 			const app = document.querySelector("legacys-end-app");
-			app.heroState.setPos(40, 54);
+			app.gameStore.hero.setPos(40, 54);
 		});
 
 		// Trigger interaction repeatedly until dialog opens (Robust E2E pattern)
@@ -73,7 +73,7 @@ test.describe("Quest Journey E2E", () => {
 				}
 
 				// Check if dialog is open
-				return app.worldState.showDialog.get() === true;
+				return app.gameStore.world.showDialog.get() === true;
 			},
 			null,
 			{ timeout: 10000, polling: 200 },
@@ -118,7 +118,7 @@ test.describe("Quest Journey E2E", () => {
 		// We can check the state via evaluate
 		const hasCollected = await page.evaluate(() => {
 			const app = document.querySelector("legacys-end-app");
-			return app.questState.hasCollectedItem.get();
+			return app.gameStore.quest.hasCollectedItem.get();
 		});
 		expect(hasCollected).toBe(true);
 
@@ -171,7 +171,7 @@ test.describe("Quest Journey E2E", () => {
 		// Hack state to "collected"
 		await page.evaluate(() => {
 			const app = document.querySelector("legacys-end-app");
-			app.questState.setHasCollectedItem(true);
+			app.gameStore.quest.setHasCollectedItem(true);
 		});
 
 		await page.waitForTimeout(500);
@@ -204,7 +204,7 @@ test.describe("Quest Journey E2E", () => {
 
 		const isCompleted = await page.evaluate(() => {
 			const app = document.querySelector("legacys-end-app");
-			return app.questState.isQuestCompleted.get();
+			return app.gameStore.quest.isQuestCompleted.get();
 		});
 		expect(isCompleted).toBe(true);
 

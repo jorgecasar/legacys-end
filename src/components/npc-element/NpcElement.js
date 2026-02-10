@@ -6,7 +6,7 @@ import { msg, updateWhenLocaleChanges } from "@lit/localize";
 import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement } from "lit";
 import { ifDefined } from "lit/directives/if-defined.js";
-import { questStateContext } from "../../game/contexts/quest-context.js";
+import { gameStoreContext } from "../../core/store.js";
 import {
 	processImagePath,
 	processImageSrcset,
@@ -35,11 +35,15 @@ export class NpcElement extends SignalWatcher(
 		LitElement
 	),
 ) {
-	/** @type {IQuestStateService} */
-	@consume({ context: questStateContext, subscribe: true })
-	accessor questState = /** @type {IQuestStateService} */ (
+	/** @type {import('../../core/store.js').GameStore} */
+	@consume({ context: gameStoreContext, subscribe: true })
+	accessor gameStore = /** @type {import('../../core/store.js').GameStore} */ (
 		/** @type {unknown} */ (null)
 	);
+
+	get questState() {
+		return this.gameStore?.quest;
+	}
 
 	/** @override */
 	static properties = {

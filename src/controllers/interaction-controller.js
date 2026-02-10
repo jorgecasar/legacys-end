@@ -3,8 +3,7 @@ import { gameConfig } from "../config/game-configuration.js";
 import { loggerContext } from "../contexts/logger-context.js";
 import { questControllerContext } from "../contexts/quest-controller-context.js";
 import { UIEvents } from "../core/events.js";
-import { heroStateContext } from "../game/contexts/hero-context.js";
-import { questStateContext } from "../game/contexts/quest-context.js";
+import { gameStoreContext } from "../core/store.js";
 
 /**
  * @typedef {import('lit').ReactiveController} ReactiveController
@@ -89,18 +88,13 @@ export class InteractionController {
 		});
 
 		new ContextConsumer(hostElement, {
-			context: heroStateContext,
+			context: gameStoreContext,
 			subscribe: true,
-			callback: (service) => {
-				this.#heroState = /** @type {IHeroStateService} */ (service);
-			},
-		});
-
-		new ContextConsumer(hostElement, {
-			context: questStateContext,
-			subscribe: true,
-			callback: (service) => {
-				this.#questState = /** @type {IQuestStateService} */ (service);
+			callback: (store) => {
+				if (store) {
+					this.#heroState = store.hero;
+					this.#questState = store.quest;
+				}
 			},
 		});
 

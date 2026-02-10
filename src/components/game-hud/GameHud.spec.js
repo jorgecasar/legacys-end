@@ -20,14 +20,14 @@ describe("GameHud Component", () => {
 
 	it("renders correctly with default props", async () => {
 		const element = /** @type {GameHud} */ (document.createElement("game-hud"));
-		element.questState = /** @type {IQuestStateService} */ (
-			/** @type {unknown} */ ({
+		element.gameStore = /** @type {any} */ ({
+			quest: {
 				levelTitle: { get: () => "Default Level" },
 				questTitle: { get: () => "" },
 				currentChapterNumber: { get: () => 1 },
 				totalChapters: { get: () => 1 },
-			})
-		);
+			},
+		});
 		container.appendChild(element);
 		await element.updateComplete;
 
@@ -37,14 +37,14 @@ describe("GameHud Component", () => {
 
 	it("renders level and quest title", async () => {
 		const element = /** @type {GameHud} */ (document.createElement("game-hud"));
-		element.questState = /** @type {IQuestStateService} */ (
-			/** @type {unknown} */ ({
+		element.gameStore = /** @type {any} */ ({
+			quest: {
 				levelTitle: { get: () => "Level 1" },
 				questTitle: { get: () => "Quest 1" },
 				currentChapterNumber: { get: () => 1 },
 				totalChapters: { get: () => 1 },
-			})
-		);
+			},
+		});
 		container.appendChild(element);
 		await element.updateComplete;
 
@@ -54,14 +54,14 @@ describe("GameHud Component", () => {
 
 	it("renders chapter progress correct", async () => {
 		const element = /** @type {GameHud} */ (document.createElement("game-hud"));
-		element.questState = /** @type {IQuestStateService} */ (
-			/** @type {unknown} */ ({
+		element.gameStore = /** @type {any} */ ({
+			quest: {
 				levelTitle: { get: () => "Level 1" },
 				questTitle: { get: () => "Quest 1" },
 				currentChapterNumber: { get: () => 2 },
 				totalChapters: { get: () => 5 },
-			})
-		);
+			},
+		});
 		container.appendChild(element);
 		await element.updateComplete;
 
@@ -71,14 +71,14 @@ describe("GameHud Component", () => {
 
 	it("should have no accessibility violations", async () => {
 		const element = /** @type {GameHud} */ (document.createElement("game-hud"));
-		element.questState = /** @type {IQuestStateService} */ (
-			/** @type {unknown} */ ({
+		element.gameStore = /** @type {any} */ ({
+			quest: {
 				levelTitle: { get: () => "Level 1" },
 				questTitle: { get: () => "Quest 1" },
 				currentChapterNumber: { get: () => 1 },
 				totalChapters: { get: () => 1 },
-			})
-		);
+			},
+		});
 		container.appendChild(element);
 		await element.updateComplete;
 

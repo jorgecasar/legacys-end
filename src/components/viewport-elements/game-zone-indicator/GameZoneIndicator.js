@@ -10,7 +10,7 @@ import {
 	ThemeModes,
 	ZoneTypes,
 } from "../../../core/constants.js";
-import { heroStateContext } from "../../../game/contexts/hero-context.js";
+import { gameStoreContext } from "../../../core/store.js";
 import { gameZoneIndicatorStyles } from "./GameZoneIndicator.styles.js";
 
 /**
@@ -41,11 +41,16 @@ export class GameZoneIndicator extends SignalWatcher(LitElement) {
 		/** @type {unknown} */ (null)
 	);
 
-	/** @type {IHeroStateService} */
-	@consume({ context: heroStateContext, subscribe: true })
-	accessor heroState = /** @type {IHeroStateService} */ (
-		/** @type {unknown} */ (null)
-	);
+	/** @type {import('../../../core/store.js').GameStore} */
+	@consume({ context: gameStoreContext, subscribe: true })
+	accessor gameStore =
+		/** @type {import('../../../core/store.js').GameStore} */ (
+			/** @type {unknown} */ (null)
+		);
+
+	get heroState() {
+		return this.gameStore?.hero;
+	}
 
 	/** @type {ILoggerService} */
 	@consume({ context: loggerContext })
