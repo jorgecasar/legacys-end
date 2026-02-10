@@ -3,7 +3,7 @@ import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement, nothing } from "lit";
 import { loggerContext } from "../../../contexts/logger-context.js";
 import { questControllerContext } from "../../../contexts/quest-controller-context.js";
-import { questStateContext } from "../../../game/contexts/quest-context.js";
+import { gameStoreContext } from "../../../core/store.js";
 
 import { gameExitZoneStyles } from "./GameExitZone.styles.js";
 import "@awesome.me/webawesome/dist/components/tag/tag.js";
@@ -33,11 +33,16 @@ export class GameExitZone extends SignalWatcher(
 		/** @type {unknown} */ (null)
 	);
 
-	/** @type {IQuestStateService} */
-	@consume({ context: questStateContext, subscribe: true })
-	accessor questState = /** @type {IQuestStateService} */ (
-		/** @type {unknown} */ (null)
-	);
+	/** @type {import('../../../core/store.js').GameStore} */
+	@consume({ context: gameStoreContext, subscribe: true })
+	accessor gameStore =
+		/** @type {import('../../../core/store.js').GameStore} */ (
+			/** @type {unknown} */ (null)
+		);
+
+	get questState() {
+		return this.gameStore?.quest;
+	}
 
 	/** @type {ILoggerService} */
 	@consume({ context: loggerContext })

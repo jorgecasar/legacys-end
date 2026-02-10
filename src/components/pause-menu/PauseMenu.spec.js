@@ -13,27 +13,27 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "./pause-menu.js";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
-import { worldStateContext } from "../../game/contexts/world-context.js";
+import { gameStoreContext } from "../../core/store.js";
 
 class TestContextWrapper extends LitElement {
 	/** @override */
 	static properties = {
-		worldState: { type: Object },
+		gameStore: { type: Object },
 		questController: { type: Object },
 		sessionService: { type: Object },
 	};
 
 	constructor() {
 		super();
-		/** @type {IWorldStateService | undefined} */
-		this.worldState = undefined;
+		/** @type {any} */
+		this.gameStore = undefined;
 		/** @type {IQuestController | undefined} */
 		this.questController = undefined;
 		/** @type {ISessionService | undefined} */
 		this.sessionService = undefined;
 
-		this.wsProvider = new ContextProvider(this, {
-			context: worldStateContext,
+		this.gameStoreProvider = new ContextProvider(this, {
+			context: gameStoreContext,
 		});
 		this.qcProvider = new ContextProvider(this, {
 			context: questControllerContext,
@@ -53,12 +53,8 @@ class TestContextWrapper extends LitElement {
 	 * @override
 	 */
 	updated(changedProperties) {
-		if (changedProperties.has("worldState")) {
-			this.wsProvider.setValue(
-				/** @type {import("../../types/game.d.js").IWorldStateService} */ (
-					this.worldState ?? null
-				),
-			);
+		if (changedProperties.has("gameStore") && this.gameStore) {
+			this.gameStoreProvider.setValue(this.gameStore);
 		}
 		if (changedProperties.has("questController")) {
 			this.qcProvider.setValue(
@@ -99,8 +95,8 @@ describe("PauseMenu", () => {
 
 	it("renders when open (via worldState)", async () => {
 		const wrapper = new TestContextWrapper();
-		wrapper.worldState = /** @type {IWorldStateService} */ (
-			/** @type {unknown} */ ({
+		wrapper.gameStore = {
+			world: {
 				isPaused: new Signal.State(true),
 				showDialog: new Signal.State(false),
 				currentDialogText: new Signal.State(""),
@@ -115,8 +111,10 @@ describe("PauseMenu", () => {
 				setSlideIndex: vi.fn(),
 				resetSlideIndex: vi.fn(),
 				resetWorldState: vi.fn(),
-			})
-		);
+			},
+			quest: {},
+			hero: {},
+		};
 		wrapper.questController = /** @type {IQuestController} */ ({});
 		wrapper.sessionService = /** @type {ISessionService} */ ({});
 
@@ -138,8 +136,8 @@ describe("PauseMenu", () => {
 	it("calls setPaused(false) on resume button click", async () => {
 		const setPausedSpy = vi.fn();
 		const wrapper = new TestContextWrapper();
-		wrapper.worldState = /** @type {IWorldStateService} */ (
-			/** @type {unknown} */ ({
+		wrapper.gameStore = {
+			world: {
 				isPaused: new Signal.State(true),
 				showDialog: new Signal.State(false),
 				currentDialogText: new Signal.State(""),
@@ -153,8 +151,10 @@ describe("PauseMenu", () => {
 				prevSlide: vi.fn(),
 				setSlideIndex: vi.fn(),
 				resetSlideIndex: vi.fn(),
-			})
-		);
+			},
+			quest: {},
+			hero: {},
+		};
 		wrapper.questController = /** @type {IQuestController} */ ({});
 		wrapper.sessionService = /** @type {ISessionService} */ ({});
 
@@ -182,8 +182,8 @@ describe("PauseMenu", () => {
 		const setPausedSpy = vi.fn();
 
 		const wrapper = new TestContextWrapper();
-		wrapper.worldState = /** @type {IWorldStateService} */ (
-			/** @type {unknown} */ ({
+		wrapper.gameStore = {
+			world: {
 				isPaused: new Signal.State(true),
 				showDialog: new Signal.State(false),
 				currentDialogText: new Signal.State(""),
@@ -197,8 +197,10 @@ describe("PauseMenu", () => {
 				prevSlide: vi.fn(),
 				setSlideIndex: vi.fn(),
 				resetSlideIndex: vi.fn(),
-			})
-		);
+			},
+			quest: {},
+			hero: {},
+		};
 		wrapper.questController = /** @type {IQuestController} */ (
 			/** @type {unknown} */ ({
 				returnToHub: returnToHubSpy,
@@ -228,8 +230,8 @@ describe("PauseMenu", () => {
 
 	it("should have no accessibility violations", async () => {
 		const wrapper = new TestContextWrapper();
-		wrapper.worldState = /** @type {IWorldStateService} */ (
-			/** @type {unknown} */ ({
+		wrapper.gameStore = {
+			world: {
 				isPaused: new Signal.State(true),
 				showDialog: new Signal.State(false),
 				currentDialogText: new Signal.State(""),
@@ -243,8 +245,10 @@ describe("PauseMenu", () => {
 				prevSlide: vi.fn(),
 				setSlideIndex: vi.fn(),
 				resetSlideIndex: vi.fn(),
-			})
-		);
+			},
+			quest: {},
+			hero: {},
+		};
 		wrapper.questController = /** @type {IQuestController} */ ({});
 		wrapper.sessionService = /** @type {ISessionService} */ ({});
 

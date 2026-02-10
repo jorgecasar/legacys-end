@@ -1,7 +1,6 @@
 import { ContextConsumer } from "@lit/context";
 import { questControllerContext } from "../contexts/quest-controller-context.js";
-import { heroStateContext } from "../game/contexts/hero-context.js";
-import { questStateContext } from "../game/contexts/quest-context.js";
+import { gameStoreContext } from "../core/store.js";
 
 /**
  * @typedef {import("lit").ReactiveController} ReactiveController
@@ -65,19 +64,15 @@ export class CollisionController {
 		);
 
 		// Initialize Context Consumers
-		new ContextConsumer(hostElement, {
-			context: heroStateContext,
-			subscribe: true,
-			callback: (service) => {
-				this.#heroState = /** @type {IHeroStateService} */ (service);
-			},
-		});
 
 		new ContextConsumer(hostElement, {
-			context: questStateContext,
+			context: gameStoreContext,
 			subscribe: true,
-			callback: (service) => {
-				this.#questState = /** @type {IQuestStateService} */ (service);
+			callback: (store) => {
+				if (store) {
+					this.#heroState = store.hero;
+					this.#questState = store.quest;
+				}
 			},
 		});
 

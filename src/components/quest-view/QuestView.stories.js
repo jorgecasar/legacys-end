@@ -4,19 +4,13 @@ import { localizationContext } from "../../contexts/localization-context.js";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
 import { themeContext } from "../../contexts/theme-context.js";
-import { heroStateContext } from "../../game/contexts/hero-context.js";
-import { questStateContext } from "../../game/contexts/quest-context.js";
-import { worldStateContext } from "../../game/contexts/world-context.js";
+import { gameStoreContext } from "../../core/store.js";
 import "../../utils/context-provider.js";
 import "./quest-view.js";
 
 export default {
 	title: "Pages/QuestView",
 	component: "quest-view",
-	argTypes: {
-		"close-dialog": { action: "close-dialog" },
-		"reward-collected": { action: "reward-collected" },
-	},
 };
 
 const mockQuest = {
@@ -79,6 +73,12 @@ const mockWorldState = {
 	prevSlide: () => {},
 };
 
+const mockGameStore = {
+	hero: mockHeroState,
+	quest: mockQuestState,
+	world: mockWorldState,
+};
+
 const mockThemeService = {
 	themeMode: new Signal.State("light"),
 };
@@ -102,19 +102,15 @@ export const Default = {
 	render: (args) => html`
     <div style="width: 100vw; height: 100vh; background: #222;">
       <context-provider .context="${questControllerContext}" .value="${mockQuestController}">
-        <context-provider .context="${questStateContext}" .value="${mockQuestState}">
-          <context-provider .context="${heroStateContext}" .value="${mockHeroState}">
-            <context-provider .context="${worldStateContext}" .value="${mockWorldState}">
-              <context-provider .context="${themeContext}" .value="${mockThemeService}">
-                <context-provider .context="${sessionContext}" .value="${mockSessionService}">
-                  <context-provider .context="${localizationContext}" .value="${mockLocalizationService}">
-                    <quest-view
-                      style="height: 100%; width: 100%;"
-                      @close-dialog="${args["close-dialog"]}"
-                      @reward-collected="${args["reward-collected"]}"
-                    ></quest-view>
-                  </context-provider>
-                </context-provider>
+        <context-provider .context="${gameStoreContext}" .value="${mockGameStore}">
+          <context-provider .context="${themeContext}" .value="${mockThemeService}">
+            <context-provider .context="${sessionContext}" .value="${mockSessionService}">
+              <context-provider .context="${localizationContext}" .value="${mockLocalizationService}">
+                <quest-view
+                  style="height: 100%; width: 100%;"
+                  @close-dialog="${args["close-dialog"]}"
+                  @reward-collected="${args["reward-collected"]}"
+                ></quest-view>
               </context-provider>
             </context-provider>
           </context-provider>
@@ -132,22 +128,22 @@ export const Victory = {
 			...mockQuestState,
 			isQuestCompleted: new Signal.State(true),
 		};
+		const victoryGameStore = {
+			...mockGameStore,
+			quest: victoryQuestState,
+		};
 		return html`
       <div style="width: 100vw; height: 100vh; background: #222;">
         <context-provider .context="${questControllerContext}" .value="${mockQuestController}">
-          <context-provider .context="${questStateContext}" .value="${victoryQuestState}">
-            <context-provider .context="${heroStateContext}" .value="${mockHeroState}">
-              <context-provider .context="${worldStateContext}" .value="${mockWorldState}">
-                <context-provider .context="${themeContext}" .value="${mockThemeService}">
-                  <context-provider .context="${sessionContext}" .value="${mockSessionService}">
-                    <context-provider .context="${localizationContext}" .value="${mockLocalizationService}">
-                      <quest-view
-                        style="height: 100%; width: 100%;"
-                        @close-dialog="${args["close-dialog"]}"
-                        @reward-collected="${args["reward-collected"]}"
-                      ></quest-view>
-                    </context-provider>
-                  </context-provider>
+          <context-provider .context="${gameStoreContext}" .value="${victoryGameStore}">
+            <context-provider .context="${themeContext}" .value="${mockThemeService}">
+              <context-provider .context="${sessionContext}" .value="${mockSessionService}">
+                <context-provider .context="${localizationContext}" .value="${mockLocalizationService}">
+                  <quest-view
+                    style="height: 100%; width: 100%;"
+                    @close-dialog="${args["close-dialog"]}"
+                    @reward-collected="${args["reward-collected"]}"
+                  ></quest-view>
                 </context-provider>
               </context-provider>
             </context-provider>

@@ -4,21 +4,13 @@ import { localizationContext } from "../../contexts/localization-context.js";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
 import { themeContext } from "../../contexts/theme-context.js";
-import { heroStateContext } from "../../game/contexts/hero-context.js";
-import { questStateContext } from "../../game/contexts/quest-context.js";
-import { worldStateContext } from "../../game/contexts/world-context.js";
+import { gameStoreContext } from "../../core/store.js";
 import "../../utils/context-provider.js";
 import "./game-viewport.js";
 
 export default {
 	title: "Components/Game/GameViewport",
 	component: "game-viewport",
-	argTypes: {
-		"next-slide": { action: "next-slide" },
-		"prev-slide": { action: "prev-slide" },
-		complete: { action: "complete" },
-		"reward-collected": { action: "reward-collected" },
-	},
 };
 
 const mockQuestController = {
@@ -72,6 +64,12 @@ const mockWorldState = {
 	setPaused: (v) => mockWorldState.isPaused.set(v),
 };
 
+const mockGameStore = {
+	hero: mockHeroState,
+	quest: mockQuestState,
+	world: mockWorldState,
+};
+
 const mockThemeService = {
 	themeMode: new Signal.State("light"),
 };
@@ -93,15 +91,11 @@ export const Default = {
 	render: () => html`
     <div style="width: 100vw; height: 100vh; background: #222;">
       <context-provider .context="${questControllerContext}" .value="${mockQuestController}">
-        <context-provider .context="${questStateContext}" .value="${mockQuestState}">
-          <context-provider .context="${heroStateContext}" .value="${mockHeroState}">
-            <context-provider .context="${worldStateContext}" .value="${mockWorldState}">
-              <context-provider .context="${themeContext}" .value="${mockThemeService}">
-                <context-provider .context="${sessionContext}" .value="${mockSessionService}">
-                  <context-provider .context="${localizationContext}" .value="${mockLocalizationService}">
-                    <game-viewport style="height: 100%; width: 100%;"></game-viewport>
-                  </context-provider>
-                </context-provider>
+        <context-provider .context="${gameStoreContext}" .value="${mockGameStore}">
+          <context-provider .context="${themeContext}" .value="${mockThemeService}">
+            <context-provider .context="${sessionContext}" .value="${mockSessionService}">
+              <context-provider .context="${localizationContext}" .value="${mockLocalizationService}">
+                <game-viewport style="height: 100%; width: 100%;"></game-viewport>
               </context-provider>
             </context-provider>
           </context-provider>

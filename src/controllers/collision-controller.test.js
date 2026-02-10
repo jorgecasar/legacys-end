@@ -1,5 +1,7 @@
 import { Signal } from "@lit-labs/signals";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { questControllerContext } from "../contexts/quest-controller-context.js";
+import { gameStoreContext } from "../core/store.js";
 import { CollisionController } from "./collision-controller.js";
 
 // Mock @lit/context to handle dependency injection in tests
@@ -30,9 +32,7 @@ describe("CollisionController", () => {
 	let controller;
 
 	/** @type {any} */
-	let mockHeroState;
-	/** @type {any} */
-	let mockQuestState;
+	let mockGameStore;
 	/** @type {any} */
 	let mockQuestController;
 
@@ -48,12 +48,13 @@ describe("CollisionController", () => {
 		heroPos = new Signal.State({ x: 50, y: 50 });
 		hasCollectedItem = new Signal.State(true);
 
-		mockHeroState = {
-			pos: heroPos,
-		};
-
-		mockQuestState = {
-			hasCollectedItem: hasCollectedItem,
+		mockGameStore = {
+			hero: {
+				pos: heroPos,
+			},
+			quest: {
+				hasCollectedItem: hasCollectedItem,
+			},
 		};
 
 		mockQuestController = {
@@ -73,12 +74,18 @@ describe("CollisionController", () => {
 	const initController = (options = {}) => {
 		controller = new CollisionController(host, options);
 
-		// Manual injection via the stored callbacks from the mock ContextConsumer
-		const callbacks = Array.from(contextMocks.values());
-		// heroState, questState, questController
-		if (callbacks[0]) callbacks[0](mockHeroState);
-		if (callbacks[1]) callbacks[1](mockQuestState);
-		if (callbacks[2]) callbacks[2](mockQuestController);
+		// Manual injection
+		/**
+		 * @param {import("@lit/context").Context<unknown, unknown>} context
+		 * @param {unknown} mock
+		 */
+		const inject = (context, mock) => {
+			const callback = contextMocks.get(context);
+			if (callback) callback(mock);
+		};
+
+		inject(gameStoreContext, mockGameStore);
+		inject(questControllerContext, mockQuestController);
 	};
 
 	it("should initialize correctly", () => {

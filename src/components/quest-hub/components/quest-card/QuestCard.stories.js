@@ -4,10 +4,6 @@ import "./quest-card.js";
 export default {
 	title: "Components/QuestHub/QuestCard",
 	component: "quest-card",
-	argTypes: {
-		"quest-select": { action: "quest-select" },
-		"quest-continue": { action: "quest-continue" },
-	},
 };
 
 /** @param {any} args */

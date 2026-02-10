@@ -40,9 +40,10 @@ describe("LegacysEndApp Integration", () => {
 
 		// 2. Verify Services are attached to the App (host)
 		expect(element.storage).toBeDefined();
-		expect(element.heroState).toBeDefined();
-		expect(element.questState).toBeDefined();
-		expect(element.worldState).toBeDefined();
+		expect(element.gameStore).toBeDefined();
+		expect(element.gameStore.hero).toBeDefined();
+		expect(element.gameStore.quest).toBeDefined();
+		expect(element.gameStore.world).toBeDefined();
 		expect(element.progressService).toBeDefined();
 		expect(element.router).toBeDefined();
 		expect(element.questController).toBeDefined();

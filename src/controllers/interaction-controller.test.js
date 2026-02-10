@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { HotSwitchStates } from "../core/constants.js";
+
 import { InteractionController } from "./interaction-controller.js";
 
 // Mock @lit/context to handle dependency injection in tests
@@ -35,9 +36,7 @@ describe("InteractionController", () => {
 
 	// Mock services
 	/** @type {any} */
-	let mockHeroState;
-	/** @type {any} */
-	let mockQuestState;
+	let mockGameStore;
 	/** @type {any} */
 	let mockQuestController;
 	/** @type {any} */
@@ -49,13 +48,18 @@ describe("InteractionController", () => {
 		vi.clearAllMocks();
 		contextMocks.clear();
 
-		mockHeroState = {
+		const mockHeroState = {
 			pos: { get: vi.fn().mockReturnValue({ x: 0, y: 0 }) },
 			hotSwitchState: { get: vi.fn().mockReturnValue(HotSwitchStates.LEGACY) },
 		};
 
-		mockQuestState = {
+		const mockQuestState = {
 			hasCollectedItem: { get: vi.fn().mockReturnValue(false) },
+		};
+
+		mockGameStore = {
+			hero: mockHeroState,
+			quest: mockQuestState,
 		};
 
 		mockQuestController = {
@@ -85,11 +89,6 @@ describe("InteractionController", () => {
 			// Helper for mock ContextConsumer
 			_mockContexts: {},
 		};
-
-		// "Provide" the mocks via host's mock context mechanism
-		// Note: The context symbols/keys should match what's in the controller
-		// For simplicity in tests where we mock @lit/context, we use the context objects themselves
-		// But the controller imports them, so we need to know their names.
 	});
 
 	const initController = (options = {}) => {
@@ -99,23 +98,23 @@ describe("InteractionController", () => {
 		});
 
 		// Manual injection via the stored callbacks from the mock ContextConsumer
-		// This simulates the behavior of @lit/context providing values
-		const callbacks = Array.from(contextMocks.values());
 		// The order depends on how they are initialized in constructor
-		// logger, questController, heroState, questState
-		if (contextMocks.size >= 4) {
-			// Trigger all callbacks with our mocks
-			// We need to match the specific context objects.
-			// Since we mocked createContext to return the key, we can identify them if we had access to them.
-			// For now, let's just trigger all callbacks with the respective mocks based on the order in constructor
-			// 1. Logger
+		// logger, questController, gameStore
+		const callbacks = Array.from(contextMocks.values());
+
+		// Map known contexts to mocks
+		// Since we mocked createContext to return the key/string, we can try to match them if we knew the keys.
+		// However, simpler to just iterate and check what was registered.
+		// Or trust order if we know it.
+		// Order in InteractionController:
+		// 1. loggerContext
+		// 2. questControllerContext
+		// 3. gameStoreContext
+
+		if (callbacks.length >= 3) {
 			callbacks[0](mockLogger);
-			// 2. QuestController
 			callbacks[1](mockQuestController);
-			// 3. HeroState
-			callbacks[2](mockHeroState);
-			// 4. QuestState
-			callbacks[3](mockQuestState);
+			callbacks[2](mockGameStore);
 		}
 	};
 
@@ -182,9 +181,11 @@ describe("InteractionController", () => {
 		});
 
 		it("should pass correct state to use case", () => {
-			mockHeroState.pos.get.mockReturnValue({ x: 5, y: 5 });
-			mockHeroState.hotSwitchState.get.mockReturnValue(HotSwitchStates.NEW);
-			mockQuestState.hasCollectedItem.get.mockReturnValue(true);
+			mockGameStore.hero.pos.get.mockReturnValue({ x: 5, y: 5 });
+			mockGameStore.hero.hotSwitchState.get.mockReturnValue(
+				HotSwitchStates.NEW,
+			);
+			mockGameStore.quest.hasCollectedItem.get.mockReturnValue(true);
 
 			initController();
 			controller.handleInteract();

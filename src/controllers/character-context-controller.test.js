@@ -1,6 +1,9 @@
 import { Signal } from "@lit-labs/signals";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { questControllerContext } from "../contexts/quest-controller-context.js";
+import { themeContext } from "../contexts/theme-context.js";
 import { HotSwitchStates, ThemeModes } from "../core/constants.js";
+import { gameStoreContext } from "../core/store.js";
 import { CharacterContextController } from "./character-context-controller.js";
 
 // Mock @lit/context to handle dependency injection in tests
@@ -31,9 +34,7 @@ describe("CharacterContextController", () => {
 	let controller;
 	// Mock context states
 	/** @type {any} */
-	let mockHeroState;
-	/** @type {any} */
-	let mockQuestState;
+	let mockGameStore;
 	/** @type {any} */
 	let mockQuestController;
 	/** @type {any} */
@@ -51,13 +52,14 @@ describe("CharacterContextController", () => {
 			character: {},
 		};
 
-		mockHeroState = {
-			hotSwitchState: new Signal.State(HotSwitchStates.LEGACY),
-		};
-
-		mockQuestState = {
-			hasCollectedItem: new Signal.State(false),
-			isRewardCollected: new Signal.State(false),
+		mockGameStore = {
+			hero: {
+				hotSwitchState: new Signal.State(HotSwitchStates.LEGACY),
+			},
+			quest: {
+				hasCollectedItem: new Signal.State(false),
+				isRewardCollected: new Signal.State(false),
+			},
 		};
 
 		mockQuestController = {
@@ -78,13 +80,19 @@ describe("CharacterContextController", () => {
 	const initController = () => {
 		controller = new CharacterContextController(host);
 
-		// Manual injection via the stored callbacks from the mock ContextConsumer
-		const callbacks = Array.from(contextMocks.values());
-		// heroState, questState, questController, themeService
-		if (callbacks[0]) callbacks[0](mockHeroState);
-		if (callbacks[1]) callbacks[1](mockQuestState);
-		if (callbacks[2]) callbacks[2](mockQuestController);
-		if (callbacks[3]) callbacks[3](mockThemeService);
+		// Manual injection
+		/**
+		 * @param {import("@lit/context").Context<unknown, unknown>} context
+		 * @param {unknown} mock
+		 */
+		const inject = (context, mock) => {
+			const callback = contextMocks.get(context);
+			if (callback) callback(mock);
+		};
+
+		inject(gameStoreContext, mockGameStore);
+		inject(questControllerContext, mockQuestController);
+		inject(themeContext, mockThemeService);
 	};
 
 	it("should initialize and add controller to host", () => {
@@ -121,7 +129,7 @@ describe("CharacterContextController", () => {
 					reward: "/assets/level_1/hero-reward.png",
 				},
 			};
-			mockQuestState.isRewardCollected.set(true);
+			mockGameStore.quest.isRewardCollected.set(true);
 
 			initController();
 			controller.hostUpdate();

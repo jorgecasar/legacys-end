@@ -1,7 +1,7 @@
 import { ContextConsumer } from "@lit/context";
 import { loggerContext } from "../contexts/logger-context.js";
 import { questControllerContext } from "../contexts/quest-controller-context.js";
-import { heroStateContext } from "../game/contexts/hero-context.js";
+import { gameStoreContext } from "../core/store.js";
 
 /**
  * @typedef {import("lit").ReactiveController} ReactiveController
@@ -69,10 +69,12 @@ export class GameController {
 		});
 
 		new ContextConsumer(this.host, {
-			context: heroStateContext,
+			context: gameStoreContext,
 			subscribe: true,
-			callback: (service) => {
-				this.#heroState = /** @type {IHeroStateService} */ (service);
+			callback: (store) => {
+				if (store) {
+					this.#heroState = store.hero;
+				}
 			},
 		});
 

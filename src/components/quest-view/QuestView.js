@@ -4,9 +4,7 @@ import { html, LitElement } from "lit";
 import { loggerContext } from "../../contexts/logger-context.js";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
-import { heroStateContext } from "../../game/contexts/hero-context.js";
-import { questStateContext } from "../../game/contexts/quest-context.js";
-import { worldStateContext } from "../../game/contexts/world-context.js";
+import { gameStoreContext } from "../../core/store.js";
 import "../game-viewport/game-viewport.js";
 import "../level-dialog/level-dialog.js";
 import "../pause-menu/pause-menu.js";
@@ -37,23 +35,23 @@ export class QuestView extends SignalWatcher(
 		/** @type {unknown} */ (null)
 	);
 
-	/** @type {IHeroStateService} */
-	@consume({ context: heroStateContext, subscribe: true })
-	accessor heroState = /** @type {IHeroStateService} */ (
+	/** @type {import('../../core/store.js').GameStore} */
+	@consume({ context: gameStoreContext, subscribe: true })
+	accessor gameStore = /** @type {import('../../core/store.js').GameStore} */ (
 		/** @type {unknown} */ (null)
 	);
 
-	/** @type {IQuestStateService} */
-	@consume({ context: questStateContext, subscribe: true })
-	accessor questState = /** @type {IQuestStateService} */ (
-		/** @type {unknown} */ (null)
-	);
+	get heroState() {
+		return this.gameStore?.hero;
+	}
 
-	/** @type {IWorldStateService} */
-	@consume({ context: worldStateContext, subscribe: true })
-	accessor worldState = /** @type {IWorldStateService} */ (
-		/** @type {unknown} */ (null)
-	);
+	get questState() {
+		return this.gameStore?.quest;
+	}
+
+	get worldState() {
+		return this.gameStore?.world;
+	}
 
 	/** @type {ISessionService} */
 	@consume({ context: sessionContext, subscribe: true })

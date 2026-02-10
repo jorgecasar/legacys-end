@@ -33,16 +33,11 @@ import { themeContext } from "../../contexts/theme-context.js";
 import { voiceContext } from "../../contexts/voice-context.js";
 import { QuestController } from "../../controllers/quest-controller.js";
 import { ThemeModes } from "../../core/constants.js";
-import { heroStateContext } from "../../game/contexts/hero-context.js";
-import { questStateContext } from "../../game/contexts/quest-context.js";
-import { worldStateContext } from "../../game/contexts/world-context.js";
 import { Router } from "../../utils/router.js";
 import { legacysEndAppStyles } from "./LegacysEndApp.styles.js";
 import "@awesome.me/webawesome/dist/styles/webawesome.css";
 import "../../pixel.css";
-import { HeroStateService } from "../../game/services/hero-state-service.js";
-import { QuestStateService } from "../../game/services/quest-state-service.js";
-import { WorldStateService } from "../../game/services/world-state-service.js";
+import { GameStore, gameStoreContext } from "../../core/store.js";
 import { AIService } from "../../services/ai-service.js";
 import { LocalizationService } from "../../services/localization-service.js";
 import { LoggerService } from "../../services/logger-service.js";
@@ -137,29 +132,9 @@ export class LegacysEndApp extends SignalWatcher(LitElement) {
 
 	// --- Game State (Reactive) ---
 	// Domain-specific state containers for the game engine.
-	/** @type {import('../../game/services/quest-state-service.js').QuestStateService} */
-	@provide({ context: questStateContext })
-	@state()
-	accessor questState =
-		/** @type {import('../../game/services/quest-state-service.js').QuestStateService} */ (
-			/** @type {unknown} */ (null)
-		);
-
-	/** @type {import('../../game/services/world-state-service.js').WorldStateService} */
-	@provide({ context: worldStateContext })
-	@state()
-	accessor worldState =
-		/** @type {import('../../game/services/world-state-service.js').WorldStateService} */ (
-			/** @type {unknown} */ (null)
-		);
-
-	/** @type {import('../../game/services/hero-state-service.js').HeroStateService} */
-	@provide({ context: heroStateContext })
-	@state()
-	accessor heroState =
-		/** @type {import('../../game/services/hero-state-service.js').HeroStateService} */ (
-			/** @type {unknown} */ (null)
-		);
+	/** @type {GameStore} */
+	@provide({ context: gameStoreContext })
+	accessor gameStore = new GameStore();
 
 	// --- Controllers ---
 	// Orchestrators that bind state, services, and UI logic.
@@ -234,9 +209,7 @@ export class LegacysEndApp extends SignalWatcher(LitElement) {
 			this.evaluateChapterTransition = new EvaluateChapterTransitionUseCase();
 
 			// 4. Game State
-			this.heroState = new HeroStateService();
-			this.questState = new QuestStateService();
-			this.worldState = new WorldStateService();
+			// Initialized in accessor
 
 			// 5. Internal Utilities
 			this.router = new Router(this.logger);
@@ -247,10 +220,10 @@ export class LegacysEndApp extends SignalWatcher(LitElement) {
 				registry: this.registry,
 				progressService: this.progressService,
 				preloaderService: this.preloaderService,
-				state: this.questState,
+				state: this.gameStore.quest,
 				sessionService: this.sessionService,
-				worldState: this.worldState,
-				heroState: this.heroState,
+				worldState: this.gameStore.world,
+				heroState: this.gameStore.hero,
 				router: this.router,
 			});
 
@@ -313,7 +286,7 @@ export class LegacysEndApp extends SignalWatcher(LitElement) {
 	}
 
 	#handleCloseDialog() {
-		this.worldState?.setShowDialog(false);
+		this.gameStore.world?.setShowDialog(false);
 		this.hasSeenIntro = true;
 	}
 

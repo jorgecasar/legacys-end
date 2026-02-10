@@ -5,9 +5,7 @@ import { html, LitElement } from "lit";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
-import { heroStateContext } from "../../game/contexts/hero-context.js";
-import { questStateContext } from "../../game/contexts/quest-context.js";
-import { worldStateContext } from "../../game/contexts/world-context.js";
+import { gameStoreContext } from "../../core/store.js";
 import "./level-dialog.js";
 
 /** @typedef {import("../../types/game.d.js").IHeroStateService} IHeroStateService */
@@ -21,34 +19,22 @@ import "./level-dialog.js";
 class TestContextWrapper extends LitElement {
 	/** @override */
 	static properties = {
-		heroState: { type: Object },
-		questState: { type: Object },
-		worldState: { type: Object },
+		gameStore: { type: Object },
 		questController: { type: Object },
 		sessionService: { type: Object },
 	};
 
 	constructor() {
 		super();
-		/** @type {IHeroStateService | undefined} */
-		this.heroState = undefined;
-		/** @type {IQuestStateService | undefined} */
-		this.questState = undefined;
-		/** @type {IWorldStateService | undefined} */
-		this.worldState = undefined;
+		/** @type {any} */
+		this.gameStore = undefined;
 		/** @type {IQuestController | undefined} */
 		this.questController = undefined;
 		/** @type {ISessionService | undefined} */
 		this.sessionService = undefined;
 
-		this._heroProvider = new ContextProvider(this, {
-			context: heroStateContext,
-		});
-		this._questStateProvider = new ContextProvider(this, {
-			context: questStateContext,
-		});
-		this._worldProvider = new ContextProvider(this, {
-			context: worldStateContext,
+		this.gameStoreProvider = new ContextProvider(this, {
+			context: gameStoreContext,
 		});
 		this._qcProvider = new ContextProvider(this, {
 			context: questControllerContext,
@@ -63,20 +49,8 @@ class TestContextWrapper extends LitElement {
 	 * @override
 	 */
 	updated(changedProperties) {
-		if (changedProperties.has("heroState") && this.heroState != null) {
-			this._heroProvider.setValue(
-				/** @type {IHeroStateService} */ (this.heroState),
-			);
-		}
-		if (changedProperties.has("questState") && this.questState != null) {
-			this._questStateProvider.setValue(
-				/** @type {IQuestStateService} */ (this.questState),
-			);
-		}
-		if (changedProperties.has("worldState") && this.worldState != null) {
-			this._worldProvider.setValue(
-				/** @type {IWorldStateService} */ (this.worldState),
-			);
+		if (changedProperties.has("gameStore") && this.gameStore != null) {
+			this.gameStoreProvider.setValue(this.gameStore);
 		}
 		if (
 			changedProperties.has("questController") &&
@@ -124,26 +98,18 @@ describe("LevelDialog Component", () => {
 				currentChapter: { description: "Intro Narrative" },
 			})
 		);
-		wrapper.questState = /** @type {IQuestStateService} */ (
-			/** @type {unknown} */ ({
-				isQuestCompleted: new Signal.State(false),
-			})
-		);
-		wrapper.sessionService = /** @type {ISessionService} */ (
-			/** @type {unknown} */ ({
-				currentQuest: new Signal.State(
-					/** @type {Quest} */ (/** @type {unknown} */ ({ id: "q1" })),
-				),
-			})
-		);
-		wrapper.worldState = /** @type {IWorldStateService} */ (
-			/** @type {unknown} */ ({
+		wrapper.gameStore = {
+			world: {
 				showDialog: new Signal.State(true),
 				currentSlideIndex: new Signal.State(0),
 				setCurrentDialogText: vi.fn(),
 				setNextDialogText: vi.fn(),
-			})
-		);
+			},
+			quest: {
+				isQuestCompleted: new Signal.State(false),
+			},
+			hero: {},
+		};
 
 		const element = /** @type {LevelDialog} */ (
 			document.createElement("level-dialog")
@@ -169,26 +135,18 @@ describe("LevelDialog Component", () => {
 				currentChapter: { problemDesc: "Problem Description" },
 			})
 		);
-		wrapper.questState = /** @type {IQuestStateService} */ (
-			/** @type {unknown} */ ({
-				isQuestCompleted: new Signal.State(false),
-			})
-		);
-		wrapper.sessionService = /** @type {ISessionService} */ (
-			/** @type {unknown} */ ({
-				currentQuest: new Signal.State(
-					/** @type {Quest} */ (/** @type {unknown} */ ({ id: "q1" })),
-				),
-			})
-		);
-		wrapper.worldState = /** @type {IWorldStateService} */ (
-			/** @type {unknown} */ ({
+		wrapper.gameStore = {
+			world: {
 				showDialog: new Signal.State(true),
 				currentSlideIndex: new Signal.State(0),
 				setCurrentDialogText: vi.fn(),
 				setNextDialogText: vi.fn(),
-			})
-		);
+			},
+			quest: {
+				isQuestCompleted: new Signal.State(false),
+			},
+			hero: {},
+		};
 
 		const element = /** @type {import("./LevelDialog.js").LevelDialog} */ (
 			document.createElement("level-dialog")
@@ -214,26 +172,18 @@ describe("LevelDialog Component", () => {
 				currentChapter: { description: "Intro Narrative" },
 			})
 		);
-		wrapper.questState = /** @type {IQuestStateService} */ (
-			/** @type {unknown} */ ({
-				isQuestCompleted: new Signal.State(false),
-			})
-		);
-		wrapper.sessionService = /** @type {ISessionService} */ (
-			/** @type {unknown} */ ({
-				currentQuest: new Signal.State(
-					/** @type {Quest} */ (/** @type {unknown} */ ({ id: "q1" })),
-				),
-			})
-		);
-		wrapper.worldState = /** @type {IWorldStateService} */ (
-			/** @type {unknown} */ ({
+		wrapper.gameStore = {
+			world: {
 				showDialog: new Signal.State(true),
 				currentSlideIndex: new Signal.State(0),
 				setCurrentDialogText: vi.fn(),
 				setNextDialogText: vi.fn(),
-			})
-		);
+			},
+			quest: {
+				isQuestCompleted: new Signal.State(false),
+			},
+			hero: {},
+		};
 
 		const element = /** @type {LevelDialog} */ (
 			document.createElement("level-dialog")
