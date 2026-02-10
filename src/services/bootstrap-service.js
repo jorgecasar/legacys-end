@@ -1,6 +1,7 @@
 import { GameStore } from "../core/store.js";
 import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-transition.js";
 import { AIService } from "./ai-service.js";
+import { DialogueGenerationService } from "./dialogue-generation-service.js";
 import { LocalizationService } from "./localization-service.js";
 import { LoggerService } from "./logger-service.js";
 import { PreloaderService } from "./preloader-service.js";
@@ -15,6 +16,7 @@ import { VoiceSynthesisService } from "./voice-synthesis-service.js";
  * BootstrapService
  * Handles the initialization of all core services in the correct order.
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: BootstrapService acts as a namespace for initialization
 export class BootstrapService {
 	/**
 	 * Initializes the application services.
@@ -30,6 +32,7 @@ export class BootstrapService {
 	 *   theme: ThemeService,
 	 *   localization: LocalizationService,
 	 *   ai: AIService,
+	 *   dialogueGeneration: DialogueGenerationService,
 	 *   evaluateChapterTransition: EvaluateChapterTransitionUseCase
 	 * }>}
 	 */
@@ -50,6 +53,9 @@ export class BootstrapService {
 		const ai = new AIService({ logger });
 		const localization = new LocalizationService({ storage, logger });
 
+		// 3.1 AI Domain Services
+		const dialogueGeneration = new DialogueGenerationService(ai, logger);
+
 		// 4. Progress Service
 		const progress = new ProgressService(storage, questRegistry, logger);
 
@@ -68,6 +74,7 @@ export class BootstrapService {
 			theme,
 			localization,
 			ai,
+			dialogueGeneration,
 			evaluateChapterTransition,
 		};
 	}

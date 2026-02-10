@@ -16,8 +16,8 @@ describe("AIService", () => {
 			create: vi.fn(),
 		};
 
-		// @ts-expect-error - window.ai is experimental and not yet in standard types
-		window.ai = { languageModel: mockLanguageModel };
+		// @ts-expect-error - Chrome Built-in AI experimental API
+		window.LanguageModel = mockLanguageModel;
 
 		// Silence expected warnings/errors for these tests
 		vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -62,7 +62,7 @@ describe("AIService", () => {
 
 		it("should return 'no' when LanguageModel is undefined", async () => {
 			// @ts-expect-error - Mocking unavailability for testing
-			window.ai = undefined;
+			window.LanguageModel = undefined;
 
 			const status = await service.checkAvailability();
 
