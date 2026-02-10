@@ -1,19 +1,27 @@
 import { createContext } from "@lit/context";
 import { Signal } from "@lit-labs/signals";
 
-/** @typedef {import('../types/game.d.js').HotSwitchState} HotSwitchState */
+/**
+ * @typedef {import('../types/game.d.js').HotSwitchState} HotSwitchState
+ */
 
 /**
  * GameStore - Centralized state management for Legacy's End
  */
 export class GameStore {
 	constructor() {
+		/** @type {HeroStore} */
 		this.hero = new HeroStore();
+		/** @type {QuestStore} */
 		this.quest = new QuestStore();
+		/** @type {WorldStore} */
 		this.world = new WorldStore();
 	}
 }
 
+/**
+ * @implements {HeroState}
+ */
 class HeroStore {
 	constructor() {
 		this.pos = new Signal.State({ x: 50, y: 15 });
@@ -54,6 +62,9 @@ class HeroStore {
 	}
 }
 
+/**
+ * @implements {QuestState}
+ */
 class QuestStore {
 	constructor() {
 		this.hasCollectedItem = new Signal.State(false);
@@ -138,6 +149,9 @@ class QuestStore {
 	}
 }
 
+/**
+ * @implements {WorldState}
+ */
 class WorldStore {
 	constructor() {
 		this.isPaused = new Signal.State(false);
