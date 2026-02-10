@@ -6,13 +6,26 @@
  */
 
 /**
- * @typedef {import('../controllers/voice-controller.js').VoiceController} VoiceController
+ * @typedef {Object} VoiceActionExecutor
+ * @property {import('lit').ReactiveControllerHost} [host]
+ * @property {{currentDialogText?: string, nextDialogText?: string}} [_dialogContext]
+ * @property {(x: number, y: number) => void} move
+ * @property {() => void} moveToNpc
+ * @property {() => void} moveToExit
+ * @property {() => void} pause
+ * @property {() => void} nextSlide
+ * @property {() => void} prevSlide
+ * @property {() => void} interact
+ * @property {() => void} celebrateChapter
+ * @property {() => void} showHelp
+ * @property {import('../types/services.d.js').ILoggerService} [logger]
+ * @property {(text: string, lang: string|null) => void} narrateDialogue
  */
 
 /**
  * Execute a voice command action
  * @param {string} action - The action to execute
- * @param {VoiceController} controller - VoiceController instance with options
+ * @param {VoiceActionExecutor} controller - Controller or shim with action methods
  * @param {string|null} [lang] - Language for feedback
  */
 export function executeVoiceAction(action, controller, lang = null) {

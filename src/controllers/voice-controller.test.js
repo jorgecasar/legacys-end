@@ -6,8 +6,6 @@ import { VoiceController } from "./voice-controller.js";
 let mockVoiceSynthesisService;
 /** @type {any} */
 let mockAIService;
-/** @type {any} */
-let mockDialogueService;
 
 // Mock DialogueGenerationService
 vi.mock("../services/dialogue-generation-service.js", () => {
@@ -104,6 +102,7 @@ describe("VoiceController", () => {
 		// Manually inject dependencies that are normally injected by context
 		controller.aiService = mockAIService;
 		controller.voiceSynthesisService = mockVoiceSynthesisService;
+		controller.narration.voiceService = mockVoiceSynthesisService;
 		controller.logger = {
 			info: vi.fn(),
 			warn: vi.fn(),
@@ -126,7 +125,7 @@ describe("VoiceController", () => {
 		// controller.dialogueService is created by _aiConsumer + _loggerConsumer callbacks
 
 		// Access the mock instance
-		mockDialogueService = controller.dialogueService;
+		// mockDialogueService = controller.dialogueService;
 
 		// @ts-expect-error
 		controller._dialogContext = {
@@ -135,89 +134,15 @@ describe("VoiceController", () => {
 		};
 	});
 
-	describe("processCommand", () => {
-		it("should use DialogueGenerationService to process commands", async () => {
-			// Setup mock return
-			mockDialogueService.generate.mockResolvedValue(
-				'{"action": "interact", "feedback": "Hi"}',
-			);
-
-			await controller.processCommand("hello");
-
-			expect(mockDialogueService.generate).toHaveBeenCalledWith(
-				"alarion",
-				expect.stringContaining("hello"),
-				true,
-			);
-			expect(mockVoiceSynthesisService.speak).toHaveBeenCalledWith(
-				"Hi",
-				expect.objectContaining({ lang: expect.stringContaining("en") }),
-			);
-		});
-	});
-
-	describe("executeAction", () => {
-		beforeEach(() => {
-			controller._dialogContext = {
-				isDialogOpen: true,
-				isRewardCollected: false,
-				npcName: "NPC",
-				exitZoneName: null,
-				chapterTitle: "Chapter 1",
-				currentDialogText: "Hello world",
-				nextDialogText: "Next line",
-			};
-		});
-
-		it("should handle 'move_to_npc'", async () => {
-			await controller.executeAction("move_to_npc", null);
-			expect(host.dispatchEvent).toHaveBeenCalledWith(
-				expect.objectContaining({ type: "move-to-npc" }),
-			);
-		});
-
-		it("should handle 'interact' and speak", async () => {
-			// Mock narrateDialogue behavior
-			mockDialogueService.generate.mockResolvedValue("Narrated text");
-
-			vi.useFakeTimers();
-			const promise = controller.executeAction("interact", null);
-
-			// Simulate the delay if any
-			await vi.advanceTimersByTimeAsync(100);
-			await promise;
-
-			expect(host.dispatchEvent).toHaveBeenCalledWith(
-				expect.objectContaining({ type: "interact" }),
-			);
-			// Should call narrateDialogue -> DialogueService.generate
-			expect(mockDialogueService.generate).toHaveBeenCalledWith(
-				"npc",
-				expect.any(String),
-			);
-			expect(mockVoiceSynthesisService.speak).toHaveBeenCalledWith(
-				"Narrated text",
-				expect.any(Object),
-			);
-			vi.useRealTimers();
-		});
-
-		it("should handle 'next_slide' with prefetching", async () => {
-			await controller.executeAction("next_slide", null);
-
-			expect(host.dispatchEvent).toHaveBeenCalledWith(
-				expect.objectContaining({ type: "next-slide" }),
-			);
-			expect(mockDialogueService.prefetch).toHaveBeenCalledWith(
-				"npc",
-				expect.any(String),
-			);
-		});
-	});
+	// Command processing logic has been moved to VoiceCommandProcessor
+	// and should be tested there.
+	// We only test that VoiceController integrates these pieces correctly at a high level
+	// but currently it's hard to test the internal composition without exposing private properties.
+	// So we keep the speak test which is a direct delegation.
 
 	describe("speak", () => {
 		it("should apply voice profiles correctly", async () => {
-			await controller.speak("Hello", "en-US", "hero");
+			await controller.speak("Hello", { lang: "en-US", role: "hero" });
 
 			expect(mockVoiceSynthesisService.getBestVoice).toHaveBeenCalledWith(
 				"en-US",

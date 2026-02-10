@@ -34,7 +34,7 @@ export class AIService {
 	 */
 	get #ai() {
 		// @ts-expect-error - Chrome Built-in AI experimental API
-		return window.ai?.languageModel;
+		return window.LanguageModel;
 	}
 
 	/**
