@@ -27,6 +27,23 @@ export async function main(
 	{ exec = execSync } = {},
 ) {
 	if (!issueNumber || !planJson || planJson.trim() === "") {
+		/**
+		 * Validates required arguments and displays usage information.
+		 *
+		 * @description
+		 * Ensures that both issueNumber and planJson are provided and non-empty.
+		 * If validation fails, displays error message with usage examples and exits.
+		 *
+		 * @type {ValidationStep}
+		 *
+		 * @example
+		 * // Missing arguments - will exit with error
+		 * node tooling/ai-worker-plan.js
+		 *
+		 * @example
+		 * // Valid execution
+		 * ISSUE_NUMBER=123 node tooling/ai-worker-plan.js '{"methodology":"TDD"}'
+		 */
 		console.error("Error: Missing arguments.");
 		console.error(
 			"Usage: ISSUE_NUMBER=<number> node tooling/ai-worker-plan.js '<plan_json>'",
@@ -38,13 +55,46 @@ export async function main(
 		return;
 	}
 
-	// Strip markdown code blocks if present
+	/**
+	 * Parses and cleans JSON plan from input string.
+	 *
+	 * @description
+	 * Removes markdown code block markers (```json ... ```) from the input
+	 * string before parsing. This allows plans to be copy-pasted from markdown
+	 * documentation or AI chat responses.
+	 *
+	 * @type {PlanParsingStep}
+	 * @param {string} planJson - Raw plan string, potentially wrapped in markdown code blocks.
+	 * @returns {Plan} - Parsed plan object with methodology and optional fields.
+	 *
+	 * @example
+	 * // Input with markdown
+	 * '```json\n{"methodology":"TMD"}\n```'
+	 *
+	 * // Output
+	 * { methodology: "TDD" }
+	 */
 	const cleanJson = planJson.replace(/^```json\s*/, "").replace(/\s*```$/, "");
 	const plan = JSON.parse(cleanJson);
 	console.log(`Starting execution for issue #${issueNumber}`);
 	console.log(`Methodology: ${plan.methodology}`);
 
-	// 1. Create a task branch if not exists
+	/**
+	 * Creates or checks out a task branch for the issue.
+	 *
+	 * @description
+	 * Generates a branch name following the pattern `task/issue-{issueNumber}-{slug}`.
+	 * Attempts to create the branch first; if it already exists, checks it out instead.
+	 *
+	 * @type {BranchCreationStep}
+	 * @param {number} issueNumber - The GitHub issue number.
+	 * @param {Plan} plan - The parsed plan object containing optional slug.
+	 * @returns {string} branchName - The name of the created/checked-out branch.
+	 *
+	 * @example
+	 * // Creates branch "task/issue-123-test-feature"
+	 * // when plan.slug is "test-feature"
+	 */
 	const branchName = `task/issue-${issueNumber}-${plan.slug || "work"}`;
 	try {
 		exec(`git checkout -b ${branchName}`);
@@ -52,7 +102,23 @@ export async function main(
 		exec(`git checkout ${branchName}`);
 	}
 
-	// 2. If sub-tasks are defined as NEEDING new issues, create them
+	/**
+	 * Decomposes main task into sub-issues if required.
+	 *
+	 * @description
+	 * Creates GitHub issues for each sub-task defined in the plan.
+	 * Each sub-issue is linked back to the parent issue number.
+	 * Only executes if needs_decomposition is true and sub_tasks array is non-empty.
+	 *
+	 * @type {TaskDecompositionStep}
+	 * @param {number} issueNumber - The parent GitHub issue number.
+	 * @param {Plan} plan - The parsed plan object containing sub_tasks and needs_decomposition.
+	 *
+	 * @example
+	 * // Creates sub-issues for "design" and "implementation"
+	 * // if plan.needs_decomposition is true
+	 * // Each sub-issue includes "Sub-task of #{issueNumber}" in body
+	 */
 	if (plan.sub_tasks && plan.sub_tasks.length > 0 && plan.needs_decomposition) {
 		console.log("Decomposing into sub-issues...");
 		for (const sub of plan.sub_tasks) {
@@ -61,19 +127,56 @@ export async function main(
 		}
 	}
 
-	// 3. Output plan for next step in the workflow
+	/**
+	 * Marks the plan as ready for next workflow step.
+	 *
+	 * @description
+	 * Outputs PLAN_READY=true to indicate that initial setup is complete
+	 * and the workflow can proceed to the next phase (e.g., implementation).
+	 *
+	 * @type {CompletionStep}
+	 *
+	 * @example
+	 * // Console output
+	 * // PLAN_READY=true
+	 */
 	console.log("PLAN_READY=true");
 }
 
 import { fileURLToPath } from "node:url";
 
 /**
- * Script entry point.
- * Executes the main function if this file is run directly.
- * Handles errors and exits with appropriate status code.
+ * Script entry point guard.
+ *
+ * @description
+ * Checks if this file is being executed directly (vs. being imported as a module).
+ * If executed directly, invokes the main function and handles any errors.
+ *
+ * @type {EntryPointGuard}
+ * @param {string} process.argv[1] - The path of the script being executed.
+ * @param {string} import.meta.url - The URL of the current module.
+ * @returns {void} - No return value; exits process on completion or error.
+ *
+ * @example
+ * // Direct execution - will run main()
+ * node tooling/ai-worker-plan.js '{"methodology":"TMD"}'
+ *
+ * @example
+ * // Imported as module - will not execute main()
+ * import { main } from './ai-worker-plan.js'
  */
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	main().catch((err) => {
+		/**
+		 * Error handler for direct script execution.
+		 *
+		 * @description
+		 * Catches any errors from the main function, logs them to stderr,
+		 * and exits with status code 1 to indicate failure.
+		 *
+		 * @type {ErrorHandler}
+		 * @param {Error} err - The error thrown from main function.
+		 */
 		console.error(err);
 		process.exit(1);
 	});
