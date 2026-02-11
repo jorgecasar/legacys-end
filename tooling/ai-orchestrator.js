@@ -4,7 +4,7 @@ import { Octokit } from "@octokit/rest";
 const PROJECT_ID = "PVT_kwHOAA562c4BOtC-";
 
 export async function main({ exec = execSync, octokit: injectedOctokit } = {}) {
-	const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
+	const token = process.env.GH_TOKEN;
 	if (!token && !injectedOctokit) {
 		throw new Error("Missing GH_TOKEN");
 	}

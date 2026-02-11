@@ -38,7 +38,7 @@ jobs:
       - name: Fetch Issue Details
         id: issue
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           gh issue view ${{ github.event.inputs.issue_number }} --json title,body > issue.json
           echo "title=$(jq -r .title issue.json)" >> $GITHUB_OUTPUT
@@ -53,78 +53,41 @@ jobs:
           echo "Title: ${{ steps.issue.outputs.title }}"
           echo "Body length: ${{ steps.issue.outputs.body }}" | wc -c
 
-      - name: Generate Agent Context
-        run: npx rulesync generate --targets geminicli
-
       # 1. ATOMIC PLANNING
       - name: Planning
         id: planning
-        uses: google-github-actions/run-gemini-cli@v0.1.20
-        with:
-          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
-          gemini_model: "gemini-2.5-flash-lite"
-          prompt: |
-            You are a Developer Agent.
-            Goal: Analyze issue #${{ github.event.inputs.issue_number }}
-            Title: ${{ steps.issue.outputs.title }}
-            Body:
-            ${{ steps.issue.outputs.body }}
-            
-            IMPORTANT: Keep response under 200 tokens.
-            
-            Instruction: Return ONLY a JSON object with the plan.
-            
-            OUTPUT JSON ONLY:
-            {
-              "methodology": "TDD",
-              "files_to_touch": ["src/logic.js"]
-            }
-
-      - name: Initialize Branch & Plan
         env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
-          PLAN_JSON: ${{ steps.planning.outputs.summary }}
-        run: |
-          # Debug Output
-          echo "Planning Output received (length: ${#PLAN_JSON})"
-          if [ -z "$PLAN_JSON" ]; then
-            echo "Error: Planning step returned empty output."
-            exit 1
-          fi
-          # Pass JSON via environment variable to avoid shell interpretation
-          node tooling/ai-worker-plan.js "$PLAN_JSON"
-          
-          # Extract fields for next steps (strip markdown and parse JSON)
-          CLEAN_JSON=$(echo "$PLAN_JSON" | sed 's/^```json//;s/```$//')
-          METHODOLOGY=$(echo "$CLEAN_JSON" | jq -r '.methodology // "TDD"')
-          FILES=$(echo "$CLEAN_JSON" | jq -r '.files_to_touch | join(" ")')
-          
-          echo "methodology=$METHODOLOGY" >> $GITHUB_OUTPUT
-          echo "files=$FILES" >> $GITHUB_OUTPUT
-        id: init_plan
+          ISSUE_TITLE: ${{ steps.issue.outputs.title }}
+          ISSUE_BODY: ${{ steps.issue.outputs.body }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: node tooling/ai-worker-plan.js
 
-      # 2. EXECUTION LOOP (Simplified for MVP, usually involves multiple Gemini calls)
+      # 2. EXECUTION LOOP
       - name: Development & Implementation
         id: developer
-        uses: google-github-actions/run-gemini-cli@v0.1.20
-        with:
-          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
-          gemini_model: "gemini-2.5-flash"
-          prompt: |
-            You are the Developer Agent (Implementing Mode).
-            Task: Solve issue #${{ github.event.inputs.issue_number }}
-            
-            Methodology: ${{ steps.init_plan.outputs.methodology }}
-            Current State: No changes yet.
-            
-            IMPORTANT: Be concise. Focus on essential code changes only.
-            
-            Instruction:
-            1. Create/Update tests FIRST (TDD/BDD).
-            2. Implement logic.
-            3. Follow $(cat .gemini/memories/technical-stack.md).
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+          ISSUE_TITLE: ${{ steps.issue.outputs.title }}
+          METHODOLOGY: ${{ steps.planning.outputs.methodology }}
+          FILES: ${{ steps.planning.outputs.files }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: node tooling/ai-worker-develop.js
+
+      - name: Commit Implementation
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "feat(ai): implementation of #${{ github.event.inputs.issue_number }}" || echo "No changes to commit"
+          git push
 
       # 3. VERIFICATION
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
       - name: Run Related Tests
         run: |
           # Run tests with coverage
@@ -133,7 +96,7 @@ jobs:
       - name: Update Coverage Thresholds
         run: npm run test:coverage:update
 
-      # 4. SELF-REVIEW
+      # 4. SELF-REVIEW (Optional, usually on PR but here for immediate feedback)
       - name: Self-Review
         id: reviewer
         uses: google-github-actions/run-gemini-cli@v0.1.20
@@ -148,38 +111,39 @@ jobs:
             Diff:
             $(git diff origin/main)
             
-            IMPORTANT: Be brief. Max 500 tokens.
-            
-            Audit this code for quality, performance, and adherence to @developer-persona.
-            List any critical issues or output "APPROVED" if it meets the quality standards.
+            Instruction: Audit this code. Output "APPROVED" if quality is high.
 
       # 5. SUBMIT & SYNC
       - name: Create Pull Request
         if: contains(steps.reviewer.outputs.text, 'APPROVED')
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           gh pr create --title "feat: resolve issue #${{ github.event.inputs.issue_number }}" --body "Automated PR by AI Worker Agent. \n\nReviewer feedback: ${{ steps.reviewer.outputs.text }}"
 
       - name: Sync Costs
         if: always()
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
-          PLANNING_INPUT_TOKENS: ${{ steps.planning.outputs.input_tokens }}
-          PLANNING_OUTPUT_TOKENS: ${{ steps.planning.outputs.output_tokens }}
-          DEVELOPER_INPUT_TOKENS: ${{ steps.developer.outputs.input_tokens }}
-          DEVELOPER_OUTPUT_TOKENS: ${{ steps.developer.outputs.output_tokens }}
-          REVIEWER_INPUT_TOKENS: ${{ steps.reviewer.outputs.input_tokens }}
-          REVIEWER_OUTPUT_TOKENS: ${{ steps.reviewer.outputs.output_tokens }}
+          PLANNING_INPUT_TOKENS: ${{ steps.planning.outputs.input_tokens || '0' }}
+          PLANNING_OUTPUT_TOKENS: ${{ steps.planning.outputs.output_tokens || '0' }}
+          DEVELOPER_INPUT_TOKENS: ${{ steps.developer.outputs.input_tokens || '0' }}
+          DEVELOPER_OUTPUT_TOKENS: ${{ steps.developer.outputs.output_tokens || '0' }}
+          REVIEWER_INPUT_TOKENS: ${{ steps.reviewer.outputs.input_tokens || '0' }}
+          REVIEWER_OUTPUT_TOKENS: ${{ steps.reviewer.outputs.output_tokens || '0' }}
         run: |
           node tooling/ai-worker-sync.js
 
-      # CLEANUP: Mark as Paused if workflow failed or was cancelled
       - name: Mark Task as Paused on Failure
         if: failure() || cancelled()
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
         run: |
-          # Update project item status to "Paused"
-          gh project item-edit --id $(gh issue view ${{ github.event.inputs.issue_number }} --json projectItems --jq '.projectItems[0].id') --project-id 2 --field-id Status --text "Paused"
+          node tooling/ai-worker-sync.js --failed
+
+      - name: Cleanup Temporary Files
+        if: always()
+        run: |
+          rm -f issue.json

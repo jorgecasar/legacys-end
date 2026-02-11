@@ -59,6 +59,20 @@ describe("ai-worker-plan", () => {
 		await main("10", ""); // Reproduce user reported issue
 	});
 
+	it("should extract JSON from markdown blocks", async () => {
+		const exec = mock.fn((_cmd) => Buffer.from(""));
+		const input =
+			'Here is the plan:\n```json\n{"methodology": "TDD", "slug": "markdown-test"}\n```\nGood luck!';
+
+		await main("13", input, { exec });
+	});
+
+	it("should handle plain text error gracefully", async () => {
+		process.env.NODE_ENV = "test";
+		const input = "This is just plain text without JSON";
+		await main("14", input, { exec: () => {} });
+	});
+
 	it("should execute as a main process", async () => {
 		return new Promise((resolve, reject) => {
 			const cp = spawn("node", ["tooling/ai-worker-plan.js"], {

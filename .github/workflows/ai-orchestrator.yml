@@ -29,6 +29,6 @@ jobs:
 
       - name: Run Orchestrator
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           node tooling/ai-orchestrator.js

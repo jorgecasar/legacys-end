@@ -56,9 +56,9 @@ export async function trackUsage({
 }) {
 	// Initialize Octokit if not provided
 	if (!octokit) {
-		const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
+		const token = process.env.GH_TOKEN;
 		if (!token) {
-			throw new Error("GH_TOKEN or GITHUB_TOKEN environment variable required");
+			throw new Error("GH_TOKEN environment variable required");
 		}
 		octokit = new Octokit({ auth: token });
 	}

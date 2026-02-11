@@ -38,12 +38,12 @@ jobs:
           GITHUB_ISSUE_NUMBER: ${{ github.event.issue.number }}
           GITHUB_ISSUE_TITLE: ${{ github.event.issue.title }}
           GITHUB_ISSUE_BODY: ${{ github.event.issue.body }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: node tooling/gemini-triage.js
 
       - name: Sync to Project V2
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GITHUB_ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           # Extract JSON map from Gemini output
