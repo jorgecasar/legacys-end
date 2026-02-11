@@ -153,13 +153,27 @@ jobs:
             Audit this code for quality, performance, and adherence to @developer-persona.
             List any critical issues or output "APPROVED" if it meets the quality standards.
 
-      # 5. SUBMIT
+      # 5. SUBMIT & SYNC
       - name: Create Pull Request
         if: contains(steps.reviewer.outputs.text, 'APPROVED')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr create --title "feat: resolve issue #${{ github.event.inputs.issue_number }}" --body "Automated PR by AI Worker Agent. \n\nReviewer feedback: ${{ steps.reviewer.outputs.text }}"
+
+      - name: Sync Costs
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+          PLANNING_INPUT_TOKENS: ${{ steps.planning.outputs.input_tokens }}
+          PLANNING_OUTPUT_TOKENS: ${{ steps.planning.outputs.output_tokens }}
+          DEVELOPER_INPUT_TOKENS: ${{ steps.developer.outputs.input_tokens }}
+          DEVELOPER_OUTPUT_TOKENS: ${{ steps.developer.outputs.output_tokens }}
+          REVIEWER_INPUT_TOKENS: ${{ steps.reviewer.outputs.input_tokens }}
+          REVIEWER_OUTPUT_TOKENS: ${{ steps.reviewer.outputs.output_tokens }}
+        run: |
+          node tooling/ai-worker-sync.js
 
       # CLEANUP: Mark as Paused if workflow failed or was cancelled
       - name: Mark Task as Paused on Failure

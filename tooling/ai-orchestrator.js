@@ -26,6 +26,18 @@ export async function main({ exec = execSync, octokit: injectedOctokit } = {}) {
 									labels(first: 10) {
 										nodes { name }
 									}
+									parent {
+										number
+										labels(first: 10) {
+											nodes { name }
+										}
+									}
+									subIssues(first: 10) {
+										nodes {
+											number
+											state
+										}
+									}
 								}
 							}
 							status: fieldValueByName(name: "Status") {
@@ -50,6 +62,9 @@ export async function main({ exec = execSync, octokit: injectedOctokit } = {}) {
 			status: item.status?.name,
 			priority: item.priority?.name,
 			labels: item.content?.labels?.nodes.map((l) => l.name) || [],
+			parentLabels:
+				item.content?.parent?.labels?.nodes.map((l) => l.name) || [],
+			subIssues: item.content?.subIssues?.nodes || [],
 		}))
 		.filter((i) => i.number);
 
@@ -78,10 +93,27 @@ export async function main({ exec = execSync, octokit: injectedOctokit } = {}) {
 		return 0;
 	});
 
-	// 3. Find first unblocked
+	// 3. Find first unblocked "leaf" task
 	let selectedTask = null;
 	for (const task of prioritized) {
+		// Skip if explicitly blocked
 		if (task.labels.includes("blocked")) continue;
+
+		// Skip if parent is blocked
+		if (task.parentLabels.includes("blocked")) {
+			console.log(`Skipping #${task.number}: Parent is blocked.`);
+			continue;
+		}
+
+		// Skip if it has incomplete sub-issues (act as container)
+		const pendingSubIssues = task.subIssues.filter((s) => s.state === "OPEN");
+		if (pendingSubIssues.length > 0) {
+			console.log(
+				`Skipping #${task.number}: Has ${pendingSubIssues.length} pending sub-issues.`,
+			);
+			continue;
+		}
+
 		selectedTask = task;
 		break;
 	}
@@ -98,12 +130,40 @@ export async function main({ exec = execSync, octokit: injectedOctokit } = {}) {
 	// 4. Mark as In Progress
 	console.log(`Marking task #${selectedTask.number} as In Progress...`);
 
+	const statusFieldId = "PVTSSF_lAHOAA562c4BOtC-zg9U7KE";
+	const inProgressOptionId = "47fc9ee4";
+
 	try {
-		exec(
-			`gh project item-edit --id ${selectedTask.id} --project-id ${PROJECT_ID} --field-id Status --text "In Progress"`,
+		await octokit.graphql(
+			`mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+				updateProjectV2ItemFieldValue(input: {
+					projectId: $projectId
+					itemId: $itemId
+					fieldId: $fieldId
+					value: { singleSelectOptionId: $optionId }
+				}) {
+					projectV2Item { id }
+				}
+			}`,
+			{
+				projectId: PROJECT_ID,
+				itemId: selectedTask.id,
+				fieldId: statusFieldId,
+				optionId: inProgressOptionId,
+			},
 		);
 	} catch (err) {
-		console.warn(`Warning: Could not update status: ${err.message}`);
+		console.warn(
+			`Warning: Could not update status via GraphQL: ${err.message}`,
+		);
+		// Fallback to CLI just in case, but usually it will fail if GraphQL does
+		try {
+			exec(
+				`gh project item-edit --id ${selectedTask.id} --project-id ${PROJECT_ID} --field-id ${statusFieldId} --project-id ${PROJECT_ID} --single-select-option-id ${inProgressOptionId}`,
+			);
+		} catch (cliErr) {
+			console.warn(`Warning: CLI fallback also failed: ${cliErr.message}`);
+		}
 	}
 
 	// 5. Trigger Worker
