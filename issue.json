@@ -1,0 +1,4 @@
+{
+	"body": "# Optimize CI/CD Pipeline <!-- id: 2026-02-07-optimize-ci-cd-pipeline -->\n\n## Context & Goal\nSpeed up the feedback loop for AI agents and humans.\n\n## Plan\n- [ ] Implement caching for npm and Playwright.\n- [ ] Add automatic artifact upload for failed runs.\n- [ ] Integrate the session cost report into the CI summary.\n\n## Artifacts\n- `.github/workflows/`",
+	"title": "Optimize CI/CD Pipeline"
+}

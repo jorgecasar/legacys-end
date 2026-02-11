@@ -19,3 +19,7 @@ When you develop for this project, act as a Senior Frontend Architect with a foc
 ## Decision Making
 - **Simplicity First**: Do not over-engineer. If a native browser API solves the problem, don't add a library.
 - **Consistency**: Before creating a pattern, check if there is an existing one. If there is, follow it or refactor all instances to the new one.
+
+## Technical Standards
+- **Node.js**: Use Node.js 24 (LTS) with ES modules. See [Node.js Standards](../docs/NODEJS_STANDARDS.md) for details.
+- **Modern JavaScript**: Leverage latest ECMAScript features (top-level await, optional chaining, `node:` protocol, etc.).

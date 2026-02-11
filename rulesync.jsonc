@@ -12,11 +12,10 @@
 	],
 	"baseDirs": ["."],
 	"delete": true,
-	"verbose": false,
+	"verbose": true,
 	"silent": false,
-	"global": false,
-	"simulateCommands": false,
-	"simulateSubagents": false,
-	"simulateSkills": false,
-	"modularMcp": false
+	"global": true,
+	"simulateCommands": true,
+	"simulateSubagents": true,
+	"simulateSkills": true
 }

@@ -75,7 +75,12 @@ export default defineConfig(({ mode }) => {
 			},
 		},
 		test: {
-			exclude: ["**/e2e/**", "**/node_modules/**", "**/dist/**"],
+			exclude: [
+				"**/e2e/**",
+				"**/node_modules/**",
+				"**/dist/**",
+				"**/tooling/**",
+			],
 			silent: false,
 			browser: {
 				enabled: true,
@@ -107,6 +112,12 @@ export default defineConfig(({ mode }) => {
 					// Setup/initialization code (hard to test in isolation)
 					"src/setup/**",
 				],
+				thresholds: {
+					statements: 50,
+					branches: 45,
+					functions: 50,
+					lines: 50,
+				},
 			},
 		},
 	};
