@@ -66,6 +66,24 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_PROJECT_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
-          # The GH_PROJECT_TOKEN is recommended for Project V2 interactions
-          echo '${{ steps.gemini.outputs.text }}' > triage.json
-          node tooling/ai-triage-sync.js "$(cat triage.json)"
+          # Extract JSON from Gemini output (may be wrapped in markdown)
+          OUTPUT='${{ steps.gemini.outputs.summary }}'
+          
+          # Check if output is empty
+          if [ -z "$OUTPUT" ] || [ "$OUTPUT" = "" ]; then
+            echo "Error: Gemini returned empty output"
+            exit 1
+          fi
+          
+          # Strip markdown code blocks if present
+          CLEAN_JSON=$(echo "$OUTPUT" | sed 's/^```json\s*//g' | sed 's/\s*```$//g')
+          
+          # Validate JSON before passing to script
+          if ! echo "$CLEAN_JSON" | jq empty 2>/dev/null; then
+            echo "Error: Invalid JSON output from Gemini"
+            echo "Output was: $CLEAN_JSON"
+            exit 1
+          fi
+          
+          # Pass to sync script
+          node tooling/ai-triage-sync.js "$CLEAN_JSON"

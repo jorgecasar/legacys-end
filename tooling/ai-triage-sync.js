@@ -32,13 +32,24 @@ const OPTIONS = {
 };
 
 export async function main(input = process.argv[2], { exec = execSync } = {}) {
-	if (!input) {
-		console.error("No JSON input provided.");
+	if (!input || input.trim() === "") {
+		console.error("Error: No JSON input provided.");
+		console.error("Usage: node tooling/ai-triage-sync.js '<json_string>'");
 		if (process.env.NODE_ENV !== "test") process.exit(1);
 		return;
 	}
 
-	const data = JSON.parse(input);
+	let data;
+	try {
+		data = JSON.parse(input);
+	} catch (err) {
+		console.error("Error: Invalid JSON input");
+		console.error("Input was:", input);
+		console.error("Parse error:", err.message);
+		if (process.env.NODE_ENV !== "test") process.exit(1);
+		return;
+	}
+
 	const { issue_number, priority, size, estimate, labels = [] } = data;
 
 	console.log(`Syncing issue #${issue_number}...`);
