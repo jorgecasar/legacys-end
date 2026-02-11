@@ -44,6 +44,7 @@
 		"@lit/context": "^1.1.6",
 		"@lit/localize": "^0.12.2",
 		"@lit/task": "^1.0.3",
+		"@octokit/rest": "^22.0.1",
 		"@speed-highlight/core": "^1.2.12",
 		"lit": "^3.3.2",
 		"syntax-highlight-element": "^1.2.0"
@@ -64,6 +65,9 @@
 		"@storybook/addon-docs": "^10.2.4",
 		"@storybook/addon-vitest": "^10.2.4",
 		"@storybook/web-components-vite": "^10.2.4",
+		"@stryker-mutator/core": "^8.7.1",
+		"@stryker-mutator/javascript-mutator": "^4.0.0",
+		"@stryker-mutator/vitest-runner": "^8.7.1",
 		"@tsconfig/strictest": "^2.0.8",
 		"@types/dom-speech-recognition": "^0.0.7",
 		"@types/node": "^25.0.2",
@@ -87,10 +91,7 @@
 		"vite-imagetools": "^9.0.2",
 		"vite-plugin-babel": "^1.4.1",
 		"vite-plugin-image-optimizer": "^2.0.3",
-		"vitest": "^4.0.15",
-		"@stryker-mutator/core": "^8.7.1",
-		"@stryker-mutator/javascript-mutator": "^4.0.0",
-		"@stryker-mutator/vitest-runner": "^8.7.1"
+		"vitest": "^4.0.15"
 	},
 	"customElements": "custom-elements.json"
 }

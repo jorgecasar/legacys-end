@@ -1,3 +1,4 @@
+import assert from "node:assert";
 import { spawn } from "node:child_process";
 import { describe, it, mock } from "node:test";
 import { main } from "./ai-triage-sync.js";
@@ -6,8 +7,28 @@ describe("ai-triage-sync", () => {
 	mock.method(console, "log", () => {});
 	mock.method(console, "error", () => {});
 
-	it("should call gh commands with correct parameters", async () => {
-		const exec = mock.fn(() => Buffer.from(JSON.stringify({ id: "item_123" })));
+	it("should call Octokit methods with correct parameters", async () => {
+		const octokitMock = {
+			rest: {
+				issues: {
+					get: mock.fn(async () => ({
+						data: { node_id: "I_kwDOAA562c6RzBcd" },
+					})),
+					addLabels: mock.fn(async () => ({})),
+				},
+			},
+			graphql: mock.fn(async (query) => {
+				if (query.includes("addProjectV2ItemById")) {
+					return { addProjectV2ItemById: { item: { id: "PVTI_test123" } } };
+				}
+				return {
+					updateProjectV2ItemFieldValue: {
+						projectV2Item: { id: "PVTI_test123" },
+					},
+				};
+			}),
+		};
+
 		const input = JSON.stringify({
 			issue_number: 1,
 			priority: "P0",
@@ -16,17 +37,45 @@ describe("ai-triage-sync", () => {
 			labels: ["test"],
 		});
 
-		await main(input, { exec });
+		await main(input, { octokit: octokitMock });
+
+		assert.strictEqual(octokitMock.rest.issues.get.mock.calls.length, 1);
+		assert.strictEqual(octokitMock.graphql.mock.calls.length >= 4, true);
+		assert.strictEqual(octokitMock.rest.issues.addLabels.mock.calls.length, 1);
 	});
 
 	it("should work even when optional fields are missing", async () => {
-		const exec = mock.fn(() => Buffer.from(JSON.stringify({ id: "item_123" })));
+		const octokitMock = {
+			rest: {
+				issues: {
+					get: mock.fn(async () => ({
+						data: { node_id: "I_kwDOAA562c6RzBcd" },
+					})),
+					addLabels: mock.fn(async () => ({})),
+				},
+			},
+			graphql: mock.fn(async (query) => {
+				if (query.includes("addProjectV2ItemById")) {
+					return { addProjectV2ItemById: { item: { id: "PVTI_test123" } } };
+				}
+				return {
+					updateProjectV2ItemFieldValue: {
+						projectV2Item: { id: "PVTI_test123" },
+					},
+				};
+			}),
+		};
+
 		const input = JSON.stringify({
 			issue_number: 1,
 			labels: [],
 		});
 
-		await main(input, { exec });
+		await main(input, { octokit: octokitMock });
+
+		assert.strictEqual(octokitMock.rest.issues.get.mock.calls.length, 1);
+		// Only status update (no priority, size, estimate)
+		assert.strictEqual(octokitMock.graphql.mock.calls.length, 2);
 	});
 
 	it("should return early if no input is provided", async () => {
