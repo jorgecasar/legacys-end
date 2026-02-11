@@ -1,0 +1,17 @@
+{
+	"$schema": "https://schema.stryker-mutator.io/stryker-config.schema.json",
+	"packageManager": "npm",
+	"reporters": ["html", "clear-text", "progress"],
+	"testRunner": "vitest",
+	"coverageAnalysis": "perTest",
+	"incremental": true,
+	"mutate": [
+		"src/**/*.js",
+		"!src/**/*.test.js",
+		"!src/generated/**/*.js",
+		"!src/setup/**/*.js"
+	],
+	"vitest": {
+		"configFile": "vite.config.js"
+	}
+}

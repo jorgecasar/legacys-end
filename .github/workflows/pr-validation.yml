@@ -5,19 +5,36 @@ on:
     branches: [main]
 
 jobs:
-  test-and-coverage:
+  changes:
     runs-on: ubuntu-latest
-
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      tooling: ${{ steps.filter.outputs.tooling }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'src/**'
+              - 'index.html'
+              - 'vite.config.js'
+              - 'package.json'
+            tooling:
+              - 'tooling/**'
+              - 'package.json'
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+  test-frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
-
       - name: Install Dependencies
         run: npm ci || npm install
 
@@ -36,16 +53,38 @@ jobs:
       - name: Run E2E Tests
         run: npm run test:e2e
 
-      - name: Upload Playwright report
+      - name: Upload Playwright Report
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: playwright-report/
-          retention-days: 30
 
       - name: Request Coverage Report
         if: github.event_name == 'pull_request'
         uses: davelosert/vitest-coverage-report-action@v2
         with:
           json-summary-path: ./coverage/coverage-summary.json
+
+  test-tooling:
+    needs: changes
+    if: needs.changes.outputs.tooling == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci || npm install
+      - name: Run Tooling Tests with 100% Coverage
+        run: |
+          npm run test:tooling:coverage > coverage.txt
+          cat coverage.txt
+          # Native Node coverage check (simple grep/awk for 100% total)
+          if grep -q "all files.*100.00" coverage.txt || grep -q "100 %" coverage.txt; then
+            echo "100% coverage achieved"
+          else
+            echo "Tooling coverage is below 100%"
+            exit 1
+          fi

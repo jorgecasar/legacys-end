@@ -1,0 +1,71 @@
+name: AI Triage Agent
+
+on:
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  contents: read
+  issues: write
+  repository-projects: write
+
+jobs:
+  triage:
+    if: (github.event_name == 'issues' && github.event.action == 'opened' && github.actor == 'jorgecasar') || (github.event_name == 'issues' && github.event.action == 'labeled')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Generate Agent Context
+        run: npx rulesync generate --targets geminicli
+
+      - name: Run Gemini Triage
+        id: gemini
+        uses: google-github-actions/run-gemini-cli@v0.1.20
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          gemini_model: "gemini-2.0-flash"
+          prompt: |
+            You are the Triage Agent working on the LegacysEnd project.
+            Your goal is to analyze the following issue and provide a structured JSON response for triage.
+
+            # Triage Agent Instructions:
+            Role: @triage-agent
+
+            # Issue Context:
+            Title: ${{ github.event.issue.title }}
+            Body:
+            ${{ github.event.issue.body }}
+
+            # Project Fields & Options Reference:
+            - Priority: P0, P1, P2
+            - Size: XS, S, M, L, XL
+            - Estimate: Number (hours)
+
+            # Requirements:
+            1. Analyze the complexity.
+            2. If complexity is "High" or the body suggests multiple parts, list them as sub-tasks (not implemented in this step, but useful for future).
+            3. OUTPUT ONLY A VALID JSON OBJECT. NO MARKDOWN. NO EXPLANATION.
+
+            # JSON Format:
+            {
+              "issue_number": ${{ github.event.issue.number }},
+              "priority": "P1",
+              "size": "M",
+              "estimate": 4,
+              "labels": ["ai-triaged"]
+            }
+
+      - name: Sync to Project V2
+        env:
+          GH_TOKEN: ${{ secrets.GH_PROJECT_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          # The GH_PROJECT_TOKEN is recommended for Project V2 interactions
+          echo '${{ steps.gemini.outputs.text }}' > triage.json
+          node tooling/ai-triage-sync.js "$(cat triage.json)"

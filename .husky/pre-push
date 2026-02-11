@@ -1,2 +1,34 @@
-npm run test
-npm run test:e2e
+#!/bin/sh
+
+# Detect changed files
+CHANGED_FILES=$(git diff --name-only HEAD @{u} 2>/dev/null || git diff --name-only HEAD)
+
+RUN_FRONTEND=false
+RUN_TOOLING=false
+
+if echo "$CHANGED_FILES" | grep -qE "^(src/|index\.html|vite\.config\.js|package\.json)"; then
+  RUN_FRONTEND=true
+fi
+
+if echo "$CHANGED_FILES" | grep -qE "^(tooling/|package\.json)"; then
+  RUN_TOOLING=true
+fi
+
+# Run tests in parallel
+if [ "$RUN_FRONTEND" = true ] && [ "$RUN_TOOLING" = true ]; then
+  echo "🚀 Running App and Tooling tests in parallel..."
+  (npm run test:app:coverage && npm run test:e2e) &
+  P1=$!
+  (npm run test:tooling:coverage) &
+  P2=$!
+  wait $P1 || exit 1
+  wait $P2 || exit 1
+elif [ "$RUN_FRONTEND" = true ]; then
+  echo "🎨 Running App tests..."
+  npm run test:app:coverage && npm run test:e2e || exit 1
+elif [ "$RUN_TOOLING" = true ]; then
+  echo "⚙️ Running Tooling tests..."
+  npm run test:tooling:coverage || exit 1
+else
+  echo "✅ No relevant changes for tests. Skipping..."
+fi

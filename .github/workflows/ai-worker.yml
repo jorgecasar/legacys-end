@@ -1,0 +1,171 @@
+name: AI Worker Agent
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to execute'
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  repository-projects: write
+
+jobs:
+  work:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install uv (for MCP tools)
+        uses: astral-sh/setup-uv@v5
+
+      - name: Intall dependencies
+        run: npm install
+
+      # 0. PREPARE CONTEXT
+      - name: Fetch Issue Details
+        id: issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue view ${{ github.event.inputs.issue_number }} --json title,body > issue.json
+          echo "title=$(jq -r .title issue.json)" >> $GITHUB_OUTPUT
+          # Handle multiline body safely with random delimiter
+          delimiter="$(openssl rand -hex 8)"
+          echo "body<<$delimiter" >> $GITHUB_OUTPUT
+          jq -r .body issue.json >> $GITHUB_OUTPUT
+          echo "$delimiter" >> $GITHUB_OUTPUT
+
+      - name: Debug Context
+        run: |
+          echo "Title: ${{ steps.issue.outputs.title }}"
+          echo "Body length: ${{ steps.issue.outputs.body }}" | wc -c
+
+      - name: Generate Agent Context
+        run: npx rulesync generate --targets geminicli
+
+      # 1. ATOMIC PLANNING
+      - name: Planning
+        id: planning
+        uses: google-github-actions/run-gemini-cli@v0.1.20
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          gemini_model: "gemini-2.5-flash-lite"
+          prompt: |
+            You are a Developer Agent.
+            Goal: Analyze issue #${{ github.event.inputs.issue_number }}
+            Title: ${{ steps.issue.outputs.title }}
+            Body:
+            ${{ steps.issue.outputs.body }}
+            
+            IMPORTANT: Keep response under 200 tokens.
+            
+            Instruction: Return ONLY a JSON object with the plan.
+            
+            OUTPUT JSON ONLY:
+            {
+              "methodology": "TDD",
+              "files_to_touch": ["src/logic.js"]
+            }
+
+      - name: Initialize Branch & Plan
+        env:
+          ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+          PLAN_JSON: ${{ steps.planning.outputs.summary }}
+        run: |
+          # Debug Output
+          echo "Planning Output received (length: ${#PLAN_JSON})"
+          if [ -z "$PLAN_JSON" ]; then
+            echo "Error: Planning step returned empty output."
+            exit 1
+          fi
+          # Pass JSON via environment variable to avoid shell interpretation
+          node tooling/ai-worker-plan.js "$PLAN_JSON"
+          
+          # Extract fields for next steps (strip markdown and parse JSON)
+          CLEAN_JSON=$(echo "$PLAN_JSON" | sed 's/^```json//;s/```$//')
+          METHODOLOGY=$(echo "$CLEAN_JSON" | jq -r '.methodology // "TDD"')
+          FILES=$(echo "$CLEAN_JSON" | jq -r '.files_to_touch | join(" ")')
+          
+          echo "methodology=$METHODOLOGY" >> $GITHUB_OUTPUT
+          echo "files=$FILES" >> $GITHUB_OUTPUT
+        id: init_plan
+
+      # 2. EXECUTION LOOP (Simplified for MVP, usually involves multiple Gemini calls)
+      - name: Development & Implementation
+        id: developer
+        uses: google-github-actions/run-gemini-cli@v0.1.20
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          gemini_model: "gemini-2.5-flash"
+          prompt: |
+            You are the Developer Agent (Implementing Mode).
+            Task: Solve issue #${{ github.event.inputs.issue_number }}
+            
+            Methodology: ${{ steps.init_plan.outputs.methodology }}
+            Current State: No changes yet.
+            
+            IMPORTANT: Be concise. Focus on essential code changes only.
+            
+            Instruction:
+            1. Create/Update tests FIRST (TDD/BDD).
+            2. Implement logic.
+            3. Follow $(cat .gemini/memories/technical-stack.md).
+
+      # 3. VERIFICATION
+      - name: Run Related Tests
+        run: |
+          # Run tests with coverage
+          npx vitest run --coverage
+
+      - name: Update Coverage Thresholds
+        run: npm run test:coverage:update
+
+      # 4. SELF-REVIEW
+      - name: Self-Review
+        id: reviewer
+        uses: google-github-actions/run-gemini-cli@v0.1.20
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          gemini_model: "gemini-2.5-flash"
+          prompt: |
+            You are the Reviewer Agent.
+            Role: @reviewer-agent
+            
+            Files changed: $(git diff --name-only origin/main)
+            Diff:
+            $(git diff origin/main)
+            
+            IMPORTANT: Be brief. Max 500 tokens.
+            
+            Audit this code for quality, performance, and adherence to @developer-persona.
+            List any critical issues or output "APPROVED" if it meets the quality standards.
+
+      # 5. SUBMIT
+      - name: Create Pull Request
+        if: contains(steps.reviewer.outputs.text, 'APPROVED')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create --title "feat: resolve issue #${{ github.event.inputs.issue_number }}" --body "Automated PR by AI Worker Agent. \n\nReviewer feedback: ${{ steps.reviewer.outputs.text }}"
+
+      # CLEANUP: Mark as Paused if workflow failed or was cancelled
+      - name: Mark Task as Paused on Failure
+        if: failure() || cancelled()
+        env:
+          GH_TOKEN: ${{ secrets.GH_PROJECT_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          # Update project item status to "Paused"
+          gh project item-edit --id $(gh issue view ${{ github.event.inputs.issue_number }} --json projectItems --jq '.projectItems[0].id') --project-id 2 --field-id Status --text "Paused"

@@ -1,6 +1,7 @@
 name: "📋 Task"
 description: "Create a new task, feature or refactoring request"
 title: "[TASK]: "
+labels: ["task"]
 body:
   - type: textarea
     id: goal
