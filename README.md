@@ -58,8 +58,8 @@ To enter the world of Legacy's End:
 This project follows a clean architectural pattern and utilizes AI-driven development:
 
 - **Architecture**: Separated into Domain (Use Cases), Infrastructure (Services), and UI (Lit Components).
-- **Task Management**: We use a file-based Kanban system in `docs/tasks/`.
-- **AI Agent**: You can automate task resolution by mentioning `@gemini-cli` in a GitHub Issue or Pull Request. The agent will automatically trigger a workflow to solve the task and open a PR. See [AI Agent Workflow](docs/AI_AGENT_WORKFLOW.md) for details.
+- **Task Management**: We use [GitHub Projects](https://github.com/jorgecasar/legacys-end/projects/2) with automated AI workflows for task orchestration.
+- **AI Agent**: Autonomous AI system that triages, prioritizes, and executes tasks automatically. See [Autonomous System Documentation](docs/autonomous-system/) for details.
 
 ---
 *Created by Jorge Casar*
