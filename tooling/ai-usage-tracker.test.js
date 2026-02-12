@@ -208,5 +208,46 @@ Invalid JSON here
 			assert.strictEqual(result.totalInputTokens, 250);
 			assert.strictEqual(result.operations.length, 1);
 		});
+
+		it("should round cost to 8 decimal places for project updates", async () => {
+			mockOctokit.rest.issues.get = vi.fn().mockResolvedValue({
+				data: { node_id: "issue-node-123" },
+			});
+			mockOctokit.graphql = vi.fn().mockResolvedValue({
+				addProjectV2ItemById: { item: { id: "item-123" } },
+				updateProjectV2ItemFieldValue: { projectV2Item: { id: "item-123" } },
+			});
+			mockOctokit.rest.issues.listComments.mockResolvedValue({ data: [] });
+			mockOctokit.rest.issues.createComment.mockResolvedValue({
+				data: { id: 123 },
+			});
+
+			const result = await trackUsage({
+				owner: "test-owner",
+				repo: "test-repo",
+				issueNumber: 42,
+				model: "gemini-2.5-flash-lite",
+				inputTokens: 250,
+				outputTokens: 50,
+				operation: "triage",
+				octokit: mockOctokit,
+			});
+
+			// Verify totalCost in metrics (not rounded in the object itself, but in the call)
+			assert.ok(result.totalCost > 0);
+
+			// Verify GraphQL call for updateProjectV2ItemFieldValue
+			const updateCall = mockOctokit.graphql.mock.calls.find((c) =>
+				c[0].includes("updateProjectV2ItemFieldValue"),
+			);
+			assert.ok(updateCall, "GraphQL update mutation should be called");
+
+			const value = updateCall[1].value.number;
+			const decimals = String(value).split(".")[1] || "";
+			assert.ok(
+				decimals.length <= 8,
+				`Cost decimals ${decimals.length} should be <= 8. Value: ${value}`,
+			);
+		});
 	});
 });

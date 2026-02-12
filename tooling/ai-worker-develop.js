@@ -1,19 +1,31 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
+import { writeGitHubOutput } from "./ai-config.js";
 import { runWithFallback } from "./gemini-with-fallback.js";
 
 const DEVELOP_SCHEMA = {
-	type: "object",
+	type: "OBJECT",
+	description: "A set of file changes to solve a technical task.",
 	properties: {
 		changes: {
-			type: "array",
+			type: "ARRAY",
 			items: {
-				type: "object",
+				type: "OBJECT",
 				properties: {
-					path: { type: "string" },
-					operation: { type: "string", enum: ["write", "create", "delete"] },
-					content: { type: "string" },
+					path: {
+						type: "STRING",
+						description: "Relative path from the project root.",
+					},
+					operation: {
+						type: "STRING",
+						enum: ["write", "create", "delete"],
+						description: "The file action to perform.",
+					},
+					content: {
+						type: "STRING",
+						description: "Full content of the file (for create/write).",
+					},
 				},
 				required: ["path", "operation"],
 			},
@@ -22,27 +34,25 @@ const DEVELOP_SCHEMA = {
 	required: ["changes"],
 };
 
-const DEVELOP_PROMPT = `You are the Developer Agent (Implementing Mode).
-Task: Solve issue #{{ISSUE_NUMBER}}
+const DEVELOP_SYSTEM_INSTRUCTION = `You are a Developer Agent. Your task is to implement the technical plan for a given issue.
+
+Output Requirements:
+- Return a JSON object with a 'changes' array.
+- Each change must have 'path', 'operation', and 'content'.
+- Avoid boilerplate comments; provide complete, functional code.
+- Ensure all paths are relative to the project root.`;
+
+const DEVELOP_PROMPT = `Implement solutions for:
+Issue #{{ISSUE_NUMBER}}
 Title: {{TITLE}}
 
-Methodology: {{METHODOLOGY}}
-Current Files: {{FILES}}
+Methodology provided by Planning phase:
+{{METHODOLOGY}}
 
-Instruction: Return a JSON object following the required schema.
-You MUST use EXACTLY these keys:
-- "path": the relative file path (DO NOT use "filePath")
-- "operation": "write", "create", or "delete" (DO NOT use "action")
-- "content": the full file content
+Context of relevant files:
+{{FILES}}`;
 
-SCHEMA:
-{
-  "changes": [
-    { "path": "src/file.js", "operation": "write", "content": "..." }
-  ]
-}`;
-
-async function main() {
+export async function implementPlan() {
 	const issueNumber = process.env.ISSUE_NUMBER;
 	const title = process.env.ISSUE_TITLE;
 	const methodology = process.env.METHODOLOGY;
@@ -58,11 +68,14 @@ async function main() {
 	// Read files content to provide context
 	let filesContext = "";
 	if (files && files !== "None") {
-		const fileList = files.split(/\s+/);
+		const fileList = files.split(/\s+/).filter(Boolean);
 		for (const f of fileList) {
 			if (fs.existsSync(f)) {
-				const content = fs.readFileSync(f, "utf8");
-				filesContext += `\n--- FILE: ${f} ---\n${content}\n`;
+				const stats = fs.statSync(f);
+				if (stats.isFile()) {
+					const content = fs.readFileSync(f, "utf8");
+					filesContext += `\n--- FILE: ${f} ---\n${content}\n`;
+				}
 			}
 		}
 	}
@@ -77,6 +90,7 @@ async function main() {
 			`>>> Generating structured implementation for issue #${issueNumber}...`,
 		);
 		const result = await runWithFallback("pro", prompt, {
+			systemInstruction: DEVELOP_SYSTEM_INSTRUCTION,
 			responseSchema: DEVELOP_SCHEMA,
 		});
 
@@ -105,23 +119,22 @@ async function main() {
 			}
 		}
 
-		if (process.env.GITHUB_OUTPUT) {
-			const fs_sync = await import("node:fs");
-			fs_sync.appendFileSync(
-				process.env.GITHUB_OUTPUT,
-				`input_tokens=${result.inputTokens}\n`,
-			);
-			fs_sync.appendFileSync(
-				process.env.GITHUB_OUTPUT,
-				`output_tokens=${result.outputTokens}\n`,
-			);
-		}
+		writeGitHubOutput("input_tokens", result.inputTokens);
+		writeGitHubOutput("output_tokens", result.outputTokens);
 
 		console.log("✅ Implementation phase complete.");
+		return result;
 	} catch (error) {
 		console.error("❌ Development Error:", error.message);
 		if (process.env.NODE_ENV !== "test") process.exit(1);
 	}
 }
 
-main();
+import { fileURLToPath } from "node:url";
+
+if (import.meta.url === fileURLToPath(import.meta.url)) {
+	implementPlan().catch((err) => {
+		console.error(err);
+		process.exit(1);
+	});
+}

@@ -1,12 +1,10 @@
 import assert from "node:assert";
 import { spawn } from "node:child_process";
 import { describe, it, mock } from "node:test";
-import { main } from "./ai-triage-sync.js";
+import { syncTriageData } from "./ai-triage-sync.js";
 
 describe("ai-triage-sync", () => {
-	mock.method(console, "log", () => {});
-	mock.method(console, "error", () => {});
-
+	process.env.GH_TOKEN = "mock-token";
 	it("should call Octokit methods with correct parameters", async () => {
 		const octokitMock = {
 			rest: {
@@ -36,10 +34,10 @@ describe("ai-triage-sync", () => {
 			labels: ["test"],
 		});
 
-		await main(input, { octokit: octokitMock });
+		await syncTriageData(input, { octokit: octokitMock });
 
 		assert.strictEqual(octokitMock.rest.issues.get.mock.calls.length, 1);
-		assert.strictEqual(octokitMock.graphql.mock.calls.length >= 3, true); // add + status + priority + model
+		assert.strictEqual(octokitMock.graphql.mock.calls.length >= 3, true);
 		assert.strictEqual(octokitMock.rest.issues.addLabels.mock.calls.length, 1);
 	});
 
@@ -70,16 +68,18 @@ describe("ai-triage-sync", () => {
 			labels: [],
 		});
 
-		await main(input, { octokit: octokitMock });
+		await syncTriageData(input, { octokit: octokitMock });
 
 		assert.strictEqual(octokitMock.rest.issues.get.mock.calls.length, 1);
-		// Only status update (no model, priority)
 		assert.strictEqual(octokitMock.graphql.mock.calls.length, 2);
 	});
 
 	it("should return early if no input is provided", async () => {
 		process.env.NODE_ENV = "test";
-		await main(undefined);
+		const consoleErrorMock = mock.method(console, "error", () => {});
+		await syncTriageData(undefined);
+		assert.ok(consoleErrorMock.mock.calls.length > 0);
+		consoleErrorMock.mock.restore();
 	});
 
 	it("should execute as a main process", async () => {

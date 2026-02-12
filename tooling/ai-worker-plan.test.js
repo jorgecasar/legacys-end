@@ -1,11 +1,34 @@
 import assert from "node:assert";
-import { spawn } from "node:child_process";
-import { before, describe, it, mock } from "node:test";
+import { describe, it, mock } from "node:test";
 
-// Mock the gemini-with-fallback module before importing main
+process.env.NODE_ENV = "test";
+
+let mockResult = {
+	data: {
+		methodology: "TDD",
+		slug: "test-feature",
+		files_to_touch: ["src/logic.js"],
+		needs_decomposition: false,
+		sub_tasks: [],
+	},
+	inputTokens: 100,
+	outputTokens: 50,
+	modelUsed: "gemini-2.5-flash-lite",
+};
+
+// Mock the gemini-with-fallback module once at the top level
 mock.module("./gemini-with-fallback.js", {
 	namedExports: {
-		runWithFallback: async () => ({
+		runWithFallback: async () => mockResult,
+	},
+});
+
+// Now import createTechnicalPlan
+const { createTechnicalPlan } = await import("./ai-worker-plan.js");
+
+describe("ai-worker-plan", () => {
+	it("should create a branch and planning complete", async () => {
+		mockResult = {
 			data: {
 				methodology: "TDD",
 				slug: "test-feature",
@@ -16,27 +39,10 @@ mock.module("./gemini-with-fallback.js", {
 			inputTokens: 100,
 			outputTokens: 50,
 			modelUsed: "gemini-2.5-flash-lite",
-		}),
-	},
-});
+		};
 
-// Now import main
-let main;
-try {
-	const module = await import("./ai-worker-plan.js");
-	main = module.main;
-} catch (e) {
-	console.error("IMPORT ERROR:", e);
-	process.exit(1);
-}
-
-describe("ai-worker-plan", () => {
-	mock.method(console, "log", () => {});
-	mock.method(console, "error", () => {});
-
-	it("should create a branch and planning complete", async () => {
 		const exec = mock.fn((_cmd) => Buffer.from(""));
-		await main({
+		await createTechnicalPlan({
 			issueNumber: "10",
 			title: "Test Title",
 			body: "Test Body",
@@ -52,9 +58,37 @@ describe("ai-worker-plan", () => {
 		);
 	});
 
+	it("should throw error if plan structure is invalid", async () => {
+		mockResult = {
+			data: { methodology: "Test" }, // Missing slug
+			inputTokens: 10,
+			outputTokens: 10,
+			modelUsed: "gemini-2.5-flash-lite",
+		};
+
+		const exec = mock.fn();
+		const consoleErrorMock = mock.method(console, "error", () => {});
+
+		await createTechnicalPlan({
+			issueNumber: 1,
+			title: "Test",
+			body: "Test Body",
+			exec,
+		});
+
+		assert.ok(
+			consoleErrorMock.mock.calls.some((c) =>
+				c.arguments.join(" ").includes("Invalid plan structure."),
+			),
+		);
+		consoleErrorMock.mock.restore();
+	});
+
 	it("should return early if missing input", async () => {
 		process.env.NODE_ENV = "test";
-		// Should not throw, just return early after logging error
-		await main({ issueNumber: undefined });
+		const consoleErrorMock = mock.method(console, "error", () => {});
+		await createTechnicalPlan({ issueNumber: undefined });
+		assert.ok(consoleErrorMock.mock.calls.length > 0);
+		consoleErrorMock.mock.restore();
 	});
 });

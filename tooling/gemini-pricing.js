@@ -18,28 +18,28 @@
  */
 export const GEMINI_PRICING = {
 	"gemini-2.5-flash-lite": {
-		input: 0.0375, // $0.0375 per 1M tokens
-		output: 0.15, // $0.15 per 1M tokens
+		input: 0.1,
+		output: 0.4,
 		tier: "production",
 	},
 	"gemini-2.5-flash": {
-		input: 0.075,
-		output: 0.3,
+		input: 0.3,
+		output: 2.5,
 		tier: "production",
 	},
 	"gemini-2.5-pro": {
 		input: 1.25,
-		output: 5.0,
+		output: 10.0,
 		tier: "production",
 	},
 	"gemini-3-flash-preview": {
-		input: 0.1,
-		output: 0.4,
+		input: 0.5,
+		output: 3.0,
 		tier: "preview",
 	},
 	"gemini-3-pro-preview": {
-		input: 1.5,
-		output: 6.0,
+		input: 2.0,
+		output: 12.0,
 		tier: "preview",
 	},
 };
@@ -50,15 +50,12 @@ export const GEMINI_PRICING = {
  */
 export const MODEL_FALLBACK = {
 	flash: [
-		"gemini-2.5-flash-lite", // $0.0375/1M (cheapest)
-		"gemini-2.5-flash", // $0.075/1M
-		"gemini-3-flash-preview", // $0.10/1M
+		"gemini-2.5-flash-lite",
+		"gemini-2.5-flash",
+		"gemini-3-flash-preview",
 	],
-	pro: [
-		"gemini-2.5-pro", // $1.25/1M (cheapest pro)
-		"gemini-3-pro-preview", // $1.50/1M
-	],
-	image: ["gemini-2.5-flash-image", "gemini-3-pro-image-preview"],
+	pro: ["gemini-2.5-pro", "gemini-3-pro-preview"],
+	image: ["gemini-2.5-flash", "gemini-3-pro-preview"],
 };
 
 /**

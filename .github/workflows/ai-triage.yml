@@ -45,29 +45,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GITHUB_ISSUE_NUMBER: ${{ github.event.issue.number }}
-        run: |
-          # Extract JSON map from Gemini output
-          OUTPUT='${{ steps.gemini.outputs.summary }}'
-          BATCH_MODE='${{ steps.gemini.outputs.batch_mode }}'
-          
-          if [ -z "$OUTPUT" ] || [ "$OUTPUT" = "" ]; then
-            echo "No data to sync."
-            exit 0
-          fi
-          
-          # Clean JSON
-          CLEAN_JSON=$(echo "$OUTPUT" | sed 's/^```json\s*//g' | sed 's/\s*```$//g')
-          
-          if [ "$BATCH_MODE" = "true" ]; then
-            echo "Batch mode sync detected. Processing all issues in map..."
-            # For each key (issue number) in the JSON map, run sync
-            echo "$CLEAN_JSON" | jq -c 'to_entries[]' | while read -r entry; do
-              ISSUE_NUM=$(echo "$entry" | jq -r '.key')
-              ISSUE_DATA=$(echo "$entry" | jq -c '.value | . + {issue_number: ('"$ISSUE_NUM"' | tonumber)}')
-              echo "Syncing issue #$ISSUE_NUM..."
-              node tooling/ai-triage-sync.js "$ISSUE_DATA"
-            done
-          else
-            echo "Single issue sync detected."
-            node tooling/ai-triage-sync.js "$CLEAN_JSON"
-          fi
+          GEMINI_SUMMARY: ${{ steps.gemini.outputs.summary }}
+          GEMINI_BATCH_MODE: ${{ steps.gemini.outputs.batch_mode }}
+        run: node tooling/ai-triage-orchestrator.js

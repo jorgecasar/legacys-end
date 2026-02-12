@@ -1,10 +1,4 @@
-#!/usr/bin/env node
-/**
- * Gemini with Intelligent Fallback and Structured Output
- *
- * Using the official @google/genai SDK.
- */
-
+import fs from "node:fs";
 import { GoogleGenAI } from "@google/genai";
 import { GEMINI_PRICING, MODEL_FALLBACK } from "./gemini-pricing.js";
 
@@ -12,24 +6,38 @@ import { GEMINI_PRICING, MODEL_FALLBACK } from "./gemini-pricing.js";
  * Run Gemini with intelligent fallback and structured output
  */
 export async function runWithFallback(modelType, prompt, options = {}) {
-	const {
+	let {
 		apiKey = process.env.GEMINI_API_KEY,
 		maxRetries = 3,
 		responseSchema,
+		systemInstruction,
+		generationConfig: configOverrides = {},
 	} = options;
+
+	// Prioritize key from .env file if it exists (Node.js --env-file doesn't overwrite)
+	try {
+		if (fs.existsSync(".env")) {
+			const envContent = fs.readFileSync(".env", "utf8");
+			const match = envContent.match(/^GEMINI_API_KEY=(.*)$/m);
+			if (match?.[1]) {
+				apiKey = match[1].trim().replace(/^["']|["']$/g, "");
+			}
+		}
+	} catch (_e) {
+		// Fallback to existing apiKey if reading .env fails
+	}
 
 	if (!apiKey) {
 		throw new Error("GEMINI_API_KEY required.");
 	}
 
-	// Limpieza agresiva: quita espacios, comillas, retornos de carro y posibles comentarios
+	// Limpieza de la clave
 	const sanitizedKey = apiKey
 		.toString()
 		.trim()
-		.replace(/^["']|["']$/g, "") // Quita comillas al inicio y final
-		.split(/\s/)[0]; // Se queda solo con la primera palabra
+		.replace(/^["']|["']$/g, "")
+		.split(/\s/)[0];
 
-	// Instanciamos el cliente exactamente como en tu prueba de éxito
 	const ai = new GoogleGenAI({ apiKey: sanitizedKey });
 	const models = MODEL_FALLBACK[modelType];
 	let lastError;
@@ -39,9 +47,11 @@ export async function runWithFallback(modelType, prompt, options = {}) {
 
 		for (let attempt = 1; attempt <= maxRetries; attempt++) {
 			try {
+				const isPro = modelName.includes("pro");
 				const generationConfig = {
-					maxOutputTokens: 2048,
-					temperature: 0.1,
+					maxOutputTokens: isPro ? 4096 : 2048,
+					temperature: 0,
+					...configOverrides,
 				};
 
 				if (responseSchema) {
@@ -49,10 +59,24 @@ export async function runWithFallback(modelType, prompt, options = {}) {
 					generationConfig.responseSchema = responseSchema;
 				}
 
+				const enhancedPrompt =
+					responseSchema && attempt > 1
+						? `${prompt}\n\nCRITICAL: Return ONLY a valid JSON object. No conversational text, headers, or explanations.`
+						: prompt;
+
+				const systemContent = responseSchema
+					? systemInstruction
+						? `${systemInstruction}\n\nStrict JSON Mode: Output must be ONLY the JSON object.`
+						: "Strict JSON Mode: Output must be ONLY the JSON object."
+					: systemInstruction;
+
 				const result = await ai.models.generateContent({
 					model: modelName,
-					contents: [{ role: "user", parts: [{ text: prompt }] }],
-					generationConfig,
+					systemInstruction: systemContent
+						? { parts: [{ text: systemContent }] }
+						: undefined,
+					contents: [{ role: "user", parts: [{ text: enhancedPrompt }] }],
+					config: generationConfig,
 				});
 
 				const usage = result.usageMetadata || {};
@@ -63,21 +87,46 @@ export async function runWithFallback(modelType, prompt, options = {}) {
 					`✅ Success with ${modelName} (${inputTokens} in / ${outputTokens} out)`,
 				);
 
-				let data = result.text;
+				const text = result.text || "";
+
+				if (responseSchema && (!text || text.trim() === "")) {
+					throw new Error("EMPTY_RESPONSE: Model returned no content.");
+				}
+
+				let data = text;
+
 				if (responseSchema) {
 					try {
-						// Intentamos usar .parsed (que ofrece el nuevo SDK) o parsear el texto
-						data = result.parsed || JSON.parse(result.text);
-					} catch (e) {
-						// Limpieza manual si hay markdown
-						const cleanJson = result.text.replace(/```json\s*|```/g, "").trim();
-						data = JSON.parse(cleanJson);
+						// Intentamos usar .parsed si el SDK lo ofrece o parseamos el texto
+						data = result.parsed || JSON.parse(text);
+					} catch (_e) {
+						// Extracción robusta si falla el parseo directo
+						try {
+							const firstBrace = text.indexOf("{");
+							const lastBrace = text.lastIndexOf("}");
+							if (
+								firstBrace !== -1 &&
+								lastBrace !== -1 &&
+								lastBrace > firstBrace
+							) {
+								data = JSON.parse(text.substring(firstBrace, lastBrace + 1));
+							} else {
+								const cleanJson = text.replace(/```json\s*|```/g, "").trim();
+								data = JSON.parse(cleanJson);
+							}
+						} catch (finalErr) {
+							console.error(
+								"Failed to extract JSON from model response:",
+								text.substring(0, 100) + "...",
+							);
+							throw new Error(`JSON_PARSE_ERROR: ${finalErr.message}`);
+						}
 					}
 				}
 
 				return {
 					data,
-					text: result.text,
+					text,
 					modelUsed: modelName,
 					inputTokens,
 					outputTokens,

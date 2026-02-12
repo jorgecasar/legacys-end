@@ -5,10 +5,16 @@
  * Aggregates results from AI Worker phases and updates GitHub issue/project.
  */
 
-import { Octokit } from "@octokit/rest";
+import { FIELD_IDS, OPTION_IDS } from "./ai-config.js";
 import { trackUsage } from "./ai-usage-tracker.js";
+import {
+	addIssueToProject,
+	getIssueNodeId,
+	getOctokit,
+	updateProjectField,
+} from "./github-utils.js";
 
-async function main() {
+export async function syncWorkerResults() {
 	const issueNumber = process.env.ISSUE_NUMBER;
 	const owner = process.env.GITHUB_REPOSITORY_OWNER;
 	const repo =
@@ -23,55 +29,28 @@ async function main() {
 		process.exit(1);
 	}
 
-	const token = process.env.GH_TOKEN;
-	const octokit = new Octokit({ auth: token });
+	const octokit = getOctokit();
 
 	console.log(`Aggregating results for issue #${issueNumber}...`);
 
 	// 1. Mark as Paused if failed
 	if (isFailed) {
 		console.log("Worker failed. Marking task as Paused...");
-		const PROJECT_ID = "PVT_kwHOAA562c4BOtC-";
-		const STATUS_FIELD_ID = "PVTSSF_lAHOAA562c4BOtC-zg9U7KE";
-		const PAUSED_OPTION_ID = "8842b2d9";
 
 		try {
-			// Get the item ID first
-			const { data: issue } = await octokit.rest.issues.get({
+			const issueNodeId = await getIssueNodeId(octokit, {
 				owner,
 				repo,
-				issue_number: Number.parseInt(issueNumber, 10),
+				issueNumber,
 			});
-			const issueNodeId = issue.node_id;
 
-			const addResult = await octokit.graphql(
-				`mutation($projectId: ID!, $contentId: ID!) {
-          addProjectV2ItemById(input: {projectId: $projectId, contentId: $contentId}) {
-            item { id }
-          }
-        }`,
-				{ projectId: PROJECT_ID, contentId: issueNodeId },
-			);
+			const itemId = await addIssueToProject(octokit, issueNodeId);
 
-			const itemId = addResult.addProjectV2ItemById.item.id;
-
-			await octokit.graphql(
-				`mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
-          updateProjectV2ItemFieldValue(input: {
-            projectId: $projectId
-            itemId: $itemId
-            fieldId: $fieldId
-            value: { singleSelectOptionId: $optionId }
-          }) {
-            projectV2Item { id }
-          }
-        }`,
-				{
-					projectId: PROJECT_ID,
-					itemId,
-					fieldId: STATUS_FIELD_ID,
-					optionId: PAUSED_OPTION_ID,
-				},
+			await updateProjectField(
+				octokit,
+				itemId,
+				FIELD_IDS.status,
+				OPTION_IDS.status.paused,
 			);
 			console.log("✅ Task status updated to Paused.");
 		} catch (err) {
@@ -131,7 +110,11 @@ async function main() {
 	console.log("✅ Results synchronization complete.");
 }
 
-main().catch((err) => {
-	console.error("❌ Sync Error:", err.message);
-	process.exit(1);
-});
+import { fileURLToPath } from "node:url";
+
+if (import.meta.url === fileURLToPath(import.meta.url)) {
+	syncWorkerResults().catch((err) => {
+		console.error("❌ Sync Error:", err.message);
+		process.exit(1);
+	});
+}

@@ -5,27 +5,58 @@ import { runWithFallback } from "./gemini-with-fallback.js";
 
 const TRIAGE_SCHEMA = {
 	type: "OBJECT",
-	additionalProperties: {
-		type: "OBJECT",
-		properties: {
-			model: { type: "STRING", enum: ["flash", "pro", "image", "none"] },
-			priority: { type: "STRING", enum: ["P0", "P1", "P2"] },
-			labels: { type: "ARRAY", items: { type: "STRING" } },
+	properties: {
+		results: {
+			type: "ARRAY",
+			items: {
+				type: "OBJECT",
+				properties: {
+					issue_number: {
+						type: "INTEGER",
+						description: "The GitHub issue number being triaged.",
+					},
+					model: {
+						type: "STRING",
+						enum: ["flash", "pro", "image", "none"],
+						description: "The AI model that should handle this task.",
+					},
+					priority: {
+						type: "STRING",
+						enum: ["P0", "P1", "P2"],
+						description: "Urgency: P0 (Critical), P1 (High), P2 (Normal).",
+					},
+					labels: {
+						type: "ARRAY",
+						items: { type: "STRING" },
+						description:
+							"Labels to apply. MUST include 'ai-triaged' for successful identification.",
+					},
+				},
+				required: ["issue_number", "model", "priority", "labels"],
+			},
 		},
-		required: ["model", "priority", "labels"],
 	},
+	required: ["results"],
 };
 
-const TRIAGE_PROMPT_BATCH = `Analyze these GitHub issues and decide which AI model should handle each.
+const TRIAGE_SYSTEM_INSTRUCTION = `You are a Triage Agent. Analyze the provided GitHub issues and decide the best execution strategy.
 
-{{ISSUES}}
+Model Selection Guidelines:
+- flash: Simple tasks, bug fixes in single files, documentation, or small refactors.
+- pro: Complex features, architectural changes, multiple files, or subtle logic bugs.
+- image: ONLY if the issue body contains UI/UX screenshots or requires visual analysis.
+- none: Questions, spam, or issues not requiring code changes.
 
-Instruction: Return a JSON map where keys are issue numbers.
-Include "ai-triaged" in labels array.`;
+Output Requirements:
+- Return a JSON map where keys are issue numbers.
+- Each value MUST contain 'model', 'priority', and 'labels'.
+- Include "ai-triaged" in the labels array for every issue processed.`;
 
-const PROJECT_ID = "PVT_kwHOAA562c4BOtC-";
-const OWNER = "jorgecasar";
-const REPO = "legacys-end";
+const TRIAGE_PROMPT_BATCH = `Issues to triage:
+
+{{ISSUES}}`;
+
+import { OWNER, REPO } from "./ai-config.js";
 
 async function fetchPendingIssues(octokit) {
 	const result = await octokit.graphql(
@@ -68,7 +99,7 @@ async function fetchPendingIssues(octokit) {
 		}));
 }
 
-async function main() {
+export async function triageIssues() {
 	const token = process.env.GH_TOKEN;
 	if (!token) {
 		console.error("Missing GH_TOKEN");
@@ -110,10 +141,24 @@ async function main() {
 			`>>> Running structured triage for ${issuesToProcess.length} issue(s)...`,
 		);
 		const result = await runWithFallback("flash", prompt, {
+			systemInstruction: TRIAGE_SYSTEM_INSTRUCTION,
 			responseSchema: TRIAGE_SCHEMA,
 		});
 
-		const triageData = result.data;
+		const triageResults = result.data.results || [];
+		const triageData = {};
+		for (const res of triageResults) {
+			triageData[res.issue_number] = {
+				model: res.model,
+				priority: res.priority,
+				labels: res.labels,
+			};
+		}
+
+		console.log(
+			`Debug - triageData processed: ${Object.keys(triageData).length} issues`,
+		);
+
 		const distributedBaseTokens = Math.ceil(
 			result.inputTokens / issuesToProcess.length,
 		);
@@ -148,10 +193,16 @@ async function main() {
 				`batch_mode=${!issueNumberArg}\n`,
 			);
 		}
+		// Return triage data for orchestration
+		return { triageData, batchMode: !issueNumberArg };
 	} catch (error) {
 		console.error("❌ Triage Error:", error.message);
 		process.exit(1);
 	}
 }
 
-main();
+import { fileURLToPath } from "node:url";
+
+if (import.meta.url === fileURLToPath(import.meta.url)) {
+	triageIssues();
+}

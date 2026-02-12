@@ -1,15 +1,11 @@
-import { execSync } from "node:child_process";
-import { Octokit } from "@octokit/rest";
+import { FIELD_IDS, OPTION_IDS, PROJECT_ID } from "./ai-config.js";
+import { getOctokit, updateProjectField } from "./github-utils.js";
 
-const PROJECT_ID = "PVT_kwHOAA562c4BOtC-";
-
-export async function main({ exec = execSync, octokit: injectedOctokit } = {}) {
-	const token = process.env.GH_TOKEN;
-	if (!token && !injectedOctokit) {
-		throw new Error("Missing GH_TOKEN");
-	}
-
-	const octokit = injectedOctokit || new Octokit({ auth: token });
+export async function orchestrateExecution({
+	exec = execSync,
+	octokit: injectedOctokit,
+} = {}) {
+	const octokit = injectedOctokit || getOctokit();
 	console.log("Fetching project items via GraphQL...");
 
 	const query = `
@@ -125,27 +121,13 @@ export async function main({ exec = execSync, octokit: injectedOctokit } = {}) {
 
 	// 4. Mark as In Progress
 	console.log(`Marking task #${selectedTask.number} as In Progress...`);
-	const statusFieldId = "PVTSSF_lAHOAA562c4BOtC-zg9U7KE";
-	const inProgressOptionId = "47fc9ee4";
 
 	try {
-		await octokit.graphql(
-			`mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
-				updateProjectV2ItemFieldValue(input: {
-					projectId: $projectId
-					itemId: $itemId
-					fieldId: $fieldId
-					value: { singleSelectOptionId: $optionId }
-				}) {
-					projectV2Item { id }
-				}
-			}`,
-			{
-				projectId: PROJECT_ID,
-				itemId: selectedTask.id,
-				fieldId: statusFieldId,
-				optionId: inProgressOptionId,
-			},
+		await updateProjectField(
+			octokit,
+			selectedTask.id,
+			FIELD_IDS.status,
+			OPTION_IDS.status.inProgress,
 		);
 	} catch (err) {
 		console.warn(
@@ -169,7 +151,7 @@ export async function main({ exec = execSync, octokit: injectedOctokit } = {}) {
 import { fileURLToPath } from "node:url";
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-	main().catch((err) => {
+	orchestrateExecution().catch((err) => {
 		console.error(err);
 		process.exit(1);
 	});

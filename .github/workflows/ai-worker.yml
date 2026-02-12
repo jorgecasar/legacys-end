@@ -49,8 +49,10 @@ jobs:
           echo "$delimiter" >> $GITHUB_OUTPUT
 
       - name: Debug Context
+        env:
+          ISSUE_TITLE: ${{ steps.issue.outputs.title }}
         run: |
-          echo "Title: ${{ steps.issue.outputs.title }}"
+          echo "Title: $ISSUE_TITLE"
           echo "Body length: ${{ steps.issue.outputs.body }}" | wc -c
 
       # 1. ATOMIC PLANNING
@@ -66,6 +68,7 @@ jobs:
 
       # 2. EXECUTION LOOP
       - name: Development & Implementation
+        if: steps.planning.outputs.needs_decomposition != 'true'
         id: developer
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -77,6 +80,7 @@ jobs:
         run: node tooling/ai-worker-develop.js
 
       - name: Commit Implementation
+        if: steps.planning.outputs.needs_decomposition != 'true'
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -86,18 +90,22 @@ jobs:
 
       # 3. VERIFICATION
       - name: Install Playwright Browsers
+        if: steps.planning.outputs.needs_decomposition != 'true'
         run: npx playwright install --with-deps
 
       - name: Run Related Tests
+        if: steps.planning.outputs.needs_decomposition != 'true'
         run: |
           # Run tests with coverage
           npx vitest run --coverage
 
       - name: Update Coverage Thresholds
+        if: steps.planning.outputs.needs_decomposition != 'true'
         run: npm run test:coverage:update
 
       # 4. SELF-REVIEW (Optional, usually on PR but here for immediate feedback)
       - name: Self-Review
+        if: steps.planning.outputs.needs_decomposition != 'true'
         id: reviewer
         uses: google-github-actions/run-gemini-cli@v0.1.20
         with:
@@ -118,8 +126,9 @@ jobs:
         if: contains(steps.reviewer.outputs.text, 'APPROVED')
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          REVIEWER_TEXT: ${{ steps.reviewer.outputs.text }}
         run: |
-          gh pr create --title "feat: resolve issue #${{ github.event.inputs.issue_number }}" --body "Automated PR by AI Worker Agent. \n\nReviewer feedback: ${{ steps.reviewer.outputs.text }}"
+          gh pr create --title "feat: resolve issue #${{ github.event.inputs.issue_number }}" --body "Automated PR by AI Worker Agent. \n\nReviewer feedback: $REVIEWER_TEXT"
 
       - name: Sync Costs
         if: always()

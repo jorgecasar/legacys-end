@@ -6,11 +6,14 @@
  * Accumulates metrics across multiple executions and posts reports as comments.
  */
 
-import { Octokit } from "@octokit/rest";
+import { FIELD_IDS } from "./ai-config.js";
 import { calculateCost } from "./gemini-pricing.js";
-
-const PROJECT_ID = "PVT_kwHOAA562c4BOtC-";
-const COST_FIELD_ID = "PVTF_lAHOAA562c4BOtC-zg9hBOw";
+import {
+	addIssueToProject,
+	getIssueNodeId,
+	getOctokit,
+	updateProjectField,
+} from "./github-utils.js";
 
 /**
  * @typedef {Object} Operation
@@ -56,11 +59,7 @@ export async function trackUsage({
 }) {
 	// Initialize Octokit if not provided
 	if (!octokit) {
-		const token = process.env.GH_TOKEN;
-		if (!token) {
-			throw new Error("GH_TOKEN environment variable required");
-		}
-		octokit = new Octokit({ auth: token });
+		octokit = getOctokit();
 	}
 
 	// 1. Calculate costs
@@ -238,55 +237,23 @@ ${JSON.stringify(metrics, null, 2)}
 
 /**
  * Update the 'Cost' field in Project V2 with the total accumulated cost
- *
- * @param {Octokit} octokit
- * @param {string} owner
- * @param {string} repo
- * @param {number} issueNumber
- * @param {number} totalCost
  */
 async function updateProjectCost(octokit, owner, repo, issueNumber, totalCost) {
 	try {
-		// 1. Get issue node_id
-		const { data: issue } = await octokit.rest.issues.get({
+		const issueNodeId = await getIssueNodeId(octokit, {
 			owner,
 			repo,
-			issue_number: issueNumber,
+			issueNumber,
 		});
-		const issueNodeId = issue.node_id;
 
-		// 2. Add issue to project (ensures item exists)
-		const addResult = await octokit.graphql(
-			`
-			mutation($projectId: ID!, $contentId: ID!) {
-				addProjectV2ItemById(input: {projectId: $projectId, contentId: $contentId}) {
-					item { id }
-				}
-			}`,
-			{ projectId: PROJECT_ID, contentId: issueNodeId },
-		);
-
-		const itemId = addResult.addProjectV2ItemById.item.id;
+		const itemId = await addIssueToProject(octokit, issueNodeId);
 
 		// 3. Update Cost field (Number field)
-		await octokit.graphql(
-			`
-			mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $value: Float!) {
-				updateProjectV2ItemFieldValue(input: {
-					projectId: $projectId
-					itemId: $itemId
-					fieldId: $fieldId
-					value: { number: $value }
-				}) {
-					projectV2Item { id }
-				}
-			}`,
-			{
-				projectId: PROJECT_ID,
-				itemId,
-				fieldId: COST_FIELD_ID,
-				value: totalCost,
-			},
+		await updateProjectField(
+			octokit,
+			itemId,
+			FIELD_IDS.cost,
+			Number(totalCost.toFixed(8)),
 		);
 		console.log(
 			`Updated Project Cost field for #${issueNumber}: $${totalCost.toFixed(6)}`,

@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { spawn } from "node:child_process";
 import { describe, it, mock } from "node:test";
-import { main } from "./ai-orchestrator.js";
+import { orchestrateExecution } from "./ai-orchestrator.js";
 
 describe("ai-orchestrator", () => {
 	process.env.GH_TOKEN = "mock-token";
@@ -84,7 +84,7 @@ describe("ai-orchestrator", () => {
 		};
 
 		const exec = mock.fn(() => Buffer.from(""));
-		await main({ exec, octokit });
+		await orchestrateExecution({ exec, octokit });
 
 		const logMessages = console.log.mock.calls.map((c) => c.arguments[0]);
 		const selectedLog = logMessages.find((m) =>
@@ -100,7 +100,7 @@ describe("ai-orchestrator", () => {
 			})),
 		};
 		const exec = mock.fn(() => Buffer.from(""));
-		await main({ exec, octokit });
+		await orchestrateExecution({ exec, octokit });
 	});
 
 	it("should handle no candidates found", async () => {
@@ -126,7 +126,7 @@ describe("ai-orchestrator", () => {
 			})),
 		};
 		const exec = mock.fn(() => Buffer.from(""));
-		await main({ exec, octokit });
+		await orchestrateExecution({ exec, octokit });
 	});
 
 	it("should execute as a main process", async () => {

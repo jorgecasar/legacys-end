@@ -1,39 +1,14 @@
-import { Octokit } from "@octokit/rest";
+import { FIELD_IDS, OPTION_IDS, OWNER, REPO } from "./ai-config.js";
+import {
+	addIssueToProject,
+	getIssueNodeId,
+	getOctokit,
+	updateProjectField,
+} from "./github-utils.js";
 
-const PROJECT_ID = "PVT_kwHOAA562c4BOtC-";
-const OWNER = "jorgecasar";
-const REPO = "legacys-end";
-
-// Field IDs (obtained from project settings)
-const FIELD_IDS = {
-	status: "PVTSSF_lAHOAA562c4BOtC-zg9U7KE",
-	priority: "PVTSSF_lAHOAA562c4BOtC-zg9U7SY",
-	model: "PVTF_lAHOAA562c4BOtC-zg9g9xk",
-	cost: "PVTF_lAHOAA562c4BOtC-zg9hBOw",
-};
-
-// Option IDs for single-select fields
-const OPTIONS = {
-	status: {
-		todo: "f75ad846",
-	},
-	priority: {
-		p0: "330b32fb",
-		p1: "f692bf94",
-		p2: "6b58477b",
-	},
-	model: {
-		// model is now a text field, no options needed
-	},
-};
-
-export async function main(
+export async function syncTriageData(
 	input = process.argv[2],
-	{
-		octokit = new Octokit({
-			auth: process.env.GH_TOKEN,
-		}),
-	} = {},
+	{ octokit = getOctokit() } = {},
 ) {
 	if (!input || input.trim() === "") {
 		console.error("Error: No JSON input provided.");
@@ -54,6 +29,9 @@ export async function main(
 	}
 
 	const { issue_number, model, priority, labels = [] } = data;
+	console.log(
+		`Debug - Syncing: issue=${issue_number}, model=${model}, priority=${priority}`,
+	);
 
 	// Extract issue_number from context if not provided
 	const issueNumber =
@@ -68,100 +46,35 @@ export async function main(
 	console.log(`Syncing issue #${issueNumber}...`);
 
 	// 1. Get issue node_id
-	const { data: issue } = await octokit.rest.issues.get({
+	const issueNodeId = await getIssueNodeId(octokit, {
 		owner: OWNER,
 		repo: REPO,
-		issue_number: issueNumber,
+		issueNumber,
 	});
-	const issueNodeId = issue.node_id;
 
-	// 2. Add issue to project using GraphQL (Projects V2 only supports GraphQL)
-	const addResult = await octokit.graphql(
-		`mutation($projectId: ID!, $contentId: ID!) {
-      addProjectV2ItemById(input: {projectId: $projectId, contentId: $contentId}) {
-        item {
-          id
-        }
-      }
-    }`,
-		{
-			projectId: PROJECT_ID,
-			contentId: issueNodeId,
-		},
-	);
-
-	const itemId = addResult.addProjectV2ItemById.item.id;
+	// 2. Add issue to project
+	const itemId = await addIssueToProject(octokit, issueNodeId);
 	console.log(`Item ID: ${itemId}`);
 
 	// 3. Update Status to Todo
-	await octokit.graphql(
-		`mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
-      updateProjectV2ItemFieldValue(input: {
-        projectId: $projectId
-        itemId: $itemId
-        fieldId: $fieldId
-        value: { singleSelectOptionId: $optionId }
-      }) {
-        projectV2Item {
-          id
-        }
-      }
-    }`,
-		{
-			projectId: PROJECT_ID,
-			itemId,
-			fieldId: FIELD_IDS.status,
-			optionId: OPTIONS.status.todo,
-		},
+	await updateProjectField(
+		octokit,
+		itemId,
+		FIELD_IDS.status,
+		OPTION_IDS.status.todo,
 	);
 
 	// 4. Update Priority
-	if (priority && OPTIONS.priority[priority.toLowerCase()]) {
-		const optionId = OPTIONS.priority[priority.toLowerCase()];
-		await octokit.graphql(
-			`mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
-        updateProjectV2ItemFieldValue(input: {
-          projectId: $projectId
-          itemId: $itemId
-          fieldId: $fieldId
-          value: { singleSelectOptionId: $optionId }
-        }) {
-          projectV2Item {
-            id
-          }
-        }
-      }`,
-			{
-				projectId: PROJECT_ID,
-				itemId,
-				fieldId: FIELD_IDS.priority,
-				optionId,
-			},
-		);
+	if (priority && OPTION_IDS.priority[priority.toLowerCase()]) {
+		console.log(`Updating priority to ${priority}...`);
+		const optionId = OPTION_IDS.priority[priority.toLowerCase()];
+		await updateProjectField(octokit, itemId, FIELD_IDS.priority, optionId);
 	}
 
 	// 5. Update Model (Text field)
 	if (model) {
-		await octokit.graphql(
-			`mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $value: String!) {
-        updateProjectV2ItemFieldValue(input: {
-          projectId: $projectId
-          itemId: $itemId
-          fieldId: $fieldId
-          value: { text: $value }
-        }) {
-          projectV2Item {
-            id
-          }
-        }
-      }`,
-			{
-				projectId: PROJECT_ID,
-				itemId,
-				fieldId: FIELD_IDS.model,
-				value: model,
-			},
-		);
+		console.log(`Updating model to ${model}...`);
+		await updateProjectField(octokit, itemId, FIELD_IDS.model, model);
 	}
 
 	// 7. Update Labels on the issue itself
@@ -180,7 +93,7 @@ export async function main(
 import { fileURLToPath } from "node:url";
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-	main().catch((err) => {
+	syncTriageData().catch((err) => {
 		console.error(err);
 		process.exit(1);
 	});
