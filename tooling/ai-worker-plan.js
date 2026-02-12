@@ -3,23 +3,23 @@ import { execSync } from "node:child_process";
 import { runWithFallback } from "./gemini-with-fallback.js";
 
 const PLAN_SCHEMA = {
-	type: "OBJECT",
+	type: "object",
 	properties: {
-		methodology: { type: "STRING" },
-		slug: { type: "STRING" },
-		files_to_touch: { type: "ARRAY", items: { type: "STRING" } },
+		methodology: { type: "string" },
+		slug: { type: "string" },
+		files_to_touch: { type: "array", items: { type: "string" } },
 		sub_tasks: {
-			type: "ARRAY",
+			type: "array",
 			items: {
-				type: "OBJECT",
+				type: "object",
 				properties: {
-					title: { type: "STRING" },
-					goal: { type: "STRING" },
+					title: { type: "string" },
+					goal: { type: "string" },
 				},
 				required: ["title", "goal"],
 			},
 		},
-		needs_decomposition: { type: "BOOLEAN" },
+		needs_decomposition: { type: "boolean" },
 	},
 	required: ["methodology", "slug", "files_to_touch", "needs_decomposition"],
 };
@@ -42,7 +42,8 @@ export async function main({
 		console.error(
 			"Error: Missing ISSUE_NUMBER or ISSUE_TITLE environment variables.",
 		);
-		process.exit(1);
+		if (process.env.NODE_ENV !== "test") process.exit(1);
+		return;
 	}
 
 	const prompt = PLAN_PROMPT.replace("{{ISSUE_NUMBER}}", issueNumber)
@@ -56,6 +57,12 @@ export async function main({
 		});
 
 		const plan = result.data;
+
+		if (!plan || !plan.slug) {
+			console.error("Debug - Plan received:", JSON.stringify(plan, null, 2));
+			throw new Error("Invalid plan structure.");
+		}
+
 		console.log(`Plan received. Methodology: ${plan.methodology}`);
 
 		// 1. Create a task branch
@@ -112,7 +119,7 @@ export async function main({
 		console.log("✅ Planning phase complete.");
 	} catch (error) {
 		console.error("❌ Planning Error:", error.message);
-		process.exit(1);
+		if (process.env.NODE_ENV !== "test") process.exit(1);
 	}
 }
 

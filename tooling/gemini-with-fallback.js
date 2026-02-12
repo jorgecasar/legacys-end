@@ -2,33 +2,14 @@
 /**
  * Gemini with Intelligent Fallback and Structured Output
  *
- * Executes Gemini API calls using the new @google/genai SDK with automatic
- * fallback to cheaper/alternative models and support for JSON Schema.
+ * Using the official @google/genai SDK.
  */
 
-import { createClient } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { GEMINI_PRICING, MODEL_FALLBACK } from "./gemini-pricing.js";
 
 /**
- * @typedef {Object} GeminiResult
- * @property {any} data - Generated data (parsed JSON if schema provided, otherwise string)
- * @property {string} text - Raw generated text
- * @property {string} modelUsed - Model that was actually used
- * @property {number} inputTokens - Input tokens consumed
- * @property {number} outputTokens - Output tokens consumed
- * @property {Object} pricing - Pricing info for the model used
- */
-
-/**
- * Run Gemini with intelligent fallback and optional structured output
- *
- * @param {'flash'|'pro'|'image'} modelType - Model type to use
- * @param {string} prompt - Prompt text
- * @param {Object} [options] - Options
- * @param {string} [options.apiKey] - Gemini API key
- * @param {number} [options.maxRetries=3] - Max retries per model
- * @param {Object} [options.responseSchema] - JSON Schema for structured output
- * @returns {Promise<GeminiResult>} Result with model used and token counts
+ * Run Gemini with intelligent fallback and structured output
  */
 export async function runWithFallback(modelType, prompt, options = {}) {
 	const {
@@ -38,12 +19,19 @@ export async function runWithFallback(modelType, prompt, options = {}) {
 	} = options;
 
 	if (!apiKey) {
-		throw new Error("GEMINI_API_KEY required");
+		throw new Error("GEMINI_API_KEY required.");
 	}
 
-	const client = createClient({ apiKey });
-	const models = MODEL_FALLBACK[modelType];
+	// Limpieza agresiva: quita espacios, comillas, retornos de carro y posibles comentarios
+	const sanitizedKey = apiKey
+		.toString()
+		.trim()
+		.replace(/^["']|["']$/g, "") // Quita comillas al inicio y final
+		.split(/\s/)[0]; // Se queda solo con la primera palabra
 
+	// Instanciamos el cliente exactamente como en tu prueba de éxito
+	const ai = new GoogleGenAI({ apiKey: sanitizedKey });
+	const models = MODEL_FALLBACK[modelType];
 	let lastError;
 
 	for (const modelName of models) {
@@ -51,25 +39,22 @@ export async function runWithFallback(modelType, prompt, options = {}) {
 
 		for (let attempt = 1; attempt <= maxRetries; attempt++) {
 			try {
-				const config = {
-					model: modelName,
+				const generationConfig = {
+					maxOutputTokens: 2048,
+					temperature: 0.1,
 				};
 
-				// Configure structured output if schema provided
 				if (responseSchema) {
-					config.generationConfig = {
-						responseMimeType: "application/json",
-						responseSchema: responseSchema,
-					};
+					generationConfig.responseMimeType = "application/json";
+					generationConfig.responseSchema = responseSchema;
 				}
 
-				const result = await client.models.generateContent({
+				const result = await ai.models.generateContent({
 					model: modelName,
 					contents: [{ role: "user", parts: [{ text: prompt }] }],
-					config: config.generationConfig,
+					generationConfig,
 				});
 
-				// New SDK structure for usage metadata
 				const usage = result.usageMetadata || {};
 				const inputTokens = usage.promptTokenCount || 0;
 				const outputTokens = usage.candidatesTokenCount || 0;
@@ -81,11 +66,12 @@ export async function runWithFallback(modelType, prompt, options = {}) {
 				let data = result.text;
 				if (responseSchema) {
 					try {
-						data = JSON.parse(result.text);
+						// Intentamos usar .parsed (que ofrece el nuevo SDK) o parsear el texto
+						data = result.parsed || JSON.parse(result.text);
 					} catch (e) {
-						console.warn(
-							"Failed to parse structured output, returning raw text.",
-						);
+						// Limpieza manual si hay markdown
+						const cleanJson = result.text.replace(/```json\s*|```/g, "").trim();
+						data = JSON.parse(cleanJson);
 					}
 				}
 
@@ -104,9 +90,8 @@ export async function runWithFallback(modelType, prompt, options = {}) {
 					err.message,
 				);
 
-				const isRateLimit =
-					err.message?.includes("429") || err.message?.includes("quota");
-				if (isRateLimit) break; // Skip to next model
+				if (err.message?.includes("429") || err.message?.includes("quota"))
+					break;
 
 				if (attempt < maxRetries) {
 					await new Promise((r) => setTimeout(r, 1000 * 2 ** attempt));

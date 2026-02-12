@@ -23,6 +23,7 @@ export async function main({ exec = execSync, octokit: injectedOctokit } = {}) {
 								... on Issue {
 									number
 									title
+									body
 									labels(first: 10) {
 										nodes { name }
 									}
@@ -59,6 +60,7 @@ export async function main({ exec = execSync, octokit: injectedOctokit } = {}) {
 			id: item.id,
 			number: item.content?.number,
 			title: item.content?.title,
+			body: item.content?.body,
 			status: item.status?.name,
 			priority: item.priority?.name,
 			labels: item.content?.labels?.nodes.map((l) => l.name) || [],
@@ -75,7 +77,7 @@ export async function main({ exec = execSync, octokit: injectedOctokit } = {}) {
 
 	if (candidates.length === 0) {
 		console.log("No candidates for execution.");
-		return;
+		return null;
 	}
 
 	console.log(`Found ${candidates.length} candidates. Analyzing priorities...`);
@@ -96,16 +98,11 @@ export async function main({ exec = execSync, octokit: injectedOctokit } = {}) {
 	// 3. Find first unblocked "leaf" task
 	let selectedTask = null;
 	for (const task of prioritized) {
-		// Skip if explicitly blocked
 		if (task.labels.includes("blocked")) continue;
-
-		// Skip if parent is blocked
 		if (task.parentLabels.includes("blocked")) {
 			console.log(`Skipping #${task.number}: Parent is blocked.`);
 			continue;
 		}
-
-		// Skip if it has incomplete sub-issues (act as container)
 		const pendingSubIssues = task.subIssues.filter((s) => s.state === "OPEN");
 		if (pendingSubIssues.length > 0) {
 			console.log(
@@ -113,14 +110,13 @@ export async function main({ exec = execSync, octokit: injectedOctokit } = {}) {
 			);
 			continue;
 		}
-
 		selectedTask = task;
 		break;
 	}
 
 	if (!selectedTask) {
 		console.log("All candidates are blocked.");
-		return;
+		return null;
 	}
 
 	console.log(
@@ -129,7 +125,6 @@ export async function main({ exec = execSync, octokit: injectedOctokit } = {}) {
 
 	// 4. Mark as In Progress
 	console.log(`Marking task #${selectedTask.number} as In Progress...`);
-
 	const statusFieldId = "PVTSSF_lAHOAA562c4BOtC-zg9U7KE";
 	const inProgressOptionId = "47fc9ee4";
 
@@ -156,19 +151,19 @@ export async function main({ exec = execSync, octokit: injectedOctokit } = {}) {
 		console.warn(
 			`Warning: Could not update status via GraphQL: ${err.message}`,
 		);
-		// Fallback to CLI just in case, but usually it will fail if GraphQL does
-		try {
-			exec(
-				`gh project item-edit --id ${selectedTask.id} --project-id ${PROJECT_ID} --field-id ${statusFieldId} --project-id ${PROJECT_ID} --single-select-option-id ${inProgressOptionId}`,
-			);
-		} catch (cliErr) {
-			console.warn(`Warning: CLI fallback also failed: ${cliErr.message}`);
-		}
 	}
 
-	// 5. Trigger Worker
+	// 5. Trigger or Return
+	if (process.env.LOCAL_EXECUTION === "true") {
+		console.log(`LOCAL_SELECTED_ISSUE=${selectedTask.number}`);
+		console.log(`LOCAL_SELECTED_TITLE=${selectedTask.title}`);
+		// Store body in a temp file or output it if short, but shell scripts handle it better via env
+		return selectedTask;
+	}
+
 	console.log(`Dispatching AI Worker for issue #${selectedTask.number}...`);
 	exec(`gh workflow run ai-worker.yml -f issue_number=${selectedTask.number}`);
+	return selectedTask;
 }
 
 import { fileURLToPath } from "node:url";
