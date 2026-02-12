@@ -22,9 +22,15 @@ export async function runWithFallback(modelType, prompt, options = {}) {
 		throw new Error("GEMINI_API_KEY required.");
 	}
 
+	// Limpieza agresiva: quita espacios, comillas, retornos de carro y posibles comentarios
+	const sanitizedKey = apiKey
+		.toString()
+		.trim()
+		.replace(/^["']|["']$/g, "") // Quita comillas al inicio y final
+		.split(/\s/)[0]; // Se queda solo con la primera palabra
+
 	// Instanciamos el cliente exactamente como en tu prueba de éxito
-	// El SDK de AI Studio espera 'apiKey' en el objeto de configuración
-	const ai = new GoogleGenAI({ apiKey: apiKey });
+	const ai = new GoogleGenAI({ apiKey: sanitizedKey });
 	const models = MODEL_FALLBACK[modelType];
 	let lastError;
 
@@ -33,21 +39,21 @@ export async function runWithFallback(modelType, prompt, options = {}) {
 
 		for (let attempt = 1; attempt <= maxRetries; attempt++) {
 			try {
-				const params = {
-					model: modelName,
-					contents: [{ role: "user", parts: [{ text: prompt }] }],
+				const generationConfig = {
+					maxOutputTokens: 2048,
+					temperature: 0.1,
 				};
 
-				// Configuración nativa para Structured Output
 				if (responseSchema) {
-					params.config = {
-						response_mime_type: "application/json",
-						response_schema: responseSchema,
-					};
+					generationConfig.responseMimeType = "application/json";
+					generationConfig.responseSchema = responseSchema;
 				}
 
-				// Llamada al modelo
-				const result = await ai.models.generateContent(params);
+				const result = await ai.models.generateContent({
+					model: modelName,
+					contents: [{ role: "user", parts: [{ text: prompt }] }],
+					generationConfig,
+				});
 
 				const usage = result.usageMetadata || {};
 				const inputTokens = usage.promptTokenCount || 0;
@@ -59,22 +65,13 @@ export async function runWithFallback(modelType, prompt, options = {}) {
 
 				let data = result.text;
 				if (responseSchema) {
-					if (result.parsed) {
-						data = result.parsed;
-					} else {
-						try {
-							const cleanJson = result.text
-								.replace(/```json\s*|```/g, "")
-								.trim();
-							data = JSON.parse(cleanJson);
-						} catch (e) {
-							const match = result.text.match(/\{[\s\S]*\}/);
-							if (match) {
-								data = JSON.parse(match[0]);
-							} else {
-								console.warn("Failed to parse JSON, returning raw text.");
-							}
-						}
+					try {
+						// Intentamos usar .parsed (que ofrece el nuevo SDK) o parsear el texto
+						data = result.parsed || JSON.parse(result.text);
+					} catch (e) {
+						// Limpieza manual si hay markdown
+						const cleanJson = result.text.replace(/```json\s*|```/g, "").trim();
+						data = JSON.parse(cleanJson);
 					}
 				}
 

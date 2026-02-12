@@ -55,10 +55,22 @@ async function main() {
 		process.exit(1);
 	}
 
+	// Read files content to provide context
+	let filesContext = "";
+	if (files && files !== "None") {
+		const fileList = files.split(/\s+/);
+		for (const f of fileList) {
+			if (fs.existsSync(f)) {
+				const content = fs.readFileSync(f, "utf8");
+				filesContext += `\n--- FILE: ${f} ---\n${content}\n`;
+			}
+		}
+	}
+
 	const prompt = DEVELOP_PROMPT.replace("{{ISSUE_NUMBER}}", issueNumber)
 		.replace("{{TITLE}}", title)
 		.replace("{{METHODOLOGY}}", methodology || "TDD")
-		.replace("{{FILES}}", files || "None");
+		.replace("{{FILES}}", filesContext || "None");
 
 	try {
 		console.log(
@@ -68,7 +80,6 @@ async function main() {
 			responseSchema: DEVELOP_SCHEMA,
 		});
 
-		// El Structured Output garantiza que el objeto siga el esquema
 		const data = result.data;
 
 		if (!data || !data.changes || !Array.isArray(data.changes)) {
@@ -109,7 +120,7 @@ async function main() {
 		console.log("✅ Implementation phase complete.");
 	} catch (error) {
 		console.error("❌ Development Error:", error.message);
-		process.exit(1);
+		if (process.env.NODE_ENV !== "test") process.exit(1);
 	}
 }
 
