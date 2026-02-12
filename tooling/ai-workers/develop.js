@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
-import { writeGitHubOutput } from "./ai-config.js";
-import { runWithFallback } from "./gemini-with-fallback.js";
+import { writeGitHubOutput } from "../config/index.js";
+import { runWithFallback } from "../gemini/index.js";
 
 const DEVELOP_SCHEMA = {
 	type: "OBJECT",

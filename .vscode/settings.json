@@ -26,5 +26,6 @@
 		"editor.defaultFormatter": "biomejs.biome"
 	},
 	"lit-plugin.rules.no-unknown-tag-name": "error",
-	"lit-plugin.rules.no-missing-import": "error"
+	"lit-plugin.rules.no-missing-import": "error",
+	"snyk.advanced.autoSelectOrganization": true
 }

@@ -1,7 +1,8 @@
 import assert from "node:assert";
 import { spawn } from "node:child_process";
 import { describe, it, mock } from "node:test";
-import { orchestrateExecution } from "./ai-orchestrator.js";
+
+import { orchestrateExecution } from "./orchestrator.js";
 
 describe("ai-orchestrator", () => {
 	process.env.GH_TOKEN = "mock-token";
@@ -131,7 +132,7 @@ describe("ai-orchestrator", () => {
 
 	it("should execute as a main process", async () => {
 		return new Promise((resolve, reject) => {
-			const cp = spawn("node", ["tooling/ai-orchestrator.js"], {
+			const cp = spawn("node", ["tooling/ai-orchestration/orchestrator.js"], {
 				env: { ...process.env, GITHUB_TOKEN: "mock", NODE_ENV: "test" },
 			});
 			cp.on("exit", (code) => {

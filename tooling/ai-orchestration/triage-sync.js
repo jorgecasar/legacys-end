@@ -1,10 +1,10 @@
-import { FIELD_IDS, OPTION_IDS, OWNER, REPO } from "./ai-config.js";
+import { FIELD_IDS, OPTION_IDS, OWNER, REPO } from "../config/index.js";
 import {
 	addIssueToProject,
 	getIssueNodeId,
 	getOctokit,
 	updateProjectField,
-} from "./github-utils.js";
+} from "../github/index.js";
 
 export async function syncTriageData(
 	input = process.argv[2],

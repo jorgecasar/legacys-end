@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { GoogleGenAI } from "@google/genai";
-import { GEMINI_PRICING, MODEL_FALLBACK } from "./gemini-pricing.js";
+import { GEMINI_PRICING, MODEL_FALLBACK } from "./pricing.js";
 
 /**
  * Run Gemini with intelligent fallback and structured output

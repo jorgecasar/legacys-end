@@ -1,50 +1,50 @@
 name: AI Triage Agent
 
 on:
-  issues:
-    types: [opened, labeled]
-  workflow_dispatch:
-  schedule:
-    - cron: "0 0 * * *" # Daily at midnight
+    issues:
+        types: [opened, labeled]
+    workflow_dispatch:
+    schedule:
+        - cron: "0 0 * * *" # Daily at midnight
 
 permissions:
-  contents: read
-  issues: write
-  repository-projects: write
+    contents: read
+    issues: write
+    repository-projects: write
 
 jobs:
-  triage:
-    if: (github.event_name == 'issues' && github.event.action == 'opened' && github.actor == 'jorgecasar') || (github.event_name == 'issues' && github.event.action == 'labeled') || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    triage:
+        if: (github.event_name == 'issues' && github.event.action == 'opened' && github.actor == 'jorgecasar') || (github.event_name == 'issues' && github.event.action == 'labeled') || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-          cache: "npm"
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "24"
+                  cache: "npm"
 
-      - name: Install dependencies
-        run: npm install
+            - name: Install dependencies
+              run: npm install
 
-      - name: Run Gemini Triage
-        id: gemini
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_ISSUE_NUMBER: ${{ github.event.issue.number }}
-          GITHUB_ISSUE_TITLE: ${{ github.event.issue.title }}
-          GITHUB_ISSUE_BODY: ${{ github.event.issue.body }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: node tooling/gemini-triage.js
+            - name: Run Gemini Triage
+              id: gemini
+              env:
+                  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+                  GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+                  GITHUB_REPOSITORY: ${{ github.repository }}
+                  GITHUB_ISSUE_NUMBER: ${{ github.event.issue.number }}
+                  GITHUB_ISSUE_TITLE: ${{ github.event.issue.title }}
+                  GITHUB_ISSUE_BODY: ${{ github.event.issue.body }}
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+              run: node tooling/gemini/triage.js
 
-      - name: Sync to Project V2
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          GITHUB_ISSUE_NUMBER: ${{ github.event.issue.number }}
-          GEMINI_SUMMARY: ${{ steps.gemini.outputs.summary }}
-          GEMINI_BATCH_MODE: ${{ steps.gemini.outputs.batch_mode }}
-        run: node tooling/ai-triage-orchestrator.js
+            - name: Sync to Project V2
+              env:
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+                  GITHUB_ISSUE_NUMBER: ${{ github.event.issue.number }}
+                  GEMINI_SUMMARY: ${{ steps.gemini.outputs.summary }}
+                  GEMINI_BATCH_MODE: ${{ steps.gemini.outputs.batch_mode }}
+              run: node tooling/ai-orchestration/triage-orchestrator.js

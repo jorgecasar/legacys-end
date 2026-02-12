@@ -6,14 +6,15 @@
  * Accumulates metrics across multiple executions and posts reports as comments.
  */
 
-import { FIELD_IDS } from "./ai-config.js";
-import { calculateCost } from "./gemini-pricing.js";
+import { FIELD_IDS } from "../config/index.js";
+import { calculateCost } from "../gemini/pricing.js";
+
 import {
 	addIssueToProject,
 	getIssueNodeId,
 	getOctokit,
 	updateProjectField,
-} from "./github-utils.js";
+} from "../github/index.js";
 
 /**
  * @typedef {Object} Operation

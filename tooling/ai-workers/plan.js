@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 import { execSync } from "node:child_process";
-import { writeGitHubOutput } from "./ai-config.js";
-import { runWithFallback } from "./gemini-with-fallback.js";
+import { fileURLToPath } from "node:url";
+import { OWNER, REPO, writeGitHubOutput } from "../config/index.js";
+import { runWithFallback } from "../gemini/index.js";
+import { createSubtasks } from "../github/client.js";
+import { getOctokit } from "../github/index.js";
 
 const PLAN_SCHEMA = {
 	type: "OBJECT",
@@ -62,7 +65,7 @@ export async function createTechnicalPlan({
 	issueNumber = process.env.ISSUE_NUMBER,
 	title = process.env.ISSUE_TITLE,
 	body = process.env.ISSUE_BODY,
-	exec = execSync,
+	octokit: injectedOctokit,
 } = {}) {
 	if (!issueNumber || !title) {
 		console.error(
@@ -70,6 +73,35 @@ export async function createTechnicalPlan({
 		);
 		if (process.env.NODE_ENV !== "test") process.exit(1);
 		return;
+	}
+
+	const octokit = injectedOctokit || getOctokit();
+
+	// Before generating a plan, check if the issue has open child/sub-issues
+	try {
+		const q = `repo:${OWNER}/${REPO} in:body "Parent issue: #${issueNumber}" type:issue state:open`;
+		const search = await octokit.rest.search.issuesAndPullRequests({ q });
+		if (search.data && search.data.total_count > 0) {
+			console.log(
+				`Issue #${issueNumber} has ${search.data.total_count} open child issue(s). Skipping planning.`,
+			);
+			writeGitHubOutput("blocked", "true");
+			writeGitHubOutput("blocked_children", String(search.data.total_count));
+			// Ensure workflow outputs exist and indicate no decomposition
+			writeGitHubOutput("needs_decomposition", "false");
+			writeGitHubOutput("methodology", "");
+			writeGitHubOutput("files", "");
+			return {
+				data: {
+					methodology: null,
+					slug: null,
+					needs_decomposition: false,
+					blocked: true,
+				},
+			};
+		}
+	} catch (err) {
+		console.warn(`Warning: Could not verify child issues: ${err.message}`);
 	}
 
 	const prompt = PLAN_PROMPT.replace("{{ISSUE_NUMBER}}", issueNumber)
@@ -95,17 +127,17 @@ export async function createTechnicalPlan({
 		// 1. Create a task branch
 		const branchName = `task/issue-${issueNumber}-${plan.slug || "work"}`;
 		try {
-			exec(`git checkout -b ${branchName}`);
+			execSync(`git checkout -b ${branchName}`);
 		} catch (_) {
-			exec(`git checkout ${branchName}`);
+			execSync(`git checkout ${branchName}`);
 		}
 
 		// Push the branch immediately
 		try {
-			exec(`git push -u origin ${branchName}`);
-		} catch (err) {
+			execSync(`git push -u origin ${branchName}`);
+		} catch (pushErr) {
 			console.warn(
-				`Warning: Could not push branch ${branchName}: ${err.message}`,
+				`Warning: Could not push branch ${branchName}: ${pushErr.message}`,
 			);
 		}
 
@@ -116,13 +148,7 @@ export async function createTechnicalPlan({
 			plan.needs_decomposition
 		) {
 			console.log("Decomposing into sub-issues...");
-			for (const sub of plan.sub_tasks) {
-				const title = (sub.title || "").replace(/["$`]/g, "\\$&");
-				const goal = (sub.goal || "").replace(/["$`]/g, "\\$&");
-				const createCmd = `gh issue create --title "${title}" --body "Sub-task of #${issueNumber}. \n\nGoal: ${goal}" --label "sub-task"`;
-				console.log(`Creating sub-issue: ${title}`);
-				exec(createCmd);
-			}
+			await createSubtasks(octokit, issueNumber, plan.sub_tasks);
 		}
 
 		// 3. Output for workflow
@@ -143,11 +169,9 @@ export async function createTechnicalPlan({
 	}
 }
 
-import { fileURLToPath } from "node:url";
-
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-	createTechnicalPlan().catch((err) => {
-		console.error(err);
+	createTechnicalPlan().catch((error) => {
+		console.error(error);
 		process.exit(1);
 	});
 }

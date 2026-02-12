@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { spawn } from "node:child_process";
 import { describe, it, mock } from "node:test";
-import { syncTriageData } from "./ai-triage-sync.js";
+import { syncTriageData } from "./triage-sync.js";
 
 describe("ai-triage-sync", () => {
 	process.env.GH_TOKEN = "mock-token";
@@ -84,9 +84,13 @@ describe("ai-triage-sync", () => {
 
 	it("should execute as a main process", async () => {
 		return new Promise((resolve, reject) => {
-			const cp = spawn("node", ["tooling/ai-triage-sync.js", "{}"], {
-				env: { ...process.env, NODE_ENV: "test" },
-			});
+			const cp = spawn(
+				"node",
+				["tooling/ai-orchestration/triage-sync.js", "{}"],
+				{
+					env: { ...process.env, NODE_ENV: "test" },
+				},
+			);
 			cp.on("exit", (code) => {
 				if (code === 0 || code === 1) resolve();
 				else reject(new Error(`Process failed with code ${code}`));

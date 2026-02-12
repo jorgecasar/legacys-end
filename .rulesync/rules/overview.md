@@ -29,12 +29,8 @@ globs: ["**/*"]
 - Use dependency injection for better testability
 - Implement proper error handling
 - Follow single responsibility principle
-<<<<<<< Updated upstream
-
 ## Gold Standard (Reference Files)
 - **Services**: `src/services/storage-service.js`
 - **Components**: `src/components/reward-element/RewardElement.js`
 - **Use Cases**: `src/use-cases/evaluate-chapter-transition.js`
 - **Controllers**: `src/controllers/interaction-controller.js`
-=======
->>>>>>> Stashed changes

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Octokit } from "@octokit/rest";
-import { trackUsage } from "./ai-usage-tracker.js";
-import { runWithFallback } from "./gemini-with-fallback.js";
+import { runWithFallback } from "../gemini/index.js";
+import { trackUsage } from "../monitoring/usage-tracker.js";
 
 const TRIAGE_SCHEMA = {
 	type: "OBJECT",
@@ -56,7 +56,7 @@ const TRIAGE_PROMPT_BATCH = `Issues to triage:
 
 {{ISSUES}}`;
 
-import { OWNER, REPO } from "./ai-config.js";
+import { OWNER, PROJECT_ID, REPO } from "../config/index.js";
 
 async function fetchPendingIssues(octokit) {
 	const result = await octokit.graphql(

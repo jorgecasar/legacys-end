@@ -1,6 +1,6 @@
 {
 	"$schema": "https://raw.githubusercontent.com/dyoshikawa/rulesync/refs/heads/main/config-schema.json",
-	"targets": ["antigravity", "geminicli", "agentsmd"],
+	"targets": ["antigravity", "geminicli", "cursor", "copilot"],
 	"features": [
 		"rules",
 		"ignore",
@@ -14,7 +14,7 @@
 	"delete": true,
 	"verbose": true,
 	"silent": false,
-	"global": true,
+	"global": false,
 	"simulateCommands": true,
 	"simulateSubagents": true,
 	"simulateSkills": true

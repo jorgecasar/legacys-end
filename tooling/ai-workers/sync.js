@@ -5,14 +5,14 @@
  * Aggregates results from AI Worker phases and updates GitHub issue/project.
  */
 
-import { FIELD_IDS, OPTION_IDS } from "./ai-config.js";
-import { trackUsage } from "./ai-usage-tracker.js";
+import { FIELD_IDS, OPTION_IDS } from "../config/index.js";
 import {
 	addIssueToProject,
 	getIssueNodeId,
 	getOctokit,
 	updateProjectField,
-} from "./github-utils.js";
+} from "../github/index.js";
+import { trackUsage } from "../monitoring/usage-tracker.js";
 
 export async function syncWorkerResults() {
 	const issueNumber = process.env.ISSUE_NUMBER;

@@ -1,5 +1,5 @@
 import { assert, beforeEach, describe, it, vi } from "vitest";
-import { trackUsage } from "./ai-usage-tracker.js";
+import { trackUsage } from "../monitoring/usage-tracker.js";
 
 // Mock Octokit
 const mockOctokit = {

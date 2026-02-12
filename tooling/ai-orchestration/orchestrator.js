@@ -1,5 +1,6 @@
-import { FIELD_IDS, OPTION_IDS, PROJECT_ID } from "./ai-config.js";
-import { getOctokit, updateProjectField } from "./github-utils.js";
+import { execSync } from "node:child_process";
+import { FIELD_IDS, OPTION_IDS, PROJECT_ID } from "../config/index.js";
+import { getOctokit, updateProjectField } from "../github/index.js";
 
 export async function orchestrateExecution({
 	exec = execSync,
