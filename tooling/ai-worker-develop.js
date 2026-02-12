@@ -4,16 +4,16 @@ import path from "node:path";
 import { runWithFallback } from "./gemini-with-fallback.js";
 
 const DEVELOP_SCHEMA = {
-	type: "OBJECT",
+	type: "object",
 	properties: {
 		changes: {
-			type: "ARRAY",
+			type: "array",
 			items: {
-				type: "OBJECT",
+				type: "object",
 				properties: {
-					path: { type: "STRING" },
-					operation: { type: "STRING", enum: ["write", "create", "delete"] },
-					content: { type: "STRING" },
+					path: { type: "string" },
+					operation: { type: "string", enum: ["write", "create", "delete"] },
+					content: { type: "string" },
 				},
 				required: ["path", "operation"],
 			},
@@ -29,7 +29,18 @@ Title: {{TITLE}}
 Methodology: {{METHODOLOGY}}
 Current Files: {{FILES}}
 
-Instruction: Return a JSON object following the required schema with all changes needed to solve the task.`;
+Instruction: Return a JSON object following the required schema.
+You MUST use EXACTLY these keys:
+- "path": the relative file path (DO NOT use "filePath")
+- "operation": "write", "create", or "delete" (DO NOT use "action")
+- "content": the full file content
+
+SCHEMA:
+{
+  "changes": [
+    { "path": "src/file.js", "operation": "write", "content": "..." }
+  ]
+}`;
 
 async function main() {
 	const issueNumber = process.env.ISSUE_NUMBER;
@@ -38,7 +49,9 @@ async function main() {
 	const files = process.env.FILES;
 
 	if (!issueNumber || !title) {
-		console.error("Missing required environment variables.");
+		console.error(
+			"Missing required environment variables (ISSUE_NUMBER, ISSUE_TITLE).",
+		);
 		process.exit(1);
 	}
 
@@ -55,9 +68,11 @@ async function main() {
 			responseSchema: DEVELOP_SCHEMA,
 		});
 
+		// El Structured Output garantiza que el objeto siga el esquema
 		const data = result.data;
 
-		if (!data.changes || !Array.isArray(data.changes)) {
+		if (!data || !data.changes || !Array.isArray(data.changes)) {
+			console.error("Debug - Data received:", JSON.stringify(data, null, 2));
 			throw new Error("Invalid structure: missing changes array.");
 		}
 
@@ -67,6 +82,7 @@ async function main() {
 			const fullPath = path.resolve(process.cwd(), change.path);
 			console.log(`- ${change.operation}: ${change.path}`);
 
+			// Ensure directory exists
 			fs.mkdirSync(path.dirname(fullPath), { recursive: true });
 
 			if (change.operation === "write" || change.operation === "create") {

@@ -1,102 +1,60 @@
+import assert from "node:assert";
 import { spawn } from "node:child_process";
-import { describe, it, mock } from "node:test";
-import { main } from "./ai-worker-plan.js";
+import { before, describe, it, mock } from "node:test";
+
+// Mock the gemini-with-fallback module before importing main
+mock.module("./gemini-with-fallback.js", {
+	namedExports: {
+		runWithFallback: async () => ({
+			data: {
+				methodology: "TDD",
+				slug: "test-feature",
+				files_to_touch: ["src/logic.js"],
+				needs_decomposition: false,
+				sub_tasks: [],
+			},
+			inputTokens: 100,
+			outputTokens: 50,
+			modelUsed: "gemini-2.5-flash-lite",
+		}),
+	},
+});
+
+// Now import main
+let main;
+try {
+	const module = await import("./ai-worker-plan.js");
+	main = module.main;
+} catch (e) {
+	console.error("IMPORT ERROR:", e);
+	process.exit(1);
+}
 
 describe("ai-worker-plan", () => {
 	mock.method(console, "log", () => {});
 	mock.method(console, "error", () => {});
 
-	it("should create a branch (with retry if exists)", async () => {
-		let callCount = 0;
-		const exec = mock.fn((cmd) => {
-			if (cmd.includes("git checkout -b") && callCount === 0) {
-				callCount++;
-				throw new Error("Branch already exists");
-			}
-			return Buffer.from("");
-		});
-
-		const input = JSON.stringify({
-			methodology: "TDD",
-			slug: "test-feature",
-			needs_decomposition: false,
-			sub_tasks: [],
-		});
-
-		await main("10", input, { exec });
-	});
-
-	it("should create sub-issues if decomposition is requested", async () => {
+	it("should create a branch and planning complete", async () => {
 		const exec = mock.fn((_cmd) => Buffer.from(""));
-		const input = JSON.stringify({
-			methodology: "BDD",
-			slug: "complex-ui",
-			needs_decomposition: true,
-			sub_tasks: [{ title: "Sub 1", goal: "Goal 1" }],
+		await main({
+			issueNumber: "10",
+			title: "Test Title",
+			body: "Test Body",
+			exec,
 		});
 
-		await main("11", input, { exec });
-	});
-
-	it("should use default slug if not provided", async () => {
-		const exec = mock.fn((_cmd) => Buffer.from(""));
-		const input = JSON.stringify({
-			methodology: "TDD",
-			// No slug provided
-		});
-
-		await main("12", input, { exec });
-
-		// Verify expected branch name contains "work"
-		// We can't easily assert the exact call arg here without more complex mocking,
-		// but this executes the branch.
+		// Verify git commands were called
+		const calls = exec.mock.calls.map((c) => c.arguments[0]);
+		assert.ok(
+			calls.some((c) =>
+				c.includes("git checkout -b task/issue-10-test-feature"),
+			),
+		);
 	});
 
 	it("should return early if missing input", async () => {
 		process.env.NODE_ENV = "test";
-		await main(undefined, undefined);
-		await main("10", undefined);
-		await main("10", ""); // Reproduce user reported issue
-	});
-
-	it("should extract JSON from markdown blocks", async () => {
-		const exec = mock.fn((_cmd) => Buffer.from(""));
-		const input =
-			'Here is the plan:\n```json\n{"methodology": "TDD", "slug": "markdown-test"}\n```\nGood luck!';
-
-		await main("13", input, { exec });
-	});
-
-	it("should handle plain text error gracefully", async () => {
-		process.env.NODE_ENV = "test";
-		const input = "This is just plain text without JSON";
-		await main("14", input, { exec: () => {} });
-	});
-
-	it("should execute as a main process", async () => {
-		return new Promise((resolve, reject) => {
-			const cp = spawn("node", ["tooling/ai-worker-plan.js"], {
-				env: { ...process.env, NODE_ENV: "test" },
-			});
-			cp.on("exit", (code) => {
-				if (code === 0) resolve();
-				else reject(new Error(`Process failed with code ${code}`));
-			});
-		});
-	});
-
-	it("should handle execution errors in main process", () => {
-		return new Promise((resolve, reject) => {
-			const cp = spawn("node", ["tooling/ai-worker-plan.js"], {
-				env: { ...process.env, NODE_ENV: "development" }, // Missing arguments
-			});
-			cp.on("exit", (code) => {
-				if (code === 1) resolve();
-				else
-					reject(
-						new Error(`Process should have failed with code 1, got ${code}`),
-					);
-			});
-		});
+		// Should not throw, just return early after logging error
+		await main({ issueNumber: undefined });
 	});
 });

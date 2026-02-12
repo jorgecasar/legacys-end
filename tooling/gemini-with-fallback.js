@@ -2,33 +2,14 @@
 /**
  * Gemini with Intelligent Fallback and Structured Output
  *
- * Executes Gemini API calls using the new @google/genai SDK with automatic
- * fallback to cheaper/alternative models and support for JSON Schema.
+ * Using the official @google/genai SDK.
  */
 
-import { createClient } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { GEMINI_PRICING, MODEL_FALLBACK } from "./gemini-pricing.js";
 
 /**
- * @typedef {Object} GeminiResult
- * @property {any} data - Generated data (parsed JSON if schema provided, otherwise string)
- * @property {string} text - Raw generated text
- * @property {string} modelUsed - Model that was actually used
- * @property {number} inputTokens - Input tokens consumed
- * @property {number} outputTokens - Output tokens consumed
- * @property {Object} pricing - Pricing info for the model used
- */
-
-/**
- * Run Gemini with intelligent fallback and optional structured output
- *
- * @param {'flash'|'pro'|'image'} modelType - Model type to use
- * @param {string} prompt - Prompt text
- * @param {Object} [options] - Options
- * @param {string} [options.apiKey] - Gemini API key
- * @param {number} [options.maxRetries=3] - Max retries per model
- * @param {Object} [options.responseSchema] - JSON Schema for structured output
- * @returns {Promise<GeminiResult>} Result with model used and token counts
+ * Run Gemini with intelligent fallback and structured output
  */
 export async function runWithFallback(modelType, prompt, options = {}) {
 	const {
@@ -38,12 +19,13 @@ export async function runWithFallback(modelType, prompt, options = {}) {
 	} = options;
 
 	if (!apiKey) {
-		throw new Error("GEMINI_API_KEY required");
+		throw new Error("GEMINI_API_KEY required.");
 	}
 
-	const client = createClient({ apiKey });
+	// Instanciamos el cliente exactamente como en tu prueba de éxito
+	// El SDK de AI Studio espera 'apiKey' en el objeto de configuración
+	const ai = new GoogleGenAI({ apiKey: apiKey });
 	const models = MODEL_FALLBACK[modelType];
-
 	let lastError;
 
 	for (const modelName of models) {
@@ -51,25 +33,22 @@ export async function runWithFallback(modelType, prompt, options = {}) {
 
 		for (let attempt = 1; attempt <= maxRetries; attempt++) {
 			try {
-				const config = {
+				const params = {
 					model: modelName,
+					contents: [{ role: "user", parts: [{ text: prompt }] }],
 				};
 
-				// Configure structured output if schema provided
+				// Configuración nativa para Structured Output
 				if (responseSchema) {
-					config.generationConfig = {
-						responseMimeType: "application/json",
-						responseSchema: responseSchema,
+					params.config = {
+						response_mime_type: "application/json",
+						response_schema: responseSchema,
 					};
 				}
 
-				const result = await client.models.generateContent({
-					model: modelName,
-					contents: [{ role: "user", parts: [{ text: prompt }] }],
-					config: config.generationConfig,
-				});
+				// Llamada al modelo
+				const result = await ai.models.generateContent(params);
 
-				// New SDK structure for usage metadata
 				const usage = result.usageMetadata || {};
 				const inputTokens = usage.promptTokenCount || 0;
 				const outputTokens = usage.candidatesTokenCount || 0;
@@ -80,12 +59,22 @@ export async function runWithFallback(modelType, prompt, options = {}) {
 
 				let data = result.text;
 				if (responseSchema) {
-					try {
-						data = JSON.parse(result.text);
-					} catch (e) {
-						console.warn(
-							"Failed to parse structured output, returning raw text.",
-						);
+					if (result.parsed) {
+						data = result.parsed;
+					} else {
+						try {
+							const cleanJson = result.text
+								.replace(/```json\s*|```/g, "")
+								.trim();
+							data = JSON.parse(cleanJson);
+						} catch (e) {
+							const match = result.text.match(/\{[\s\S]*\}/);
+							if (match) {
+								data = JSON.parse(match[0]);
+							} else {
+								console.warn("Failed to parse JSON, returning raw text.");
+							}
+						}
 					}
 				}
 
@@ -104,9 +93,8 @@ export async function runWithFallback(modelType, prompt, options = {}) {
 					err.message,
 				);
 
-				const isRateLimit =
-					err.message?.includes("429") || err.message?.includes("quota");
-				if (isRateLimit) break; // Skip to next model
+				if (err.message?.includes("429") || err.message?.includes("quota"))
+					break;
 
 				if (attempt < maxRetries) {
 					await new Promise((r) => setTimeout(r, 1000 * 2 ** attempt));
