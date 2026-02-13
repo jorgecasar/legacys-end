@@ -12,7 +12,44 @@ export const ISSUE_RELATIONSHIP_TYPE = {
 };
 
 /**
- * Create a relationship between two issues via GraphQL
+ * Associate an issue as a sub-issue of another via GraphQL (Native Sub-issues)
+ * @param {Object} octokit - Octokit instance
+ * @param {string} parentNodeId - Parent issue node ID
+ * @param {string} subIssueNodeId - Sub-issue issue node ID
+ * @returns {Promise<Object|null>} Created relationship or null
+ */
+export async function addNativeSubIssue(octokit, parentNodeId, subIssueNodeId) {
+	const mutation = `
+		mutation($parent: ID!, $subIssue: ID!) {
+			addSubIssue(input: {
+				issueId: $parent
+				subIssueId: $subIssue
+			}) {
+				subIssue {
+					id
+				}
+			}
+		}
+	`;
+
+	try {
+		const result = await octokit.graphql({
+			query: mutation,
+			parent: parentNodeId,
+			subIssue: subIssueNodeId,
+			headers: {
+				"GraphQL-Features": "sub_issues",
+			},
+		});
+		return result.addSubIssue?.subIssue;
+	} catch (err) {
+		console.warn(`Failed to associate native sub-issue: ${err.message}`);
+		return null;
+	}
+}
+
+/**
+ * Create a relationship between two issues via GraphQL (Linked Issues)
  * @param {Object} octokit - Octokit instance
  * @param {string} sourceNodeId - Source issue node ID
  * @param {string} targetNodeId - Target issue node ID
@@ -54,10 +91,6 @@ export async function createIssueRelationship(
 
 /**
  * Mark issue A as blocked by issue B via GraphQL
- * @param {Object} octokit - Octokit instance
- * @param {number} blockedIssueNumber - Issue number that is blocked
- * @param {number} blockerIssueNumber - Issue number that blocks
- * @returns {Promise<Object|null>} Created relationship or null
  */
 export async function markIssueAsBlockedBy(
 	octokit,
@@ -158,20 +191,19 @@ export async function createSubtasks(octokit, parentIssueNumber, subtasks) {
 			});
 			const subtaskNumber = response.data.number;
 			console.log(`✓ Created sub-issue #${subtaskNumber}: ${sub.title}`);
-			created.push(subtaskNumber);
+			created.push({ number: subtaskNumber, title: sub.title });
 
 			// Create GraphQL relationship if parent node ID available
 			if (parentNodeId) {
 				const childNodeId = response.data.node_id;
-				const linked = await createIssueRelationship(
+				const linked = await addNativeSubIssue(
 					octokit,
 					parentNodeId,
 					childNodeId,
-					ISSUE_RELATIONSHIP_TYPE.TRACKED_BY,
 				);
 				if (linked) {
 					console.log(
-						`✓ Linked #${subtaskNumber} to parent #${parentIssueNumber} as tracked by`,
+						`✓ Linked #${subtaskNumber} to parent #${parentIssueNumber} natively as Sub-issue`,
 					);
 				}
 			}

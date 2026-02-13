@@ -33,14 +33,42 @@ export async function getIssueNodeId(octokit, params) {
 }
 
 /**
- * Check if an issue has open subtasks
+ * Check if an issue has open subtasks (Native Sub-issues)
  */
 export async function hasOpenSubtasks(octokit, { owner, repo, issueNumber }) {
-	const q = `repo:${owner}/${repo} in:body "Parent issue: #${issueNumber}" type:issue state:open`;
-	const search = await octokit.rest.search.issuesAndPullRequests({ q });
-	return search.data && search.data.total_count > 0
-		? search.data.total_count
-		: 0;
+	const query = `
+		query($owner: String!, $repo: String!, $number: Int!) {
+			repository(owner: $owner, name: $repo) {
+				issue(number: $number) {
+					subIssues(first: 10) {
+						nodes {
+							state
+						}
+					}
+				}
+			}
+		}
+	`;
+
+	try {
+		const result = await octokit.graphql({
+			query,
+			owner,
+			repo,
+			number: issueNumber,
+			headers: {
+				"GraphQL-Features": "sub_issues",
+			},
+		});
+
+		const subIssues = result.repository?.issue?.subIssues?.nodes || [];
+		const openSubIssues = subIssues.filter((si) => si.state === "OPEN");
+		return openSubIssues.length;
+	} catch (err) {
+		console.warn(`Failed to check native sub-issues: ${err.message}`);
+		// Fallback to 0 if check fails
+		return 0;
+	}
 }
 
 /**
