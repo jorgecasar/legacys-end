@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 import { OWNER, REPO } from "../config/index.js";
 import { runWithFallback } from "../gemini/index.js";
-import { fetchProjectItems, getIssue, getOctokit } from "../github/index.js";
-import { trackUsage } from "../monitoring/usage-tracker.js";
+import {
+	fetchProjectItems,
+	getIssue,
+	getOctokit,
+	getSubIssues,
+} from "../github/index.js";
 
 const TRIAGE_SCHEMA = {
 	type: "OBJECT",
@@ -44,14 +48,15 @@ const TRIAGE_SYSTEM_INSTRUCTION = `You are a Triage Agent. Analyze the provided 
 
 Model Selection Guidelines:
 - flash: Simple tasks, bug fixes in single files, documentation, or small refactors.
-- pro: Complex features, architectural changes, multiple files, or subtle logic bugs.
+- pro: Complex features, architectural changes, multiple files, or subtle logic bugs. If an issue has sub-issues, the parent should be handled by 'pro' to coordinate, while children might be 'flash'.
 - image: ONLY if the issue body contains UI/UX screenshots or requires visual analysis.
 - none: Questions, spam, or issues not requiring code changes.
 
 Output Requirements:
 - Return a JSON map where keys are issue numbers.
 - Each value MUST contain 'model', 'priority', and 'labels'.
-- Include "ai-triaged" in the labels array for every issue processed.`;
+- Include "ai-triaged" in the labels array for every issue processed.
+- If an issue seems to be a parent task (has high complexity or explicit sub-tasks mentions), assign it 'pro' model and P1/P0 priority.`;
 
 const TRIAGE_PROMPT_BATCH = `Issues to triage:
 
@@ -68,7 +73,11 @@ function createIssueBatches(issues, maxCharsPerBatch = MAX_CHARS_PER_BATCH) {
 	let currentSize = 0;
 
 	for (const issue of issues) {
-		const issueText = `Issue #${issue.number}: ${issue.title}\n${issue.body.substring(0, 500)}\n\n---\n\n`;
+		const subIssuesText =
+			issue.subIssues && issue.subIssues.length > 0
+				? `\nSub-issues count: ${issue.subIssues.length}`
+				: "";
+		const issueText = `Issue #${issue.number}: ${issue.title}\n${issue.body.substring(0, 500)}${subIssuesText}\n\n---\n\n`;
 		const issueSize = issueText.length;
 
 		// If adding this issue exceeds limit and we have items, start new batch
@@ -89,6 +98,59 @@ function createIssueBatches(issues, maxCharsPerBatch = MAX_CHARS_PER_BATCH) {
 	return batches;
 }
 
+async function getSubIssuesToProcess(octokit, items) {
+	const promises = items.map(async (item) => {
+		const itemsToProcess = [];
+		if (item.state === "OPEN") {
+			try {
+				const subIssueDetails = await getIssue(octokit, {
+					owner: OWNER,
+					repo: REPO,
+					issueNumber: item.number,
+				});
+
+				console.log(
+					`Debug - Checking sub-issue #${subIssueDetails.number} for ai-triaged label: ${subIssueDetails.labels
+						.map((l) => l.name)
+						.join(", ")}`,
+				);
+				if (
+					!subIssueDetails.labels.some((label) => label.name === "ai-triaged")
+				) {
+					itemsToProcess.unshift({
+						number: subIssueDetails.number,
+						title: subIssueDetails.title,
+						body: subIssueDetails.body || "",
+					});
+				}
+
+				// Get sub-issues of the current sub-issue
+				const nestedSubIssues = await getSubIssues(octokit, {
+					owner: OWNER,
+					repo: REPO,
+					issueNumber: item.number,
+				});
+
+				if (nestedSubIssues.length > 0) {
+					const recursiveResults = await getSubIssuesToProcess(
+						octokit,
+						nestedSubIssues,
+					);
+					itemsToProcess.push(...recursiveResults);
+				}
+			} catch (err) {
+				console.warn(
+					`Warning: Failed to process sub-issue #${item.number}: ${err.message}`,
+				);
+			}
+		}
+		return itemsToProcess;
+	});
+
+	const results = await Promise.all(promises);
+	return results.flat();
+}
+
 async function fetchPendingIssues(octokit) {
 	const items = await fetchProjectItems(octokit);
 	const issuesToProcess = [];
@@ -100,25 +162,12 @@ async function fetchPendingIssues(octokit) {
 				number: item.number,
 				title: item.title,
 				body: item.body || "",
+				subIssues: item.subIssues || [],
 			});
 		}
-
-		// Also add sub-issues that are open
-		if (item.subIssues && item.subIssues.length > 0) {
-			for (const subIssue of item.subIssues) {
-				if (subIssue.state === "OPEN") {
-					const subIssueDetails = await getIssue(octokit, {
-						owner: OWNER,
-						repo: REPO,
-						issueNumber: subIssue.number,
-					});
-					issuesToProcess.push({
-						number: subIssueDetails.number,
-						title: subIssueDetails.title,
-						body: subIssueDetails.body || "",
-					});
-				}
-			}
+		if (item.subIssues?.length > 0) {
+			const subIssues = await getSubIssuesToProcess(octokit, item.subIssues);
+			issuesToProcess.push(...subIssues);
 		}
 	}
 
@@ -138,16 +187,34 @@ export async function triageIssues() {
 	let issuesToProcess = [];
 
 	if (issueNumberArg) {
+		const issueNumber = Number.parseInt(issueNumberArg, 10);
 		const issue = await getIssue(octokit, {
 			owner: OWNER,
 			repo: REPO,
-			issueNumber: Number.parseInt(issueNumberArg, 10),
+			issueNumber,
 		});
+
+		// Fetch sub-issues for the specific issue
+		const subIssues = await getSubIssues(octokit, {
+			owner: OWNER,
+			repo: REPO,
+			issueNumber,
+		});
+
 		issuesToProcess.push({
 			number: issue.number,
 			title: issue.title,
 			body: issue.body || "",
+			subIssues: subIssues || [],
 		});
+
+		if (subIssues.length > 0) {
+			const recursiveSubIssues = await getSubIssuesToProcess(
+				octokit,
+				subIssues,
+			);
+			issuesToProcess.push(...recursiveSubIssues);
+		}
 	} else {
 		issuesToProcess = await fetchPendingIssues(octokit);
 	}
@@ -248,16 +315,12 @@ export async function triageIssues() {
 			const data = triageData[issue.number] || triageData[String(issue.number)];
 			if (!data) continue;
 
-			await trackUsage({
-				owner: OWNER,
-				repo: REPO,
-				issueNumber: issue.number,
+			data.usage = {
 				model: modelUsed,
 				inputTokens: distributedBaseTokens,
 				outputTokens: perIssueOutputTokens,
 				operation: "triage",
-				octokit,
-			});
+			};
 		}
 
 		if (process.env.GITHUB_OUTPUT) {

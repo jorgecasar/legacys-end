@@ -159,7 +159,29 @@ export async function createSubtasks(octokit, parentIssueNumber, subtasks) {
 		return [];
 	}
 
-	console.log(`Creating ${actionableSubs.length} subtask(s)...`);
+	console.log(
+		`Checking for duplicates before creating ${actionableSubs.length} subtask(s)...`,
+	);
+
+	// 1. Fetch existing open issues that reference this parent
+	let existingReferences = [];
+	try {
+		const { data: openIssues } = await octokit.rest.issues.listForRepo({
+			owner: OWNER,
+			repo: REPO,
+			state: "open",
+			per_page: 100, // Reasonable limit to check recent duplicates
+		});
+
+		existingReferences = openIssues.filter(
+			(i) => i.body && i.body.includes(`Parent issue: #${parentIssueNumber}`),
+		);
+	} catch (err) {
+		console.warn(
+			`Warning: Could not check for existing duplicates: ${err.message}`,
+		);
+	}
+
 	const created = [];
 
 	// Get parent issue node ID
@@ -181,6 +203,19 @@ export async function createSubtasks(octokit, parentIssueNumber, subtasks) {
 	}
 
 	for (const sub of actionableSubs) {
+		// Check for duplicate by title match within the filtered list
+		const isDuplicate = existingReferences.some(
+			(existing) =>
+				existing.title === sub.title || existing.title.includes(sub.title),
+		);
+
+		if (isDuplicate) {
+			console.log(
+				`⚠️  Skipping duplicate subtask: "${sub.title}" (already exists)`,
+			);
+			continue;
+		}
+
 		try {
 			const bodyText = `Parent issue: #${parentIssueNumber}.\n\nGoal: ${sub.goal || ""}`;
 			const response = await octokit.rest.issues.create({
@@ -204,6 +239,10 @@ export async function createSubtasks(octokit, parentIssueNumber, subtasks) {
 				if (linked) {
 					console.log(
 						`✓ Linked #${subtaskNumber} to parent #${parentIssueNumber} natively as Sub-issue`,
+					);
+				} else {
+					console.warn(
+						`⚠️  Failed to link #${subtaskNumber} as native sub-issue. It remains as a text-linked issue.`,
 					);
 				}
 			}

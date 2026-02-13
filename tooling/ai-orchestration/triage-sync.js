@@ -5,6 +5,7 @@ import {
 	getOctokit,
 	updateProjectField,
 } from "../github/index.js";
+import { trackUsage } from "../monitoring/usage-tracker.js";
 
 export async function syncTriageData(
 	input = process.argv[2],
@@ -28,7 +29,7 @@ export async function syncTriageData(
 		return;
 	}
 
-	const { issue_number, model, priority, labels = [] } = data;
+	const { issue_number, model, priority, labels = [], usage } = data;
 	console.log(
 		`Debug - Syncing: issue=${issue_number}, model=${model}, priority=${priority}`,
 	);
@@ -77,7 +78,7 @@ export async function syncTriageData(
 		await updateProjectField(octokit, itemId, FIELD_IDS.model, model);
 	}
 
-	// 7. Update Labels on the issue itself
+	// 6. Update Labels on the issue itself
 	if (labels.length > 0) {
 		await octokit.rest.issues.addLabels({
 			owner: OWNER,
@@ -85,6 +86,30 @@ export async function syncTriageData(
 			issue_number: issueNumber,
 			labels,
 		});
+	}
+
+	// 7. Usage Tracking & Cost Update (Combined)
+	if (usage) {
+		console.log("Tracking usage and updating cost...");
+		const metrics = await trackUsage({
+			owner: OWNER,
+			repo: REPO,
+			issueNumber,
+			model: usage.model,
+			inputTokens: usage.inputTokens,
+			outputTokens: usage.outputTokens,
+			operation: usage.operation || "triage",
+			octokit,
+			skipProjectUpdate: true,
+		});
+
+		// Update Cost Field in Project V2 (using existing itemId)
+		await updateProjectField(
+			octokit,
+			itemId,
+			FIELD_IDS.cost,
+			Number(metrics.totalCost.toFixed(8)),
+		);
 	}
 
 	console.log("Sync complete.");

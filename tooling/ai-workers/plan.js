@@ -187,8 +187,8 @@ export async function createTechnicalPlan({
 				console.log(`  - Created sub-task #${sub.number}: ${sub.title}`);
 			}
 
-			// 3. Mark parent as Paused
-			console.log(`Marking parent task #${issueNumber} as Paused...`);
+			// 3. Mark parent as Paused and Upgrade Complexity
+			console.log(`Updating parent task #${issueNumber} (Paused, Pro, P1)...`);
 			try {
 				const nodeId = await getIssueNodeId(octokit, {
 					owner: OWNER,
@@ -196,15 +196,33 @@ export async function createTechnicalPlan({
 					issueNumber,
 				});
 				const itemId = await addIssueToProject(octokit, nodeId);
+
+				// Status -> Paused
 				await updateProjectField(
 					octokit,
 					itemId,
 					FIELD_IDS.status,
 					OPTION_IDS.status.paused,
 				);
-				console.log(`✓ Task #${issueNumber} status set to Paused.`);
+
+				// Model -> pro
+				await updateProjectField(octokit, itemId, FIELD_IDS.model, "pro");
+
+				// Priority -> P1 (High)
+				await updateProjectField(
+					octokit,
+					itemId,
+					FIELD_IDS.priority,
+					OPTION_IDS.priority.p1,
+				);
+
+				console.log(
+					`✓ Task #${issueNumber} updated: Status=Paused, Model=Pro, Priority=P1.`,
+				);
 			} catch (err) {
-				console.warn(`Warning: Could not set status to Paused: ${err.message}`);
+				console.warn(
+					`Warning: Could not update parent task fields: ${err.message}`,
+				);
 			}
 		}
 

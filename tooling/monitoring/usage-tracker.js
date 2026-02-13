@@ -57,6 +57,7 @@ export async function trackUsage({
 	outputTokens,
 	operation,
 	octokit,
+	skipProjectUpdate = false,
 }) {
 	// Initialize Octokit if not provided
 	if (!octokit) {
@@ -88,13 +89,15 @@ export async function trackUsage({
 	};
 
 	// 4. Update Project Cost Field (Cumulative)
-	await updateProjectCost(
-		octokit,
-		owner,
-		repo,
-		issueNumber,
-		accumulated.totalCost,
-	);
+	if (!skipProjectUpdate) {
+		await updateProjectCost(
+			octokit,
+			owner,
+			repo,
+			issueNumber,
+			accumulated.totalCost,
+		);
+	}
 
 	// 5. Post/update usage comment
 	await postUsageComment(octokit, owner, repo, issueNumber, accumulated);

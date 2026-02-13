@@ -33,6 +33,45 @@ export async function getIssueNodeId(octokit, params) {
 }
 
 /**
+ * Get sub-issues of an issue
+ */
+export async function getSubIssues(octokit, { owner, repo, issueNumber }) {
+	const query = `
+		query($owner: String!, $repo: String!, $number: Int!) {
+			repository(owner: $owner, name: $repo) {
+				issue(number: $number) {
+					subIssues(first: 10) {
+						nodes {
+							number
+							state
+						}
+					}
+				}
+			}
+		}
+	`;
+
+	try {
+		const result = await octokit.graphql({
+			query,
+			owner,
+			repo,
+			number: issueNumber,
+			headers: {
+				"GraphQL-Features": "sub_issues",
+			},
+		});
+		const nodes = result.repository?.issue?.subIssues?.nodes || [];
+		return nodes;
+	} catch (err) {
+		console.warn(
+			`Failed to fetch sub-issues for #${issueNumber}: ${err.message}`,
+		);
+		return [];
+	}
+}
+
+/**
  * Check if an issue has open subtasks (Native Sub-issues)
  */
 export async function hasOpenSubtasks(octokit, { owner, repo, issueNumber }) {

@@ -140,7 +140,7 @@ describe("AI Agent Flow Integration", () => {
 		assert.strictEqual(triageResult.triageData["8"].model, "flash");
 
 		// --- Step 2: Planning ---
-		// Simulate what ai-agent-flow.js does: set env vars
+		// Simulate what agent-flow.js does: set env vars
 		process.env.ISSUE_NUMBER = "8";
 		process.env.ISSUE_TITLE = "Implement Quest Data Validation";
 		process.env.ISSUE_BODY = "Validation logic needed for quest system.";
