@@ -1,5 +1,11 @@
 import { execSync } from "node:child_process";
-import { FIELD_IDS, OPTION_IDS, PROJECT_ID } from "../config/index.js";
+import {
+	FIELD_IDS,
+	OPTION_IDS,
+	OWNER,
+	PROJECT_ID,
+	REPO,
+} from "../config/index.js";
 import { getOctokit, updateProjectField } from "../github/index.js";
 
 export async function orchestrateExecution({
@@ -145,7 +151,17 @@ export async function orchestrateExecution({
 	}
 
 	console.log(`Dispatching AI Worker for issue #${selectedTask.number}...`);
-	exec(`gh workflow run ai-worker.yml -f issue_number=${selectedTask.number}`);
+	try {
+		const command = `gh workflow run ai-worker.yml -f issue_number=${selectedTask.number} --repo ${OWNER}/${REPO} --ref main`;
+		console.log(`Running: ${command}`);
+		const output = exec(command, { encoding: "utf8" });
+		if (output) console.log(`Output: ${output}`);
+		console.log("✓ Dispatch successful.");
+	} catch (err) {
+		console.error(`❌ Failed to dispatch worker: ${err.message}`);
+		if (err.stderr) console.error(`Stderr: ${err.stderr}`);
+		throw err;
+	}
 	return selectedTask;
 }
 
