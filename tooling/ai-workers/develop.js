@@ -44,6 +44,7 @@ const DEVELOP_SYSTEM_INSTRUCTION = `You are a Developer Agent. Your task is to i
 
 **PROJECT CONTEXT (STRICT):**
 - **Language: JavaScript ONLY.** Do NOT use TypeScript syntax (like \`: type\`, \`public\`, \`private\`, \`interface\`). Use JSDoc for types if necessary.
+- **Testing:** This project uses **Vitest**. For all test files (\`*.test.js\`), you **MUST** include \`import { describe, it, expect } from 'vitest';\` at the top.
 - **Style:** Follow existing project conventions (Clean Architecture, Lit standards, etc.).
 
 **CRITICAL INSTRUCTION:** You **MUST** generate the complete code for the files listed in the plan.
@@ -146,6 +147,17 @@ export async function implementPlan() {
 		}
 
 		console.log(`Applying ${data.changes.length} changes...`);
+
+		// Programmatic Guardrail: Validate file extensions
+		const allowedExtensions = [".js", ".json", ".md", ".css", ".html"];
+		for (const change of data.changes) {
+			const extension = path.extname(change.path);
+			if (!allowedExtensions.includes(extension)) {
+				throw new Error(
+					`Invalid file extension found: "${extension}" in path "${change.path}". Only ${allowedExtensions.join(", ")} are allowed.`,
+				);
+			}
+		}
 
 		for (const change of data.changes) {
 			const fullPath = path.resolve(process.cwd(), change.path);
