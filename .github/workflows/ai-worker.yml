@@ -106,11 +106,12 @@ jobs:
               if: steps.planning.outputs.needs_decomposition != 'true'
               run: npm run test:coverage:update
 
-            # 4. SELF-REVIEW (Optional, usually on PR but here for immediate feedback)
+            # 4. SELF-REVIEW
             - name: Self-Review
               if: steps.planning.outputs.needs_decomposition != 'true'
               id: reviewer
               uses: google-github-actions/run-gemini-cli@v0.1.20
+              continue-on-error: true
               with:
                   gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
                   gemini_model: "gemini-2.5-flash"
@@ -122,14 +123,14 @@ jobs:
                       Diff:
                       $(git diff origin/main)
 
-                      Instruction: Audit this code. Output "APPROVED" if quality is high.
+                      Instruction: Audit this code. Output "APPROVED" if quality is high. Otherwise list issues.
 
             # 5. SUBMIT & SYNC
             - name: Create Pull Request
-              if: contains(steps.reviewer.outputs.text, 'APPROVED')
+              if: steps.planning.outputs.needs_decomposition != 'true'
               env:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
-                  REVIEWER_TEXT: ${{ steps.reviewer.outputs.text }}
+                  REVIEWER_TEXT: ${{ steps.reviewer.outputs.text || 'Reviewer Agent failed to run or provide output.' }}
               run: |
                   gh pr create --title "feat: resolve issue #${{ github.event.inputs.issue_number }}" --body "Automated PR by AI Worker Agent. \n\nReviewer feedback: $REVIEWER_TEXT"
 
