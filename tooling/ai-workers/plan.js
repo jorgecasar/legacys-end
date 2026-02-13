@@ -65,7 +65,12 @@ Output Requirements:
 - methodology: Describe the TDD approach.
 - slug: use kebab-case for the branch name (e.g., 'fix-auth-logic').
 - files_to_touch: Mention ALL files involved.
-- decomposition: Only suggest sub-tasks if the issue is high-complexity.`;
+
+Decomposition Criteria (STRICT):
+- ONLY decompose if the task requires modifying >5 distinct files OR involves multiple distinct logical domains (e.g., backend API + frontend UI + database migration).
+- DO NOT decompose if the task is "implement interface", "add type", "create simple component", or "refactor function".
+- DO NOT decompose if the task is already a sub-task (check title context).
+- If the task can be completed in < 200 lines of code change, DO NOT decompose.`;
 
 const PLAN_PROMPT = `Create a technical plan for:
 Issue #{{ISSUE_NUMBER}}
