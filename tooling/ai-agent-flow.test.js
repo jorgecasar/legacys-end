@@ -87,7 +87,7 @@ mock.method(process, "exit", (code) => {
 });
 
 // 3. Mock execSync globally for the tests
-const execMock = mock.fn((cmd) => {
+const execMock = mock.fn((_cmd) => {
 	return "";
 });
 

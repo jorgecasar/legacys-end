@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-import { Octokit } from "@octokit/rest";
+import { OWNER, REPO } from "../config/index.js";
 import { runWithFallback } from "../gemini/index.js";
+import { fetchProjectItems, getIssue, getOctokit } from "../github/index.js";
 import { trackUsage } from "../monitoring/usage-tracker.js";
 
 const TRIAGE_SCHEMA = {
@@ -56,65 +57,37 @@ const TRIAGE_PROMPT_BATCH = `Issues to triage:
 
 {{ISSUES}}`;
 
-import { OWNER, PROJECT_ID, REPO } from "../config/index.js";
-
 async function fetchPendingIssues(octokit) {
-	const result = await octokit.graphql(
-		`query($projectId: ID!) {
-			node(id: $projectId) {
-				... on ProjectV2 {
-					items(first: 20) {
-						nodes {
-							id
-							content {
-								... on Issue {
-									number
-									title
-									body
-									labels(first: 10) { nodes { name } }
-								}
-							}
-							fieldValueByName(name: "Status") {
-								... on ProjectV2ItemFieldSingleSelectValue { name }
-							}
-						}
-					}
-				}
-			}
-		}`,
-		{ projectId: PROJECT_ID },
-	);
+	const items = await fetchProjectItems(octokit);
 
-	return result.node.items.nodes
+	return items
 		.filter((item) => {
-			const status = item.fieldValueByName?.name;
-			const issue = item.content;
-			if (!issue || status !== "Todo") return false;
-			return !issue.labels?.nodes.some((l) => l.name === "ai-triaged");
+			return item.status === "Todo" && !item.labels.includes("ai-triaged");
 		})
 		.map((item) => ({
-			number: item.content.number,
-			title: item.content.title,
-			body: item.content.body || "",
+			number: item.number,
+			title: item.title,
+			body: item.body || "",
 		}));
 }
 
 export async function triageIssues() {
-	const token = process.env.GH_TOKEN;
-	if (!token) {
-		console.error("Missing GH_TOKEN");
+	let octokit;
+	try {
+		octokit = getOctokit();
+	} catch (err) {
+		console.error(err.message);
 		process.exit(1);
 	}
 
-	const octokit = new Octokit({ auth: token });
 	const issueNumberArg = process.env.GITHUB_ISSUE_NUMBER;
 	let issuesToProcess = [];
 
 	if (issueNumberArg) {
-		const { data: issue } = await octokit.rest.issues.get({
+		const issue = await getIssue(octokit, {
 			owner: OWNER,
 			repo: REPO,
-			issue_number: Number.parseInt(issueNumberArg, 10),
+			issueNumber: Number.parseInt(issueNumberArg, 10),
 		});
 		issuesToProcess.push({
 			number: issue.number,

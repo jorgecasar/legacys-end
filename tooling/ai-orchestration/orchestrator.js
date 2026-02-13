@@ -1,77 +1,19 @@
 import { execSync } from "node:child_process";
+import { FIELD_IDS, OPTION_IDS, OWNER, REPO } from "../config/index.js";
 import {
-	FIELD_IDS,
-	OPTION_IDS,
-	OWNER,
-	PROJECT_ID,
-	REPO,
-} from "../config/index.js";
-import { getOctokit, updateProjectField } from "../github/index.js";
+	fetchProjectItems,
+	getOctokit,
+	updateProjectField,
+} from "../github/index.js";
 
 export async function orchestrateExecution({
 	exec = execSync,
 	octokit: injectedOctokit,
 } = {}) {
 	const octokit = injectedOctokit || getOctokit();
-	console.log("Fetching project items via GraphQL...");
+	console.log("Fetching project items...");
 
-	const query = `
-		query($projectId: ID!) {
-			node(id: $projectId) {
-				... on ProjectV2 {
-					items(first: 50) {
-						nodes {
-							id
-							content {
-								... on Issue {
-									number
-									title
-									body
-									labels(first: 10) {
-										nodes { name }
-									}
-									parent {
-										number
-										labels(first: 10) {
-											nodes { name }
-										}
-									}
-									subIssues(first: 10) {
-										nodes {
-											number
-											state
-										}
-									}
-								}
-							}
-							status: fieldValueByName(name: "Status") {
-								... on ProjectV2ItemFieldSingleSelectValue { name }
-							}
-							priority: fieldValueByName(name: "Priority") {
-								... on ProjectV2ItemFieldSingleSelectValue { name }
-							}
-						}
-					}
-				}
-			}
-		}
-	`;
-
-	const result = await octokit.graphql(query, { projectId: PROJECT_ID });
-	const items = result.node.items.nodes
-		.map((item) => ({
-			id: item.id,
-			number: item.content?.number,
-			title: item.content?.title,
-			body: item.content?.body,
-			status: item.status?.name,
-			priority: item.priority?.name,
-			labels: item.content?.labels?.nodes.map((l) => l.name) || [],
-			parentLabels:
-				item.content?.parent?.labels?.nodes.map((l) => l.name) || [],
-			subIssues: item.content?.subIssues?.nodes || [],
-		}))
-		.filter((i) => i.number);
+	const items = await fetchProjectItems(octokit);
 
 	// 1. Filter candidates (Todo or Paused)
 	const candidates = items.filter((item) => {

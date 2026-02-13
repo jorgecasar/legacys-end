@@ -1,5 +1,4 @@
 import assert from "node:assert";
-import { execSync } from "node:child_process";
 import { describe, it, mock } from "node:test";
 
 process.env.NODE_ENV = "test";
@@ -37,6 +36,7 @@ mock.module("../github/index.js", {
 				},
 			},
 		}),
+		hasOpenSubtasks: async () => 0,
 	},
 });
 

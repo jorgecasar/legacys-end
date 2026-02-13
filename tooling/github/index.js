@@ -13,15 +13,34 @@ export function getOctokit() {
 }
 
 /**
- * Resolve an issue number to its GraphQL node_id
+ * Resolve an issue number to its details
  */
-export async function getIssueNodeId(octokit, { owner, repo, issueNumber }) {
+export async function getIssue(octokit, { owner, repo, issueNumber }) {
 	const { data: issue } = await octokit.rest.issues.get({
 		owner,
 		repo,
 		issue_number: issueNumber,
 	});
+	return issue;
+}
+
+/**
+ * Resolve an issue number to its GraphQL node_id
+ */
+export async function getIssueNodeId(octokit, params) {
+	const issue = await getIssue(octokit, params);
 	return issue.node_id;
+}
+
+/**
+ * Check if an issue has open subtasks
+ */
+export async function hasOpenSubtasks(octokit, { owner, repo, issueNumber }) {
+	const q = `repo:${owner}/${repo} in:body "Parent issue: #${issueNumber}" type:issue state:open`;
+	const search = await octokit.rest.search.issuesAndPullRequests({ q });
+	return search.data && search.data.total_count > 0
+		? search.data.total_count
+		: 0;
 }
 
 /**
@@ -77,4 +96,67 @@ export async function updateProjectField(octokit, itemId, fieldId, value) {
 			value: valuePayload,
 		},
 	);
+}
+
+/**
+ * Fetch items from the Project V2
+ */
+export async function fetchProjectItems(octokit) {
+	const query = `
+		query($projectId: ID!) {
+			node(id: $projectId) {
+				... on ProjectV2 {
+					items(first: 50) {
+						nodes {
+							id
+							content {
+								... on Issue {
+									number
+									title
+									body
+									labels(first: 10) {
+										nodes { name }
+									}
+									parent {
+										number
+										labels(first: 10) {
+											nodes { name }
+										}
+									}
+									subIssues(first: 10) {
+										nodes {
+											number
+											state
+										}
+									}
+								}
+							}
+							status: fieldValueByName(name: "Status") {
+								... on ProjectV2ItemFieldSingleSelectValue { name }
+							}
+							priority: fieldValueByName(name: "Priority") {
+								... on ProjectV2ItemFieldSingleSelectValue { name }
+							}
+						}
+					}
+				}
+			}
+		}
+	`;
+
+	const result = await octokit.graphql(query, { projectId: PROJECT_ID });
+	return result.node.items.nodes
+		.map((item) => ({
+			id: item.id,
+			number: item.content?.number,
+			title: item.content?.title,
+			body: item.content?.body,
+			status: item.status?.name,
+			priority: item.priority?.name,
+			labels: item.content?.labels?.nodes.map((l) => l.name) || [],
+			parentLabels:
+				item.content?.parent?.labels?.nodes.map((l) => l.name) || [],
+			subIssues: item.content?.subIssues?.nodes || [],
+		}))
+		.filter((i) => i.number);
 }

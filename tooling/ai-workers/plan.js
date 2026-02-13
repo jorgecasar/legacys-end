@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { OWNER, REPO, writeGitHubOutput } from "../config/index.js";
 import { runWithFallback } from "../gemini/index.js";
 import { createSubtasks } from "../github/client.js";
-import { getOctokit } from "../github/index.js";
+import { getOctokit, hasOpenSubtasks } from "../github/index.js";
 
 const PLAN_SCHEMA = {
 	type: "OBJECT",
@@ -79,14 +79,17 @@ export async function createTechnicalPlan({
 
 	// Before generating a plan, check if the issue has open child/sub-issues
 	try {
-		const q = `repo:${OWNER}/${REPO} in:body "Parent issue: #${issueNumber}" type:issue state:open`;
-		const search = await octokit.rest.search.issuesAndPullRequests({ q });
-		if (search.data && search.data.total_count > 0) {
+		const count = await hasOpenSubtasks(octokit, {
+			owner: OWNER,
+			repo: REPO,
+			issueNumber,
+		});
+		if (count > 0) {
 			console.log(
-				`Issue #${issueNumber} has ${search.data.total_count} open child issue(s). Skipping planning.`,
+				`Issue #${issueNumber} has ${count} open child issue(s). Skipping planning.`,
 			);
 			writeGitHubOutput("blocked", "true");
-			writeGitHubOutput("blocked_children", String(search.data.total_count));
+			writeGitHubOutput("blocked_children", String(count));
 			// Ensure workflow outputs exist and indicate no decomposition
 			writeGitHubOutput("needs_decomposition", "false");
 			writeGitHubOutput("methodology", "");
@@ -147,8 +150,15 @@ export async function createTechnicalPlan({
 			plan.sub_tasks.length > 0 &&
 			plan.needs_decomposition
 		) {
-			console.log("Decomposing into sub-issues...");
-			await createSubtasks(octokit, issueNumber, plan.sub_tasks);
+			console.log(`Decomposing into ${plan.sub_tasks.length} sub-tasks...`);
+			const created = await createSubtasks(
+				octokit,
+				issueNumber,
+				plan.sub_tasks,
+			);
+			for (const sub of created) {
+				console.log(`  - Created sub-task #${sub.number}: ${sub.title}`);
+			}
 		}
 
 		// 3. Output for workflow
