@@ -4,7 +4,7 @@
  *
  * Aggregates results from AI Worker phases and updates GitHub issue/project.
  */
-
+import { fileURLToPath } from "node:url";
 import { FIELD_IDS, OPTION_IDS } from "../config/index.js";
 import {
 	addIssueToProject,
@@ -109,8 +109,6 @@ export async function syncWorkerResults() {
 
 	console.log("✅ Results synchronization complete.");
 }
-
-import { fileURLToPath } from "node:url";
 
 if (fileURLToPath(import.meta.url) === process.argv[1]) {
 	syncWorkerResults().catch((err) => {

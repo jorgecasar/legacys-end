@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { FIELD_IDS, OPTION_IDS, OWNER, REPO } from "../config/index.js";
 import {
 	fetchProjectItems,
@@ -268,8 +269,6 @@ export async function orchestrateExecution({ octokit: injectedOctokit } = {}) {
 	}
 	return selectedTask;
 }
-
-import { fileURLToPath } from "node:url";
 
 if (fileURLToPath(import.meta.url) === process.argv[1]) {
 	orchestrateExecution().catch((err) => {

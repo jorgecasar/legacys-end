@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { writeGitHubOutput } from "../config/index.js";
 import { runWithFallback } from "../gemini/index.js";
 
@@ -41,16 +42,19 @@ const DEVELOP_SCHEMA = {
 
 const DEVELOP_SYSTEM_INSTRUCTION = `You are a Developer Agent. Your task is to implement the technical plan for a given issue by generating the necessary code changes.
 
+**PROJECT CONTEXT (STRICT):**
+- **Language: JavaScript ONLY.** Do NOT use TypeScript syntax (like \`: type\`, \`public\`, \`private\`, \`interface\`). Use JSDoc for types if necessary.
+- **Style:** Follow existing project conventions (Clean Architecture, Lit standards, etc.).
+
 **CRITICAL INSTRUCTION:** You **MUST** generate the complete code for the files listed in the plan.
 - If a file does not exist, you must create it using the "create" operation.
 - If a file already exists, you must replace its entire content using the "write" operation.
 - Do not leave any file content blank unless the plan explicitly says so.
 
-Output Requirements:
-- Return a JSON object with a 'changes' array and a 'commit_message'.
+**OUTPUT REQUIREMENTS (STRICT):**
+- Return a **perfectly valid JSON object** with a 'changes' array and a 'commit_message'.
+- **CRITICAL for JSON validity:** All strings, especially the 'content' field which contains code, MUST be properly escaped. Pay close attention to quotes (") and backslashes (\\).
 - Each change must have 'path', 'operation', and 'content'.
-- Avoid boilerplate comments; provide complete, functional code.
-- Ensure all paths are relative to the project root.
 - The 'commit_message' MUST follow Conventional Commits (type(scope): description) and be specific to the implementation details.`;
 
 const DEVELOP_PROMPT = `Implement solutions for:
@@ -172,8 +176,6 @@ export async function implementPlan() {
 		if (process.env.NODE_ENV !== "test") process.exit(1);
 	}
 }
-
-import { fileURLToPath } from "node:url";
 
 if (fileURLToPath(import.meta.url) === process.argv[1]) {
 	implementPlan().catch((err) => {

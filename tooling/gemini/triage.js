@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { fileURLToPath } from "node:url";
 import { OWNER, REPO } from "../config/index.js";
 import { runWithFallback } from "../gemini/index.js";
 import {
@@ -341,8 +342,6 @@ export async function triageIssues() {
 		process.exit(1);
 	}
 }
-
-import { fileURLToPath } from "node:url";
 
 if (fileURLToPath(import.meta.url) === process.argv[1]) {
 	triageIssues().catch((err) => {

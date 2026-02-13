@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { FIELD_IDS, OPTION_IDS, OWNER, REPO } from "../config/index.js";
 import {
 	addIssueToProject,
@@ -114,8 +115,6 @@ export async function syncTriageData(
 
 	console.log("Sync complete.");
 }
-
-import { fileURLToPath } from "node:url";
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	syncTriageData().catch((err) => {
