@@ -190,23 +190,61 @@ export async function createTechnicalPlan({
 
 		console.log(`Plan received. Methodology: ${plan.methodology}`);
 
-		// 1. Create a task branch (Only if NOT decomposing)
+		// 1. Create or Checkout task branch (Only if NOT decomposing)
 		if (!plan.needs_decomposition) {
-			const branchName = `task/issue-${issueNumber}-${plan.slug || "work"}`;
-			console.log(`Creating branch ${branchName}...`);
-			try {
-				execSync(`git checkout -b ${branchName}`);
-			} catch (_) {
-				execSync(`git checkout ${branchName}`);
-			}
+			const branchPrefix = `task/issue-${issueNumber}-`;
+			let branchName = `${branchPrefix}${plan.slug || "work"}`;
 
-			// Push the branch immediately
+			console.log(
+				`Checking for existing branches starting with ${branchPrefix}...`,
+			);
 			try {
-				execSync(`git push -u origin ${branchName}`);
-			} catch (pushErr) {
-				console.warn(
-					`Warning: Could not push branch ${branchName}: ${pushErr.message}`,
+				// Fetch branches to ensure we see remotes
+				execSync("git fetch origin");
+				const branches = execSync(
+					`git branch -r --list "origin/${branchPrefix}*"`,
+					{
+						encoding: "utf8",
+					},
 				);
+
+				if (branches.trim()) {
+					// Branch exists! Use the first one found.
+					const existingBranch = branches
+						.split("\n")[0]
+						.trim()
+						.replace("origin/", "");
+					console.log(`Found existing branch: ${existingBranch}. Using it.`);
+					branchName = existingBranch;
+
+					// Checkout and track remote
+					try {
+						execSync(`git checkout ${branchName}`);
+						execSync(`git pull --rebase origin ${branchName}`);
+					} catch (e) {
+						// If local branch doesn't exist but remote does
+						execSync(`git checkout -b ${branchName} origin/${branchName}`);
+					}
+				} else {
+					// Create new branch
+					console.log(`Creating new branch ${branchName}...`);
+					try {
+						execSync(`git checkout -b ${branchName}`);
+						execSync(`git push -u origin ${branchName}`);
+					} catch (e) {
+						// Fallback if branch exists locally but not remote (rare edge case here)
+						execSync(`git checkout ${branchName}`);
+					}
+				}
+			} catch (err) {
+				console.warn(
+					`Warning: Branch detection failed, falling back to new branch creation: ${err.message}`,
+				);
+				try {
+					execSync(`git checkout -b ${branchName}`);
+				} catch (_) {
+					execSync(`git checkout ${branchName}`);
+				}
 			}
 		}
 
