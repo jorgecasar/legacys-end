@@ -32,7 +32,7 @@ jobs:
               uses: astral-sh/setup-uv@v5
 
             - name: Intall dependencies
-              run: npm install
+              run: npm ci || npm install
 
             - name: Generate AI Rules
               run: npx rulesync generate
@@ -90,14 +90,17 @@ jobs:
                   git config --global user.name "github-actions[bot]"
                   git config --global user.email "github-actions[bot]@users.noreply.github.com"
                   
-                  # Rebase from main to ensure clean history and avoid conflicts
+                  # 1. Stage all changes (code + any generated artifacts)
+                  git add .
+                  
+                  # 2. Commit locally
+                  git commit -m "$COMMIT_MESSAGE" || echo "No changes to commit"
+                  
+                  # 3. Pull latest main and rebase our new commit on top
                   git fetch origin main
                   git pull --rebase origin main
                   
-                  git add .
-                  git commit -m "$COMMIT_MESSAGE" || echo "No changes to commit"
-                  
-                  # Push to the current branch, setting upstream if needed
+                  # 4. Push to the current branch
                   git push -u origin HEAD
 
             # 3. VERIFICATION
