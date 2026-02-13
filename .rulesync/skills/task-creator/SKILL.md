@@ -39,25 +39,27 @@ Link to a parent epic or related issue if applicable.
     - `[ ] The "Reset Password" button is visible on the login page.`
     - `[ ] A storybook entry for the new component is created.`
 
+#### Dependencies (for sub-tasks)
+- **Format**: When decomposing a task, list the numeric IDs of the tasks that MUST be completed before this one.
+- **Example**: `Dependencies: [1, 3]` (This task is blocked by sub-task 1 and 3).
+
 ## Example
 
-**Title**: `feat(ui): create reusable confirmation-dialog component`
+**Title**: `refactor(auth): migrate to JWT authentication`
 
 **Body**:
+This is a large task. It needs to be decomposed.
 
-Parent issue: #42
-
-**Goal**
-To provide a standardized, reusable confirmation dialog (`<confirmation-dialog>`) for actions that require user confirmation, such as deleting an item. This will improve UI consistency and reduce code duplication.
-
-**Key Responsibilities**
-1.  Create a new Lit component at `src/components/confirmation-dialog/`.
-2.  The component should accept `title`, `message`, and `confirmLabel` as properties.
-3.  It should emit a `confirm` event when the primary action is clicked and a `cancel` event when closed.
-4.  Use the project's existing `@lit/context` provider for theming.
-
-**Acceptance Criteria**
-- [ ] A new file `src/components/confirmation-dialog/ConfirmationDialog.js` exists.
-- [ ] A Storybook story is created for the component with controls for all properties.
-- [ ] The `confirm` and `cancel` events are documented and tested.
-- [ ] The component is fully accessible (passes axe-core tests).
+**Sub-tasks Plan:**
+1.  **`feat(auth): add JWT library and config`**
+    - Goal: Install `jsonwebtoken` and set up environment variables for the secret key.
+    - Dependencies: []
+2.  **`feat(auth): create token generation service`**
+    - Goal: Implement a service that creates and signs a new JWT upon successful login.
+    - Dependencies: [1]
+3.  **`feat(auth): protect API routes with middleware`**
+    - Goal: Create middleware that verifies the JWT on incoming requests to secure endpoints.
+    - Dependencies: [2]
+4.  **`refactor(ui): update login form to store token`**
+    - Goal: Modify the frontend to save the received JWT to local storage.
+    - Dependencies: [2]

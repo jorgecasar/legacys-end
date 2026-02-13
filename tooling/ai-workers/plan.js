@@ -45,8 +45,14 @@ const PLAN_SCHEMA = {
 						type: "STRING",
 						description: "Detailed goal of the sub-task.",
 					},
+					dependencies: {
+						type: "ARRAY",
+						items: { type: "NUMBER" },
+						description:
+							"List of temporary numeric IDs of other sub-tasks that this task depends on.",
+					},
 				},
-				required: ["title", "goal"],
+				required: ["title", "goal", "dependencies"],
 			},
 			description: "Optional decomposition into smaller sub-issues.",
 		},
@@ -255,13 +261,44 @@ export async function createTechnicalPlan({
 			plan.needs_decomposition
 		) {
 			console.log(`Decomposing into ${plan.sub_tasks.length} sub-tasks...`);
-			const created = await createSubtasks(
-				octokit,
-				issueNumber,
-				plan.sub_tasks,
-			);
-			for (const sub of created) {
-				console.log(`  - Created sub-task #${sub.number}: ${sub.title}`);
+
+			// Step 1: Create all issues first to get their numbers
+			const createdIssuesMap = new Map();
+			for (const [index, subTask] of plan.sub_tasks.entries()) {
+				const tempId = index + 1; // Assuming 1-based temp IDs from LLM
+				const created = await createSubtasks(octokit, issueNumber, [subTask]);
+				const newIssue = created[0];
+				createdIssuesMap.set(tempId, newIssue);
+				console.log(
+					`  - Created sub-task #${newIssue.number}: ${newIssue.title}`,
+				);
+			}
+
+			// Step 2: Link issues with dependencies
+			console.log("Linking sub-task dependencies...");
+			for (const [tempId, issue] of createdIssuesMap.entries()) {
+				const subTask = plan.sub_tasks[tempId - 1];
+				if (subTask.dependencies && subTask.dependencies.length > 0) {
+					const blockers = subTask.dependencies
+						.map((depId) => {
+							const blockerIssue = createdIssuesMap.get(depId);
+							return blockerIssue ? `#${blockerIssue.number}` : null;
+						})
+						.filter(Boolean);
+
+					if (blockers.length > 0) {
+						const newBody = `${issue.body}\n\nBlocked by ${blockers.join(", ")}`;
+						await octokit.rest.issues.update({
+							owner: OWNER,
+							repo: REPO,
+							issue_number: issue.number,
+							body: newBody,
+						});
+						console.log(
+							`  - Issue #${issue.number} is now blocked by ${blockers.join(", ")}`,
+						);
+					}
+				}
 			}
 
 			// 3. Mark parent as Paused and Upgrade Complexity

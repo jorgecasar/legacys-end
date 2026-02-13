@@ -28,11 +28,13 @@ async function findExecutableLeaf(
 	let task = allProjectItems.find((i) => i.number === issueNumber);
 	let subIssues = [];
 	let labels = [];
+	let body = "";
 
 	if (task) {
 		// We have project data
 		subIssues = task.subIssues || []; // { number, state }
 		labels = task.labels || [];
+		body = task.body || ""; // Assume body is pre-fetched for project items
 	} else {
 		// Fetch from API if not in project snapshot
 		try {
@@ -57,6 +59,7 @@ async function findExecutableLeaf(
 				id: null, // Unknown project item ID
 			};
 			labels = issue.labels.map((l) => l.name);
+			body = issue.body || "";
 			subIssues = subs;
 		} catch (e) {
 			console.warn(`    Failed to fetch #${issueNumber}: ${e.message}`);
@@ -64,13 +67,40 @@ async function findExecutableLeaf(
 		}
 	}
 
-	// 2. Check blocks
+	// 2. Check explicit "Blocked by" directives in the body
+	const blockMatches = body.match(/Blocked by #(\d+)/g) || [];
+	if (blockMatches.length > 0) {
+		const blockingIssueNumbers = blockMatches.map((b) =>
+			parseInt(b.replace("Blocked by #", "")),
+		);
+		console.log(
+			`    → #${issueNumber} is blocked by ${blockingIssueNumbers.join(", ")}. Checking their status...`,
+		);
+
+		for (const blockerNumber of blockingIssueNumbers) {
+			const blocker = await getIssue(octokit, {
+				owner: OWNER,
+				repo: REPO,
+				issueNumber: blockerNumber,
+			});
+			if (blocker.state === "open") {
+				console.log(
+					`    ✗ Blocker #${blockerNumber} is still open. Cannot proceed.`,
+				);
+
+				return null; // Hard block
+			}
+			console.log(`    ✓ Blocker #${blockerNumber} is closed.`);
+		}
+	}
+
+	// 3. Check labels
 	if (labels.includes("blocked")) {
-		console.log(`    ✗ #${issueNumber} is blocked.`);
+		console.log(`    ✗ #${issueNumber} has a 'blocked' label.`);
 		return null;
 	}
 
-	// 3. Check children
+	// 4. Check children
 	const openChildren = subIssues.filter((s) => s.state === "OPEN");
 
 	if (openChildren.length === 0) {
