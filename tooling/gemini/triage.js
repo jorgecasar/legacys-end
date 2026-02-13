@@ -344,6 +344,9 @@ export async function triageIssues() {
 
 import { fileURLToPath } from "node:url";
 
-if (import.meta.url === fileURLToPath(import.meta.url)) {
-	triageIssues();
+if (fileURLToPath(import.meta.url) === process.argv[1]) {
+	triageIssues().catch((err) => {
+		console.error("❌ Sync Error:", err.message);
+		process.exit(1);
+	});
 }

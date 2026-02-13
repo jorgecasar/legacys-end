@@ -112,7 +112,7 @@ export async function syncWorkerResults() {
 
 import { fileURLToPath } from "node:url";
 
-if (import.meta.url === fileURLToPath(import.meta.url)) {
+if (fileURLToPath(import.meta.url) === process.argv[1]) {
 	syncWorkerResults().catch((err) => {
 		console.error("❌ Sync Error:", err.message);
 		process.exit(1);
