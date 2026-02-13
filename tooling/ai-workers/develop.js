@@ -30,17 +30,23 @@ const DEVELOP_SCHEMA = {
 				required: ["path", "operation"],
 			},
 		},
+		commit_message: {
+			type: "STRING",
+			description:
+				"A concise Conventional Commit message (e.g., 'feat(user): add login logic') describing the changes.",
+		},
 	},
-	required: ["changes"],
+	required: ["changes", "commit_message"],
 };
 
 const DEVELOP_SYSTEM_INSTRUCTION = `You are a Developer Agent. Your task is to implement the technical plan for a given issue.
 
 Output Requirements:
-- Return a JSON object with a 'changes' array.
+- Return a JSON object with a 'changes' array and a 'commit_message'.
 - Each change must have 'path', 'operation', and 'content'.
 - Avoid boilerplate comments; provide complete, functional code.
-- Ensure all paths are relative to the project root.`;
+- Ensure all paths are relative to the project root.
+- The 'commit_message' MUST follow Conventional Commits (type(scope): description) and be specific to the implementation details.`;
 
 const DEVELOP_PROMPT = `Implement solutions for:
 Issue #{{ISSUE_NUMBER}}
@@ -135,6 +141,12 @@ export async function implementPlan() {
 				}
 			}
 		}
+
+		// Output commit message for the workflow
+		const commitMessage =
+			data.commit_message || `feat(ai): implementation of #${issueNumber}`;
+		writeGitHubOutput("commit_message", commitMessage);
+		console.log(`Commit message generated: "${commitMessage}"`);
 
 		console.log("✅ Implementation phase complete.");
 		return result;

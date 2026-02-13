@@ -84,12 +84,21 @@ jobs:
 
             - name: Commit Implementation
               if: steps.planning.outputs.needs_decomposition != 'true'
+              env:
+                  COMMIT_MESSAGE: ${{ steps.developer.outputs.commit_message }}
               run: |
                   git config --global user.name "github-actions[bot]"
                   git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                  
+                  # Rebase from main to ensure clean history and avoid conflicts
+                  git fetch origin main
+                  git pull --rebase origin main
+                  
                   git add .
-                  git commit -m "feat(ai): implementation of #${{ github.event.inputs.issue_number }}" || echo "No changes to commit"
-                  git push
+                  git commit -m "$COMMIT_MESSAGE" || echo "No changes to commit"
+                  
+                  # Push to the current branch, setting upstream if needed
+                  git push -u origin HEAD
 
             # 3. VERIFICATION
             - name: Install Playwright Browsers
