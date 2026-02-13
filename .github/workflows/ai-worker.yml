@@ -77,6 +77,7 @@ jobs:
                   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
                   ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
                   ISSUE_TITLE: ${{ steps.issue.outputs.title }}
+                  ISSUE_BODY: ${{ steps.issue.outputs.body }}
                   METHODOLOGY: ${{ steps.planning.outputs.methodology }}
                   FILES: ${{ steps.planning.outputs.files }}
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}

@@ -51,6 +51,8 @@ Output Requirements:
 const DEVELOP_PROMPT = `Implement solutions for:
 Issue #{{ISSUE_NUMBER}}
 Title: {{TITLE}}
+Body:
+{{BODY}}
 
 Methodology provided by Planning phase:
 {{METHODOLOGY}}
@@ -61,6 +63,7 @@ Context of relevant files:
 export async function implementPlan() {
 	const issueNumber = process.env.ISSUE_NUMBER;
 	const title = process.env.ISSUE_TITLE;
+	const body = process.env.ISSUE_BODY;
 	const methodology = process.env.METHODOLOGY;
 	const files = process.env.FILES;
 
@@ -88,6 +91,7 @@ export async function implementPlan() {
 
 	const prompt = DEVELOP_PROMPT.replace("{{ISSUE_NUMBER}}", issueNumber)
 		.replace("{{TITLE}}", title)
+		.replace("{{BODY}}", body || "")
 		.replace("{{METHODOLOGY}}", methodology || "TDD")
 		.replace("{{FILES}}", filesContext || "None");
 
