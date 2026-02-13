@@ -1,6 +1,6 @@
 ---
 name: mutation-testing
-description: Skill for validating test effectiveness using Stryker Mutator (Mutation Testing).
+description: Validate test effectiveness with Stryker Mutator.
 ---
 # Skill: Mutation Testing (Stryker)
 

@@ -7,30 +7,22 @@ globs: ["**/*"]
 
 # Project Overview
 
-## General Guidelines
+- **Stack**: Node 24 (ESM), Lit (Web Components), Vite, Vitest.
+- **Style**: Tabs, Semicolons, Double Quotes, Trailing Commas.
+- **Architecture**: Clean Architecture (Domain, Infrastructure, Application, UI).
+- **Principles**: Composition > Inheritance, Dependency Injection, Result Pattern for errors.
 
-- Use JavaScript for all new code
-- Follow consistent naming conventions
-- Write self-documenting code with clear variable and function names
-- Prefer composition over inheritance
-- Use meaningful comments for complex business logic
+## Context on Demand (Specialized Guidelines)
 
-## Code Style
+Read these memories using `read_memory` or `read_file` when performing relevant tasks:
 
-- Use tabs for indentation
-- Use semicolons
-- Use double quotes for strings
-- Use trailing commas in multi-line objects and arrays
+- **Architecture Details**: `architecture.md`
+- **Git Flow & Commits**: `git-workflow.md`
+- **Lit Component Standards**: `lit-standards.md`
+- **Testing Philosophy**: `testing-philosophy.md`
 
-## Architecture Principles
-
-- Organize code by feature, not by file type
-- Keep related files close together
-- Use dependency injection for better testability
-- Implement proper error handling
-- Follow single responsibility principle
-## Gold Standard (Reference Files)
-- **Services**: `src/services/storage-service.js`
-- **Components**: `src/components/reward-element/RewardElement.js`
-- **Use Cases**: `src/use-cases/evaluate-chapter-transition.js`
-- **Controllers**: `src/controllers/interaction-controller.js`
+## Gold Standard Files
+- **Service**: `src/services/storage-service.js`
+- **Component**: `src/components/reward-element/RewardElement.js`
+- **Use Case**: `src/use-cases/evaluate-chapter-transition.js`
+- **Controller**: `src/controllers/interaction-controller.js`

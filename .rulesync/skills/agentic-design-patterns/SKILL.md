@@ -1,6 +1,6 @@
 ---
 name: agentic-design-patterns
-description: Core architectural patterns for building robust, observable, and testable autonomous agents.
+description: Architectural patterns for autonomous agents.
 ---
 
 # Agentic Design Patterns (LegacysEnd)

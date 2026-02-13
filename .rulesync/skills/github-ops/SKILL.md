@@ -1,6 +1,6 @@
 ---
 name: github-ops
-description: Skill for interacting with GitHub issues, projects, and PRs using MCP.
+description: Manage GitHub issues, projects, and PRs via MCP.
 ---
 # Skill: GitHub Operations (MCP)
 

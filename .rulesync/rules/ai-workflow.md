@@ -6,27 +6,14 @@ globs: ["**/*"]
 
 # AI Agent Autonomous Workflow
 
-## Workflow Mandates (STRICT)
-- **No Direct Pushes to Main**: You MUST NEVER push code changes directly to the `main` branch. All feature work, bug fixes, or refactors MUST be done in a feature branch.
-- **PR Mandate**: You MUST always create a Pull Request (`gh pr create`) when resolving a task, unless explicitly told otherwise by the user.
-- **CI Validation**: Code changes MUST ALWAYS trigger CI. Never use `[skip ci]` for commits that include logic, tests, or architectural changes.
+## Workflow Mandates
+- **No Direct Pushes to Main**: Always use feature branches (`type/id-description`).
+- **PR Mandate**: Create a PR (`gh pr create`) to resolve any task.
+- **CI Validation**: Never skip CI for logic/test changes.
 
-## 1. Analysis & Planning
-- Thoroughly analyze the issue or feedback.
-- Use `Serena` tools to explore the relevant parts of the codebase.
-- Formulate a clear plan before making any edits.
-
-## 2. Implementation
-- Apply changes following the project's standards (Clean Architecture, Lit standards, Tabs for indentation).
-- Ensure code is self-documenting and follows the "Jorge Casar" developer persona.
-
-## 3. Verification (CRITICAL)
-- After making changes, you MUST verify them by running the following commands in the shell:
-  - `npm run lint`: To ensure no style or linting regressions were introduced.
-  - `npm test`: To ensure all unit tests pass.
-- If any check fails, you MUST fix the issues before finalizing your response.
-- Do NOT skip this step unless the changes are purely documentation-related and have no impact on the code.
-
-## 4. Finalization
-- Provide a concise summary of your changes in your final response.
-- If you are unable to fix a failing test, clearly state it so a human maintainer can take over.
+## Steps
+1. **Analyze**: Explore codebase with `Serena` before planning.
+2. **Plan**: Formulate a clear plan.
+3. **Implement**: Clean, reactive code (Tabs, Jorge Casar persona).
+4. **Verify**: Run `npm run lint` and `npm test` before finalizing.
+5. **Finalize**: Provide a concise summary. State if tests fail.

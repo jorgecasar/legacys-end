@@ -1,6 +1,6 @@
 ---
 name: git-flow
-description: Standardized git operations skill following Conventional Commits and atomic tasks.
+description: Standardized git flow and atomic tasks.
 ---
 # Skill: Git Flow (MCP)
 

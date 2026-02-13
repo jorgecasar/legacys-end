@@ -1,6 +1,6 @@
 ---
 name: coverage-evolution
-description: Skill for dynamic management of test coverage thresholds with a 5% differential logic.
+description: Manage test coverage with 5% differential logic.
 ---
 # Skill: Coverage Evolution
 
