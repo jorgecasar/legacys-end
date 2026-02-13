@@ -34,6 +34,9 @@ jobs:
             - name: Intall dependencies
               run: npm install
 
+            - name: Generate AI Rules
+              run: npx rulesync generate
+
             # 0. PREPARE CONTEXT
             - name: Fetch Issue Details
               id: issue
