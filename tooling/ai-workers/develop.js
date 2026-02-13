@@ -57,8 +57,11 @@ Body:
 Methodology provided by Planning phase:
 {{METHODOLOGY}}
 
-Context of relevant files:
-{{FILES}}`;
+The plan requires creating or modifying the following files:
+{{FILE_LIST}}
+
+Here is the current content of those files (if they exist):
+{{FILES_CONTENT}}`;
 
 export async function implementPlan() {
 	const issueNumber = process.env.ISSUE_NUMBER;
@@ -74,16 +77,15 @@ export async function implementPlan() {
 		process.exit(1);
 	}
 
-	// Read files content to provide context
-	let filesContext = "";
-	if (files && files !== "None") {
-		const fileList = files.split(/\s+/).filter(Boolean);
+	const fileList = files ? files.split(/\s+/).filter(Boolean) : [];
+	let filesContent = "";
+	if (fileList.length > 0) {
 		for (const f of fileList) {
 			if (fs.existsSync(f)) {
 				const stats = fs.statSync(f);
 				if (stats.isFile()) {
 					const content = fs.readFileSync(f, "utf8");
-					filesContext += `\n--- FILE: ${f} ---\n${content}\n`;
+					filesContent += `\n--- FILE: ${f} ---\n${content}\n`;
 				}
 			}
 		}
@@ -93,7 +95,8 @@ export async function implementPlan() {
 		.replace("{{TITLE}}", title)
 		.replace("{{BODY}}", body || "")
 		.replace("{{METHODOLOGY}}", methodology || "TDD")
-		.replace("{{FILES}}", filesContext || "None");
+		.replace("{{FILE_LIST}}", fileList.join("\n") || "None")
+		.replace("{{FILES_CONTENT}}", filesContent || "None");
 
 	let result;
 	try {
