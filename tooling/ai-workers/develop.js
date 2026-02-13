@@ -39,7 +39,12 @@ const DEVELOP_SCHEMA = {
 	required: ["changes", "commit_message"],
 };
 
-const DEVELOP_SYSTEM_INSTRUCTION = `You are a Developer Agent. Your task is to implement the technical plan for a given issue.
+const DEVELOP_SYSTEM_INSTRUCTION = `You are a Developer Agent. Your task is to implement the technical plan for a given issue by generating the necessary code changes.
+
+**CRITICAL INSTRUCTION:** You **MUST** generate the complete code for the files listed in the plan.
+- If a file does not exist, you must create it using the "create" operation.
+- If a file already exists, you must replace its entire content using the "write" operation.
+- Do not leave any file content blank unless the plan explicitly says so.
 
 Output Requirements:
 - Return a JSON object with a 'changes' array and a 'commit_message'.

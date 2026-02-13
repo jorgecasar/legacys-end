@@ -30,6 +30,8 @@ jobs:
 
             - name: Install uv (for MCP tools)
               uses: astral-sh/setup-uv@v5
+              with:
+                  cache-dependency-path: ""
 
             - name: Intall dependencies
               run: npm ci || npm install
@@ -88,7 +90,7 @@ jobs:
               env:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
                   COMMIT_MESSAGE: ${{ steps.developer.outputs.commit_message }}
-                  REVIEWER_TEXT: ${{ steps.reviewer.outputs.text || 'Reviewer Agent failed or was skipped.' }}
+                  REVIEWER_TEXT: ${{ fromJson(steps.reviewer.outputs.json).review_text || 'Reviewer Agent failed or was skipped.' }}
               run: |
                   git config --global user.name "github-actions[bot]"
                   git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -141,7 +143,7 @@ jobs:
                       Diff:
                       $(git diff origin/main)
 
-                      Instruction: Audit this code. Output "APPROVED" if quality is high. Otherwise list issues.
+                      Instruction: Audit this code. Output a JSON object with a single key "review_text". The value should be "APPROVED" if quality is high, otherwise, it should be a string containing a list of issues.
 
             - name: Sync Costs
               if: always()
