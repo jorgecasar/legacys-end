@@ -108,6 +108,11 @@ export async function implementPlan() {
 			responseSchema: DEVELOP_SCHEMA,
 		});
 
+		console.log(
+			">>> Raw response from Developer Agent:",
+			JSON.stringify(result.data, null, 2),
+		);
+
 		// Write tokens immediately so they aren't lost if later steps fail
 		writeGitHubOutput(
 			"input_tokens",
