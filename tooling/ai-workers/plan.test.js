@@ -24,6 +24,13 @@ mock.module("../gemini/index.js", {
 	},
 });
 
+// Mock child_process
+mock.module("node:child_process", {
+	namedExports: {
+		execSync: mock.fn(() => Buffer.from("")),
+	},
+});
+
 // Mock the GitHub module
 mock.module("../github/index.js", {
 	namedExports: {
@@ -85,6 +92,73 @@ describe("ai-worker-plan", () => {
 			),
 		);
 		consoleErrorMock.mock.restore();
+	});
+
+	it("should skip branch creation if needs_decomposition is true", async () => {
+		mockResult = {
+			data: {
+				methodology: "Complex Architecture",
+				slug: "complex-feature",
+				files_to_touch: [],
+				needs_decomposition: true,
+				sub_tasks: [{ title: "Subtask 1", goal: "Goal 1" }],
+			},
+			inputTokens: 100,
+			outputTokens: 50,
+			modelUsed: "gemini-2.5-flash-lite",
+		};
+
+		const { execSync: execMock } = await import("node:child_process");
+		execMock.mock.resetCalls();
+
+		await createTechnicalPlan({
+			issueNumber: 1,
+			title: "Complex Issue",
+			body: "Decompose this.",
+		});
+
+		// Check that git branch creation commands were NOT called
+		const gitCalls = execMock.mock.calls.filter((c) =>
+			c.arguments[0].includes("git"),
+		);
+		assert.strictEqual(
+			gitCalls.length,
+			0,
+			"Git commands should not be called when decomposing",
+		);
+	});
+
+	it("should create branch if needs_decomposition is false", async () => {
+		mockResult = {
+			data: {
+				methodology: "Simple Fix",
+				slug: "simple-fix",
+				files_to_touch: ["readme.md"],
+				needs_decomposition: false,
+				sub_tasks: [],
+			},
+			inputTokens: 100,
+			outputTokens: 50,
+			modelUsed: "gemini-2.5-flash-lite",
+		};
+
+		const { execSync: execMock } = await import("node:child_process");
+		execMock.mock.resetCalls();
+
+		await createTechnicalPlan({
+			issueNumber: 1,
+			title: "Simple Issue",
+			body: "Fix this.",
+		});
+
+		// Check that git branch creation commands WERE called
+		const gitCalls = execMock.mock.calls.filter((c) =>
+			c.arguments[0].includes("git"),
+		);
+		assert.ok(
+			gitCalls.length >= 1,
+			"Git commands should be called for leaf tasks",
+		);
 	});
 
 	it("should return early if missing input", async () => {

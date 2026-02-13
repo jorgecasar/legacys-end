@@ -117,7 +117,7 @@ export async function runWithFallback(modelType, prompt, options = {}) {
 						} catch (finalErr) {
 							console.error(
 								"Failed to extract JSON from model response:",
-								text.substring(0, 100) + "...",
+								`${text.substring(0, 100)}...`,
 							);
 							throw new Error(`JSON_PARSE_ERROR: ${finalErr.message}`);
 						}

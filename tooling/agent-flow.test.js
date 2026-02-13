@@ -64,7 +64,7 @@ mock.module("@octokit/rest", {
 // Mock fs globally
 import fs from "node:fs";
 
-mock.method(fs, "existsSync", (p) => true);
+mock.method(fs, "existsSync", (_p) => true);
 mock.method(fs, "readFileSync", (path) => {
 	if (path === ".env") return "GEMINI_API_KEY=fake-key";
 	if (path.endsWith("/"))
@@ -87,7 +87,7 @@ mock.method(process, "exit", (code) => {
 });
 
 // 3. Mock execSync globally for the tests
-const execMock = mock.fn((cmd) => {
+const execMock = mock.fn((_cmd) => {
 	return "";
 });
 
@@ -182,8 +182,7 @@ describe("AI Agent Flow Integration", () => {
 		// --- Step 3: Development ---
 		// Simulate the propagation logic I just added to ai-agent-flow.js
 		process.env.METHODOLOGY = planResult.data.methodology;
-		process.env.FILES =
-			(planResult.data.files_to_touch || []).join(" ") + " src/core/ "; // Add a directory
+		process.env.FILES = `${(planResult.data.files_to_touch || []).join(" ")} src/core/ `; // Add a directory
 
 		mockGeminiResult = (type) => {
 			if (type === "pro") {

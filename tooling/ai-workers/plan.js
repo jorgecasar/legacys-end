@@ -127,21 +127,24 @@ export async function createTechnicalPlan({
 
 		console.log(`Plan received. Methodology: ${plan.methodology}`);
 
-		// 1. Create a task branch
-		const branchName = `task/issue-${issueNumber}-${plan.slug || "work"}`;
-		try {
-			execSync(`git checkout -b ${branchName}`);
-		} catch (_) {
-			execSync(`git checkout ${branchName}`);
-		}
+		// 1. Create a task branch (Only if NOT decomposing)
+		if (!plan.needs_decomposition) {
+			const branchName = `task/issue-${issueNumber}-${plan.slug || "work"}`;
+			console.log(`Creating branch ${branchName}...`);
+			try {
+				execSync(`git checkout -b ${branchName}`);
+			} catch (_) {
+				execSync(`git checkout ${branchName}`);
+			}
 
-		// Push the branch immediately
-		try {
-			execSync(`git push -u origin ${branchName}`);
-		} catch (pushErr) {
-			console.warn(
-				`Warning: Could not push branch ${branchName}: ${pushErr.message}`,
-			);
+			// Push the branch immediately
+			try {
+				execSync(`git push -u origin ${branchName}`);
+			} catch (pushErr) {
+				console.warn(
+					`Warning: Could not push branch ${branchName}: ${pushErr.message}`,
+				);
+			}
 		}
 
 		// 2. Decompose into sub-issues if needed
