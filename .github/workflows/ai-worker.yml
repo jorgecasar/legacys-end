@@ -82,27 +82,32 @@ jobs:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
               run: node tooling/ai-workers/develop.js
 
-            - name: Commit Implementation
+            - name: Finalize Work (Commit & Create PR)
               if: steps.planning.outputs.needs_decomposition != 'true'
               env:
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
                   COMMIT_MESSAGE: ${{ steps.developer.outputs.commit_message }}
+                  REVIEWER_TEXT: ${{ steps.reviewer.outputs.text || 'Reviewer Agent failed or was skipped.' }}
               run: |
                   git config --global user.name "github-actions[bot]"
                   git config --global user.email "github-actions[bot]@users.noreply.github.com"
                   
-                  # 1. Stage all changes (code + any generated artifacts)
+                  # Check if there are changes to commit
+                  if [[ -z $(git status --porcelain) ]]; then
+                    echo "No code changes detected. Skipping commit and PR."
+                    exit 0
+                  fi
+                  
+                  # 1. Stage, Commit, Rebase, and Push
                   git add .
-                  
-                  # 2. Commit locally
-                  git commit -m "$COMMIT_MESSAGE" || echo "No changes to commit"
-                  
-                  # 3. Pull latest main and rebase our new commit on top
+                  git commit -m "$COMMIT_MESSAGE"
                   git fetch origin main
                   git pull --rebase origin main
-                  
-                  # 4. Push to the current branch (force-with-lease is required because we rebased)
                   git push --force-with-lease origin HEAD
-
+                  
+                  # 2. Create Pull Request
+                  gh pr create --title "$COMMIT_MESSAGE" --body "Automated PR by AI Worker Agent. Resolves #${{ github.event.inputs.issue_number }}. \n\nReviewer feedback: $REVIEWER_TEXT"
+                  
             # 3. VERIFICATION
             - name: Install Playwright Browsers
               if: steps.planning.outputs.needs_decomposition != 'true'
@@ -136,15 +141,6 @@ jobs:
                       $(git diff origin/main)
 
                       Instruction: Audit this code. Output "APPROVED" if quality is high. Otherwise list issues.
-
-            # 5. SUBMIT & SYNC
-            - name: Create Pull Request
-              if: steps.planning.outputs.needs_decomposition != 'true'
-              env:
-                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
-                  REVIEWER_TEXT: ${{ steps.reviewer.outputs.text || 'Reviewer Agent failed to run or provide output.' }}
-              run: |
-                  gh pr create --title "feat: resolve issue #${{ github.event.inputs.issue_number }}" --body "Automated PR by AI Worker Agent. \n\nReviewer feedback: $REVIEWER_TEXT"
 
             - name: Sync Costs
               if: always()
