@@ -3,6 +3,8 @@ name: AI Orchestrator
 on:
     schedule:
         - cron: "0 * * * *" # Every hour
+    issues:
+        types: [closed]
     workflow_dispatch:
 
 permissions:
