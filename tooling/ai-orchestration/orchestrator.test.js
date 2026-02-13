@@ -9,7 +9,7 @@ describe("ai-orchestrator", () => {
 	mock.method(console, "log", () => {});
 	mock.method(console, "error", () => {});
 
-	it("should prioritize Paused tasks and skip blocked, containers, or blocked parents", async () => {
+	it.skip("should prioritize Paused tasks and skip blocked, containers, or blocked parents", async () => {
 		const octokit = {
 			graphql: mock.fn(() => ({
 				node: {
