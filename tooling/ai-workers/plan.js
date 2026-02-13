@@ -94,6 +94,16 @@ export async function createTechnicalPlan({
 
 	const octokit = injectedOctokit || getOctokit();
 
+	// 0. Check Depth / Nesting Level
+	// If the body contains "Parent issue: #...", it's already a subtask.
+	// We do NOT want to decompose subtasks further to avoid deep nesting.
+	const isSubtask = body && /Parent issue: #\d+/i.test(body);
+	if (isSubtask) {
+		console.log(
+			`Issue #${issueNumber} is identified as a sub-task. Disabling further decomposition.`,
+		);
+	}
+
 	// Before generating a plan, check if the issue has open child/sub-issues
 	try {
 		const count = await hasOpenSubtasks(octokit, {
@@ -132,10 +142,27 @@ export async function createTechnicalPlan({
 	let result;
 	try {
 		console.log(`>>> Generating structured plan for issue #${issueNumber}...`);
+
+		// If it's a subtask, force the AI to NOT decompose by modifying the prompt or instructions
+		let instructions = PLAN_SYSTEM_INSTRUCTION;
+		if (isSubtask) {
+			instructions +=
+				"\n\nCRITICAL: This is a child task. DO NOT decompose it further. You MUST return 'needs_decomposition': false.";
+		}
+
 		result = await runWithFallback("flash", prompt, {
-			systemInstruction: PLAN_SYSTEM_INSTRUCTION,
+			systemInstruction: instructions,
 			responseSchema: PLAN_SCHEMA,
 		});
+
+		// Force needs_decomposition to false if it was a subtask (safety net)
+		if (isSubtask && result.data.needs_decomposition) {
+			console.warn(
+				"Override: AI tried to decompose a subtask. Forcing needs_decomposition=false.",
+			);
+			result.data.needs_decomposition = false;
+			result.data.sub_tasks = [];
+		}
 
 		// Write tokens immediately so they aren't lost if later steps fail
 		writeGitHubOutput("input_tokens", result.inputTokens);
