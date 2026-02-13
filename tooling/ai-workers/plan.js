@@ -58,7 +58,14 @@ const PLAN_SCHEMA = {
 	required: ["methodology", "slug", "files_to_touch", "needs_decomposition"],
 };
 
-const PLAN_SYSTEM_INSTRUCTION = `You are a Developer Agent. Your goal is to create precise, execution-ready technical plans.
+const PLAN_SYSTEM_INSTRUCTION = `You are a Developer Agent. Your goal is to create precise, execution-ready technical plans for the 'Legacy's End' project.
+
+Project Context:
+- Name: Legacy's End
+- Type: Web Application / Game
+- Stack: Node.js (v24), Lit (Web Components), Vite, Vitest, Playwright.
+- Language: JavaScript/TypeScript ONLY.
+- Forbidden: Python, Java, C#, or any non-JS backend logic unless explicitly requested for tooling.
 
 Output Requirements:
 - Return a JSON object matching the required schema.
