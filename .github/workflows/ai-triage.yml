@@ -1,11 +1,9 @@
 name: AI Triage Agent
 
 on:
-    issues:
-        types: [opened, labeled]
-    workflow_dispatch:
     schedule:
         - cron: "0 0 * * *" # Daily at midnight
+    workflow_dispatch:
 
 permissions:
     contents: read
@@ -14,7 +12,7 @@ permissions:
 
 jobs:
     triage:
-        if: (github.event_name == 'issues' && github.event.action == 'opened' && github.actor == 'jorgecasar') || (github.event_name == 'issues' && github.event.action == 'labeled') || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
@@ -35,16 +33,12 @@ jobs:
                   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
                   GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
                   GITHUB_REPOSITORY: ${{ github.repository }}
-                  GITHUB_ISSUE_NUMBER: ${{ github.event.issue.number }}
-                  GITHUB_ISSUE_TITLE: ${{ github.event.issue.title }}
-                  GITHUB_ISSUE_BODY: ${{ github.event.issue.body }}
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
               run: node tooling/gemini/triage.js
 
             - name: Sync to Project V2
               env:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
-                  GITHUB_ISSUE_NUMBER: ${{ github.event.issue.number }}
                   GEMINI_SUMMARY: ${{ steps.gemini.outputs.summary }}
                   GEMINI_BATCH_MODE: ${{ steps.gemini.outputs.batch_mode }}
               run: node tooling/ai-orchestration/triage-orchestrator.js
