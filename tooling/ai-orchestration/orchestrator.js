@@ -271,7 +271,7 @@ export async function orchestrateExecution({ octokit: injectedOctokit } = {}) {
 
 import { fileURLToPath } from "node:url";
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (fileURLToPath(import.meta.url) === process.argv[1]) {
 	orchestrateExecution().catch((err) => {
 		console.error(err);
 		process.exit(1);

@@ -356,7 +356,7 @@ export async function createTechnicalPlan({
 	}
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (fileURLToPath(import.meta.url) === process.argv[1]) {
 	createTechnicalPlan().catch((error) => {
 		console.error(error);
 		process.exit(1);

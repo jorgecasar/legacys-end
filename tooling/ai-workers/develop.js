@@ -170,7 +170,7 @@ export async function implementPlan() {
 
 import { fileURLToPath } from "node:url";
 
-if (import.meta.url === fileURLToPath(import.meta.url)) {
+if (fileURLToPath(import.meta.url) === process.argv[1]) {
 	implementPlan().catch((err) => {
 		console.error(err);
 		process.exit(1);
