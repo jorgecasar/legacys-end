@@ -172,7 +172,13 @@ export async function fetchProjectItems(octokit) {
 		}
 	`;
 
-	const result = await octokit.graphql(query, { projectId: PROJECT_ID });
+	const result = await octokit.graphql({
+		query,
+		projectId: PROJECT_ID,
+		headers: {
+			"GraphQL-Features": "sub_issues",
+		},
+	});
 	return result.node.items.nodes
 		.map((item) => ({
 			id: item.id,

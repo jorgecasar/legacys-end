@@ -51,7 +51,7 @@ export async function orchestrateExecution({
 		const pendingSubIssues = task.subIssues.filter((s) => s.state === "OPEN");
 		if (pendingSubIssues.length > 0) {
 			console.log(
-				`Skipping #${task.number}: Has ${pendingSubIssues.length} pending sub-issues.`,
+				`Skipping #${task.number} (${task.status}): Has ${pendingSubIssues.length} pending sub-issues.`,
 			);
 			continue;
 		}

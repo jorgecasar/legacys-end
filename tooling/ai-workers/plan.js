@@ -1,10 +1,22 @@
 #!/usr/bin/env node
 import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { OWNER, REPO, writeGitHubOutput } from "../config/index.js";
+import {
+	FIELD_IDS,
+	OPTION_IDS,
+	OWNER,
+	REPO,
+	writeGitHubOutput,
+} from "../config/index.js";
 import { runWithFallback } from "../gemini/index.js";
 import { createSubtasks } from "../github/client.js";
-import { getOctokit, hasOpenSubtasks } from "../github/index.js";
+import {
+	addIssueToProject,
+	getIssueNodeId,
+	getOctokit,
+	hasOpenSubtasks,
+	updateProjectField,
+} from "../github/index.js";
 
 const PLAN_SCHEMA = {
 	type: "OBJECT",
@@ -161,6 +173,26 @@ export async function createTechnicalPlan({
 			);
 			for (const sub of created) {
 				console.log(`  - Created sub-task #${sub.number}: ${sub.title}`);
+			}
+
+			// 3. Mark parent as Paused
+			console.log(`Marking parent task #${issueNumber} as Paused...`);
+			try {
+				const nodeId = await getIssueNodeId(octokit, {
+					owner: OWNER,
+					repo: REPO,
+					issueNumber,
+				});
+				const itemId = await addIssueToProject(octokit, nodeId);
+				await updateProjectField(
+					octokit,
+					itemId,
+					FIELD_IDS.status,
+					OPTION_IDS.status.paused,
+				);
+				console.log(`✓ Task #${issueNumber} status set to Paused.`);
+			} catch (err) {
+				console.warn(`Warning: Could not set status to Paused: ${err.message}`);
 			}
 		}
 

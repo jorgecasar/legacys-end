@@ -36,14 +36,29 @@ mock.module("../github/index.js", {
 	namedExports: {
 		getOctokit: () => ({
 			rest: {
-				search: {
-					issuesAndPullRequests: async () => ({
-						data: { total_count: 0 },
+				issues: {
+					create: async () => ({
+						data: { number: 101, title: "Subtask", node_id: "MOCKED_NODE_ID" },
 					}),
+					get: async () => ({ data: { node_id: "ISSUE_NODE_ID" } }),
 				},
 			},
+			graphql: async () => ({}),
 		}),
 		hasOpenSubtasks: async () => 0,
+		getIssueNodeId: async () => "ISSUE_NODE_ID",
+		addIssueToProject: async () => "PROJECT_ITEM_ID",
+		updateProjectField: async () => ({}),
+	},
+});
+
+mock.module("../config/index.js", {
+	namedExports: {
+		OWNER: "test-owner",
+		REPO: "test-repo",
+		FIELD_IDS: { status: "fid" },
+		OPTION_IDS: { status: { paused: "paused-id" } },
+		writeGitHubOutput: () => {},
 	},
 });
 
