@@ -82,10 +82,14 @@ describe("ai-orchestrator", () => {
 					},
 				},
 			})),
+			rest: {
+				actions: {
+					createWorkflowDispatch: mock.fn(() => Promise.resolve({ data: {} })),
+				},
+			},
 		};
 
-		const exec = mock.fn(() => Buffer.from(""));
-		await orchestrateExecution({ exec, octokit });
+		await orchestrateExecution({ octokit });
 
 		const logMessages = console.log.mock.calls.map((c) => c.arguments[0]);
 		const selectedLog = logMessages.find((m) =>
@@ -100,8 +104,7 @@ describe("ai-orchestrator", () => {
 				node: { items: { nodes: [] } },
 			})),
 		};
-		const exec = mock.fn(() => Buffer.from(""));
-		await orchestrateExecution({ exec, octokit });
+		await orchestrateExecution({ octokit });
 	});
 
 	it("should handle no candidates found", async () => {
@@ -126,8 +129,7 @@ describe("ai-orchestrator", () => {
 				},
 			})),
 		};
-		const exec = mock.fn(() => Buffer.from(""));
-		await orchestrateExecution({ exec, octokit });
+		await orchestrateExecution({ octokit });
 	});
 
 	it("should execute as a main process", async () => {

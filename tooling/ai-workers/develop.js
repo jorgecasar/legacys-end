@@ -85,15 +85,32 @@ export async function implementPlan() {
 		.replace("{{METHODOLOGY}}", methodology || "TDD")
 		.replace("{{FILES}}", filesContext || "None");
 
+	let result;
 	try {
 		console.log(
 			`>>> Generating structured implementation for issue #${issueNumber}...`,
 		);
-		const result = await runWithFallback("pro", prompt, {
+		result = await runWithFallback("pro", prompt, {
 			systemInstruction: DEVELOP_SYSTEM_INSTRUCTION,
 			responseSchema: DEVELOP_SCHEMA,
 		});
 
+		// Write tokens immediately so they aren't lost if later steps fail
+		writeGitHubOutput(
+			"input_tokens",
+			result.input_tokens || result.inputTokens,
+		);
+		writeGitHubOutput(
+			"output_tokens",
+			result.output_tokens || result.outputTokens,
+		);
+	} catch (error) {
+		console.error("❌ Development LLM Error:", error.message);
+		if (process.env.NODE_ENV !== "test") process.exit(1);
+		return;
+	}
+
+	try {
 		const data = result.data;
 
 		if (!data || !data.changes || !Array.isArray(data.changes)) {
@@ -119,13 +136,10 @@ export async function implementPlan() {
 			}
 		}
 
-		writeGitHubOutput("input_tokens", result.inputTokens);
-		writeGitHubOutput("output_tokens", result.outputTokens);
-
 		console.log("✅ Implementation phase complete.");
 		return result;
 	} catch (error) {
-		console.error("❌ Development Error:", error.message);
+		console.error("❌ Development Post-Processing Error:", error.message);
 		if (process.env.NODE_ENV !== "test") process.exit(1);
 	}
 }

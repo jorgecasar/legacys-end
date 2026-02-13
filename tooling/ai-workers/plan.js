@@ -123,13 +123,25 @@ export async function createTechnicalPlan({
 		.replace("{{TITLE}}", title)
 		.replace("{{BODY}}", body || "");
 
+	// 3. Generate Plan
+	let result;
 	try {
 		console.log(`>>> Generating structured plan for issue #${issueNumber}...`);
-		const result = await runWithFallback("flash", prompt, {
+		result = await runWithFallback("flash", prompt, {
 			systemInstruction: PLAN_SYSTEM_INSTRUCTION,
 			responseSchema: PLAN_SCHEMA,
 		});
 
+		// Write tokens immediately so they aren't lost if later steps fail
+		writeGitHubOutput("input_tokens", result.inputTokens);
+		writeGitHubOutput("output_tokens", result.outputTokens);
+	} catch (error) {
+		console.error("❌ Planning LLM Error:", error.message);
+		if (process.env.NODE_ENV !== "test") process.exit(1);
+		return;
+	}
+
+	try {
 		const plan = result.data;
 
 		if (!plan || !plan.slug) {
@@ -196,20 +208,18 @@ export async function createTechnicalPlan({
 			}
 		}
 
-		// 3. Output for workflow
+		// 3. Output for workflow remaining signals
 		writeGitHubOutput("methodology", plan.methodology || "TDD");
 		writeGitHubOutput("files", (plan.files_to_touch || []).join(" "));
 		writeGitHubOutput(
 			"needs_decomposition",
 			plan.needs_decomposition ? "true" : "false",
 		);
-		writeGitHubOutput("input_tokens", result.inputTokens);
-		writeGitHubOutput("output_tokens", result.outputTokens);
 
 		console.log("✅ Planning phase complete.");
 		return result;
 	} catch (error) {
-		console.error("❌ Planning Error:", error.message);
+		console.error("❌ Planning Post-Processing Error:", error.message);
 		if (process.env.NODE_ENV !== "test") process.exit(1);
 	}
 }

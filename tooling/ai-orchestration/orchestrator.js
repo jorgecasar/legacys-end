@@ -1,4 +1,3 @@
-import { execSync } from "node:child_process";
 import { FIELD_IDS, OPTION_IDS, OWNER, REPO } from "../config/index.js";
 import {
 	fetchProjectItems,
@@ -6,10 +5,7 @@ import {
 	updateProjectField,
 } from "../github/index.js";
 
-export async function orchestrateExecution({
-	exec = execSync,
-	octokit: injectedOctokit,
-} = {}) {
+export async function orchestrateExecution({ octokit: injectedOctokit } = {}) {
 	const octokit = injectedOctokit || getOctokit();
 	console.log("Fetching project items...");
 
@@ -94,14 +90,18 @@ export async function orchestrateExecution({
 
 	console.log(`Dispatching AI Worker for issue #${selectedTask.number}...`);
 	try {
-		const command = `gh workflow run ai-worker.yml -f issue_number=${selectedTask.number} --repo ${OWNER}/${REPO} --ref main`;
-		console.log(`Running: ${command}`);
-		const output = exec(command, { encoding: "utf8" });
-		if (output) console.log(`Output: ${output}`);
-		console.log("✓ Dispatch successful.");
+		await octokit.rest.actions.createWorkflowDispatch({
+			owner: OWNER,
+			repo: REPO,
+			workflow_id: "ai-worker.yml",
+			ref: "main",
+			inputs: {
+				issue_number: String(selectedTask.number),
+			},
+		});
+		console.log("✓ Dispatch successful via Octokit.");
 	} catch (err) {
 		console.error(`❌ Failed to dispatch worker: ${err.message}`);
-		if (err.stderr) console.error(`Stderr: ${err.stderr}`);
 		throw err;
 	}
 	return selectedTask;

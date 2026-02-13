@@ -1,30 +1,47 @@
-import { assert, beforeEach, describe, it, vi } from "vitest";
+import assert from "node:assert";
+import { beforeEach, describe, it, mock } from "node:test";
 import { trackUsage } from "../monitoring/usage-tracker.js";
 
 // Mock Octokit
 const mockOctokit = {
 	rest: {
 		issues: {
-			listComments: vi.fn(),
-			createComment: vi.fn(),
-			updateComment: vi.fn(),
+			get: mock.fn(() =>
+				Promise.resolve({ data: { node_id: "I_kwDOAA562c6RzBcd" } }),
+			),
+			listComments: mock.fn(() => Promise.resolve({ data: [] })),
+			createComment: mock.fn(() => Promise.resolve({ data: { id: 123 } })),
+			updateComment: mock.fn(() => Promise.resolve({ data: { id: 123 } })),
 		},
 	},
 };
 
 describe("ai-usage-tracker", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		mock.restoreAll();
+		// Reset mocks manually
+		mockOctokit.rest.issues.get.mock.resetCalls();
+		mockOctokit.rest.issues.listComments.mock.resetCalls();
+		mockOctokit.rest.issues.createComment.mock.resetCalls();
+		mockOctokit.rest.issues.updateComment.mock.resetCalls();
+
+		// Set default implementations
+		mockOctokit.rest.issues.get.mock.mockImplementation(() =>
+			Promise.resolve({ data: { node_id: "I_kwDOAA562c6RzBcd" } }),
+		);
+		mockOctokit.rest.issues.listComments.mock.mockImplementation(() =>
+			Promise.resolve({ data: [] }),
+		);
+		mockOctokit.rest.issues.createComment.mock.mockImplementation(() =>
+			Promise.resolve({ data: { id: 123 } }),
+		);
+		mockOctokit.rest.issues.updateComment.mock.mockImplementation(() =>
+			Promise.resolve({ data: { id: 123 } }),
+		);
 	});
 
 	describe("trackUsage", () => {
 		it("should create new metrics for first execution", async () => {
-			// Mock: no existing comments
-			mockOctokit.rest.issues.listComments.mockResolvedValue({ data: [] });
-			mockOctokit.rest.issues.createComment.mockResolvedValue({
-				data: { id: 123 },
-			});
-
 			const result = await trackUsage({
 				owner: "test-owner",
 				repo: "test-repo",
@@ -45,11 +62,18 @@ describe("ai-usage-tracker", () => {
 			assert.strictEqual(result.operations[0].model, "gemini-2.5-flash-lite");
 
 			// Verify comment was created
-			assert.ok(mockOctokit.rest.issues.createComment.called);
+			assert.strictEqual(
+				mockOctokit.rest.issues.listComments.mock.callCount(),
+				2,
+			);
+			assert.strictEqual(
+				mockOctokit.rest.issues.createComment.mock.callCount(),
+				1,
+			);
 			const commentBody =
-				mockOctokit.rest.issues.createComment.mock.calls[0][0].body;
+				mockOctokit.rest.issues.createComment.mock.calls[0].arguments[0].body;
 			assert.ok(commentBody.includes("AI_USAGE_METRICS"));
-			assert.ok(commentBody.includes("Total Tokens: 300"));
+			assert.ok(commentBody.includes("**Total Tokens**: 300"));
 		});
 
 		it("should accumulate metrics across multiple executions", async () => {
@@ -79,12 +103,9 @@ describe("ai-usage-tracker", () => {
 `,
 			};
 
-			mockOctokit.rest.issues.listComments.mockResolvedValue({
-				data: [existingComment],
-			});
-			mockOctokit.rest.issues.updateComment.mockResolvedValue({
-				data: { id: 123 },
-			});
+			mockOctokit.rest.issues.listComments.mock.mockImplementation(() =>
+				Promise.resolve({ data: [existingComment] }),
+			);
 
 			const result = await trackUsage({
 				owner: "test-owner",
@@ -103,29 +124,18 @@ describe("ai-usage-tracker", () => {
 			assert.strictEqual(result.operations.length, 2);
 
 			// Verify comment was updated (not created)
-			assert.ok(mockOctokit.rest.issues.updateComment.called);
-			assert.ok(!mockOctokit.rest.issues.createComment.called);
+			assert.strictEqual(
+				mockOctokit.rest.issues.updateComment.mock.callCount(),
+				1,
+			);
+			assert.strictEqual(
+				mockOctokit.rest.issues.createComment.mock.callCount(),
+				0,
+			);
 		});
 
 		it("should handle different models in operations", async () => {
-			mockOctokit.rest.issues.listComments.mockResolvedValue({ data: [] });
-			mockOctokit.rest.issues.createComment.mockResolvedValue({
-				data: { id: 123 },
-			});
-
-			// First operation: flash-lite
-			await trackUsage({
-				owner: "test-owner",
-				repo: "test-repo",
-				issueNumber: 42,
-				model: "gemini-2.5-flash-lite",
-				inputTokens: 250,
-				outputTokens: 50,
-				operation: "triage",
-				octokit: mockOctokit,
-			});
-
-			// Mock existing comment for second operation
+			// Mock: existing comment for second operation
 			const existingComment = {
 				id: 123,
 				body: `<!-- AI_USAGE_METRICS -->
@@ -149,12 +159,9 @@ describe("ai-usage-tracker", () => {
 `,
 			};
 
-			mockOctokit.rest.issues.listComments.mockResolvedValue({
-				data: [existingComment],
-			});
-			mockOctokit.rest.issues.updateComment.mockResolvedValue({
-				data: { id: 123 },
-			});
+			mockOctokit.rest.issues.listComments.mock.mockImplementation(() =>
+				Promise.resolve({ data: [existingComment] }),
+			);
 
 			// Second operation: pro (more expensive)
 			const result = await trackUsage({
@@ -186,12 +193,9 @@ Invalid JSON here
 `,
 			};
 
-			mockOctokit.rest.issues.listComments.mockResolvedValue({
-				data: [existingComment],
-			});
-			mockOctokit.rest.issues.updateComment.mockResolvedValue({
-				data: { id: 123 },
-			});
+			mockOctokit.rest.issues.listComments.mock.mockImplementation(() =>
+				Promise.resolve({ data: [existingComment] }),
+			);
 
 			const result = await trackUsage({
 				owner: "test-owner",
@@ -210,16 +214,25 @@ Invalid JSON here
 		});
 
 		it("should round cost to 8 decimal places for project updates", async () => {
-			mockOctokit.rest.issues.get = vi.fn().mockResolvedValue({
-				data: { node_id: "issue-node-123" },
-			});
-			mockOctokit.graphql = vi.fn().mockResolvedValue({
-				addProjectV2ItemById: { item: { id: "item-123" } },
-				updateProjectV2ItemFieldValue: { projectV2Item: { id: "item-123" } },
-			});
-			mockOctokit.rest.issues.listComments.mockResolvedValue({ data: [] });
-			mockOctokit.rest.issues.createComment.mockResolvedValue({
-				data: { id: 123 },
+			mockOctokit.graphql = mock.fn((query) => {
+				if (query.includes("repository")) {
+					return Promise.resolve({
+						repository: { issue: { id: "issue-node-123" } },
+					});
+				}
+				if (query.includes("addProjectV2ItemById")) {
+					return Promise.resolve({
+						addProjectV2ItemById: { item: { id: "item-123" } },
+					});
+				}
+				if (query.includes("updateProjectV2ItemFieldValue")) {
+					return Promise.resolve({
+						updateProjectV2ItemFieldValue: {
+							projectV2Item: { id: "item-123" },
+						},
+					});
+				}
+				return Promise.resolve({});
 			});
 
 			const result = await trackUsage({
@@ -233,16 +246,16 @@ Invalid JSON here
 				octokit: mockOctokit,
 			});
 
-			// Verify totalCost in metrics (not rounded in the object itself, but in the call)
+			// Verify totalCost in metrics
 			assert.ok(result.totalCost > 0);
 
 			// Verify GraphQL call for updateProjectV2ItemFieldValue
 			const updateCall = mockOctokit.graphql.mock.calls.find((c) =>
-				c[0].includes("updateProjectV2ItemFieldValue"),
+				c.arguments[0].includes("updateProjectV2ItemFieldValue"),
 			);
 			assert.ok(updateCall, "GraphQL update mutation should be called");
 
-			const value = updateCall[1].value.number;
+			const value = updateCall.arguments[1].value.number;
 			const decimals = String(value).split(".")[1] || "";
 			assert.ok(
 				decimals.length <= 8,

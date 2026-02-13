@@ -139,8 +139,8 @@ jobs:
                   PLANNING_OUTPUT_TOKENS: ${{ steps.planning.outputs.output_tokens || '0' }}
                   DEVELOPER_INPUT_TOKENS: ${{ steps.developer.outputs.input_tokens || '0' }}
                   DEVELOPER_OUTPUT_TOKENS: ${{ steps.developer.outputs.output_tokens || '0' }}
-                  REVIEWER_INPUT_TOKENS: ${{ steps.reviewer.outputs.input_tokens || '0' }}
-                  REVIEWER_OUTPUT_TOKENS: ${{ steps.reviewer.outputs.output_tokens || '0' }}
+                  REVIEWER_INPUT_TOKENS: ${{ steps.reviewer.outputs.prompt_token_count || '0' }}
+                  REVIEWER_OUTPUT_TOKENS: ${{ steps.reviewer.outputs.candidates_token_count || '0' }}
               run: |
                   node tooling/ai-workers/sync.js
 

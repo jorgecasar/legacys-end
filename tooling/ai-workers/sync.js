@@ -72,7 +72,7 @@ export async function syncWorkerResults() {
 			name: "developer",
 			input: process.env.DEVELOPER_INPUT_TOKENS,
 			output: process.env.DEVELOPER_OUTPUT_TOKENS,
-			model: "gemini-2.5-flash",
+			model: "gemini-2.5-pro",
 		},
 		{
 			name: "reviewer",
