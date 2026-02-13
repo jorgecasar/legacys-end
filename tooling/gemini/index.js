@@ -3,6 +3,64 @@ import { GoogleGenAI } from "@google/genai";
 import { GEMINI_PRICING, MODEL_FALLBACK } from "./pricing.js";
 
 /**
+ * Attempt to repair truncated JSON by closing open structures
+ */
+function repairTruncatedJSON(jsonStr) {
+	let repaired = jsonStr;
+
+	// Count open/close brackets and braces
+	let openBraces = 0;
+	let openBrackets = 0;
+	let inString = false;
+	let escapeNext = false;
+
+	for (let i = 0; i < repaired.length; i++) {
+		const char = repaired[i];
+
+		if (escapeNext) {
+			escapeNext = false;
+			continue;
+		}
+
+		if (char === "\\") {
+			escapeNext = true;
+			continue;
+		}
+
+		if (char === '"' && repaired[i - 1] !== "\\") {
+			inString = !inString;
+			continue;
+		}
+
+		if (!inString) {
+			if (char === "{") openBraces++;
+			else if (char === "}") openBraces--;
+			else if (char === "[") openBrackets++;
+			else if (char === "]") openBrackets--;
+		}
+	}
+
+	// Remove incomplete string at the end if any
+	const lastQuote = repaired.lastIndexOf('"');
+	const lastComma = repaired.lastIndexOf(",");
+	if (lastQuote > lastComma && lastQuote > repaired.length - 20) {
+		repaired = repaired.substring(0, lastQuote);
+	}
+
+	// Close open structures
+	while (openBrackets > 0) {
+		repaired += "]";
+		openBrackets--;
+	}
+	while (openBraces > 0) {
+		repaired += "}";
+		openBraces--;
+	}
+
+	return repaired;
+}
+
+/**
  * Run Gemini with intelligent fallback and structured output
  */
 export async function runWithFallback(modelType, prompt, options = {}) {
@@ -49,9 +107,7 @@ export async function runWithFallback(modelType, prompt, options = {}) {
 			try {
 				const isPro = modelName.includes("pro");
 				const generationConfig = {
-					maxOutputTokens: isPro ? 4096 : 2048,
-					temperature: 0,
-					...configOverrides,
+					maxOutputTokens: isPro ? 8192 : 4096,
 				};
 
 				if (responseSchema) {
@@ -97,28 +153,41 @@ export async function runWithFallback(modelType, prompt, options = {}) {
 
 				if (responseSchema) {
 					try {
-						// Intentamos usar .parsed si el SDK lo ofrece o parseamos el texto
-						data = result.parsed || JSON.parse(text);
+						// Intentamos usar .parsed si el SDK lo ofrece
+						if (result.parsed) {
+							data = result.parsed;
+							console.log(`✓ Using result.parsed for structured output`);
+						} else {
+							data = JSON.parse(text);
+							console.log(`✓ Parsed JSON from text directly`);
+						}
 					} catch (_e) {
 						// Extracción robusta si falla el parseo directo
+						console.log(
+							`First parse attempt failed, trying robust extraction...`,
+						);
 						try {
-							const firstBrace = text.indexOf("{");
-							const lastBrace = text.lastIndexOf("}");
-							if (
-								firstBrace !== -1 &&
-								lastBrace !== -1 &&
-								lastBrace > firstBrace
-							) {
-								data = JSON.parse(text.substring(firstBrace, lastBrace + 1));
-							} else {
-								const cleanJson = text.replace(/```json\s*|```/g, "").trim();
-								data = JSON.parse(cleanJson);
+							// Limpieza de markdown code blocks si existen
+							let cleanText = text.replace(/```json\s*|```\s*/g, "").trim();
+
+							// Si empieza con caracteres raros, buscar el primer {
+							const firstBrace = cleanText.indexOf("{");
+							if (firstBrace > 0) {
+								cleanText = cleanText.substring(firstBrace);
 							}
+
+							// Intentar reparar JSON truncado
+							cleanText = repairTruncatedJSON(cleanText);
+
+							// Parsear
+							data = JSON.parse(cleanText);
+							console.log(`✓ Successfully parsed repaired JSON`);
 						} catch (finalErr) {
 							console.error(
 								"Failed to extract JSON from model response:",
-								`${text.substring(0, 100)}...`,
+								`${text.substring(0, 200)}...`,
 							);
+							console.error("Parse error:", finalErr.message);
 							throw new Error(`JSON_PARSE_ERROR: ${finalErr.message}`);
 						}
 					}

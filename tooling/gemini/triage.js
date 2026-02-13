@@ -57,18 +57,72 @@ const TRIAGE_PROMPT_BATCH = `Issues to triage:
 
 {{ISSUES}}`;
 
+const MAX_CHARS_PER_BATCH = 5000; // Limit batch size to ~5k characters to keep responses manageable
+
+/**
+ * Divide issues into batches based on character limit
+ */
+function createIssueBatches(issues, maxCharsPerBatch = MAX_CHARS_PER_BATCH) {
+	const batches = [];
+	let currentBatch = [];
+	let currentSize = 0;
+
+	for (const issue of issues) {
+		const issueText = `Issue #${issue.number}: ${issue.title}\n${issue.body.substring(0, 500)}\n\n---\n\n`;
+		const issueSize = issueText.length;
+
+		// If adding this issue exceeds limit and we have items, start new batch
+		if (currentSize + issueSize > maxCharsPerBatch && currentBatch.length > 0) {
+			batches.push(currentBatch);
+			currentBatch = [issue];
+			currentSize = issueSize;
+		} else {
+			currentBatch.push(issue);
+			currentSize += issueSize;
+		}
+	}
+
+	if (currentBatch.length > 0) {
+		batches.push(currentBatch);
+	}
+
+	return batches;
+}
+
 async function fetchPendingIssues(octokit) {
 	const items = await fetchProjectItems(octokit);
+	const issuesToProcess = [];
 
-	return items
-		.filter((item) => {
-			return item.status === "Todo" && !item.labels.includes("ai-triaged");
-		})
-		.map((item) => ({
-			number: item.number,
-			title: item.title,
-			body: item.body || "",
-		}));
+	for (const item of items) {
+		// Add parent issues in Todo status without ai-triaged label
+		if (item.status === "Todo" && !item.labels.includes("ai-triaged")) {
+			issuesToProcess.push({
+				number: item.number,
+				title: item.title,
+				body: item.body || "",
+			});
+		}
+
+		// Also add sub-issues that are open
+		if (item.subIssues && item.subIssues.length > 0) {
+			for (const subIssue of item.subIssues) {
+				if (subIssue.state === "OPEN") {
+					const subIssueDetails = await getIssue(octokit, {
+						owner: OWNER,
+						repo: REPO,
+						issueNumber: subIssue.number,
+					});
+					issuesToProcess.push({
+						number: subIssueDetails.number,
+						title: subIssueDetails.title,
+						body: subIssueDetails.body || "",
+					});
+				}
+			}
+		}
+	}
+
+	return issuesToProcess;
 }
 
 export async function triageIssues() {
@@ -100,44 +154,95 @@ export async function triageIssues() {
 
 	if (issuesToProcess.length === 0) {
 		console.log("No issues to process.");
-		return;
+		return { triageData: {}, batchMode: !process.env.GITHUB_ISSUE_NUMBER };
 	}
 
-	const issuesText = issuesToProcess
-		.map((i) => `Issue #${i.number}: ${i.title}\n${i.body.substring(0, 500)}`)
-		.join("\n\n---\n\n");
+	// Divide issues into batches based on character limit
+	const batches = createIssueBatches(issuesToProcess);
+	console.log(
+		`>>> Divided ${issuesToProcess.length} issue(s) into ${batches.length} batch(es)`,
+	);
 
-	const prompt = TRIAGE_PROMPT_BATCH.replace("{{ISSUES}}", issuesText);
+	const triageData = {};
+	let totalInputTokens = 0;
+	let totalOutputTokens = 0;
 
 	try {
-		console.log(
-			`>>> Running structured triage for ${issuesToProcess.length} issue(s)...`,
-		);
-		const result = await runWithFallback("flash", prompt, {
-			systemInstruction: TRIAGE_SYSTEM_INSTRUCTION,
-			responseSchema: TRIAGE_SCHEMA,
-		});
+		// Process all batches in parallel
+		const batchResults = await Promise.all(
+			batches.map(async (batch, batchIndex) => {
+				const issuesText = batch
+					.map(
+						(i) =>
+							`Issue #${i.number}: ${i.title}\n${i.body.substring(0, 500)}`,
+					)
+					.join("\n\n---\n\n");
 
-		const triageResults = result.data.results || [];
-		const triageData = {};
-		for (const res of triageResults) {
-			triageData[res.issue_number] = {
-				model: res.model,
-				priority: res.priority,
-				labels: res.labels,
-			};
+				const prompt = TRIAGE_PROMPT_BATCH.replace("{{ISSUES}}", issuesText);
+
+				console.log(
+					`>>> Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} issue(s))...`,
+				);
+
+				try {
+					const result = await runWithFallback("flash", prompt, {
+						systemInstruction: TRIAGE_SYSTEM_INSTRUCTION,
+						responseSchema: TRIAGE_SCHEMA,
+						maxRetries: 1,
+					});
+
+					const triageResults = result.data.results || [];
+					const batchData = {};
+					for (const res of triageResults) {
+						batchData[res.issue_number] = {
+							model: res.model,
+							priority: res.priority,
+							labels: res.labels,
+						};
+					}
+
+					console.log(
+						`✅ Batch ${batchIndex + 1} processed: ${Object.keys(batchData).length} issues`,
+					);
+
+					return {
+						batchData,
+						inputTokens: result.inputTokens,
+						outputTokens: result.outputTokens,
+						modelUsed: result.modelUsed,
+					};
+				} catch (batchErr) {
+					console.error(`❌ Batch ${batchIndex + 1} failed:`, batchErr.message);
+					throw batchErr;
+				}
+			}),
+		);
+
+		// Merge results from all batches
+		for (const batchResult of batchResults) {
+			Object.assign(triageData, batchResult.batchData);
+			totalInputTokens += batchResult.inputTokens || 0;
+			totalOutputTokens += batchResult.outputTokens || 0;
 		}
 
 		console.log(
-			`Debug - triageData processed: ${Object.keys(triageData).length} issues`,
+			`Debug - triageData processed: ${Object.keys(triageData).length} issues total`,
+		);
+		console.log(
+			`Debug - Total tokens: ${totalInputTokens} in / ${totalOutputTokens} out`,
 		);
 
-		const distributedBaseTokens = Math.ceil(
-			result.inputTokens / issuesToProcess.length,
-		);
-		const perIssueOutputTokens = Math.ceil(
-			result.outputTokens / issuesToProcess.length,
-		);
+		const distributedBaseTokens =
+			totalInputTokens > 0
+				? Math.ceil(totalInputTokens / issuesToProcess.length)
+				: 0;
+		const perIssueOutputTokens =
+			totalOutputTokens > 0
+				? Math.ceil(totalOutputTokens / issuesToProcess.length)
+				: 0;
+
+		// Get model used from first batch (typically same across all batches)
+		const modelUsed = batchResults[0]?.modelUsed || "gemini-2.5-flash-lite";
 
 		for (const issue of issuesToProcess) {
 			const data = triageData[issue.number] || triageData[String(issue.number)];
@@ -147,7 +252,7 @@ export async function triageIssues() {
 				owner: OWNER,
 				repo: REPO,
 				issueNumber: issue.number,
-				model: result.modelUsed,
+				model: modelUsed,
 				inputTokens: distributedBaseTokens,
 				outputTokens: perIssueOutputTokens,
 				operation: "triage",

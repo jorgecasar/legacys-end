@@ -55,7 +55,7 @@ export const MODEL_FALLBACK = {
 		"gemini-3-flash-preview",
 	],
 	pro: ["gemini-2.5-pro", "gemini-3-pro-preview"],
-	image: ["gemini-2.5-flash", "gemini-3-pro-preview"],
+	image: ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3-pro-preview"],
 };
 
 /**
