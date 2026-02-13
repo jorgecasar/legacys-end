@@ -100,8 +100,8 @@ jobs:
                   git fetch origin main
                   git pull --rebase origin main
                   
-                  # 4. Push to the current branch
-                  git push -u origin HEAD
+                  # 4. Push to the current branch (force-with-lease is required because we rebased)
+                  git push --force-with-lease origin HEAD
 
             # 3. VERIFICATION
             - name: Install Playwright Browsers
