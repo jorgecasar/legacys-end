@@ -90,7 +90,7 @@ jobs:
               env:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
                   COMMIT_MESSAGE: ${{ steps.developer.outputs.commit_message }}
-                  REVIEWER_TEXT: ${{ fromJson(steps.reviewer.outputs.json).review_text || 'Reviewer Agent failed or was skipped.' }}
+                  REVIEWER_TEXT: ${{ steps.reviewer.outputs.json && fromJson(steps.reviewer.outputs.json).review_text || 'Reviewer Agent failed or was skipped.' }}
               run: |
                   git config --global user.name "github-actions[bot]"
                   git config --global user.email "github-actions[bot]@users.noreply.github.com"
