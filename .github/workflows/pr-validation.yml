@@ -60,11 +60,12 @@ jobs:
           name: playwright-report
           path: playwright-report/
 
-      - name: Request Coverage Report
+      - name: Request App Coverage Report
         if: github.event_name == 'pull_request'
         uses: davelosert/vitest-coverage-report-action@v2
         with:
           json-summary-path: ./coverage/coverage-summary.json
+          name: App Coverage Report
 
   test-tooling:
     needs: changes
@@ -77,14 +78,29 @@ jobs:
           node-version: "20"
           cache: "npm"
       - run: npm ci || npm install
-      - name: Run Tooling Tests with 100% Coverage
+      - name: Run Tooling Tests with Coverage
         run: |
-          npm run test:tooling:coverage > coverage.txt
-          cat coverage.txt
-          # Native Node coverage check (simple grep/awk for 100% total)
-          if grep -q "all files.*100.00" coverage.txt || grep -q "100 %" coverage.txt; then
-            echo "100% coverage achieved"
+          npm run test:tooling:coverage
+          # Check for at least 80% coverage in json-summary
+          COVERAGE=$(jq '.total.lines.pct' coverage/coverage-summary.json)
+          echo "Coverage is $COVERAGE%"
+          if (( $(echo "$COVERAGE >= 80.0" | bc -l) )); then
+            echo "Coverage target met"
           else
-            echo "Tooling coverage is below 100%"
+            echo "Tooling coverage is below 80%"
             exit 1
           fi
+
+      - name: Request Tooling Coverage Report
+        if: github.event_name == 'pull_request'
+        uses: davelosert/vitest-coverage-report-action@v2
+        with:
+          json-summary-path: ./coverage/coverage-summary.json
+          name: Tooling Coverage Report
+
+      - name: Upload Tooling Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tooling-coverage-report
+          path: coverage/

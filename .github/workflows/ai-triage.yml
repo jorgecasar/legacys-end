@@ -27,18 +27,9 @@ jobs:
             - name: Install dependencies
               run: npm ci || npm install
 
-            - name: Run Gemini Triage
-              id: gemini
+            - name: Run Full AI Triage
               env:
                   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-                  GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
-                  GITHUB_REPOSITORY: ${{ github.repository }}
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
-              run: node tooling/gemini/triage.js
+              run: node tooling/ai-orchestration/triage.js
 
-            - name: Sync to Project V2
-              env:
-                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
-                  GEMINI_SUMMARY: ${{ steps.gemini.outputs.summary }}
-                  GEMINI_BATCH_MODE: ${{ steps.gemini.outputs.batch_mode }}
-              run: node tooling/ai-orchestration/triage-orchestrator.js

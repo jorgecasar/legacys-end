@@ -3,17 +3,26 @@ import { PROJECT_ID } from "../config/index.js";
 
 /**
  * Initialize Octokit with environment token
+ * @param {typeof Octokit} [OctokitClass=Octokit] - Octokit class constructor (for dependency injection)
+ * @returns {Octokit} Authenticated Octokit instance
+ * @throws {Error} If GH_TOKEN environment variable is missing
  */
-export function getOctokit() {
+export function getOctokit(OctokitClass = Octokit) {
 	const token = process.env.GH_TOKEN;
 	if (!token) {
 		throw new Error("Missing GH_TOKEN environment variable");
 	}
-	return new Octokit({ auth: token });
+	return new OctokitClass({ auth: token });
 }
 
 /**
  * Resolve an issue number to its details
+ * @param {Octokit} octokit - Octokit instance
+ * @param {Object} params - Parameters
+ * @param {string} params.owner - Repository owner
+ * @param {string} params.repo - Repository name
+ * @param {number} params.issueNumber - Issue number
+ * @returns {Promise<Object>} Issue details object
  */
 export async function getIssue(octokit, { owner, repo, issueNumber }) {
 	const { data: issue } = await octokit.rest.issues.get({
@@ -26,6 +35,12 @@ export async function getIssue(octokit, { owner, repo, issueNumber }) {
 
 /**
  * Resolve an issue number to its GraphQL node_id
+ * @param {Octokit} octokit - Octokit instance
+ * @param {Object} params - Parameters
+ * @param {string} params.owner - Repository owner
+ * @param {string} params.repo - Repository name
+ * @param {number} params.issueNumber - Issue number
+ * @returns {Promise<string>} GraphQL node_id
  */
 export async function getIssueNodeId(octokit, params) {
 	const issue = await getIssue(octokit, params);
@@ -33,7 +48,39 @@ export async function getIssueNodeId(octokit, params) {
 }
 
 /**
+ * Creates a native sub-issue relationship using GraphQL
+ * @param {Octokit} octokit - Octokit instance
+ * @param {string} parentId - Global ID of the parent issue
+ * @param {string} childId - Global ID of the child issue
+ * @returns {Promise<Object>} GraphQL mutation result
+ */
+export async function createSubIssue(octokit, parentId, childId) {
+	const query = `
+		mutation($parentId: ID!, $childId: ID!) {
+			addSubIssue(input: {issueId: $parentId, subIssueId: $childId}) {
+				subIssue {
+					id
+				}
+			}
+		}
+	`;
+	return octokit.graphql(query, {
+		parentId,
+		childId,
+		headers: {
+			"GraphQL-Features": "sub_issues",
+		},
+	});
+}
+
+/**
  * Get sub-issues of an issue
+ * @param {Octokit} octokit - Octokit instance
+ * @param {Object} params - Parameters
+ * @param {string} params.owner - Repository owner
+ * @param {string} params.repo - Repository name
+ * @param {number} params.issueNumber - Issue number
+ * @returns {Promise<Array<{number: number, state: string}>>} List of sub-issues
  */
 export async function getSubIssues(octokit, { owner, repo, issueNumber }) {
 	const query = `
@@ -73,6 +120,12 @@ export async function getSubIssues(octokit, { owner, repo, issueNumber }) {
 
 /**
  * Check if an issue has open subtasks (Native Sub-issues)
+ * @param {Octokit} octokit - Octokit instance
+ * @param {Object} params - Parameters
+ * @param {string} params.owner - Repository owner
+ * @param {string} params.repo - Repository name
+ * @param {number} params.issueNumber - Issue number
+ * @returns {Promise<number>} Count of open sub-issues
  */
 export async function hasOpenSubtasks(octokit, { owner, repo, issueNumber }) {
 	const query = `
@@ -111,7 +164,32 @@ export async function hasOpenSubtasks(octokit, { owner, repo, issueNumber }) {
 }
 
 /**
+ * Add a comment to an issue
+ * @param {Octokit} octokit - Octokit instance
+ * @param {Object} params - Parameters
+ * @param {string} params.owner - Repository owner
+ * @param {string} params.repo - Repository name
+ * @param {number} params.issueNumber - Issue number
+ * @param {string} params.body - Comment body
+ * @returns {Promise<Object>} Created comment object
+ */
+export async function addIssueComment(
+	octokit,
+	{ owner, repo, issueNumber, body },
+) {
+	return octokit.rest.issues.createComment({
+		owner,
+		repo,
+		issue_number: issueNumber,
+		body,
+	});
+}
+
+/**
  * Ensures an issue is present in the Project V2 and returns its Item ID
+ * @param {Octokit} octokit - Octokit instance
+ * @param {string} contentId - Global Node ID of the issue
+ * @returns {Promise<string>} Project Item ID
  */
 export async function addIssueToProject(octokit, contentId) {
 	const result = await octokit.graphql(
@@ -128,6 +206,11 @@ export async function addIssueToProject(octokit, contentId) {
 /**
  * Universal Project V2 Field Updater
  * Handles Text, Number, and Single Select options automatically.
+ * @param {Octokit} octokit - Octokit instance
+ * @param {string} itemId - Project Item ID
+ * @param {string} fieldId - Project Field ID
+ * @param {string|number} value - Value to set
+ * @returns {Promise<Object>} Mutation result
  */
 export async function updateProjectField(octokit, itemId, fieldId, value) {
 	let valuePayload;
@@ -167,13 +250,15 @@ export async function updateProjectField(octokit, itemId, fieldId, value) {
 
 /**
  * Fetch items from the Project V2
+ * @param {Octokit} octokit - Octokit instance
+ * @returns {Promise<Array<Object>>} List of project items with details
  */
 export async function fetchProjectItems(octokit) {
 	const query = `
 		query($projectId: ID!) {
 			node(id: $projectId) {
 				... on ProjectV2 {
-					items(first: 50) {
+					items(first: 100) {
 						nodes {
 							id
 							content {
@@ -190,10 +275,14 @@ export async function fetchProjectItems(octokit) {
 											nodes { name }
 										}
 									}
-									subIssues(first: 10) {
+									subIssues(first: 20) {
 										nodes {
 											number
+											title
 											state
+											labels(first: 5) {
+												nodes { name }
+											}
 										}
 									}
 								}
@@ -229,7 +318,10 @@ export async function fetchProjectItems(octokit) {
 			labels: item.content?.labels?.nodes.map((l) => l.name) || [],
 			parentLabels:
 				item.content?.parent?.labels?.nodes.map((l) => l.name) || [],
-			subIssues: item.content?.subIssues?.nodes || [],
+			subIssues: (item.content?.subIssues?.nodes || []).map((s) => ({
+				...s,
+				labels: s.labels?.nodes.map((l) => l.name) || [],
+			})),
 		}))
 		.filter((i) => i.number);
 }

@@ -25,17 +25,11 @@
 		},
 		"github": {
 			"type": "stdio",
-			"command": "docker",
-			"args": [
-				"run",
-				"-i",
-				"--rm",
-				"-e",
-				"GH_TOKEN",
-				"ghcr.io/github/github-mcp-server",
-				"stdio"
-			],
-			"env": {}
+			"command": "npx",
+			"args": ["-y", "@modelcontextprotocol/server-github"],
+			"env": {
+				"GITHUB_PERSONAL_ACCESS_TOKEN": "$GH_TOKEN"
+			}
 		}
 	}
 }

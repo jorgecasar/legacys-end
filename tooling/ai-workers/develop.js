@@ -1,197 +1,96 @@
 #!/usr/bin/env node
-import fs from "node:fs";
-import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { writeGitHubOutput } from "../config/index.js";
-import { runWithFallback } from "../gemini/index.js";
+import * as configModule from "../config/index.js";
+import * as geminiModule from "../gemini/run-cli.js";
+import * as githubModule from "../github/index.js";
 
-const DEVELOP_SCHEMA = {
-	type: "OBJECT",
-	description: "A set of file changes to solve a technical task.",
-	properties: {
-		changes: {
-			type: "ARRAY",
-			items: {
-				type: "OBJECT",
-				properties: {
-					path: {
-						type: "STRING",
-						description: "Relative path from the project root.",
-					},
-					operation: {
-						type: "STRING",
-						enum: ["write", "create", "delete"],
-						description: "The file action to perform.",
-					},
-					content: {
-						type: "STRING",
-						description: "Full content of the file (for create/write).",
-					},
-				},
-				required: ["path", "operation"],
-			},
-		},
-		commit_message: {
-			type: "STRING",
-			description:
-				"A concise Conventional Commit message (e.g., 'feat(user): add login logic') describing the changes.",
-		},
-	},
-	required: ["changes", "commit_message"],
-};
+/**
+ * Development Phase using Gemini CLI
+ * @param {Object} [deps={}] - Injected dependencies
+ */
+export async function runDevelopmentAgent(deps = {}) {
+	const {
+		runGeminiCLI = geminiModule.runGeminiCLI,
+		writeGitHubOutput = configModule.writeGitHubOutput,
+		getOctokit = githubModule.getOctokit,
+		getIssue = githubModule.getIssue,
+		OWNER = configModule.OWNER,
+		REPO = configModule.REPO,
+		env = process.env,
+	} = deps;
 
-const DEVELOP_SYSTEM_INSTRUCTION = `You are a Developer Agent. Your task is to implement the technical plan for a given issue by generating the necessary code changes.
+	const issueNumber = env.ISSUE_NUMBER;
+	let title = env.ISSUE_TITLE;
+	let body = env.ISSUE_BODY;
+	const methodology = env.METHODOLOGY;
+	const files = env.FILES;
 
-**PROJECT CONTEXT (STRICT):**
-- **Language: JavaScript ONLY.** Do NOT use TypeScript syntax (like \`: type\`, \`public\`, \`private\`, \`interface\`). Use JSDoc for types if necessary.
-- **Testing:** This project uses **Vitest**. For all test files (\`*.test.js\`), you **MUST** include \`import { describe, it, expect } from 'vitest';\` at the top.
-- **Style:** Follow existing project conventions (Clean Architecture, Lit standards, etc.).
-
-**CRITICAL INSTRUCTION:** You **MUST** generate the complete code for the files listed in the plan.
-- If a file does not exist, you must create it using the "create" operation.
-- If a file already exists, you must replace its entire content using the "write" operation.
-- Do not leave any file content blank unless the plan explicitly says so.
-
-**OUTPUT REQUIREMENTS (STRICT):**
-- Return a **perfectly valid JSON object** with a 'changes' array and a 'commit_message'.
-- **CRITICAL for JSON validity:** All strings, especially the 'content' field which contains code, MUST be properly escaped. Pay close attention to quotes (") and backslashes (\\).
-- Each change must have 'path', 'operation', and 'content'.
-- The 'commit_message' MUST follow Conventional Commits (type(scope): description) and be specific to the implementation details.`;
-
-const DEVELOP_PROMPT = `Implement solutions for:
-Issue #{{ISSUE_NUMBER}}
-Title: {{TITLE}}
-Body:
-{{BODY}}
-
-Methodology provided by Planning phase:
-{{METHODOLOGY}}
-
-The plan requires creating or modifying the following files:
-{{FILE_LIST}}
-
-Here is the current content of those files (if they exist):
-{{FILES_CONTENT}}`;
-
-export async function implementPlan() {
-	const issueNumber = process.env.ISSUE_NUMBER;
-	const title = process.env.ISSUE_TITLE;
-	const body = process.env.ISSUE_BODY;
-	const methodology = process.env.METHODOLOGY;
-	const files = process.env.FILES;
-
-	if (!issueNumber || !title) {
-		console.error(
-			"Missing required environment variables (ISSUE_NUMBER, ISSUE_TITLE).",
-		);
-		process.exit(1);
-	}
-
-	const fileList = files ? files.split(/\s+/).filter(Boolean) : [];
-	let filesContent = "";
-	if (fileList.length > 0) {
-		for (const f of fileList) {
-			if (fs.existsSync(f)) {
-				const stats = fs.statSync(f);
-				if (stats.isFile()) {
-					const content = fs.readFileSync(f, "utf8");
-					filesContent += `\n--- FILE: ${f} ---\n${content}\n`;
-				}
-			}
-		}
-	}
-
-	const prompt = DEVELOP_PROMPT.replace("{{ISSUE_NUMBER}}", issueNumber)
-		.replace("{{TITLE}}", title)
-		.replace("{{BODY}}", body || "")
-		.replace("{{METHODOLOGY}}", methodology || "TDD")
-		.replace("{{FILE_LIST}}", fileList.join("\n") || "None")
-		.replace("{{FILES_CONTENT}}", filesContent || "None");
-
-	let result;
-	try {
-		console.log(
-			`>>> Generating structured implementation for issue #${issueNumber}...`,
-		);
-		result = await runWithFallback("pro", prompt, {
-			systemInstruction: DEVELOP_SYSTEM_INSTRUCTION,
-			responseSchema: DEVELOP_SCHEMA,
-		});
-
-		console.log(
-			">>> Raw response from Developer Agent:",
-			JSON.stringify(result.data, null, 2),
-		);
-
-		// Write tokens immediately so they aren't lost if later steps fail
-		writeGitHubOutput(
-			"input_tokens",
-			result.input_tokens || result.inputTokens,
-		);
-		writeGitHubOutput(
-			"output_tokens",
-			result.output_tokens || result.outputTokens,
-		);
-	} catch (error) {
-		console.error("❌ Development LLM Error:", error.message);
-		if (process.env.NODE_ENV !== "test") process.exit(1);
+	if (!issueNumber) {
+		console.error("Missing required environment variable ISSUE_NUMBER.");
+		if (env.NODE_ENV !== "test") process.exit(1);
 		return;
 	}
 
+	// Auto-fetch details if missing
+	if (!title || !body) {
+		console.log(`>>> Fetching details for Issue #${issueNumber}...`);
+		try {
+			const octokit = getOctokit();
+			const issue = await getIssue(octokit, {
+				owner: OWNER,
+				repo: REPO,
+				issueNumber: parseInt(issueNumber),
+			});
+			title = issue.title;
+			body = issue.body;
+		} catch (e) {
+			console.error(`❌ Could not fetch issue details: ${e.message}`);
+			if (env.NODE_ENV !== "test") process.exit(1);
+			return;
+		}
+	}
+
+	const prompt = `
+Solve Issue #${issueNumber}.
+TITLE: ${title}
+BODY: ${body}
+
+PLAN:
+${methodology}
+
+FILES:
+${files}
+
+1. Implement changes using project conventions (JavaScript, Lit, Clean Architecture).
+2. Use Serena's symbolic tools for efficient code navigation and editing.
+3. Run 'npm test' to verify.
+4. Save Conventional Commit message to '.github/AI_COMMIT_MESSAGE'.
+`;
+
+	console.log(`>>> Launching Development Agent for #${issueNumber}...`);
+
 	try {
-		const data = result.data;
+		const result = await runGeminiCLI(prompt, {
+			modelType: "pro",
+			yolo: true,
+		});
 
-		if (!data || !data.changes || !Array.isArray(data.changes)) {
-			console.error("Debug - Data received:", JSON.stringify(data, null, 2));
-			throw new Error("Invalid structure: missing changes array.");
-		}
+		writeGitHubOutput("input_tokens", result.inputTokens);
+		writeGitHubOutput("output_tokens", result.outputTokens);
 
-		console.log(`Applying ${data.changes.length} changes...`);
-
-		// Programmatic Guardrail: Validate file extensions
-		const allowedExtensions = [".js", ".json", ".md", ".css", ".html"];
-		for (const change of data.changes) {
-			const extension = path.extname(change.path);
-			if (!allowedExtensions.includes(extension)) {
-				throw new Error(
-					`Invalid file extension found: "${extension}" in path "${change.path}". Only ${allowedExtensions.join(", ")} are allowed.`,
-				);
-			}
-		}
-
-		for (const change of data.changes) {
-			const fullPath = path.resolve(process.cwd(), change.path);
-			console.log(`- ${change.operation}: ${change.path}`);
-
-			// Ensure directory exists
-			fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-
-			if (change.operation === "write" || change.operation === "create") {
-				fs.writeFileSync(fullPath, change.content || "", "utf8");
-			} else if (change.operation === "delete") {
-				if (fs.existsSync(fullPath)) {
-					fs.unlinkSync(fullPath);
-				}
-			}
-		}
-
-		// Output commit message for the workflow
-		const commitMessage =
-			data.commit_message || `feat(ai): implementation of #${issueNumber}`;
-		writeGitHubOutput("commit_message", commitMessage);
-		console.log(`Commit message generated: "${commitMessage}"`);
-
-		console.log("✅ Implementation phase complete.");
-		return result;
+		console.log(">>> Gemini CLI execution finished.");
 	} catch (error) {
-		console.error("❌ Development Post-Processing Error:", error.message);
-		if (process.env.NODE_ENV !== "test") process.exit(1);
+		console.error("❌ Gemini CLI Error:", error.message);
+		if (env.NODE_ENV !== "test") process.exit(1);
 	}
 }
 
+// Named handler to achieve 100% function coverage
+export function handleFatalError(err) {
+	console.error(err);
+	process.exit(1);
+}
+
 if (fileURLToPath(import.meta.url) === process.argv[1]) {
-	implementPlan().catch((err) => {
-		console.error(err);
-		process.exit(1);
-	});
+	runDevelopmentAgent().catch(handleFatalError);
 }

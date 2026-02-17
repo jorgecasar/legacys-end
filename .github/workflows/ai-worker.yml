@@ -47,20 +47,12 @@ jobs:
               run: |
                   gh issue view ${{ github.event.inputs.issue_number }} --json title,body > issue.json
                   echo "title=$(jq -r .title issue.json)" >> $GITHUB_OUTPUT
-                  # Handle multiline body safely with random delimiter
                   delimiter="$(openssl rand -hex 8)"
                   echo "body<<$delimiter" >> $GITHUB_OUTPUT
                   jq -r .body issue.json >> $GITHUB_OUTPUT
                   echo "$delimiter" >> $GITHUB_OUTPUT
 
-            - name: Debug Context
-              env:
-                  ISSUE_TITLE: ${{ steps.issue.outputs.title }}
-              run: |
-                  echo "Title: $ISSUE_TITLE"
-                  echo "Body length: ${{ steps.issue.outputs.body }}" | wc -c
-
-            # 1. ATOMIC PLANNING
+            # 1. ATOMIC PLANNING (Autonomous Agent)
             - name: Planning
               id: planning
               env:
@@ -71,7 +63,7 @@ jobs:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
               run: node tooling/ai-workers/plan.js
 
-            # 2. EXECUTION LOOP
+            # 2. EXECUTION LOOP (Autonomous Agent)
             - name: Development & Implementation
               if: steps.planning.outputs.needs_decomposition != 'true'
               id: developer
@@ -89,61 +81,38 @@ jobs:
               if: steps.planning.outputs.needs_decomposition != 'true'
               env:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
-                  COMMIT_MESSAGE: ${{ steps.developer.outputs.commit_message }}
-                  REVIEWER_TEXT: ${{ steps.reviewer.outputs.json && fromJson(steps.reviewer.outputs.json).review_text || 'Reviewer Agent failed or was skipped.' }}
+                  ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
               run: |
                   git config --global user.name "github-actions[bot]"
                   git config --global user.email "github-actions[bot]@users.noreply.github.com"
                   
-                  # Check if there are changes to commit
                   if [[ -z $(git status --porcelain) ]]; then
                     echo "No code changes detected. Skipping commit and PR."
                     exit 0
                   fi
                   
-                  # 1. Stage, Commit, Rebase, and Push
+                  # Extract commit message if saved by agent
+                  COMMIT_MSG="feat: resolve #$ISSUE_NUMBER (AI Agent)"
+                  if [ -f .github/AI_COMMIT_MESSAGE ]; then
+                    COMMIT_MSG=$(cat .github/AI_COMMIT_MESSAGE)
+                  fi
+                  
                   git add .
-                  git commit -m "$COMMIT_MESSAGE"
+                  git commit -m "$COMMIT_MSG"
                   git fetch origin main
                   git pull --rebase origin main
                   git push --force-with-lease origin HEAD
                   
-                  # 2. Create Pull Request
-                  gh pr create --title "$COMMIT_MESSAGE" --body "Automated PR by AI Worker Agent. Resolves #${{ github.event.inputs.issue_number }}. \n\nReviewer feedback: $REVIEWER_TEXT"
-                  
-            # 3. VERIFICATION
-            - name: Install Playwright Browsers
-              if: steps.planning.outputs.needs_decomposition != 'true'
-              run: npx playwright install --with-deps
+                  gh pr create --title "$COMMIT_MSG" --body "Automated PR by AI Worker Agent. Resolves #$ISSUE_NUMBER."
 
-            - name: Run Related Tests
+            # 3. VERIFICATION
+            - name: Run Verification Tests
               if: steps.planning.outputs.needs_decomposition != 'true'
-              run: |
-                  # Run tests with coverage
-                  npx vitest run --coverage
+              run: npm test
 
             - name: Update Coverage Thresholds
               if: steps.planning.outputs.needs_decomposition != 'true'
               run: npm run test:coverage:update
-
-            # 4. SELF-REVIEW
-            - name: Self-Review
-              if: steps.planning.outputs.needs_decomposition != 'true'
-              id: reviewer
-              uses: google-github-actions/run-gemini-cli@v0.1.20
-              continue-on-error: true
-              with:
-                  gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
-                  gemini_model: "gemini-2.5-flash"
-                  prompt: |
-                      You are the Reviewer Agent.
-                      Role: @reviewer-agent
-
-                      Files changed: $(git diff --name-only origin/main)
-                      Diff:
-                      $(git diff origin/main)
-
-                      Instruction: Audit this code. Output a JSON object with a single key "review_text". The value should be "APPROVED" if quality is high, otherwise, it should be a string containing a list of issues.
 
             - name: Sync Costs
               if: always()
@@ -154,8 +123,6 @@ jobs:
                   PLANNING_OUTPUT_TOKENS: ${{ steps.planning.outputs.output_tokens || '0' }}
                   DEVELOPER_INPUT_TOKENS: ${{ steps.developer.outputs.input_tokens || '0' }}
                   DEVELOPER_OUTPUT_TOKENS: ${{ steps.developer.outputs.output_tokens || '0' }}
-                  REVIEWER_INPUT_TOKENS: ${{ steps.reviewer.outputs.prompt_token_count || '0' }}
-                  REVIEWER_OUTPUT_TOKENS: ${{ steps.reviewer.outputs.candidates_token_count || '0' }}
               run: |
                   node tooling/ai-workers/sync.js
 

@@ -1,4 +1,4 @@
-name: AI Orchestrator
+name: AI Selection Step
 
 on:
     schedule:
@@ -29,8 +29,9 @@ jobs:
             - name: Install dependencies
               run: npm ci || npm install
 
-            - name: Run Orchestrator
+            - name: Run Task Selection
               env:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
+                  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
               run: |
-                  node tooling/ai-orchestration/orchestrator.js
+                  node tooling/ai-orchestration/selection.js

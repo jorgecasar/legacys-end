@@ -14,7 +14,9 @@ export async function syncTriageData(
 ) {
 	if (!input || input.trim() === "") {
 		console.error("Error: No JSON input provided.");
-		console.error("Usage: node tooling/ai-triage-sync.js '<json_string>'");
+		console.error(
+			"Usage: node tooling/github/triage-adapter.js '<json_string>'",
+		);
 		if (process.env.NODE_ENV !== "test") process.exit(1);
 		return;
 	}
