@@ -1,6 +1,6 @@
 import { html } from "lit";
 import { questControllerContext } from "../../../contexts/quest-controller-context.js";
-import { gameStoreContext } from "../../../core/store.js";
+import { gameStoreContext } from "../../../state/game-store.js";
 import "../../../utils/context-provider.js";
 import "./game-exit-zone.js";
 

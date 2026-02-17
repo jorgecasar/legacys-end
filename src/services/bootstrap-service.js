@@ -1,4 +1,5 @@
-import { GameStore } from "../core/store.js";
+import { LocalStorageAdapter } from "../infrastructure/local-storage-adapter.js";
+import { GameStore } from "../state/game-store.js";
 import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-transition.js";
 import { AIService } from "./ai-service.js";
 import { DialogueGenerationService } from "./dialogue-generation-service.js";
@@ -8,7 +9,6 @@ import { PreloaderService } from "./preloader-service.js";
 import { ProgressService } from "./progress-service.js";
 import { QuestRegistryService } from "./quest-registry-service.js";
 import { SessionService } from "./session-service.js";
-import { LocalStorageAdapter } from "./storage-service.js";
 import { ThemeService } from "./theme-service.js";
 import { VoiceSynthesisService } from "./voice-synthesis-service.js";
 

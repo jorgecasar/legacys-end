@@ -1,5 +1,5 @@
 import { StorageKeys } from "../core/constants.js";
-import { LocalStorageAdapter } from "./storage-service.js";
+import { LocalStorageAdapter } from "../infrastructure/local-storage-adapter.js";
 
 /**
  * @typedef {import('../types/services.d.js').IStorageAdapter} IStorageAdapter

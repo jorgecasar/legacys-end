@@ -2,7 +2,7 @@ import { ROUTES } from "../constants/routes.js";
 
 /** @typedef {import('../utils/router.js').Router} Router */
 
-/** @typedef {import('../core/game-context.js').IGameContext} IGameContext */
+/** @typedef {import('../state/game-context.js').IGameContext} IGameContext */
 /** @typedef {{ id: string }} QuestParams */
 /** @typedef {{ id: string, chapterId: string }} ChapterParams */
 

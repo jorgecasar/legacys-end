@@ -8,7 +8,7 @@ import "@awesome.me/webawesome/dist/components/icon/icon.js";
 import { loggerContext } from "../../contexts/logger-context.js";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { UIEvents } from "../../core/events.js";
-import { gameStoreContext } from "../../core/store.js";
+import { gameStoreContext } from "../../state/game-store.js";
 import { levelDialogStyles } from "./LevelDialog.styles.js";
 import { getSlides, getSlideText } from "./utils/slide-utils.js";
 
@@ -39,11 +39,12 @@ export class LevelDialog extends SignalWatcher(LitElement) {
 		/** @type {unknown} */ (null)
 	);
 
-	/** @type {import('../../core/store.js').GameStore} */
+	/** @type {import('../../state/game-store.js').GameStore} */
 	@consume({ context: gameStoreContext, subscribe: true })
-	accessor gameStore = /** @type {import('../../core/store.js').GameStore} */ (
-		/** @type {unknown} */ (null)
-	);
+	accessor gameStore =
+		/** @type {import('../../state/game-store.js').GameStore} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	get questState() {
 		return this.gameStore?.quest;

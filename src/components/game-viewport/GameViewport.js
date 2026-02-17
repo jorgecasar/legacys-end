@@ -16,7 +16,7 @@ import { CollisionController } from "../../controllers/collision-controller.js";
 import { GameController } from "../../controllers/game-controller.js";
 import { GameZoneController } from "../../controllers/game-zone-controller.js";
 import { InteractionController } from "../../controllers/interaction-controller.js";
-import { gameStoreContext } from "../../core/store.js";
+import { gameStoreContext } from "../../state/game-store.js";
 import { InteractWithNpcUseCase } from "../../use-cases/interact-with-npc.js";
 import { ProcessGameZoneInteractionUseCase } from "../../use-cases/process-game-zone-interaction.js";
 import {
@@ -60,11 +60,12 @@ export class GameViewport extends SignalWatcher(
 		LitElement
 	),
 ) {
-	/** @type {import('../../core/store.js').GameStore} */
+	/** @type {import('../../state/game-store.js').GameStore} */
 	@consume({ context: gameStoreContext, subscribe: true })
-	accessor gameStore = /** @type {import('../../core/store.js').GameStore} */ (
-		/** @type {unknown} */ (null)
-	);
+	accessor gameStore =
+		/** @type {import('../../state/game-store.js').GameStore} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @type {DialogState} */
 	@provide({ context: dialogStateContext })

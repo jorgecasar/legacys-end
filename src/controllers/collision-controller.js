@@ -1,6 +1,6 @@
 import { ContextConsumer } from "@lit/context";
 import { questControllerContext } from "../contexts/quest-controller-context.js";
-import { gameStoreContext } from "../core/store.js";
+import { gameStoreContext } from "../state/game-store.js";
 
 /**
  * @typedef {import("lit").ReactiveController} ReactiveController

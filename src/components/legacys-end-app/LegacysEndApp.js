@@ -37,13 +37,13 @@ import { legacysEndAppStyles } from "./LegacysEndApp.styles.js";
 import "@awesome.me/webawesome/dist/styles/webawesome.css";
 import "../../pixel.css";
 import { storageContext } from "../../contexts/storage-context.js";
-import { gameStoreContext } from "../../core/store.js";
 import { BootstrapService } from "../../services/bootstrap-service.js";
 import {
 	LegacyUserApiClient,
 	MockUserApiClient,
 	NewUserApiClient,
 } from "../../services/user-api-client.js";
+import { gameStoreContext } from "../../state/game-store.js";
 import { EvaluateChapterTransitionUseCase } from "../../use-cases/evaluate-chapter-transition.js";
 
 /**
@@ -107,11 +107,12 @@ export class LegacysEndApp extends SignalWatcher(LitElement) {
 			/** @type {unknown} */ (null)
 		);
 
-	/** @type {import('../../core/store.js').GameStore} */
+	/** @type {import('../../state/game-store.js').GameStore} */
 	@provide({ context: gameStoreContext })
-	accessor gameStore = /** @type {import('../../core/store.js').GameStore} */ (
-		/** @type {unknown} */ (null)
-	);
+	accessor gameStore =
+		/** @type {import('../../state/game-store.js').GameStore} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	/** @type {import('../../services/theme-service.js').ThemeService} */
 	@provide({ context: themeContext })

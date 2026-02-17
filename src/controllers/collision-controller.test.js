@@ -1,7 +1,7 @@
 import { Signal } from "@lit-labs/signals";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { questControllerContext } from "../contexts/quest-controller-context.js";
-import { gameStoreContext } from "../core/store.js";
+import { gameStoreContext } from "../state/game-store.js";
 import { CollisionController } from "./collision-controller.js";
 
 // Mock @lit/context to handle dependency injection in tests

@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { gameStoreContext } from "../../core/store.js";
+import { gameStoreContext } from "../../state/game-store.js";
 import "../../utils/context-provider.js";
 import "./pause-menu.js";
 

@@ -3,7 +3,7 @@ import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement, nothing } from "lit";
 import { loggerContext } from "../../../contexts/logger-context.js";
 import { questControllerContext } from "../../../contexts/quest-controller-context.js";
-import { gameStoreContext } from "../../../core/store.js";
+import { gameStoreContext } from "../../../state/game-store.js";
 
 import { gameExitZoneStyles } from "./GameExitZone.styles.js";
 import "@awesome.me/webawesome/dist/components/tag/tag.js";
@@ -33,10 +33,10 @@ export class GameExitZone extends SignalWatcher(
 		/** @type {unknown} */ (null)
 	);
 
-	/** @type {import('../../../core/store.js').GameStore} */
+	/** @type {import('../../../state/game-store.js').GameStore} */
 	@consume({ context: gameStoreContext, subscribe: true })
 	accessor gameStore =
-		/** @type {import('../../../core/store.js').GameStore} */ (
+		/** @type {import('../../../state/game-store.js').GameStore} */ (
 			/** @type {unknown} */ (null)
 		);
 

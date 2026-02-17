@@ -2,7 +2,7 @@ import { consume } from "@lit/context";
 import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement, nothing } from "lit";
 import { loggerContext } from "../../contexts/logger-context.js";
-import { gameStoreContext } from "../../core/store.js";
+import { gameStoreContext } from "../../state/game-store.js";
 import { gameHudStyles } from "./GameHud.styles.js";
 
 /**
@@ -16,11 +16,12 @@ export class GameHud extends SignalWatcher(
 		LitElement
 	),
 ) {
-	/** @type {import('../../core/store.js').GameStore} */
+	/** @type {import('../../state/game-store.js').GameStore} */
 	@consume({ context: gameStoreContext, subscribe: true })
-	accessor gameStore = /** @type {import('../../core/store.js').GameStore} */ (
-		/** @type {unknown} */ (null)
-	);
+	accessor gameStore =
+		/** @type {import('../../state/game-store.js').GameStore} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	get questState() {
 		return this.gameStore?.quest;

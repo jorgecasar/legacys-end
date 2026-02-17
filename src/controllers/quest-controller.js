@@ -7,7 +7,7 @@ import { progressContext } from "../contexts/progress-context.js";
 import { questRegistryContext } from "../contexts/quest-registry-context.js";
 import { sessionContext } from "../contexts/session-context.js";
 import { HotSwitchStates } from "../core/constants.js";
-import { gameStoreContext } from "../core/store.js";
+import { gameStoreContext } from "../state/game-store.js";
 import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-transition.js";
 
 /**

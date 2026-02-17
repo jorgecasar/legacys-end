@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { LocalStorageAdapter } from "./storage-service.js";
+import { LocalStorageAdapter } from "../infrastructure/local-storage-adapter.js";
 
 describe("LocalStorageAdapter", () => {
 	/** @type {LocalStorageAdapter} */
