@@ -68,7 +68,7 @@ ${files}
    - VALIDATE IT: After writing, you MUST run 'npx commitlint --edit .github/AI_COMMIT_MESSAGE'.
    - If it fails, you MUST fix the message and re-validate until it passes.
 5. COMMITTING & PUSHING:
-   - PRE-COMMIT: Run 'npm run lint' (or 'npm run format') AND 'npm test' to ensure code quality.
+   - PRE-COMMIT: Run 'npm run lint' (or 'npm run format') AND 'npm run test:app && npm run test:tooling' to ensure code quality.
    - ATTEMPT 1: Run 'git commit -F .github/AI_COMMIT_MESSAGE'.
    - IF HOOKS/TESTS FAIL: Read the error message. If you can't easily fix it, YOU MUST RUN:
      'git commit -F .github/AI_COMMIT_MESSAGE --no-verify'
