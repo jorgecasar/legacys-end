@@ -1,116 +1,48 @@
-# Tooling Directory
+# AI Agent Tooling
 
-This directory contains all AI automation and GitHub integration scripts for the project.
+Autonomous pipeline for project management and software development using Gemini and GitHub.
 
-## Directory Structure
+## Structure
 
-```
+```text
 tooling/
-├── ai-orchestration/        # Workflow orchestration and coordination
-│   ├── agent-flow.js        # Main entry point for the AI agent workflow
-│   ├── orchestrator.js       # Orchestrates execution of planning → development → sync
-│   ├── triage-orchestrator.js # Coordinates issue triage
-│   └── triage-sync.js        # Syncs triage results to GitHub
-│
-├── ai-workers/              # Individual task workers
-│   ├── plan.js              # Creates technical plans for issues
-│   ├── develop.js           # Implements code changes based on plans
-│   └── sync.js              # Aggregates results and updates project
-│
-├── config/                  # Configuration and constants
-│   └── index.js             # Central config (OWNER, REPO, PROJECT_ID, etc.)
-│
-├── gemini/                  # Google Gemini AI integration
-│   ├── index.js             # Main Gemini API wrapper with fallback chains
-│   ├── pricing.js           # Pricing table and cost calculations
-│   └── triage.js            # Issue triage logic using Gemini
-│
-├── github/                  # GitHub API utilities
-│   ├── index.js             # Core GitHub utilities (Octokit setup, project updates)
-│   └── client.js            # GitHub issue relationships and subtask management
-│
-└── monitoring/              # Usage tracking and reporting
-    ├── usage-tracker.js     # Tracks AI token usage and costs per issue
-    └── coverage.js          # Manages test coverage reports
+├── ai-orchestration/    # Governance & Flow Control
+│   ├── triage.js        # Classifies and prioritizes the backlog
+│   └── selection.js     # Selects and dispatches tasks to workers
+├── ai-workers/          # Technical Execution (Autonomous Agents)
+│   ├── plan.js          # Analyzes task and creates sub-issues if needed
+│   ├── develop.js       # Implements changes in the codebase
+│   └── sync.js          # Syncs execution results and costs to GitHub
+├── gemini/              # AI Engine Adapters
+│   ├── run-cli.js       # Robust wrapper for @google/gemini-cli
+│   └── pricing.js       # Cost calculation and model fallbacks
+├── github/              # Infrastructure Adapters
+│   ├── index.js         # Core GitHub API operations
+│   ├── triage-adapter.js # Maps AI decisions to GitHub Project fields
+│   └── create-subissue.js # Utility for native sub-issue linking
+└── monitoring/          # Observability
+    └── usage-tracker.js # Token and cost auditing
 ```
 
-## Key Modules
+## Workflows
 
-### `ai-orchestration/agent-flow.js`
-Main entry point. Orchestrates the full workflow:
-1. **Triage** - Analyze and categorize issues
-2. **Plan** - Generate technical plans
-3. **Develop** - Implement solutions
-4. **Sync** - Report results and update GitHub
+### 1. Triage (`triage.js`)
+Triggered manually or via schedule. Evaluates all open issues and assigns:
+- **Priority**: P0 (Critical) to P2 (Low).
+- **Type**: Epic, Task, or Bug.
+- **Project Fields**: Updates the Project V2 board.
 
-**Usage:**
-```bash
-node tooling/ai-orchestration/agent-flow.js --issue <number> [--skip-ai]
-```
+### 2. Execution Orchestration (`execution.js`)
+Runs hourly. Analyzes the board hierarchy to find "leaf" tasks (open issues with no open children) and dispatches them to the Workers.
 
-### `config/index.js`
-Centralizes all configuration constants:
-- GitHub repository info (OWNER, REPO, PROJECT_ID)
-- Project field IDs and option IDs
-- Helper functions for GitHub Actions integration
+### 3. Task Execution (`plan.js` & `develop.js`)
+The core loop for solving a specific issue:
+1. **Plan**: Decides whether to decompose the task or implement it directly.
+2. **Develop**: Executes code changes, runs tests, and prepares a PR.
+3. **Sync**: Records the total session cost in the project board.
 
-### `github/client.js`
-Manages GitHub issue relationships:
-- `ISSUE_RELATIONSHIP_TYPE` - Enum for relationship types (BLOCKS, BLOCKED_BY, TRACKS, TRACKED_BY)
-- `createIssueRelationship()` - Creates formal relationships between issues
-- `markIssueAsBlockedBy()` - Helper to mark blocking relationships
-- `createSubtasks()` - Creates subtasks with parent relationships
+## Configuration
 
-### `gemini/index.js`
-AI model integration with automatic fallback:
-- `runWithFallback()` - Executes Gemini API with intelligent model fallback
-- Supports structured JSON output via schemas
-- Automatic retries and error handling
-
-### `monitoring/usage-tracker.js`
-Tracks AI API usage:
-- Accumulates token usage across all AI operations
-- Updates GitHub Projects with cost fields
-- Posts detailed usage reports as issue comments
-
-## Import Patterns
-
-All modules use relative imports from their locations.
-
-**Example from `ai-workers/plan.js`:**
-```javascript
-import { OWNER, REPO } from "../config/index.js";
-import { runWithFallback } from "../gemini/index.js";
-import { getOctokit, createSubtasks } from "../github/index.js";
-```
-
-**Example from `ai-orchestration/agent-flow.js`:**
-```javascript
-import { orchestrateExecution } from "./orchestrator.js";
-import { createTechnicalPlan } from "../ai-workers/plan.js";
-import { runWithFallback } from "../gemini/index.js";
-```
-
-## Testing
-
-Run tests from project root:
-```bash
-npm run test:tooling              # All tooling tests
-npm run test:tooling:coverage     # With coverage report
-```
-
-Tests are located alongside source files with `.test.js` suffix.
-
-## Adding New Modules
-
-When adding new functionality:
-1. Choose the appropriate directory based on responsibility
-2. Use relative imports (`../module/file.js`)
-3. Export functions as named exports
-4. Add JSDoc comments for public APIs
-5. Create `.test.js` file for unit tests
-
-## Related Files
-
-- `.github/workflows/ai-worker.yml` - GitHub Actions workflow that calls these scripts
-- `package.json` - Scripts for running and testing
+Requires `.env` with:
+- `GH_TOKEN`: GitHub PAT with repo and project scopes.
+- `GEMINI_API_KEY`: Google AI Studio API key.

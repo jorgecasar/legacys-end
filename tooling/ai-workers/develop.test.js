@@ -1,9 +1,8 @@
 import assert from "node:assert";
 import { mock, test } from "node:test";
-import { handleFatalError, runPlanningAgent } from "./plan.js";
+import { handleFatalError, runDevelopmentAgent } from "./develop.js";
 
-test("Planning Agent", async (t) => {
-	// Mocks
+test("Development Agent", async (t) => {
 	const mockRunGeminiCLI = mock.fn();
 	const mockWriteGitHubOutput = mock.fn();
 	const mockGetOctokit = mock.fn();
@@ -20,6 +19,8 @@ test("Planning Agent", async (t) => {
 			ISSUE_NUMBER: "123",
 			ISSUE_TITLE: "Test Issue",
 			ISSUE_BODY: "Test Body",
+			METHODOLOGY: "Test Methodology",
+			FILES: "file1.js",
 			NODE_ENV: "test",
 		},
 	};
@@ -31,52 +32,47 @@ test("Planning Agent", async (t) => {
 		mockGetIssue.mock.resetCalls();
 	});
 
-	await t.test("should successfully plan without decomposition", async () => {
+	await t.test("should execute development task", async () => {
 		mockRunGeminiCLI.mock.mockImplementationOnce(async () => ({
-			inputTokens: 100,
-			outputTokens: 50,
-			response:
-				"output:needs_decomposition=false\noutput:methodology=Test Plan\noutput:files=file1.js",
+			inputTokens: 200,
+			outputTokens: 100,
 		}));
 
-		await runPlanningAgent(deps);
+		await runDevelopmentAgent(deps);
 
 		assert.strictEqual(mockRunGeminiCLI.mock.callCount(), 1);
-		assert.strictEqual(mockWriteGitHubOutput.mock.callCount(), 2);
+		const prompt = mockRunGeminiCLI.mock.calls[0].arguments[0];
+		assert.match(prompt, /Test Methodology/);
+		assert.match(prompt, /file1\.js/);
 	});
 
 	await t.test("should exit if ISSUE_NUMBER is missing", async () => {
 		const exitMock = mock.method(process, "exit", () => {});
 		const consoleMock = mock.method(console, "error", () => {});
 
-		await runPlanningAgent({
+		await runDevelopmentAgent({
 			...deps,
 			env: { ...deps.env, ISSUE_NUMBER: undefined, NODE_ENV: "production" },
 		});
 
 		assert.strictEqual(exitMock.mock.callCount(), 1);
+		assert.strictEqual(exitMock.mock.calls[0].arguments[0], 1);
 
 		exitMock.mock.restore();
 		consoleMock.mock.restore();
 	});
 
-	await t.test("should fetch issue details if not in env", async () => {
-		const depsWithoutIssue = {
+	await t.test("should fetch issue details if missing from env", async () => {
+		mockGetIssue.mock.mockImplementationOnce(async () => ({
+			title: "Fetched",
+			body: "Body",
+		}));
+		mockRunGeminiCLI.mock.mockImplementationOnce(async () => ({}));
+
+		await runDevelopmentAgent({
 			...deps,
 			env: { ...deps.env, ISSUE_TITLE: undefined, ISSUE_BODY: undefined },
-		};
-
-		mockGetIssue.mock.mockImplementationOnce(async () => ({
-			title: "Fetched Title",
-			body: "Fetched Body",
-		}));
-
-		mockRunGeminiCLI.mock.mockImplementationOnce(async () => ({
-			inputTokens: 10,
-			outputTokens: 5,
-		}));
-
-		await runPlanningAgent(depsWithoutIssue);
+		});
 
 		assert.strictEqual(mockGetIssue.mock.callCount(), 1);
 		assert.strictEqual(mockRunGeminiCLI.mock.callCount(), 1);
@@ -89,7 +85,7 @@ test("Planning Agent", async (t) => {
 			throw new Error("Fetch failed");
 		});
 
-		await runPlanningAgent({
+		await runDevelopmentAgent({
 			...deps,
 			env: {
 				...deps.env,
@@ -112,7 +108,7 @@ test("Planning Agent", async (t) => {
 			throw new Error("Gemini failed");
 		});
 
-		await runPlanningAgent({
+		await runDevelopmentAgent({
 			...deps,
 			env: { ...deps.env, NODE_ENV: "production" },
 		});
@@ -124,7 +120,7 @@ test("Planning Agent", async (t) => {
 	});
 });
 
-test("Planning Agent Fatal Error Handler", () => {
+test("Development Agent Fatal Error Handler", () => {
 	const mockExit = mock.method(process, "exit", () => {});
 	const mockConsoleError = mock.method(console, "error", () => {});
 

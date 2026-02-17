@@ -17,6 +17,16 @@
  * @type {Record<string, ModelPricing>}
  */
 export const GEMINI_PRICING = {
+	"gemini-1.5-flash": {
+		input: 0.075,
+		output: 0.3,
+		tier: "production",
+	},
+	"gemini-1.5-pro": {
+		input: 1.25,
+		output: 5.0,
+		tier: "production",
+	},
 	"gemini-2.5-flash-lite": {
 		input: 0.1,
 		output: 0.4,
@@ -49,13 +59,9 @@ export const GEMINI_PRICING = {
  * @type {Record<string, string[]>}
  */
 export const MODEL_FALLBACK = {
-	flash: [
-		"gemini-2.5-flash-lite",
-		"gemini-2.5-flash",
-		"gemini-3-flash-preview",
-	],
-	pro: ["gemini-2.5-pro", "gemini-3-pro-preview"],
-	image: ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3-pro-preview"],
+	flash: ["gemini-2.5-flash-lite", "gemini-2.0-flash"],
+	pro: ["gemini-2.5-pro", "gemini-2.0-flash"],
+	image: ["gemini-2.0-flash"],
 };
 
 /**
@@ -82,11 +88,13 @@ export const MODEL_FALLBACK = {
  * console.log(cost.totalCost); // 0.000016875 USD
  */
 export function calculateCost(model, inputTokens, outputTokens) {
-	const pricing = GEMINI_PRICING[model];
+	let pricing = GEMINI_PRICING[model];
 	if (!pricing) {
-		throw new Error(
-			`Unknown model: ${model}. Available models: ${Object.keys(GEMINI_PRICING).join(", ")}`,
+		// Fallback to flash-lite pricing if model unknown
+		console.warn(
+			`Unknown model: ${model}. Using gemini-2.5-flash-lite pricing.`,
 		);
+		pricing = GEMINI_PRICING["gemini-2.5-flash-lite"];
 	}
 
 	const inputCost = (inputTokens / 1_000_000) * pricing.input;

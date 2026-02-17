@@ -2,78 +2,60 @@
 
 This document describes the autonomous agent system designed to handle the development lifecycle from GitHub issues to Pull Requests.
 
-## 🏗 system Architecture
+## 🏗 System Architecture
 
-The system is composed of specialized agents that interact through structured JSON and Git.
+The system is composed of specialized steps that interact through the GitHub API and the filesystem.
 
-### 1. Triage Agent (`tooling/gemini-triage.js`)
+### 1. Triage Step (`tooling/ai-orchestration/triage.js`)
 - **Responsibility**: Categorize and prioritize incoming work.
-- **Input**: Open issues in the "Todo" column of the Project Board.
+- **Input**: All open issues in the repository.
 - **Logic**: Uses Gemini to decide:
-  - `model`: `flash` (simple tasks) or `pro` (complex logic).
   - `priority`: `P0`, `P1`, or `P2`.
-  - `labels`: Adds `ai-triaged` and relevant context labels.
-- **Output**: Updates GitHub Project fields and issue labels.
+  - `labels`: Adds `epic`, `task`, `bug`, and `ai-triaged`.
+- **Output**: Updates GitHub Project V2 fields via `triage-adapter.js`.
 
-### 2. Orchestrator Agent (`tooling/ai-orchestrator.js`)
+### 2. Selection Step (`tooling/ai-orchestration/selection.js`)
 - **Responsibility**: Select the optimal next task.
 - **Logic**:
-  - Prioritizes `Paused` tasks first, then by priority (`P0` > `P1` > `P2`).
-  - Filters out "Blocked" tasks or "Container" tasks (those with open sub-issues).
+  - Uses recursive discovery to find "leaf" tasks (open issues without open sub-issues).
+  - Prioritizes "Started context" (tasks where parent is `Paused`).
   - Marks selected task as `In Progress`.
-- **Output**: Dispatches the AI Worker.
+- **Output**: Dispatches the **AI Worker Agent**.
 
-### 3. Planning Agent (`tooling/ai-worker-plan.js`)
+### 3. Planning Step (`tooling/ai-workers/plan.js`)
 - **Responsibility**: Technical strategy and environment setup.
 - **Logic**:
-  - Generates a `slug` for the branch name.
-  - Creates and pushes a new Git branch.
-  - Generates a list of files to touch and methodology (`TDD`, `Manual`, etc.).
-- **Structured Output**: Follows `PLAN_SCHEMA`.
+  - Analyzes the task using the `/planner` subagent.
+  - Decomposes into native sub-issues if the task is an EPIC.
+  - Creates a technical branch if implementing.
+- **Output**: Detailed plan and methodology.
 
-### 4. Developer Agent (`tooling/ai-worker-develop.js`)
+### 4. Development Step (`tooling/ai-workers/develop.js`)
 - **Responsibility**: Code implementation.
 - **Logic**:
-  - **Full Context**: Reads the current content of all files defined in the plan.
-  - **Safe Execution**: Applies changes (create, write, delete) directly to the filesystem.
-- **Structured Output**: Follows `DEVELOP_SCHEMA`.
+  - Uses Serena tools for symbolic code navigation and editing.
+  - Follows strict project conventions (Tabs, JSDoc, ESM).
+  - Runs tests to verify changes.
+- **Output**: Code commits and PR.
 
-## 🛠 E2E Execution Script (`tooling/ai-agent-flow.sh`)
+## 🛠 Infrastructure Adapters
 
-This script allows for local and automated end-to-end execution.
+### GitHub Adapter (`tooling/github/`)
+- `index.js`: Core Octokit operations.
+- `triage-adapter.js`: Maps AI JSON decisions to Project V2 field updates.
+- `create-subissue.js`: Handles native linking between issues.
 
-### Parameters
-- `--issue <number>`: Force execution of a specific issue.
-- `--skip-ai`: Run the script logic without calling Gemini API (useful for testing infrastructure).
-- `--skip-triage`: Skip the mass-classification phase.
-- `--skip-orchestration`: Skip automatic task selection (requires `--issue`).
-- `--skip-planning`: Skip technical plan generation.
-- `--skip-develop`: Skip code generation and application.
+### Gemini Engine (`tooling/gemini/`)
+- `run-cli.js`: Autonomous wrapper for `@google/gemini-cli` with 429 (rate limit) handling and real-time debug visibility.
+- `pricing.js`: Centralized model fallback chains and cost calculator.
 
-### Local Setup
-Ensure your `.env` file contains:
-```text
-GEMINI_API_KEY=your_key_here
-GH_TOKEN=your_github_pat
-```
+## 💎 Key Features
 
-Run with:
-```bash
-./tooling/ai-agent-flow.sh
-```
+### Autonomous Execution
+The system uses `--yolo` mode with `gemini-cli`, allowing the agents to perform file operations and GitHub actions without human intervention.
 
-## 💎 Key Technical Features
-
-### Structured Output (JSON Schema)
-All agents use the official `@google/genai` SDK with strict JSON schemas. This ensures the AI never returns conversational text or malformed JSON that could break the pipeline.
-
-### Intelligent Fallback
-The `gemini-with-fallback.js` utility implements a cost-aware retry logic:
-1. Try `gemini-2.5-flash-lite` (Cheapest).
-2. Fallback to `gemini-2.5-flash` on rate limits.
-3. Fallback to `gemini-2.5-pro` for reasoning or if others are unavailable.
+### Rate Limit Management
+`run-cli.js` automatically detects 429 errors and waits for the specific cooldown period before retrying, ensuring stability during high load.
 
 ### Token & Cost Tracking
-Every operation is logged via `ai-usage-tracker.js`.
-- **Transparency**: A summary comment is posted/updated on every issue with the total USD cost.
-- **Project Board**: The "Cost" field in the GitHub Project is updated automatically.
+Every worker session calculates its total cost and syncs it back to the "Cost" field in the GitHub Project board.
