@@ -14,16 +14,17 @@ export function findLeafCandidates(items, allItems) {
 	const leaves = [];
 
 	for (const item of items) {
+		// Resolve full item data from the cache to access its own sub-issues and status
+		const fullItem = allItems.find((i) => i.number === item.number) || item;
+
 		// Defensive check for item state/status
 		if (
-			item.status === "Done" ||
-			item.state === "CLOSED" ||
-			item.status === "CLOSED"
+			fullItem.status === "Done" ||
+			fullItem.status === "In Progress" ||
+			fullItem.state === "CLOSED" ||
+			fullItem.status === "CLOSED"
 		)
 			continue;
-
-		// Resolve full item data from the cache to access its own sub-issues
-		const fullItem = allItems.find((i) => i.number === item.number) || item;
 		const subIssues = fullItem.subIssues || [];
 		const openSubs = subIssues.filter((s) => s.state === "OPEN");
 

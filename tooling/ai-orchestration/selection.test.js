@@ -57,6 +57,51 @@ test("Selection Agent (Orchestrator)", async (t) => {
 		assert.ok(leaves.find((l) => l.number === 3));
 	});
 
+	await t.test("should exclude In Progress sub-issues", () => {
+		const items = [
+			{ number: 1, status: "Todo", subIssues: [{ number: 2, state: "OPEN" }] },
+			{ number: 2, status: "In Progress", subIssues: [] }, // Should be excluded
+			{ number: 3, status: "Todo", subIssues: [] }, // Leaf
+		];
+
+		const leaves = findLeafCandidates([items[0], items[2]], items);
+		assert.strictEqual(leaves.length, 1);
+		assert.strictEqual(leaves[0].number, 3);
+	});
+
+	await t.test("should include Paused items", () => {
+		const items = [
+			{ number: 1, status: "Paused", subIssues: [] },
+			{ number: 2, status: "Todo", subIssues: [] },
+		];
+
+		const leaves = findLeafCandidates(items, items);
+		assert.strictEqual(leaves.length, 2);
+		assert.ok(leaves.find((l) => l.number === 1));
+		assert.ok(leaves.find((l) => l.number === 2));
+	});
+
+	await t.test("should handle mixed sub-issue statuses", () => {
+		const items = [
+			{
+				number: 1,
+				status: "Todo",
+				subIssues: [
+					{ number: 2, state: "OPEN" },
+					{ number: 3, state: "OPEN" },
+					{ number: 4, state: "OPEN" },
+				],
+			},
+			{ number: 2, status: "Done", subIssues: [] }, // Exclude
+			{ number: 3, status: "In Progress", subIssues: [] }, // Exclude
+			{ number: 4, status: "Todo", subIssues: [] }, // Include
+		];
+
+		const leaves = findLeafCandidates([items[0]], items);
+		assert.strictEqual(leaves.length, 1);
+		assert.strictEqual(leaves[0].number, 4);
+	});
+
 	await t.test("should orchestrate selection and dispatch worker", async () => {
 		mockFetchProjectItems.mock.mockImplementation(async () => [
 			{
