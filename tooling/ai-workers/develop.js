@@ -64,7 +64,10 @@ ${files}
 1. Implement changes using project conventions (JavaScript, Lit, Clean Architecture).
 2. Use Serena's symbolic tools for efficient code navigation and editing.
 3. Run 'npm test' to verify.
-4. Save Conventional Commit message to '.github/AI_COMMIT_MESSAGE'.
+4. CRITICAL: Generate a Conventional Commit message and save it to '.github/AI_COMMIT_MESSAGE'.
+   - VALIDATE IT: After writing, you MUST run 'npx commitlint --edit .github/AI_COMMIT_MESSAGE'.
+   - If it fails, you MUST fix the message and re-validate until it passes.
+   - This step is MANDATORY. Do not finish until commitlint passes.
 `;
 
 	console.log(`>>> Launching Development Agent for #${issueNumber}...`);
