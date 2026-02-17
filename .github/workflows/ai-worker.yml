@@ -52,6 +52,9 @@ jobs:
                   jq -r .body issue.json >> $GITHUB_OUTPUT
                   echo "$delimiter" >> $GITHUB_OUTPUT
 
+            - name: Prune Skills for Planning
+              run: node tooling/ai-workers/prune-skills.js planning
+
             # 1. ATOMIC PLANNING (Autonomous Agent)
             - name: Planning
               id: planning
@@ -64,6 +67,12 @@ jobs:
               run: node tooling/ai-workers/plan.js
 
             # 2. EXECUTION LOOP (Autonomous Agent)
+            - name: Restore & Prune Skills for Development
+              if: steps.planning.outputs.needs_decomposition != 'true'
+              run: |
+                  npx rulesync generate
+                  node tooling/ai-workers/prune-skills.js development
+
             - name: Development & Implementation
               if: steps.planning.outputs.needs_decomposition != 'true'
               id: developer
