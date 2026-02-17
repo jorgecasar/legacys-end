@@ -72,6 +72,17 @@ jobs:
               run: |
                   npx rulesync generate
                   node tooling/ai-workers/prune-skills.js development
+                  
+            - name: Create Feature Branch
+              if: steps.planning.outputs.needs_decomposition != 'true'
+              env:
+                  ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+              run: |
+                  BRANCH_NAME="feat/issue-$ISSUE_NUMBER"
+                  git config --global user.name "github-actions[bot]"
+                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                  git checkout -b "$BRANCH_NAME"
+                  echo "Created and switched to branch $BRANCH_NAME"
 
             - name: Development & Implementation
               if: steps.planning.outputs.needs_decomposition != 'true'
@@ -100,7 +111,7 @@ jobs:
                     git commit -m "wip: rescue incomplete work from failed agent run" --no-verify
                     git fetch origin main
                     git pull --rebase origin main
-                    git push --force-with-lease origin HEAD --no-verify
+                    git push -u origin HEAD --no-verify
                   else
                     echo "No uncommitted changes to rescue."
                   fi
@@ -139,3 +150,24 @@ jobs:
               if: always()
               run: |
                   rm -f issue.json
+
+            - name: Create Pull Request
+              if: steps.planning.outputs.needs_decomposition != 'true' && success()
+              env:
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+                  ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+              run: |
+                  COMMIT_MSG="feat: resolve #$ISSUE_NUMBER (AI Agent)"
+                  if [ -f .github/AI_COMMIT_MESSAGE ]; then
+                    COMMIT_MSG=$(cat .github/AI_COMMIT_MESSAGE)
+                  fi
+                  
+                  BRANCH_NAME="feat/issue-$ISSUE_NUMBER"
+                  
+                  # Create PR if not exists
+                  gh pr create \
+                    --base main \
+                    --head "$BRANCH_NAME" \
+                    --title "$COMMIT_MSG" \
+                    --body "Automated PR by AI Worker Agent. Resolves #$ISSUE_NUMBER." \
+                    || echo "PR already exists or failed to create."

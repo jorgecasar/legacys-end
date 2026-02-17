@@ -73,8 +73,8 @@ ${files}
    - IF HOOKS/TESTS FAIL: Read the error message. If you can't easily fix it, YOU MUST RUN:
      'git commit -F .github/AI_COMMIT_MESSAGE --no-verify'
      (We prefer saving the work over losing it, even if tests/lint fail).
-   - ATTEMPT 2: Run 'git push'.
-   - IF PUSH FAILS (e.g. strict server hooks): Run 'git push --no-verify'.
+   - ATTEMPT 2: Run 'git push -u origin HEAD'.
+   - IF PUSH FAILS (e.g. strict server hooks): Run 'git push -u origin HEAD --no-verify'.
    - This step is MANDATORY. Do not finish until the code is committed and pushed.
 `;
 
