@@ -24,6 +24,7 @@ const PHASES = {
 		"coverage-evolution",
 		"skill-mutation-testing",
 		"rulesync",
+		"typing",
 	],
 };
 
