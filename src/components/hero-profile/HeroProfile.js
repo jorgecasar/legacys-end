@@ -10,7 +10,7 @@ import { questControllerContext } from "../../contexts/quest-controller-context.
 import { themeContext } from "../../contexts/theme-context.js";
 import { ServiceController } from "../../controllers/service-controller.js";
 import { ThemeModes } from "../../core/constants.js";
-import { gameStoreContext } from "../../core/store.js";
+import { gameStoreContext } from "../../state/game-store.js";
 import {
 	processImagePath,
 	processImageSrcset,
@@ -49,11 +49,12 @@ export class HeroProfile extends SignalWatcher(
 		LitElement
 	),
 ) {
-	/** @type {import('../../core/store.js').GameStore} */
+	/** @type {import('../../state/game-store.js').GameStore} */
 	@consume({ context: gameStoreContext, subscribe: true })
-	accessor gameStore = /** @type {import('../../core/store.js').GameStore} */ (
-		/** @type {unknown} */ (null)
-	);
+	accessor gameStore =
+		/** @type {import('../../state/game-store.js').GameStore} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	get heroState() {
 		return this.gameStore?.hero;

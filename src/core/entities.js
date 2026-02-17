@@ -1,4 +1,27 @@
 /**
+ * @typedef {Object} Position
+ * @property {number} x
+ * @property {number} y
+ */
+
+/**
+ * @typedef {Object} HeroState
+ * @property {Position} pos
+ * @property {string} hotSwitchState
+ * @property {boolean} isEvolving
+ * @property {string} imageSrc
+ */
+
+/**
+ * @typedef {Object} QuestState
+ * @property {boolean} hasCollectedItem
+ * @property {boolean} isRewardCollected
+ * @property {boolean} isQuestCompleted
+ * @property {string|null} currentChapterId
+ * @property {string|null} lockedMessage
+ */
+
+/**
  * @typedef {Object} Profile
  * @property {string} [name] - The display name of the user/hero.
  * @property {string} [role] - The selected role or class (e.g., 'Developer', 'Designer').

@@ -8,7 +8,7 @@
  * @property {import('../types/game.d.js').IQuestStateService} questState
  * @property {import('../types/game.d.js').IWorldStateService} worldState
  * @property {import("../utils/router.js").Router} [router]
- * @property {import("../services/storage-service.js").LocalStorageAdapter} [storageAdapter]
+ * @property {import("../infrastructure/local-storage-adapter.js").LocalStorageAdapter} [storageAdapter]
  * @property {import('../services/user-api-client.js').UserApiClients} [services]
  * @property {import('../services/preloader-service.js').PreloaderService} [preloader]
  * @property {import('../services/quest-registry-service.js').QuestRegistryService} [registry]

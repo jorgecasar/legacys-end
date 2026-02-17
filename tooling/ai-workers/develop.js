@@ -39,7 +39,7 @@ export async function runDevelopmentAgent(deps = {}) {
 			const issue = await getIssue(octokit, {
 				owner: OWNER,
 				repo: REPO,
-				issueNumber: parseInt(issueNumber),
+				issueNumber: parseInt(issueNumber, 10),
 			});
 			title = issue.title;
 			body = issue.body;
@@ -84,7 +84,7 @@ ${files}
 		const result = await runGeminiCLI(prompt, {
 			modelType: "pro",
 			yolo: true,
-			inputTokenBudget: parseInt(env.DEVELOPER_TOKEN_BUDGET || "200000"),
+			inputTokenBudget: parseInt(env.DEVELOPER_TOKEN_BUDGET || "200000", 10),
 		});
 
 		writeGitHubOutput("input_tokens", result.inputTokens);

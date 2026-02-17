@@ -11,7 +11,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import "./game-exit-zone.js";
 import axe from "axe-core";
 import { questControllerContext } from "../../../contexts/quest-controller-context.js";
-import { gameStoreContext } from "../../../core/store.js";
+import { gameStoreContext } from "../../../state/game-store.js";
 
 class TestContextWrapper extends LitElement {
 	/** @override */

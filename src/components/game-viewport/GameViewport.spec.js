@@ -13,7 +13,7 @@ import {
 	ThemeModes,
 	ZoneTypes,
 } from "../../core/constants.js";
-import { gameStoreContext } from "../../core/store.js";
+import { gameStoreContext } from "../../state/game-store.js";
 import "./game-viewport.js";
 
 /** @typedef {import('./GameViewport.js').GameViewport} GameViewport */

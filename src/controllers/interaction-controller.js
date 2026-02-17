@@ -3,7 +3,7 @@ import { gameConfig } from "../config/game-configuration.js";
 import { loggerContext } from "../contexts/logger-context.js";
 import { questControllerContext } from "../contexts/quest-controller-context.js";
 import { UIEvents } from "../core/events.js";
-import { gameStoreContext } from "../core/store.js";
+import { gameStoreContext } from "../state/game-store.js";
 
 /**
  * @typedef {import('lit').ReactiveController} ReactiveController

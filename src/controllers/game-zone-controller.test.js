@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { questControllerContext } from "../contexts/quest-controller-context.js";
 import { themeContext } from "../contexts/theme-context.js";
 import { HotSwitchStates, ZoneTypes } from "../core/constants.js";
-import { gameStoreContext } from "../core/store.js";
+import { gameStoreContext } from "../state/game-store.js";
 import { GameZoneController } from "./game-zone-controller.js";
 
 // Mock @lit/context to handle dependency injection in tests

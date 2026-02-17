@@ -31,7 +31,7 @@ export async function sync(deps = {}) {
 		env = process.env,
 	} = deps;
 
-	const issueNumber = parseInt(env.ISSUE_NUMBER);
+	const issueNumber = parseInt(env.ISSUE_NUMBER, 10);
 	const isFailed = process.argv.includes("--failed");
 
 	if (!issueNumber) {
@@ -75,18 +75,18 @@ export async function sync(deps = {}) {
 	// Define phases and their token counts
 	const inputs = {
 		Triage: {
-			input: parseInt(env.TRIAGE_INPUT_TOKENS || "0"),
-			output: parseInt(env.TRIAGE_OUTPUT_TOKENS || "0"),
+			input: parseInt(env.TRIAGE_INPUT_TOKENS || "0", 10),
+			output: parseInt(env.TRIAGE_OUTPUT_TOKENS || "0", 10),
 			model: "gemini-2.5-flash-lite",
 		},
 		Planning: {
-			input: parseInt(env.PLANNING_INPUT_TOKENS || "0"),
-			output: parseInt(env.PLANNING_OUTPUT_TOKENS || "0"),
+			input: parseInt(env.PLANNING_INPUT_TOKENS || "0", 10),
+			output: parseInt(env.PLANNING_OUTPUT_TOKENS || "0", 10),
 			model: "gemini-2.5-flash-lite",
 		},
 		Development: {
-			input: parseInt(env.DEVELOPER_INPUT_TOKENS || "0"),
-			output: parseInt(env.DEVELOPER_OUTPUT_TOKENS || "0"),
+			input: parseInt(env.DEVELOPER_INPUT_TOKENS || "0", 10),
+			output: parseInt(env.DEVELOPER_OUTPUT_TOKENS || "0", 10),
 			model: "gemini-2.5-flash-lite",
 		},
 	};

@@ -4,7 +4,7 @@ import { html, LitElement } from "lit";
 import { loggerContext } from "../../contexts/logger-context.js";
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
-import { gameStoreContext } from "../../core/store.js";
+import { gameStoreContext } from "../../state/game-store.js";
 import "../game-viewport/game-viewport.js";
 import "../level-dialog/level-dialog.js";
 import "../pause-menu/pause-menu.js";
@@ -35,11 +35,12 @@ export class QuestView extends SignalWatcher(
 		/** @type {unknown} */ (null)
 	);
 
-	/** @type {import('../../core/store.js').GameStore} */
+	/** @type {import('../../state/game-store.js').GameStore} */
 	@consume({ context: gameStoreContext, subscribe: true })
-	accessor gameStore = /** @type {import('../../core/store.js').GameStore} */ (
-		/** @type {unknown} */ (null)
-	);
+	accessor gameStore =
+		/** @type {import('../../state/game-store.js').GameStore} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	get heroState() {
 		return this.gameStore?.hero;

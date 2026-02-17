@@ -33,7 +33,7 @@ export async function runTriage(deps = {}) {
 	let items = await fetchProjectItems(octokit);
 
 	if (!isFull) {
-		items = items.filter((i) => i.number === parseInt(specificIssue));
+		items = items.filter((i) => i.number === parseInt(specificIssue, 10));
 		if (items.length === 0) {
 			console.error(`❌ Issue #${specificIssue} not found in project board.`);
 			return;
@@ -95,7 +95,7 @@ OUTPUT ONLY JSON (a map where keys are issue numbers as strings):
 		const result = await runGeminiCLI(prompt, {
 			modelType: "flash",
 			yolo: true,
-			inputTokenBudget: parseInt(env.TRIAGE_TOKEN_BUDGET || "20000"),
+			inputTokenBudget: parseInt(env.TRIAGE_TOKEN_BUDGET || "20000", 10),
 		});
 
 		const cleanResponse = result.response

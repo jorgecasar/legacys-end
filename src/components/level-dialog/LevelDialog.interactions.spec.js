@@ -15,7 +15,7 @@ import { html, LitElement } from "lit";
 
 import { questControllerContext } from "../../contexts/quest-controller-context.js";
 import { sessionContext } from "../../contexts/session-context.js";
-import { gameStoreContext } from "../../core/store.js";
+import { gameStoreContext } from "../../state/game-store.js";
 
 /** @typedef {import("../../types/game.d.js").IHeroStateService} IHeroStateService */
 /** @typedef {import("../../types/game.d.js").IQuestStateService} IQuestStateService */

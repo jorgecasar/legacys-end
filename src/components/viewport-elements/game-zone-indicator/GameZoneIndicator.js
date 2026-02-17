@@ -10,7 +10,7 @@ import {
 	ThemeModes,
 	ZoneTypes,
 } from "../../../core/constants.js";
-import { gameStoreContext } from "../../../core/store.js";
+import { gameStoreContext } from "../../../state/game-store.js";
 import { gameZoneIndicatorStyles } from "./GameZoneIndicator.styles.js";
 
 /**
@@ -41,10 +41,10 @@ export class GameZoneIndicator extends SignalWatcher(LitElement) {
 		/** @type {unknown} */ (null)
 	);
 
-	/** @type {import('../../../core/store.js').GameStore} */
+	/** @type {import('../../../state/game-store.js').GameStore} */
 	@consume({ context: gameStoreContext, subscribe: true })
 	accessor gameStore =
-		/** @type {import('../../../core/store.js').GameStore} */ (
+		/** @type {import('../../../state/game-store.js').GameStore} */ (
 			/** @type {unknown} */ (null)
 		);
 

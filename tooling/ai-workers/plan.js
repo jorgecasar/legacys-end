@@ -38,7 +38,7 @@ export async function runPlanningAgent(deps = {}) {
 			const issue = await getIssue(octokit, {
 				owner: OWNER,
 				repo: REPO,
-				issueNumber: parseInt(issueNumber),
+				issueNumber: parseInt(issueNumber, 10),
 			});
 			title = issue.title;
 			body = issue.body;
@@ -81,7 +81,7 @@ Do not finish until all GitHub actions (creation/updates/file-writing) are compl
 		const result = await runGeminiCLI(prompt, {
 			modelType: "flash",
 			yolo: true,
-			inputTokenBudget: parseInt(env.PLANNING_TOKEN_BUDGET || "100000"),
+			inputTokenBudget: parseInt(env.PLANNING_TOKEN_BUDGET || "100000", 10),
 		});
 
 		writeGitHubOutput("input_tokens", result.inputTokens);
@@ -95,7 +95,7 @@ Do not finish until all GitHub actions (creation/updates/file-writing) are compl
 				await addIssueComment(octokit, {
 					owner: OWNER,
 					repo: REPO,
-					issueNumber: parseInt(issueNumber),
+					issueNumber: parseInt(issueNumber, 10),
 					body: planComment,
 				});
 				console.log(">>> Plan persisted to issue comment.");
