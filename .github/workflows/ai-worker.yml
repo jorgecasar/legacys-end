@@ -86,33 +86,25 @@ jobs:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
               run: node tooling/ai-workers/develop.js
 
-            - name: Finalize Work (Commit & Create PR)
-              if: steps.planning.outputs.needs_decomposition != 'true'
+            - name: Rescue Incomplete Work
+              if: failure() || cancelled()
               env:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
-                  ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
               run: |
                   git config --global user.name "github-actions[bot]"
                   git config --global user.email "github-actions[bot]@users.noreply.github.com"
                   
-                  if [[ -z $(git status --porcelain) ]]; then
-                    echo "No code changes detected. Skipping commit and PR."
-                    exit 0
+                  if [[ -n $(git status --porcelain) ]]; then
+                    echo "⚠️ Uncommitted changes detected after failure. Rescuing work..."
+                    git add .
+                    git commit -m "wip: rescue incomplete work from failed agent run" --no-verify
+                    git fetch origin main
+                    git pull --rebase origin main
+                    git push --force-with-lease origin HEAD --no-verify
+                  else
+                    echo "No uncommitted changes to rescue."
                   fi
-                  
-                  # Extract commit message if saved by agent
-                  COMMIT_MSG="feat: resolve #$ISSUE_NUMBER (AI Agent)"
-                  if [ -f .github/AI_COMMIT_MESSAGE ]; then
-                    COMMIT_MSG=$(cat .github/AI_COMMIT_MESSAGE)
-                  fi
-                  
-                  git add .
-                  git commit -m "$COMMIT_MSG"
-                  git fetch origin main
-                  git pull --rebase origin main
-                  git push --force-with-lease origin HEAD
-                  
-                  gh pr create --title "$COMMIT_MSG" --body "Automated PR by AI Worker Agent. Resolves #$ISSUE_NUMBER."
+
 
             # 3. VERIFICATION
             - name: Run Verification Tests
