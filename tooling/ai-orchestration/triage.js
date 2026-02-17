@@ -1,6 +1,4 @@
 import { fileURLToPath } from "node:url";
-import { Octokit } from "@octokit/rest";
-import * as configModule from "../config/index.js";
 import { splitTriageCosts } from "../gemini/cost-splitter.js";
 import * as geminiModule from "../gemini/run-cli.js";
 import * as githubModule from "../github/index.js";
@@ -97,6 +95,7 @@ OUTPUT ONLY JSON (a map where keys are issue numbers as strings):
 		const result = await runGeminiCLI(prompt, {
 			modelType: "flash",
 			yolo: true,
+			inputTokenBudget: parseInt(env.TRIAGE_TOKEN_BUDGET || "20000"),
 		});
 
 		const cleanResponse = result.response

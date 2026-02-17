@@ -193,4 +193,46 @@ test("Gemini CLI Wrapper", async (t) => {
 		assert.strictEqual(result.inputTokens, 5);
 		assert.strictEqual(result.outputTokens, 5);
 	});
+
+	await t.test("should throw if inputTokenBudget is exceeded", async () => {
+		const mockSpawn = mock.fn();
+		const prompt = "a".repeat(400); // ~100 tokens
+		try {
+			await runGeminiCLI(
+				prompt,
+				{ inputTokenBudget: 50 },
+				{ spawn: mockSpawn, sleep: mockSleep },
+			);
+			assert.fail("Should have thrown");
+		} catch (e) {
+			assert.match(e.message, /Input token budget exceeded/);
+		}
+		assert.strictEqual(mockSpawn.mock.callCount(), 0);
+	});
+
+	await t.test("should proceed if within inputTokenBudget", async () => {
+		const mockChild = new EventEmitter();
+		mockChild.stdin = { write: () => {}, end: () => {} };
+		mockChild.stdout = new EventEmitter();
+		mockChild.kill = mock.fn();
+
+		const mockSpawn = mock.fn(() => {
+			setTimeout(() => {
+				mockChild.stdout.emit(
+					"data",
+					Buffer.from(JSON.stringify({ response: "ok" })),
+				);
+				mockChild.emit("close", 0);
+			}, 10);
+			return mockChild;
+		});
+
+		const prompt = "a".repeat(40); // ~10 tokens
+		await runGeminiCLI(
+			prompt,
+			{ inputTokenBudget: 50 },
+			{ spawn: mockSpawn, sleep: mockSleep },
+		);
+		assert.strictEqual(mockSpawn.mock.callCount(), 1);
+	});
 });

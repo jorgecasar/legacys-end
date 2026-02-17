@@ -76,6 +76,7 @@ ${files}
 		const result = await runGeminiCLI(prompt, {
 			modelType: "pro",
 			yolo: true,
+			inputTokenBudget: parseInt(env.DEVELOPER_TOKEN_BUDGET || "200000"),
 		});
 
 		writeGitHubOutput("input_tokens", result.inputTokens);

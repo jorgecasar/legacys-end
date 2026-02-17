@@ -14,6 +14,7 @@ export async function runPlanningAgent(deps = {}) {
 		writeGitHubOutput = configModule.writeGitHubOutput,
 		getOctokit = githubModule.getOctokit,
 		getIssue = githubModule.getIssue,
+		addIssueComment = githubModule.addIssueComment,
 		OWNER = configModule.OWNER,
 		REPO = configModule.REPO,
 		env = process.env,
@@ -80,10 +81,28 @@ Do not finish until all GitHub actions (creation/updates/file-writing) are compl
 		const result = await runGeminiCLI(prompt, {
 			modelType: "flash",
 			yolo: true,
+			inputTokenBudget: parseInt(env.PLANNING_TOKEN_BUDGET || "100000"),
 		});
 
 		writeGitHubOutput("input_tokens", result.inputTokens);
 		writeGitHubOutput("output_tokens", result.outputTokens);
+
+		// Persist the plan to a comment
+		if (result.response) {
+			const planComment = `🤖 **AI Plan for #${issueNumber}**\n\n${result.response}`;
+			try {
+				const octokit = getOctokit();
+				await addIssueComment(octokit, {
+					owner: OWNER,
+					repo: REPO,
+					issueNumber: parseInt(issueNumber),
+					body: planComment,
+				});
+				console.log(">>> Plan persisted to issue comment.");
+			} catch (err) {
+				console.error("⚠️ Failed to post plan comment:", err.message);
+			}
+		}
 
 		console.log(">>> Planning phase complete.");
 	} catch (error) {
