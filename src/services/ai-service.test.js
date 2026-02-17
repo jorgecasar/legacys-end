@@ -1,23 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AIService } from "./ai-service.js";
 
+import { CheckAIAvailabilityUseCase } from "../use-cases/check-ai-availability.js";
+
+vi.mock("../use-cases/check-ai-availability.js", () => ({
+	CheckAIAvailabilityUseCase: vi.fn(() => ({
+		execute: vi.fn(),
+	})),
+}));
+
 describe("AIService", () => {
 	/** @type {AIService} */
 	let service;
-	/** @type {{ availability: import("vitest").Mock; create: import("vitest").Mock; }} */
-	let mockLanguageModel;
-
 	beforeEach(() => {
 		service = new AIService();
-
-		// Mock LanguageModel API
-		mockLanguageModel = {
-			availability: vi.fn(),
-			create: vi.fn(),
-		};
-
-		// @ts-expect-error - Chrome Built-in AI experimental API
-		window.LanguageModel = mockLanguageModel;
 
 		// Silence expected warnings/errors for these tests
 		vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -27,15 +23,17 @@ describe("AIService", () => {
 	});
 
 	describe("checkAvailability", () => {
-		beforeEach(() => {});
+
+		beforeEach(() => {
+			vi.mocked(CheckAIAvailabilityUseCase.prototype.execute).mockResolvedValue("readily");
+		});
 
 		afterEach(() => {
 			vi.restoreAllMocks();
 		});
 
 		it("should return 'readily' when AI is ready", async () => {
-			mockLanguageModel.availability.mockResolvedValue("readily");
-
+			executeMock.mockResolvedValue("readily");
 			const status = await service.checkAvailability();
 
 			expect(status).toBe("readily");
@@ -43,8 +41,7 @@ describe("AIService", () => {
 		});
 
 		it("should return 'available' when AI is available", async () => {
-			mockLanguageModel.availability.mockResolvedValue("available");
-
+			executeMock.mockResolvedValue("available");
 			const status = await service.checkAvailability();
 
 			expect(status).toBe("available");
@@ -52,8 +49,7 @@ describe("AIService", () => {
 		});
 
 		it("should return 'downloadable' when model needs download", async () => {
-			mockLanguageModel.availability.mockResolvedValue("downloadable");
-
+			executeMock.mockResolvedValue("downloadable");
 			const status = await service.checkAvailability();
 
 			expect(status).toBe("downloadable");
@@ -61,16 +57,14 @@ describe("AIService", () => {
 		});
 
 		it("should return 'no' when LanguageModel is undefined", async () => {
-			// @ts-expect-error - Mocking unavailability for testing
-			window.LanguageModel = undefined;
-
+			executeMock.mockResolvedValue("no");
 			const status = await service.checkAvailability();
 
 			expect(status).toBe("no");
 		});
 
 		it("should handle errors gracefully", async () => {
-			mockLanguageModel.availability.mockRejectedValue(new Error("API Error"));
+			executeMock.mockRejectedValue(new Error("API Error"));
 
 			const status = await service.checkAvailability();
 
@@ -78,11 +72,19 @@ describe("AIService", () => {
 		});
 	});
 
-	describe("createSession", () => {
+			beforeEach(() => {
+
+				vi.mocked(CheckAIAvailabilityUseCase.prototype.execute).mockResolvedValue("readily");
+
+			});
+
+	
+		beforeEach(() => {
+			vi.mocked(CheckAIAvailabilityUseCase.prototype.execute).mockResolvedValue("readily");
+		});
 		it("should create a session with session ID when AI is readily available", async () => {
-			mockLanguageModel.availability.mockResolvedValue("readily");
 			const mockSession = { prompt: vi.fn(), destroy: vi.fn() };
-			mockLanguageModel.create.mockResolvedValue(mockSession);
+			window.LanguageModel = {create: vi.fn().mockResolvedValue(mockSession)};
 
 			const session = await service.createSession("alarion", {
 				language: "en",
@@ -95,13 +97,10 @@ describe("AIService", () => {
 		});
 
 		it("should create multiple independent sessions", async () => {
-			mockLanguageModel.availability.mockResolvedValue("readily");
 			const alarionSession = { prompt: vi.fn(), destroy: vi.fn() };
 			const rainwalkerSession = { prompt: vi.fn(), destroy: vi.fn() };
 
-			mockLanguageModel.create
-				.mockResolvedValueOnce(alarionSession)
-				.mockResolvedValueOnce(rainwalkerSession);
+			window.LanguageModel = {create: vi.fn().mockResolvedValueOnce(alarionSession).mockResolvedValueOnce(rainwalkerSession)};
 
 			await service.createSession("alarion", {
 				language: "en",
@@ -119,13 +118,10 @@ describe("AIService", () => {
 		});
 
 		it("should replace existing session with same ID", async () => {
-			mockLanguageModel.availability.mockResolvedValue("readily");
 			const oldSession = { prompt: vi.fn(), destroy: vi.fn() };
 			const newSession = { prompt: vi.fn(), destroy: vi.fn() };
 
-			mockLanguageModel.create
-				.mockResolvedValueOnce(oldSession)
-				.mockResolvedValueOnce(newSession);
+			window.LanguageModel = {create: vi.fn().mockResolvedValueOnce(oldSession).mockResolvedValueOnce(newSession)};
 
 			await service.createSession("alarion", {
 				language: "en",
@@ -141,7 +137,7 @@ describe("AIService", () => {
 		});
 
 		it("should throw error when AI is not available", async () => {
-			mockLanguageModel.availability.mockResolvedValue("no");
+			vi.mocked(CheckAIAvailabilityUseCase.prototype.execute).mockResolvedValue("no");
 
 			await expect(
 				service.createSession("alarion", {
@@ -151,8 +147,6 @@ describe("AIService", () => {
 			).rejects.toThrow("AI not available");
 		});
 	});
-
-	describe("downloadModel", () => {
 		beforeEach(() => {});
 
 		afterEach(() => {
@@ -165,12 +159,12 @@ describe("AIService", () => {
 				addEventListener: vi.fn(),
 			};
 
-			mockLanguageModel.create.mockImplementation(({ monitor }) => {
+			window.LanguageModel = {create: vi.fn().mockImplementation(({ monitor }) => {
 				if (monitor) {
 					monitor(mockMonitor);
 				}
 				return Promise.resolve(mockSession);
-			});
+			})};
 
 			const session = await service.downloadModel({
 				language: "en",
@@ -188,7 +182,7 @@ describe("AIService", () => {
 				throw new Error("Download listener not set");
 			};
 
-			mockLanguageModel.create.mockImplementation(({ monitor }) => {
+			window.LanguageModel = {create: vi.fn().mockImplementation(({ monitor }) => {
 				if (monitor) {
 					const mockMonitor = {
 						addEventListener: (
@@ -204,7 +198,7 @@ describe("AIService", () => {
 					monitor(mockMonitor);
 				}
 				return Promise.resolve(mockSession);
-			});
+			})};
 
 			await service.downloadModel({
 				language: "en",
@@ -218,15 +212,13 @@ describe("AIService", () => {
 		});
 
 		it("should throw error if download fails", async () => {
-			mockLanguageModel.create.mockRejectedValue(new Error("Download failed"));
+			window.LanguageModel = {create: vi.fn().mockRejectedValue(new Error("Download failed"))};
 
 			await expect(service.downloadModel({ language: "en" })).rejects.toThrow(
 				"Download failed",
 			);
 		});
 	});
-
-	describe("getSession", () => {
 		it("should return null for non-existent session", () => {
 			const session = service.getSession("nonexistent");
 
@@ -234,9 +226,9 @@ describe("AIService", () => {
 		});
 
 		it("should return existing session", async () => {
-			mockLanguageModel.availability.mockResolvedValue("readily");
+			vi.mocked(CheckAIAvailabilityUseCase.prototype.execute).mockResolvedValue("readily");
 			const mockSession = { prompt: vi.fn(), destroy: vi.fn() };
-			mockLanguageModel.create.mockResolvedValue(mockSession);
+			window.LanguageModel = {create: vi.fn().mockResolvedValue(mockSession)};
 
 			await service.createSession("alarion", {
 				language: "en",
@@ -248,16 +240,14 @@ describe("AIService", () => {
 			expect(session).toBe(mockSession);
 		});
 	});
-
-	describe("hasSession", () => {
 		it("should return false for non-existent session", () => {
 			expect(service.hasSession("nonexistent")).toBe(false);
 		});
 
 		it("should return true for existing session", async () => {
-			mockLanguageModel.availability.mockResolvedValue("readily");
+			vi.mocked(CheckAIAvailabilityUseCase.prototype.execute).mockResolvedValue("readily");
 			const mockSession = { prompt: vi.fn(), destroy: vi.fn() };
-			mockLanguageModel.create.mockResolvedValue(mockSession);
+			window.LanguageModel = {create: vi.fn().mockResolvedValue(mockSession)};
 
 			await service.createSession("alarion", {
 				language: "en",
@@ -267,12 +257,10 @@ describe("AIService", () => {
 			expect(service.hasSession("alarion")).toBe(true);
 		});
 	});
-
-	describe("destroySession", () => {
 		it("should destroy specific session", async () => {
-			mockLanguageModel.availability.mockResolvedValue("readily");
+			vi.mocked(CheckAIAvailabilityUseCase.prototype.execute).mockResolvedValue("readily");
 			const mockSession = { prompt: vi.fn(), destroy: vi.fn() };
-			mockLanguageModel.create.mockResolvedValue(mockSession);
+			window.LanguageModel = {create: vi.fn().mockResolvedValue(mockSession)};
 
 			await service.createSession("alarion", {
 				language: "en",
@@ -289,16 +277,12 @@ describe("AIService", () => {
 			expect(() => service.destroySession("nonexistent")).not.toThrow();
 		});
 	});
-
-	describe("destroyAllSessions", () => {
 		it("should destroy all sessions", async () => {
-			mockLanguageModel.availability.mockResolvedValue("readily");
+			vi.mocked(CheckAIAvailabilityUseCase.prototype.execute).mockResolvedValue("readily");
 			const alarionSession = { prompt: vi.fn(), destroy: vi.fn() };
 			const rainwalkerSession = { prompt: vi.fn(), destroy: vi.fn() };
 
-			mockLanguageModel.create
-				.mockResolvedValueOnce(alarionSession)
-				.mockResolvedValueOnce(rainwalkerSession);
+			window.LanguageModel = {create: vi.fn().mockResolvedValueOnce(alarionSession).mockResolvedValueOnce(rainwalkerSession)};
 
 			await service.createSession("alarion", {
 				language: "en",

@@ -1,3 +1,4 @@
+import { CheckAIAvailabilityUseCase } from "../use-cases/check-ai-availability.js";
 import { LocalStorageAdapter } from "../infrastructure/local-storage-adapter.js";
 import { GameStore } from "../state/game-store.js";
 import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-transition.js";
@@ -59,8 +60,10 @@ export class BootstrapService {
 		// 4. Progress Service
 		const progress = new ProgressService(storage, questRegistry, logger);
 
+		
 		// 5. Use Cases
 		const evaluateChapterTransition = new EvaluateChapterTransitionUseCase();
+		const checkAIAvailability = new CheckAIAvailabilityUseCase(ai);
 
 		return {
 			gameStore,
@@ -76,6 +79,7 @@ export class BootstrapService {
 			ai,
 			dialogueGeneration,
 			evaluateChapterTransition,
+			checkAIAvailability,
 		};
 	}
 }

@@ -37,50 +37,6 @@ export class AIService {
 		return window.LanguageModel;
 	}
 
-	/**
-	 * Check if Chrome Built-in AI is available
-	 * @returns {Promise<string>} Availability status
-	 */
-	async checkAvailability() {
-		try {
-			if (!this.#ai) {
-				this.logger?.warn("Chrome Built-in AI not supported in this browser");
-				this.availabilityStatus = "no";
-				return "no";
-			}
-
-			const status = await this.#ai.availability();
-			this.availabilityStatus = status;
-			this.isAvailable = status === "readily" || status === "available";
-
-			this.logger?.debug("🤖 Chrome Built-in AI availability:", { status });
-
-			// Provide helpful instructions based on status
-			if (status === "no") {
-				this.logger?.warn(
-					"⚠️ Chrome Built-in AI not available. To enable:\n" +
-						"1. Use Chrome Dev/Canary (v127+)\n" +
-						"2. Enable flags:\n" +
-						"   - chrome://flags/#prompt-api-for-gemini-nano → Enabled\n" +
-						"   - chrome://flags/#optimization-guide-on-device-model → Enabled BypassPerfRequirement\n" +
-						"3. Restart Chrome\n" +
-						"4. Download model at chrome://components/ (search 'Optimization Guide')\n" +
-						"5. Verify with: await ai.languageModel.availability()",
-				);
-			} else if (status === "after-download") {
-				this.logger?.warn(
-					"⚠️ Chrome Built-in AI requires model download.\n" +
-						"Go to chrome://components/ and update 'Optimization Guide On Device Model'",
-				);
-			}
-
-			return status;
-		} catch (error) {
-			this.logger?.error("Failed to check AI availability:", error);
-			this.availabilityStatus = "no";
-			return "no";
-		}
-	}
 
 	/**
 	 * Create a new AI session with a unique identifier
