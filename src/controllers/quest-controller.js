@@ -8,7 +8,7 @@ import { questRegistryContext } from "../contexts/quest-registry-context.js";
 import { sessionContext } from "../contexts/session-context.js";
 import { HotSwitchStates } from "../core/constants.js";
 import { gameStoreContext } from "../state/game-store.js";
-import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-transition.js";
+import { evaluateChapterTransition } from "../use-cases/evaluate-chapter-transition.js";
 
 /**
  * @typedef {import('lit').ReactiveController} ReactiveController
@@ -41,7 +41,7 @@ import { EvaluateChapterTransitionUseCase } from "../use-cases/evaluate-chapter-
  * @property {IWorldStateService} [worldState]
  * @property {IHeroStateService} [heroState]
  * @property {Router} [router]
- * @property {EvaluateChapterTransitionUseCase} [evaluateChapterTransition]
+
  */
 
 /**
@@ -93,11 +93,6 @@ export class QuestController {
 
 		// Consumed services via context (only if not already provided)
 		this.#setupContexts(hostElement);
-
-		// Use case
-		this.evaluateChapterTransition =
-			options.evaluateChapterTransition ||
-			new EvaluateChapterTransitionUseCase();
 
 		/** @type {Quest|null} */
 		this.currentQuest = null;
@@ -500,8 +495,14 @@ export class QuestController {
 	 * Complete current chapter
 	 */
 	completeChapter() {
-		if (!this.currentQuest || !this.currentChapter || !this.#progressService)
+		if (
+			!this.currentQuest ||
+			!this.currentChapter ||
+			!this.#progressService ||
+			!this.#registry
+		) {
 			return;
+		}
 
 		// 1. Hide dialog
 		this.#worldState?.setShowDialog(false);
@@ -509,27 +510,27 @@ export class QuestController {
 		// 2. Mark item as collected
 		this.#state?.setHasCollectedItem(true);
 
-		// 3. Mark chapter as completed in persistence
 		const chapterId = this.currentChapter.id;
-		this.#progressService.completeChapter(chapterId);
 
-		const result = this.evaluateChapterTransition.execute({
-			quest: this.currentQuest,
-			currentIndex: this.currentChapterIndex,
+		const result = evaluateChapterTransition({
+			progressService: this.#progressService,
+			questRegistry: this.#registry,
+			chapterId,
 		});
 
 		if (result.isFailure) {
-			this.#logger?.error("Transition evaluation failed", result.error);
+			this.#logger?.error("Chapter transition evaluation failed", result.error);
 			return;
 		}
 
-		const { action } =
-			/** @type {import('../use-cases/evaluate-chapter-transition.js').TransitionResult} */ (
-				result.value
-			);
+		// After a chapter is complete, we might have completed the quest.
+		const isQuestDone = this.#progressService.isQuestCompleted(
+			this.currentQuest.id,
+		);
 
-		if (action === "COMPLETE") {
-			this.completeQuest();
+		if (isQuestDone) {
+			this.#state?.setIsQuestCompleted(true);
+			this.host.requestUpdate();
 		} else {
 			// Advance ONLY if there is NO exit zone.
 			// If there is an exit zone, the CollisionController will call advanceChapter when the player walks into it.

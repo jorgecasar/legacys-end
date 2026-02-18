@@ -50,6 +50,8 @@
  * @property {(questId: string) => boolean} isQuestCompleted - Checks if a quest is finished.
  * @property {(questId: string) => boolean} isQuestAvailable - Checks if a quest is unlocked and prerequisites met.
  * @property {(chapterId: string) => boolean} isChapterCompleted - Checks if a chapter is finished.
+ * @property {<K extends keyof import('../services/progress-service.js').ProgressState>(key: K) => import('../services/progress-service.js').ProgressState[K]} getProperty - Retrieves a specific property from the progress state.
+ * @property {ILoggerService | undefined} logger - Optional logger service.
  */
 
 /**

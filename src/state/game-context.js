@@ -12,7 +12,7 @@
  * @property {import('../services/user-api-client.js').UserApiClients} [services]
  * @property {import('../services/preloader-service.js').PreloaderService} [preloader]
  * @property {import('../services/quest-registry-service.js').QuestRegistryService} [registry]
- * @property {import('../use-cases/evaluate-chapter-transition.js').EvaluateChapterTransitionUseCase} [evaluateChapterTransition]
+
  * @property {import('../types/services.d.js').IVoiceSynthesisService} [voiceSynthesisService]
  * @property {import('../types/services.d.js').ILocalizationService} [localizationService]
  * @property {import('../types/services.d.js').IThemeService} [themeService]

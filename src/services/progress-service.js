@@ -205,7 +205,6 @@ export class ProgressService {
 				this.unlockAchievement(quest.reward.badge);
 			}
 
-			this.unlockNewQuests();
 			this.saveProgress();
 			this.logger?.info(`✅ Quest completed: ${questId}`);
 		}
@@ -219,28 +218,8 @@ export class ProgressService {
 		if (!this.progress.completedChapters.includes(chapterId)) {
 			this.progress.completedChapters.push(chapterId);
 			this.progress.stats.chaptersCompleted++;
-			this.checkQuestCompletion();
 			this.saveProgress();
 			this.logger?.info(`✅ Chapter completed: ${chapterId}`);
-		}
-	}
-
-	/**
-	 * Check if the current quest is completed (all chapters done).
-	 */
-	checkQuestCompletion() {
-		const questId = this.progress.currentQuest;
-		if (!questId) return;
-
-		const quest = this.registry.getQuest(questId);
-		if (!quest) return;
-
-		const allChaptersDone = quest.chapterIds?.every((id) =>
-			this.progress.completedChapters.includes(id),
-		);
-
-		if (allChaptersDone) {
-			this.completeQuest(questId);
 		}
 	}
 
@@ -255,28 +234,6 @@ export class ProgressService {
 			this.saveProgress();
 			this.logger?.info(`🏆 Achievement unlocked: ${id}`);
 		}
-	}
-
-	/**
-	 * Unlock new quests based on prerequisites.
-	 */
-	unlockNewQuests() {
-		const allQuests = this.registry.getAllQuests();
-		for (const quest of allQuests) {
-			if (this.progress.unlockedQuests.includes(quest.id)) continue;
-
-			// Check prerequisites using registry service which handles the logic
-			const isLocked = this.registry.isQuestLocked(
-				quest.id,
-				this.progress.completedQuests,
-			);
-
-			if (!isLocked) {
-				this.progress.unlockedQuests.push(quest.id);
-				this.logger?.info(`🔓 New quest unlocked: ${quest.id}`);
-			}
-		}
-		this.saveProgress();
 	}
 
 	/**
