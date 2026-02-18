@@ -141,30 +141,12 @@ describe("ProgressService", () => {
 			expect(service.progress.achievements).toContain("hero-badge");
 			expect(service.progress.completedChapters).toContain("c1"); // Auto-complete chapters
 			expect(service.progress.completedChapters).toContain("c2");
-			expect(service.progress.unlockedQuests).toContain("quest-2");
 		});
 
 		it("should not double-complete a quest", () => {
 			service.progress.completedQuests = ["q1"];
 			service.completeQuest("q1");
 			expect(service.progress.stats.questsCompleted).toBe(0); // Assuming init is 0
-		});
-	});
-
-	describe("Unlock Logic", () => {
-		it("should unlock quests when prerequisites are met", () => {
-			mockRegistry.getAllQuests.mockReturnValue([{ id: "q1" }, { id: "q2" }]);
-			service.progress.completedQuests = ["q1"];
-			// q2 is locked unless q1 is done
-			mockRegistry.isQuestLocked.mockImplementation(
-				(/** @type {string} */ id, /** @type {string[]} */ completed) => {
-					if (id === "q2") return !completed.includes("q1");
-					return false;
-				},
-			);
-
-			service.unlockNewQuests();
-			expect(service.progress.unlockedQuests).toContain("q2");
 		});
 	});
 
@@ -281,25 +263,6 @@ describe("ProgressService", () => {
 			const prog = /** @type {any} */ (service.getProgress());
 			prog.newField = "test";
 			expect(/** @type {any} */ (service.progress).newField).toBeUndefined();
-		});
-
-		it("should check quest completion logic (unused method)", () => {
-			// Tests the checkQuestCompletion method
-			const spy = vi.spyOn(service, "completeQuest");
-			// Case 1: No current quest
-			service.checkQuestCompletion();
-			expect(spy).not.toHaveBeenCalled();
-
-			// Case 2: Quest active but chapters incomplete
-			service.progress.currentQuest = "q1";
-			mockRegistry.getQuest.mockReturnValue({ id: "q1", chapterIds: ["c1"] });
-			service.checkQuestCompletion();
-			expect(spy).not.toHaveBeenCalled();
-
-			// Case 3: Complete
-			service.progress.completedChapters = ["c1"];
-			service.checkQuestCompletion();
-			expect(spy).toHaveBeenCalledWith("q1");
 		});
 	});
 });

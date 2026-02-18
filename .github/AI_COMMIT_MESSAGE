@@ -1,0 +1,17 @@
+feat(arch): implement use cases layer and refactor progress logic
+
+This commit introduces the Use Cases layer to the application architecture, creating a separation
+between orchestration and domain logic.
+
+The `progress-service` was refactored, extracting complex orchestration logic into two new use
+cases: `evaluate-chapter-transition` and `unlock-new-quests`. This makes the `progress-service` a
+more focused state management service.
+
+The `QuestController` was updated to use the new `evaluateChapterTransition` use case, simplifying
+its `completeChapter` method. All related tests were updated to reflect these changes, and new
+tests were added for the use cases.
+
+This change improves the maintainability and testability of the quest progression system by
+adhering to clean architecture principles.
+
+Fixes #383

@@ -44,7 +44,6 @@ import {
 	NewUserApiClient,
 } from "../../services/user-api-client.js";
 import { gameStoreContext } from "../../state/game-store.js";
-import { EvaluateChapterTransitionUseCase } from "../../use-cases/evaluate-chapter-transition.js";
 
 /**
  * @element legacys-end-app
@@ -100,12 +99,6 @@ export class LegacysEndApp extends SignalWatcher(LitElement) {
 	accessor storage = /** @type {IStorageAdapter} */ (
 		/** @type {unknown} */ (null)
 	);
-
-	/** @type {EvaluateChapterTransitionUseCase} */
-	accessor evaluateChapterTransition =
-		/** @type {EvaluateChapterTransitionUseCase} */ (
-			/** @type {unknown} */ (null)
-		);
 
 	/** @type {import('../../state/game-store.js').GameStore} */
 	@provide({ context: gameStoreContext })
@@ -181,7 +174,7 @@ export class LegacysEndApp extends SignalWatcher(LitElement) {
 			this.registry = services.questRegistry;
 			this.voiceSynthesisService = services.voiceSynthesis;
 			this.progressService = services.progress;
-			this.evaluateChapterTransition = services.evaluateChapterTransition;
+
 			this.themeService = services.theme;
 			this.localizationService = services.localization;
 			this.aiService = services.ai;
