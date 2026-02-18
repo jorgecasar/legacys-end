@@ -3,6 +3,8 @@
  */
 
 import { getQuests, loadQuest } from "../content/quests/quests-data.js";
+import { getAvailableQuests } from "../use-cases/get-available-quests.js";
+import { getComingSoonQuests } from "../use-cases/get-coming-soon-quests.js";
 
 /**
  * Quest Registry Service
@@ -44,14 +46,6 @@ export class QuestRegistryService {
 	}
 
 	/**
-	 * Get all quests (metadata)
-	 * @returns {Quest[]} Array of all quests
-	 */
-	getAllQuests() {
-		return Object.values(getQuests());
-	}
-
-	/**
 	 * Check if a quest is locked based on prerequisites
 	 * @param {string} questId - Quest identifier
 	 * @param {Array<string>} completedQuests - Array of completed quest IDs
@@ -65,27 +59,6 @@ export class QuestRegistryService {
 			quest.prerequisites?.some(
 				(prereq) => !completedQuests.includes(prereq),
 			) ?? false
-		);
-	}
-
-	/**
-	 * Get quests that are unlocked and available to play
-	 * @param {Array<string>} _completedQuests - Array of completed quest IDs (currently unused)
-	 * @returns {Quest[]} Array of available quests
-	 */
-	getAvailableQuests(_completedQuests = []) {
-		return this.getAllQuests().filter(
-			(quest) => quest.status !== "coming_soon",
-		);
-	}
-
-	/**
-	 * Get quests that are coming soon
-	 * @returns {Quest[]} Array of coming soon quests
-	 */
-	getComingSoonQuests() {
-		return this.getAllQuests().filter(
-			(quest) => quest.status === "coming_soon",
 		);
 	}
 
