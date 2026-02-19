@@ -213,11 +213,15 @@ export async function createTechnicalPlan({
 		inputTokens = result.inputTokens;
 		outputTokens = result.outputTokens;
 
-		// Parse JSON response
-		const cleanResponse = result.response
-			.replace(/```json\s*|```\s*/g, "")
-			.trim();
-		plan = JSON.parse(cleanResponse);
+		// The CLI tool already returns the parsed JSON object (merged with stats)
+		// We just need to extract the plan part.
+		const {
+			inputTokens: _in,
+			outputTokens: _out,
+			modelUsed: _m,
+			...parsedPlan
+		} = result;
+		plan = parsedPlan;
 
 		// Force needs_decomposition to false if it was a subtask
 		if (isSubtask && plan.needs_decomposition) {

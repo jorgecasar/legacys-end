@@ -31,13 +31,11 @@ describe("ai-worker-plan", () => {
 			deps: {
 				getOctokit: mock.fn(() => mockOctokit),
 				runGeminiCLI: mock.fn(async () => ({
-					response: JSON.stringify({
-						methodology: "TDD",
-						slug: "test-feature",
-						files_to_touch: ["src/logic.js"],
-						needs_decomposition: false,
-						sub_tasks: [],
-					}),
+					methodology: "TDD",
+					slug: "test-feature",
+					files_to_touch: ["src/logic.js"],
+					needs_decomposition: false,
+					sub_tasks: [],
 					inputTokens: 100,
 					outputTokens: 50,
 					modelUsed: "gemini-2.5-flash-lite",
@@ -56,12 +54,10 @@ describe("ai-worker-plan", () => {
 		const { deps, mockOctokit } = createMockDeps();
 
 		deps.runGeminiCLI.mock.mockImplementation(async () => ({
-			response: JSON.stringify({
-				methodology: "Simple Fix",
-				slug: "simple-fix",
-				files_to_touch: ["readme.md"],
-				needs_decomposition: false,
-			}),
+			methodology: "Simple Fix",
+			slug: "simple-fix",
+			files_to_touch: ["readme.md"],
+			needs_decomposition: false,
 			inputTokens: 10,
 			outputTokens: 10,
 		}));
@@ -85,11 +81,9 @@ describe("ai-worker-plan", () => {
 		const { deps } = createMockDeps();
 
 		deps.runGeminiCLI.mock.mockImplementation(async () => ({
-			response: JSON.stringify({
-				methodology: "Continue",
-				slug: "ignored",
-				needs_decomposition: false,
-			}),
+			methodology: "Continue",
+			slug: "ignored",
+			needs_decomposition: false,
 			inputTokens: 10,
 			outputTokens: 10,
 		}));
@@ -112,12 +106,10 @@ describe("ai-worker-plan", () => {
 		const { deps } = createMockDeps();
 
 		deps.runGeminiCLI.mock.mockImplementation(async () => ({
-			response: JSON.stringify({
-				methodology: "Complex",
-				slug: "complex",
-				needs_decomposition: true,
-				sub_tasks: [{ title: "T1", goal: "G1" }],
-			}),
+			methodology: "Complex",
+			slug: "complex",
+			needs_decomposition: true,
+			sub_tasks: [{ title: "T1", goal: "G1" }],
 			inputTokens: 10,
 			outputTokens: 10,
 		}));
@@ -143,11 +135,9 @@ describe("ai-worker-plan", () => {
 		const { deps } = createMockDeps();
 
 		deps.runGeminiCLI.mock.mockImplementation(async () => ({
-			response: JSON.stringify({
-				methodology: "Small",
-				slug: "small",
-				needs_decomposition: false,
-			}),
+			methodology: "Small",
+			slug: "small",
+			needs_decomposition: false,
 			inputTokens: 10,
 			outputTokens: 10,
 		}));
