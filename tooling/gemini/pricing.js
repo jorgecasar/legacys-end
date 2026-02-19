@@ -13,7 +13,7 @@
  */
 
 /**
- * Official Gemini pricing table
+ * Official Gemini pricing table (Price per 1M tokens)
  * @type {Record<string, ModelPricing>}
  */
 export const GEMINI_PRICING = {
@@ -24,7 +24,9 @@ export const GEMINI_PRICING = {
 	},
 	"gemini-1.5-pro": {
 		input: 1.25,
+		inputTier2: 2.5,
 		output: 5.0,
+		outputTier2: 10.0,
 		tier: "production",
 	},
 	"gemini-2.5-flash-lite": {
@@ -39,7 +41,9 @@ export const GEMINI_PRICING = {
 	},
 	"gemini-2.5-pro": {
 		input: 1.25,
+		inputTier2: 2.5,
 		output: 10.0,
+		outputTier2: 15.0,
 		tier: "production",
 	},
 	"gemini-3-flash-preview": {
@@ -49,7 +53,9 @@ export const GEMINI_PRICING = {
 	},
 	"gemini-3-pro-preview": {
 		input: 2.0,
+		inputTier2: 4.0,
 		output: 12.0,
+		outputTier2: 18.0,
 		tier: "preview",
 	},
 };
@@ -77,28 +83,31 @@ export const MODEL_FALLBACK = {
 /**
  * Calculate cost for a Gemini API call
  *
- * @param {string} model - Model name (e.g., 'gemini-2.5-flash-lite')
+ * @param {string} model - Model name (e.g., 'gemini-2.5-pro')
  * @param {number} inputTokens - Number of input tokens
  * @param {number} outputTokens - Number of output tokens
  * @returns {CostCalculation} Cost breakdown
  * @throws {Error} If model is unknown
- *
- * @example
- * const cost = calculateCost('gemini-2.5-flash-lite', 250, 50);
- * console.log(cost.totalCost); // 0.000016875 USD
  */
 export function calculateCost(model, inputTokens, outputTokens) {
 	let pricing = GEMINI_PRICING[model];
 	if (!pricing) {
-		// Fallback to flash-lite pricing if model unknown
 		console.warn(
 			`Unknown model: ${model}. Using gemini-2.5-flash-lite pricing.`,
 		);
 		pricing = GEMINI_PRICING["gemini-2.5-flash-lite"];
 	}
 
-	const inputCost = (inputTokens / 1_000_000) * pricing.input;
-	const outputCost = (outputTokens / 1_000_000) * pricing.output;
+	const threshold = 200_000;
+	const isTier2 = inputTokens > threshold;
+
+	const inputRate =
+		isTier2 && pricing.inputTier2 ? pricing.inputTier2 : pricing.input;
+	const outputRate =
+		isTier2 && pricing.outputTier2 ? pricing.outputTier2 : pricing.output;
+
+	const inputCost = (inputTokens / 1_000_000) * inputRate;
+	const outputCost = (outputTokens / 1_000_000) * outputRate;
 
 	return {
 		inputCost,

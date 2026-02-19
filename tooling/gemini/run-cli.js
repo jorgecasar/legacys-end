@@ -70,13 +70,18 @@ export function extractAllJSONs(str) {
 export const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
+ * Default token budget to keep requests within Tier 1 pricing (<= 200k tokens).
+ */
+export const DEFAULT_TOKEN_BUDGET = 200_000;
+
+/**
  * Runs Gemini CLI with automatic model fallback and 429 (Rate Limit) handling.
  * @param {string} prompt - The prompt to send to Gemini
  * @param {Object} [options={}] - Execution options
  * @param {string} [options.modelType='flash'] - 'flash', 'pro', or 'image'
  * @param {boolean} [options.yolo=false] - If true, auto-approves tool calls
  * @param {string} [options.approvalMode='default'] - CLI approval mode
- * @param {number} [options.inputTokenBudget] - Max estimated input tokens allowed
+ * @param {number} [options.inputTokenBudget=DEFAULT_TOKEN_BUDGET] - Max estimated input tokens allowed
  * @param {Object} [deps={}] - Injected dependencies
  * @param {Function} [deps.spawn=nodeSpawn] - Spawn function for testing
  * @param {Function} [deps.sleep=sleep] - Sleep function for testing
@@ -89,7 +94,7 @@ export async function runGeminiCLI(prompt, options = {}, deps = {}) {
 		modelType = "flash",
 		yolo = false,
 		approvalMode = "default",
-		inputTokenBudget,
+		inputTokenBudget = DEFAULT_TOKEN_BUDGET,
 	} = options;
 	const fallbackModels = MODEL_FALLBACK[modelType] || ["gemini-2.0-flash"];
 	let lastError = null;
@@ -98,7 +103,9 @@ export async function runGeminiCLI(prompt, options = {}, deps = {}) {
 		const estimated = estimateTokens(prompt);
 		if (estimated > inputTokenBudget) {
 			throw new Error(
-				`Input token budget exceeded. Estimated: ${estimated}, Budget: ${inputTokenBudget}`,
+				`Input token budget exceeded. Estimated: ${estimated}, Budget: ${inputTokenBudget}. ` +
+					"This request exceeds the 200k token Tier 1 pricing threshold. " +
+					"Please split the task or increase the budget manually if necessary.",
 			);
 		}
 	}
