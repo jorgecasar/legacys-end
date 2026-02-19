@@ -259,14 +259,33 @@ export async function createTechnicalPlan({
 		outputTokens = result.outputTokens;
 
 		// The CLI tool already returns the parsed JSON object (merged with stats)
-		// We just need to extract the plan part.
+		// But we should ensure we extract the plan part correctly even if it's inside 'response'.
+		let parsedPlan = result;
+		if (result.response) {
+			try {
+				const cleanResponse = result.response
+					.replace(/```json\s*|```\s*/g, "")
+					.trim();
+				parsedPlan = JSON.parse(cleanResponse);
+			} catch (e) {
+				console.warn(
+					"Warning: Could not parse plan from response field, using result object as fallback.",
+				);
+			}
+		}
+
 		const {
 			inputTokens: _in,
 			outputTokens: _out,
 			modelUsed: _m,
-			...parsedPlan
-		} = result;
-		plan = parsedPlan;
+			response: _r,
+			session_id: _s,
+			stats: _st,
+			files: _f,
+			...finalPlan
+		} = parsedPlan;
+
+		plan = finalPlan;
 
 		// Force needs_decomposition to false if it was a subtask
 		if (isSubtask && plan.needs_decomposition) {
