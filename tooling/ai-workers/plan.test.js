@@ -42,6 +42,7 @@ mock.module("../github/index.js", {
 					}),
 					get: async () => ({ data: { node_id: "ISSUE_NODE_ID" } }),
 					listComments: async () => ({ data: [] }),
+					update: async () => ({ data: {} }), // Added update
 				},
 				repos: {
 					listBranches: async () => ({ data: [] }),
@@ -150,6 +151,63 @@ describe("ai-worker-plan", () => {
 			undefined,
 			"Should NOT output branch_name for decomposition",
 		);
+	});
+
+	it("should handle decomposition with dependencies", async () => {
+		mockPlanResponse = {
+			methodology: "Complex Refactor",
+			slug: "complex-refactor",
+			files_to_touch: ["src/a.js", "src/b.js"],
+			needs_decomposition: true,
+			sub_tasks: [
+				{ title: "Task 1", goal: "Goal 1", dependencies: [] },
+				{ title: "Task 2", goal: "Goal 2", dependencies: [1] },
+			],
+		};
+
+		mockWriteGitHubOutput.mock.resetCalls();
+		const consoleLogMock = mock.method(console, "log", () => {});
+
+		await createTechnicalPlan({
+			issueNumber: 1,
+			title: "Big Task",
+			body: "Do a lot of things.",
+		});
+
+		assert.strictEqual(
+			mockWriteGitHubOutput.mock.calls.find(
+				(c) => c.arguments[0] === "needs_decomposition",
+			)?.arguments[1],
+			"true",
+		);
+
+		consoleLogMock.mock.restore();
+	});
+
+	it("should detect if issue is already a subtask", async () => {
+		mockPlanResponse = {
+			methodology: "Small task",
+			slug: "small",
+			files_to_touch: ["src/c.js"],
+			needs_decomposition: false,
+		};
+
+		mockWriteGitHubOutput.mock.resetCalls();
+		const consoleLogMock = mock.method(console, "log", () => {});
+
+		await createTechnicalPlan({
+			issueNumber: 101,
+			title: "Subtask title",
+			body: "Parent issue: #1",
+		});
+
+		assert.ok(
+			consoleLogMock.mock.calls.some((c) =>
+				c.arguments[0].includes("identified as a sub-task"),
+			),
+		);
+
+		consoleLogMock.mock.restore();
 	});
 
 	it("should return early if missing input", async () => {

@@ -48,35 +48,45 @@ import {
  * @param {Octokit} [params.octokit] - Octokit instance (optional)
  * @returns {Promise<UsageMetrics>} Accumulated metrics
  */
-export async function trackUsage({
-	owner,
-	repo,
-	issueNumber,
-	model,
-	inputTokens,
-	outputTokens,
-	operation,
-	octokit,
-	skipProjectUpdate = false,
-}) {
+export async function trackUsage(params) {
+	const {
+		owner,
+		repo,
+		issueNumber,
+		model,
+		inputTokens,
+		outputTokens,
+		operation,
+		octokit: providedOctokit,
+		skipProjectUpdate = false,
+		getOctokit: getOctokitDep = getOctokit,
+		calculateCost: calculateCostDep = calculateCost,
+		getExistingMetrics: getExistingMetricsDep = getExistingMetrics,
+		updateProjectCost: updateProjectCostDep = updateProjectCost,
+		postUsageComment: postUsageCommentDep = postUsageComment,
+	} = params;
+
 	// Initialize Octokit if not provided
-	if (!octokit) {
-		octokit = getOctokit();
-	}
+	const octokit = providedOctokit || getOctokitDep();
 
 	// 1. Calculate costs
-	const cost = calculateCost(model, inputTokens, outputTokens);
+	const cost = calculateCostDep(model, inputTokens, outputTokens);
 
 	// 2. Get existing metrics from issue
-	const existing = await getExistingMetrics(octokit, owner, repo, issueNumber);
+	const existing = await getExistingMetricsDep(
+		octokit,
+		owner,
+		repo,
+		issueNumber,
+	);
 
 	// 3. Accumulate totals
 	const accumulated = {
-		totalInputTokens: existing.totalInputTokens + inputTokens,
-		totalOutputTokens: existing.totalOutputTokens + outputTokens,
-		totalCost: existing.totalCost + cost.totalCost,
+		totalInputTokens: (existing?.totalInputTokens || 0) + inputTokens,
+		totalOutputTokens: (existing?.totalOutputTokens || 0) + outputTokens,
+		totalCost: (existing?.totalCost || 0) + cost.totalCost,
 		operations: [
-			...existing.operations,
+			...(existing?.operations || []),
 			{
 				operation,
 				model,
@@ -90,17 +100,18 @@ export async function trackUsage({
 
 	// 4. Update Project Cost Field (Cumulative)
 	if (!skipProjectUpdate) {
-		await updateProjectCost(
+		await updateProjectCostDep(
 			octokit,
 			owner,
 			repo,
 			issueNumber,
 			accumulated.totalCost,
+			{ getIssueNodeId, addIssueToProject, updateProjectField },
 		);
 	}
 
 	// 5. Post/update usage comment
-	await postUsageComment(octokit, owner, repo, issueNumber, accumulated);
+	await postUsageCommentDep(octokit, owner, repo, issueNumber, accumulated);
 
 	return accumulated;
 }
@@ -114,7 +125,7 @@ export async function trackUsage({
  * @param {number} issueNumber
  * @returns {Promise<UsageMetrics>}
  */
-async function getExistingMetrics(octokit, owner, repo, issueNumber) {
+export async function getExistingMetrics(octokit, owner, repo, issueNumber) {
 	try {
 		const { data: comments } = await octokit.rest.issues.listComments({
 			owner,
@@ -167,7 +178,13 @@ async function getExistingMetrics(octokit, owner, repo, issueNumber) {
  * @param {number} issueNumber
  * @param {UsageMetrics} metrics
  */
-async function postUsageComment(octokit, owner, repo, issueNumber, metrics) {
+export async function postUsageComment(
+	octokit,
+	owner,
+	repo,
+	issueNumber,
+	metrics,
+) {
 	const totalTokens = metrics.totalInputTokens + metrics.totalOutputTokens;
 
 	const comment = `<!-- AI_USAGE_METRICS -->
@@ -242,18 +259,31 @@ ${JSON.stringify(metrics, null, 2)}
 /**
  * Update the 'Cost' field in Project V2 with the total accumulated cost
  */
-async function updateProjectCost(octokit, owner, repo, issueNumber, totalCost) {
+export async function updateProjectCost(
+	octokit,
+	owner,
+	repo,
+	issueNumber,
+	totalCost,
+	deps = {},
+) {
+	const {
+		getIssueNodeId: getIssueNodeIdDep = getIssueNodeId,
+		addIssueToProject: addIssueToProjectDep = addIssueToProject,
+		updateProjectField: updateProjectFieldDep = updateProjectField,
+	} = deps;
+
 	try {
-		const issueNodeId = await getIssueNodeId(octokit, {
+		const issueNodeId = await getIssueNodeIdDep(octokit, {
 			owner,
 			repo,
 			issueNumber,
 		});
 
-		const itemId = await addIssueToProject(octokit, issueNodeId);
+		const itemId = await addIssueToProjectDep(octokit, issueNodeId);
 
 		// 3. Update Cost field (Number field)
-		await updateProjectField(
+		await updateProjectFieldDep(
 			octokit,
 			itemId,
 			FIELD_IDS.cost,

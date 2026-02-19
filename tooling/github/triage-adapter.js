@@ -8,16 +8,25 @@ import {
 } from "../github/index.js";
 import { trackUsage } from "../monitoring/usage-tracker.js";
 
-export async function syncTriageData(
-	input = process.argv[2],
-	{ octokit = getOctokit() } = {},
-) {
+export async function syncTriageData(input = process.argv[2], deps = {}) {
+	const {
+		getOctokit: getOctokitDep = getOctokit,
+		getIssueNodeId: getIssueNodeIdDep = getIssueNodeId,
+		addIssueToProject: addIssueToProjectDep = addIssueToProject,
+		updateProjectField: updateProjectFieldDep = updateProjectField,
+		trackUsage: trackUsageDep = trackUsage,
+		env = process.env,
+		octokit: providedOctokit,
+	} = deps;
+
+	const octokit = providedOctokit || getOctokitDep();
+
 	if (!input || input.trim() === "") {
 		console.error("Error: No JSON input provided.");
 		console.error(
 			"Usage: node tooling/github/triage-adapter.js '<json_string>'",
 		);
-		if (process.env.NODE_ENV !== "test") process.exit(1);
+		if (env.NODE_ENV !== "test") process.exit(1);
 		return;
 	}
 
@@ -28,7 +37,7 @@ export async function syncTriageData(
 		console.error("Error: Invalid JSON input");
 		console.error("Input was:", input);
 		console.error("Parse error:", err.message);
-		if (process.env.NODE_ENV !== "test") process.exit(1);
+		if (env.NODE_ENV !== "test") process.exit(1);
 		return;
 	}
 
@@ -39,29 +48,29 @@ export async function syncTriageData(
 
 	// Extract issue_number from context if not provided
 	const issueNumber =
-		issue_number || Number.parseInt(process.env.GITHUB_ISSUE_NUMBER, 10);
+		issue_number || Number.parseInt(env.GITHUB_ISSUE_NUMBER, 10);
 
 	if (!issueNumber) {
 		console.error("Error: issue_number not provided in JSON or environment");
-		if (process.env.NODE_ENV !== "test") process.exit(1);
+		if (env.NODE_ENV !== "test") process.exit(1);
 		return;
 	}
 
 	console.log(`Syncing issue #${issueNumber}...`);
 
 	// 1. Get issue node_id
-	const issueNodeId = await getIssueNodeId(octokit, {
+	const issueNodeId = await getIssueNodeIdDep(octokit, {
 		owner: OWNER,
 		repo: REPO,
 		issueNumber,
 	});
 
 	// 2. Add issue to project
-	const itemId = await addIssueToProject(octokit, issueNodeId);
+	const itemId = await addIssueToProjectDep(octokit, issueNodeId);
 	console.log(`Item ID: ${itemId}`);
 
 	// 3. Update Status to Todo
-	await updateProjectField(
+	await updateProjectFieldDep(
 		octokit,
 		itemId,
 		FIELD_IDS.status,
@@ -72,13 +81,13 @@ export async function syncTriageData(
 	if (priority && OPTION_IDS.priority[priority.toLowerCase()]) {
 		console.log(`Updating priority to ${priority}...`);
 		const optionId = OPTION_IDS.priority[priority.toLowerCase()];
-		await updateProjectField(octokit, itemId, FIELD_IDS.priority, optionId);
+		await updateProjectFieldDep(octokit, itemId, FIELD_IDS.priority, optionId);
 	}
 
 	// 5. Update Model (Text field)
 	if (model) {
 		console.log(`Updating model to ${model}...`);
-		await updateProjectField(octokit, itemId, FIELD_IDS.model, model);
+		await updateProjectFieldDep(octokit, itemId, FIELD_IDS.model, model);
 	}
 
 	// 6. Update Labels on the issue itself
@@ -94,7 +103,7 @@ export async function syncTriageData(
 	// 7. Usage Tracking & Cost Update (Combined)
 	if (usage) {
 		console.log("Tracking usage and updating cost...");
-		const metrics = await trackUsage({
+		const metrics = await trackUsageDep({
 			owner: OWNER,
 			repo: REPO,
 			issueNumber,
@@ -107,7 +116,7 @@ export async function syncTriageData(
 		});
 
 		// Update Cost Field in Project V2 (using existing itemId)
-		await updateProjectField(
+		await updateProjectFieldDep(
 			octokit,
 			itemId,
 			FIELD_IDS.cost,

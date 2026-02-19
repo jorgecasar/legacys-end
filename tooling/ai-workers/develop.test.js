@@ -30,6 +30,12 @@ test("Development Agent", async (t) => {
 		mockWriteGitHubOutput.mock.resetCalls();
 		mockGetOctokit.mock.resetCalls();
 		mockGetIssue.mock.resetCalls();
+		mock.method(console, "log", () => {});
+		mock.method(console, "error", () => {});
+	});
+
+	t.afterEach(() => {
+		mock.restoreAll();
 	});
 
 	await t.test("should execute development task", async () => {
@@ -43,6 +49,56 @@ test("Development Agent", async (t) => {
 		assert.strictEqual(mockRunGeminiCLI.mock.callCount(), 1);
 		const prompt = mockRunGeminiCLI.mock.calls[0].arguments[0];
 		assert.match(prompt, /VALIDATE IT/);
+	});
+
+	await t.test("should auto-fetch issue details if missing", async () => {
+		const incompleteDeps = {
+			...deps,
+			env: { ...deps.env, ISSUE_TITLE: undefined, ISSUE_BODY: undefined },
+		};
+		mockGetIssue.mock.mockImplementationOnce(async () => ({
+			title: "Fetched",
+			body: "Body",
+		}));
+		mockRunGeminiCLI.mock.mockImplementationOnce(async () => ({
+			inputTokens: 1,
+			outputTokens: 1,
+		}));
+
+		await runDevelopmentAgent(incompleteDeps);
+
+		assert.strictEqual(mockGetIssue.mock.callCount(), 1);
+		assert.strictEqual(mockRunGeminiCLI.mock.callCount(), 1);
+	});
+
+	await t.test("should handle fetch error gracefully", async () => {
+		const incompleteDeps = {
+			...deps,
+			env: { ...deps.env, ISSUE_TITLE: undefined, ISSUE_BODY: undefined },
+		};
+		mockGetIssue.mock.mockImplementationOnce(() => {
+			throw new Error("Fail");
+		});
+
+		await runDevelopmentAgent(incompleteDeps);
+		assert.strictEqual(mockRunGeminiCLI.mock.callCount(), 0);
+	});
+
+	await t.test("should handle Gemini error gracefully", async () => {
+		mockRunGeminiCLI.mock.mockImplementationOnce(() => {
+			throw new Error("Gemini failed");
+		});
+		await runDevelopmentAgent(deps);
+		// Should not throw
+	});
+
+	await t.test("should exit if ISSUE_NUMBER is missing", async () => {
+		const noIssueDeps = {
+			...deps,
+			env: { ...deps.env, ISSUE_NUMBER: undefined },
+		};
+		await runDevelopmentAgent(noIssueDeps);
+		assert.strictEqual(mockRunGeminiCLI.mock.callCount(), 0);
 	});
 });
 
