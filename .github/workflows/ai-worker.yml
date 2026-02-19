@@ -47,15 +47,49 @@ jobs:
               run: |
                   gh issue view ${{ github.event.inputs.issue_number }} --json title,body > issue.json
                   echo "title=$(jq -r .title issue.json)" >> $GITHUB_OUTPUT
+                  # Handle multiline body safely with random delimiter
                   delimiter="$(openssl rand -hex 8)"
                   echo "body<<$delimiter" >> $GITHUB_OUTPUT
                   jq -r .body issue.json >> $GITHUB_OUTPUT
                   echo "$delimiter" >> $GITHUB_OUTPUT
 
+            - name: Debug Context
+              env:
+                  ISSUE_TITLE: ${{ steps.issue.outputs.title }}
+              run: |
+                  echo "Title: $ISSUE_TITLE"
+                  echo "Body length: ${{ steps.issue.outputs.body }}" | wc -c
+
             - name: Prune Skills for Planning
               run: node tooling/ai-workers/prune-skills.js planning
 
-            # 1. ATOMIC PLANNING (Autonomous Agent)
+            # 0.5 CHECKOUT TASK BRANCH (If exists)
+            - name: Checkout Task Branch
+              env:
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+                  ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+              run: |
+                  git config --global user.name "github-actions[bot]"
+                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                  
+                  echo "Searching for existing branch for Issue #$ISSUE_NUMBER..."
+                  git fetch --all
+                  
+                  # Look for any branch starting with task/issue-NUMBER-
+                  BRANCH_NAME=$(git branch -r | grep "origin/task/issue-$ISSUE_NUMBER-" | head -n 1 | sed 's/^[[:space:]]*//' | sed 's/origin\///')
+                  
+                  if [ -n "$BRANCH_NAME" ]; then
+                    echo "Found existing branch: $BRANCH_NAME. Checking out..."
+                    git checkout -b "$BRANCH_NAME" "origin/$BRANCH_NAME"
+                    git pull --rebase origin "$BRANCH_NAME"
+                    echo "current_branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+                  else
+                    echo "No existing branch found. Staying on main."
+                    echo "current_branch=main" >> $GITHUB_OUTPUT
+                  fi
+              id: branch_context
+
+            # 1. ATOMIC PLANNING
             - name: Planning
               id: planning
               env:
@@ -64,25 +98,36 @@ jobs:
                   ISSUE_TITLE: ${{ steps.issue.outputs.title }}
                   ISSUE_BODY: ${{ steps.issue.outputs.body }}
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
+                  CURRENT_BRANCH: ${{ steps.branch_context.outputs.current_branch }}
               run: node tooling/ai-workers/plan.js
 
-            # 2. EXECUTION LOOP (Autonomous Agent)
+            # 2. EXECUTION LOOP
             - name: Restore & Prune Skills for Development
               if: steps.planning.outputs.needs_decomposition != 'true'
               run: |
                   npx rulesync generate
                   node tooling/ai-workers/prune-skills.js development
-                  
-            - name: Create Feature Branch
+
+            - name: Create or Switch to Feature Branch
               if: steps.planning.outputs.needs_decomposition != 'true'
               env:
                   ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+                  PLANNED_BRANCH: ${{ steps.planning.outputs.branch_name }}
+                  CURRENT_BRANCH: ${{ steps.branch_context.outputs.current_branch }}
               run: |
-                  BRANCH_NAME="feat/issue-$ISSUE_NUMBER"
-                  git config --global user.name "github-actions[bot]"
-                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
-                  git checkout -b "$BRANCH_NAME"
-                  echo "Created and switched to branch $BRANCH_NAME"
+                  # If planning output a specific branch name, use it.
+                  # Otherwise fall back to generic pattern.
+                  TARGET_BRANCH="${PLANNED_BRANCH:-task/issue-$ISSUE_NUMBER-work}"
+                  
+                  echo "Target Branch: $TARGET_BRANCH"
+                  echo "Current Branch: $CURRENT_BRANCH"
+
+                  if [ "$CURRENT_BRANCH" == "$TARGET_BRANCH" ]; then
+                    echo "Already on target branch."
+                  else
+                    echo "Switching to $TARGET_BRANCH..."
+                    git checkout -b "$TARGET_BRANCH" || git checkout "$TARGET_BRANCH"
+                  fi
 
             - name: Development & Implementation
               if: steps.planning.outputs.needs_decomposition != 'true'
@@ -97,34 +142,67 @@ jobs:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
               run: node tooling/ai-workers/develop.js
 
-            - name: Rescue Incomplete Work
-              if: failure() || cancelled()
+            - name: Finalize Work (Commit & Create PR)
+              if: steps.planning.outputs.needs_decomposition != 'true'
               env:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
+                  COMMIT_MESSAGE: ${{ steps.developer.outputs.commit_message }}
+                  REVIEWER_TEXT: ${{ steps.reviewer.outputs.json && fromJson(steps.reviewer.outputs.json).review_text || 'Reviewer Agent failed or was skipped.' }}
               run: |
                   git config --global user.name "github-actions[bot]"
                   git config --global user.email "github-actions[bot]@users.noreply.github.com"
                   
-                  if [[ -n $(git status --porcelain) ]]; then
-                    echo "⚠️ Uncommitted changes detected after failure. Rescuing work..."
-                    git add .
-                    git commit -m "wip: rescue incomplete work from failed agent run" --no-verify
-                    git fetch origin main
-                    git pull --rebase origin main
-                    git push -u origin HEAD --no-verify
-                  else
-                    echo "No uncommitted changes to rescue."
+                  # Check if there are changes to commit
+                  if [[ -z $(git status --porcelain) ]]; then
+                    echo "No code changes detected. Skipping commit and PR."
+                    exit 0
                   fi
-
-
+                  
+                  # 1. Stage, Commit, Rebase, and Push
+                  git add .
+                  # Fallback commit message if empty
+                  MSG="${COMMIT_MESSAGE:-feat: resolve #$ISSUE_NUMBER (AI Agent)}"
+                  git commit -m "$MSG"
+                  git fetch origin main
+                  git pull --rebase origin main
+                  git push --force-with-lease origin HEAD
+                  
+                  # 2. Create Pull Request
+                  gh pr create --title "$MSG" --body "Automated PR by AI Worker Agent. Resolves #${{ github.event.inputs.issue_number }}. \n\nReviewer feedback: $REVIEWER_TEXT" || echo "PR creation failed or already exists"
+                  
             # 3. VERIFICATION
-            - name: Run Verification Tests
+            - name: Install Playwright Browsers
               if: steps.planning.outputs.needs_decomposition != 'true'
-              run: npm test
+              run: npx playwright install --with-deps
+
+            - name: Run Related Tests
+              if: steps.planning.outputs.needs_decomposition != 'true'
+              run: |
+                  # Run tests with coverage
+                  npx vitest run --coverage
 
             - name: Update Coverage Thresholds
               if: steps.planning.outputs.needs_decomposition != 'true'
               run: npm run test:coverage:update
+
+            # 4. SELF-REVIEW
+            - name: Self-Review
+              if: steps.planning.outputs.needs_decomposition != 'true'
+              id: reviewer
+              uses: google-github-actions/run-gemini-cli@v0.1.20
+              continue-on-error: true
+              with:
+                  gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+                  gemini_model: "gemini-2.5-flash"
+                  prompt: |
+                      You are the Reviewer Agent.
+                      Role: @reviewer-agent
+
+                      Files changed: $(git diff --name-only origin/main)
+                      Diff:
+                      $(git diff origin/main)
+
+                      Instruction: Audit this code. Output a JSON object with a single key "review_text". The value should be "APPROVED" if quality is high, otherwise, it should be a string containing a list of issues.
 
             - name: Sync Costs
               if: always()
@@ -135,6 +213,8 @@ jobs:
                   PLANNING_OUTPUT_TOKENS: ${{ steps.planning.outputs.output_tokens || '0' }}
                   DEVELOPER_INPUT_TOKENS: ${{ steps.developer.outputs.input_tokens || '0' }}
                   DEVELOPER_OUTPUT_TOKENS: ${{ steps.developer.outputs.output_tokens || '0' }}
+                  REVIEWER_INPUT_TOKENS: ${{ steps.reviewer.outputs.prompt_token_count || '0' }}
+                  REVIEWER_OUTPUT_TOKENS: ${{ steps.reviewer.outputs.candidates_token_count || '0' }}
               run: |
                   node tooling/ai-workers/sync.js
 
@@ -150,24 +230,3 @@ jobs:
               if: always()
               run: |
                   rm -f issue.json
-
-            - name: Create Pull Request
-              if: steps.planning.outputs.needs_decomposition != 'true' && success()
-              env:
-                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
-                  ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
-              run: |
-                  COMMIT_MSG="feat: resolve #$ISSUE_NUMBER (AI Agent)"
-                  if [ -f .github/AI_COMMIT_MESSAGE ]; then
-                    COMMIT_MSG=$(cat .github/AI_COMMIT_MESSAGE)
-                  fi
-                  
-                  BRANCH_NAME="feat/issue-$ISSUE_NUMBER"
-                  
-                  # Create PR if not exists
-                  gh pr create \
-                    --base main \
-                    --head "$BRANCH_NAME" \
-                    --title "$COMMIT_MSG" \
-                    --body "Automated PR by AI Worker Agent. Resolves #$ISSUE_NUMBER." \
-                    || echo "PR already exists or failed to create."
