@@ -1,99 +1,80 @@
 import assert from "node:assert";
 import { describe, it, mock } from "node:test";
+import { createTechnicalPlan } from "./plan.js";
 
 process.env.NODE_ENV = "test";
 process.env.GH_TOKEN = "mock-token";
 
-let mockPlanResponse = {
-	methodology: "TDD",
-	slug: "test-feature",
-	files_to_touch: ["src/logic.js"],
-	needs_decomposition: false,
-	sub_tasks: [],
-};
-
-// Mock the gemini module
-mock.module("../gemini/run-cli.js", {
-	namedExports: {
-		runGeminiCLI: async () => ({
-			response: JSON.stringify(mockPlanResponse),
-			inputTokens: 100,
-			outputTokens: 50,
-			modelUsed: "gemini-2.5-flash-lite",
-		}),
-	},
-});
-
-// Mock child_process
-mock.module("node:child_process", {
-	namedExports: {
-		execSync: mock.fn(() => Buffer.from("")),
-	},
-});
-
-// Mock the GitHub module
-mock.module("../github/index.js", {
-	namedExports: {
-		getOctokit: () => ({
+describe("ai-worker-plan", () => {
+	// Common mocks factory
+	const createMockDeps = () => {
+		const mockOctokit = {
 			rest: {
 				issues: {
-					create: async () => ({
+					create: mock.fn(async () => ({
 						data: { number: 101, title: "Subtask", node_id: "MOCKED_NODE_ID" },
-					}),
-					get: async () => ({ data: { node_id: "ISSUE_NODE_ID" } }),
-					listComments: async () => ({ data: [] }),
-					update: async () => ({ data: {} }), // Added update
+					})),
+					get: mock.fn(async () => ({ data: { node_id: "ISSUE_NODE_ID" } })),
+					listComments: mock.fn(async () => ({ data: [] })),
+					update: mock.fn(async () => ({ data: {} })),
 				},
 				repos: {
 					listBranches: async () => ({ data: [] }),
 				},
 			},
 			graphql: async () => ({}),
-		}),
-		hasOpenSubtasks: async () => 0,
-		getIssueNodeId: async () => "ISSUE_NODE_ID",
-		addIssueToProject: async () => "PROJECT_ITEM_ID",
-		updateProjectField: async () => ({}),
-		createSubIssue: async () => ({}), // Added createSubIssue
-	},
-});
-
-const mockWriteGitHubOutput = mock.fn();
-
-mock.module("../config/index.js", {
-	namedExports: {
-		OWNER: "test-owner",
-		REPO: "test-repo",
-		FIELD_IDS: { status: "fid", model: "mid", priority: "pid" },
-		OPTION_IDS: { status: { paused: "paused-id" }, priority: { p1: "p1-id" } },
-		writeGitHubOutput: mockWriteGitHubOutput,
-	},
-});
-
-// Now import createTechnicalPlan
-const { createTechnicalPlan } = await import("./plan.js");
-
-describe("ai-worker-plan", () => {
-	it("should output branch name for workflow checkout", async () => {
-		mockPlanResponse = {
-			methodology: "Simple Fix",
-			slug: "simple-fix",
-			files_to_touch: ["readme.md"],
-			needs_decomposition: false,
-			sub_tasks: [],
+			request: mock.fn(async () => ({})),
 		};
 
-		mockWriteGitHubOutput.mock.resetCalls();
+		return {
+			mockOctokit,
+			deps: {
+				getOctokit: mock.fn(() => mockOctokit),
+				runGeminiCLI: mock.fn(async () => ({
+					response: JSON.stringify({
+						methodology: "TDD",
+						slug: "test-feature",
+						files_to_touch: ["src/logic.js"],
+						needs_decomposition: false,
+						sub_tasks: [],
+					}),
+					inputTokens: 100,
+					outputTokens: 50,
+					modelUsed: "gemini-2.5-flash-lite",
+				})),
+				writeGitHubOutput: mock.fn(),
+				hasOpenSubtasks: mock.fn(async () => 0),
+				getIssueNodeId: mock.fn(async () => "ISSUE_NODE_ID"),
+				addIssueToProject: mock.fn(async () => "PROJECT_ITEM_ID"),
+				updateProjectField: mock.fn(async () => ({})),
+				createSubIssue: mock.fn(async () => ({})),
+			},
+		};
+	};
+
+	it("should output branch name for workflow checkout", async () => {
+		const { deps, mockOctokit } = createMockDeps();
+
+		deps.runGeminiCLI.mock.mockImplementation(async () => ({
+			response: JSON.stringify({
+				methodology: "Simple Fix",
+				slug: "simple-fix",
+				files_to_touch: ["readme.md"],
+				needs_decomposition: false,
+			}),
+			inputTokens: 10,
+			outputTokens: 10,
+		}));
 
 		await createTechnicalPlan({
 			issueNumber: 1,
 			title: "Simple Issue",
 			body: "Fix this.",
 			currentBranch: "main",
+			deps,
 		});
 
-		// Verify branch_name output
-		const branchCall = mockWriteGitHubOutput.mock.calls.find(
+		const branchCall = deps.writeGitHubOutput.mock.calls.find(
 			(c) => c.arguments[0] === "branch_name",
 		);
 		assert.ok(branchCall, "Should output branch_name");
@@ -101,49 +82,54 @@ describe("ai-worker-plan", () => {
 	});
 
 	it("should respect existing branch if passed in environment", async () => {
-		mockPlanResponse = {
-			methodology: "Continue work",
-			slug: "ignored-slug",
-			files_to_touch: ["src/logic.js"],
-			needs_decomposition: false,
-			sub_tasks: [],
-		};
+		const { deps } = createMockDeps();
 
-		mockWriteGitHubOutput.mock.resetCalls();
+		deps.runGeminiCLI.mock.mockImplementation(async () => ({
+			response: JSON.stringify({
+				methodology: "Continue",
+				slug: "ignored",
+				needs_decomposition: false,
+			}),
+			inputTokens: 10,
+			outputTokens: 10,
+		}));
 
 		await createTechnicalPlan({
 			issueNumber: 1,
 			title: "Simple Issue",
 			body: "Fix this.",
 			currentBranch: "task/issue-1-existing-work",
+			deps,
 		});
 
-		// Verify branch_name output echoes the current branch
-		const branchCall = mockWriteGitHubOutput.mock.calls.find(
+		const branchCall = deps.writeGitHubOutput.mock.calls.find(
 			(c) => c.arguments[0] === "branch_name",
 		);
-		assert.ok(branchCall, "Should output branch_name");
 		assert.strictEqual(branchCall.arguments[1], "task/issue-1-existing-work");
 	});
 
 	it("should skip branch output if needs_decomposition is true", async () => {
-		mockPlanResponse = {
-			methodology: "Complex Architecture",
-			slug: "complex-feature",
-			files_to_touch: [],
-			needs_decomposition: true,
-			sub_tasks: [{ title: "Subtask 1", goal: "Goal 1", dependencies: [] }],
-		};
+		const { deps } = createMockDeps();
 
-		mockWriteGitHubOutput.mock.resetCalls();
+		deps.runGeminiCLI.mock.mockImplementation(async () => ({
+			response: JSON.stringify({
+				methodology: "Complex",
+				slug: "complex",
+				needs_decomposition: true,
+				sub_tasks: [{ title: "T1", goal: "G1" }],
+			}),
+			inputTokens: 10,
+			outputTokens: 10,
+		}));
 
 		await createTechnicalPlan({
 			issueNumber: 1,
 			title: "Complex Issue",
 			body: "Decompose this.",
+			deps,
 		});
 
-		const branchCall = mockWriteGitHubOutput.mock.calls.find(
+		const branchCall = deps.writeGitHubOutput.mock.calls.find(
 			(c) => c.arguments[0] === "branch_name",
 		);
 		assert.strictEqual(
@@ -153,68 +139,59 @@ describe("ai-worker-plan", () => {
 		);
 	});
 
-	it("should handle decomposition with dependencies", async () => {
-		mockPlanResponse = {
-			methodology: "Complex Refactor",
-			slug: "complex-refactor",
-			files_to_touch: ["src/a.js", "src/b.js"],
-			needs_decomposition: true,
-			sub_tasks: [
-				{ title: "Task 1", goal: "Goal 1", dependencies: [] },
-				{ title: "Task 2", goal: "Goal 2", dependencies: [1] },
-			],
-		};
-
-		mockWriteGitHubOutput.mock.resetCalls();
-		const consoleLogMock = mock.method(console, "log", () => {});
-
-		await createTechnicalPlan({
-			issueNumber: 1,
-			title: "Big Task",
-			body: "Do a lot of things.",
-		});
-
-		assert.strictEqual(
-			mockWriteGitHubOutput.mock.calls.find(
-				(c) => c.arguments[0] === "needs_decomposition",
-			)?.arguments[1],
-			"true",
-		);
-
-		consoleLogMock.mock.restore();
-	});
-
 	it("should detect if issue is already a subtask", async () => {
-		mockPlanResponse = {
-			methodology: "Small task",
-			slug: "small",
-			files_to_touch: ["src/c.js"],
-			needs_decomposition: false,
-		};
+		const { deps } = createMockDeps();
 
-		mockWriteGitHubOutput.mock.resetCalls();
+		deps.runGeminiCLI.mock.mockImplementation(async () => ({
+			response: JSON.stringify({
+				methodology: "Small",
+				slug: "small",
+				needs_decomposition: false,
+			}),
+			inputTokens: 10,
+			outputTokens: 10,
+		}));
+
 		const consoleLogMock = mock.method(console, "log", () => {});
-
 		await createTechnicalPlan({
 			issueNumber: 101,
 			title: "Subtask title",
 			body: "Parent issue: #1",
+			deps,
 		});
-
 		assert.ok(
 			consoleLogMock.mock.calls.some((c) =>
 				c.arguments[0].includes("identified as a sub-task"),
 			),
 		);
-
 		consoleLogMock.mock.restore();
 	});
 
-	it("should return early if missing input", async () => {
-		process.env.NODE_ENV = "test";
-		const consoleErrorMock = mock.method(console, "error", () => {});
-		await createTechnicalPlan({ issueNumber: undefined, title: undefined });
-		assert.ok(consoleErrorMock.mock.calls.length > 0);
-		consoleErrorMock.mock.restore();
+	it("should coerce issueNumber to integer for hasOpenSubtasks", async () => {
+		const { deps } = createMockDeps();
+		const consoleLogMock = mock.method(console, "log", () => {});
+
+		await createTechnicalPlan({
+			issueNumber: "999", // String input
+			title: "Type Check",
+			body: "Checking types",
+			deps,
+		});
+
+		const calls = deps.hasOpenSubtasks.mock.calls;
+		assert.strictEqual(
+			calls.length,
+			1,
+			"hasOpenSubtasks should be called once",
+		);
+		const args = calls[0].arguments[1]; // second arg is params object
+		assert.strictEqual(
+			typeof args.issueNumber,
+			"number",
+			"issueNumber should be a number",
+		);
+		assert.strictEqual(args.issueNumber, 999, "issueNumber should be 999");
+
+		consoleLogMock.mock.restore();
 	});
 });

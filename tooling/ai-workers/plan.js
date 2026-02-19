@@ -18,6 +18,18 @@ import {
 	updateProjectField,
 } from "../github/index.js";
 
+// Default dependencies bundle
+const DEFAULT_DEPS = {
+	getOctokit,
+	hasOpenSubtasks,
+	getIssueNodeId,
+	createSubIssue,
+	addIssueToProject,
+	updateProjectField,
+	runGeminiCLI,
+	writeGitHubOutput,
+};
+
 const PLAN_SYSTEM_INSTRUCTION = `You are a Developer Agent. Your goal is to create precise, execution-ready technical plans for the 'Legacy's End' project.
 
 Project Context:
@@ -60,11 +72,17 @@ Body:
  * @param {Octokit} octokit
  * @param {number} parentIssueNumber
  * @param {Array<{title: string, goal: string}>} subTasks
+ * @param {Object} tools - Injected tools
  * @returns {Promise<Array<Object>>} List of created issues
  */
-async function createSubtasks(octokit, parentIssueNumber, subTasks) {
+async function createSubtasksInternal(
+	octokit,
+	parentIssueNumber,
+	subTasks,
+	tools,
+) {
 	const createdIssues = [];
-	const parentId = await getIssueNodeId(octokit, {
+	const parentId = await tools.getIssueNodeId(octokit, {
 		owner: OWNER,
 		repo: REPO,
 		issueNumber: parseInt(parentIssueNumber, 10),
@@ -81,7 +99,7 @@ async function createSubtasks(octokit, parentIssueNumber, subTasks) {
 
 		// 2. Link as Sub-issue
 		const childId = issue.node_id; // REST API returns node_id
-		await createSubIssue(octokit, parentId, childId);
+		await tools.createSubIssue(octokit, parentId, childId);
 
 		createdIssues.push(issue);
 	}
@@ -94,7 +112,10 @@ export async function createTechnicalPlan({
 	body = process.env.ISSUE_BODY,
 	currentBranch = process.env.CURRENT_BRANCH || "main",
 	octokit: injectedOctokit,
+	deps = {},
 } = {}) {
+	// Merge provided deps with defaults
+	const tools = { ...DEFAULT_DEPS, ...deps };
 	if (!issueNumber || !title) {
 		console.error(
 			"Error: Missing ISSUE_NUMBER or ISSUE_TITLE environment variables.",
@@ -103,7 +124,7 @@ export async function createTechnicalPlan({
 		return;
 	}
 
-	const octokit = injectedOctokit || getOctokit();
+	const octokit = injectedOctokit || tools.getOctokit();
 
 	// Fetch comments for context to append to body
 	console.log(`>>> Fetching comments for Issue #${issueNumber}...`);
@@ -146,17 +167,18 @@ export async function createTechnicalPlan({
 
 	// Check if blocked by open subtasks
 	try {
-		const count = await hasOpenSubtasks(octokit, {
+		const count = await tools.hasOpenSubtasks(octokit, {
 			owner: OWNER,
 			repo: REPO,
-			issueNumber,
+			// Fix: Correctly parse issueNumber as integer for GraphQL variables
+			issueNumber: parseInt(issueNumber, 10),
 		});
 		if (count > 0) {
 			console.log(
 				`Issue #${issueNumber} has ${count} open child issue(s). Skipping planning.`,
 			);
-			writeGitHubOutput("blocked", "true");
-			writeGitHubOutput("needs_decomposition", "false");
+			tools.writeGitHubOutput("blocked", "true");
+			tools.writeGitHubOutput("needs_decomposition", "false");
 			return;
 		}
 	} catch (err) {
@@ -167,7 +189,7 @@ export async function createTechnicalPlan({
 		.replace("{{TITLE}}", title)
 		.replace("{{BODY}}", body || "");
 
-	// Append system instructions to prompt because runGeminiCLI might not support systemInstruction arg directly in the same way
+	// Append system instructions to prompt
 	prompt = `${PLAN_SYSTEM_INSTRUCTION}\n\n${prompt}`;
 
 	if (isSubtask) {
@@ -183,7 +205,7 @@ export async function createTechnicalPlan({
 	try {
 		console.log(`>>> Generating structured plan for issue #${issueNumber}...`);
 
-		const result = await runGeminiCLI(prompt, {
+		const result = await tools.runGeminiCLI(prompt, {
 			modelType: "flash",
 			yolo: true, // JSON mode
 		});
@@ -206,8 +228,8 @@ export async function createTechnicalPlan({
 			plan.sub_tasks = [];
 		}
 
-		writeGitHubOutput("input_tokens", inputTokens);
-		writeGitHubOutput("output_tokens", outputTokens);
+		tools.writeGitHubOutput("input_tokens", inputTokens);
+		tools.writeGitHubOutput("output_tokens", outputTokens);
 	} catch (error) {
 		console.error("❌ Planning LLM Error:", error.message);
 		if (process.env.NODE_ENV !== "test") process.exit(1);
@@ -231,7 +253,7 @@ export async function createTechnicalPlan({
 			}
 
 			console.log(`Target branch: ${branchName}`);
-			writeGitHubOutput("branch_name", branchName);
+			tools.writeGitHubOutput("branch_name", branchName);
 		}
 
 		// 2. Decompose into sub-issues if needed
@@ -245,7 +267,12 @@ export async function createTechnicalPlan({
 			const createdIssuesMap = new Map();
 			for (const [index, subTask] of plan.sub_tasks.entries()) {
 				const tempId = index + 1;
-				const created = await createSubtasks(octokit, issueNumber, [subTask]);
+				const created = await createSubtasksInternal(
+					octokit,
+					issueNumber,
+					[subTask],
+					tools,
+				);
 				const newIssue = created[0];
 				createdIssuesMap.set(tempId, newIssue);
 				console.log(
@@ -281,23 +308,23 @@ export async function createTechnicalPlan({
 
 			console.log(`Updating parent task #${issueNumber} (Paused, Pro, P1)...`);
 			try {
-				const nodeId = await getIssueNodeId(octokit, {
+				const nodeId = await tools.getIssueNodeId(octokit, {
 					owner: OWNER,
 					repo: REPO,
 					issueNumber,
 				});
-				const itemId = await addIssueToProject(octokit, nodeId);
+				const itemId = await tools.addIssueToProject(octokit, nodeId);
 
-				await updateProjectField(
+				await tools.updateProjectField(
 					octokit,
 					itemId,
 					FIELD_IDS.status,
 					OPTION_IDS.status.paused,
 				);
 
-				await updateProjectField(octokit, itemId, FIELD_IDS.model, "pro");
+				await tools.updateProjectField(octokit, itemId, FIELD_IDS.model, "pro");
 
-				await updateProjectField(
+				await tools.updateProjectField(
 					octokit,
 					itemId,
 					FIELD_IDS.priority,
@@ -315,9 +342,9 @@ export async function createTechnicalPlan({
 		}
 
 		// 3. Output for workflow
-		writeGitHubOutput("methodology", plan.methodology || "TDD");
-		writeGitHubOutput("files", (plan.files_to_touch || []).join(" "));
-		writeGitHubOutput(
+		tools.writeGitHubOutput("methodology", plan.methodology || "TDD");
+		tools.writeGitHubOutput("files", (plan.files_to_touch || []).join(" "));
+		tools.writeGitHubOutput(
 			"needs_decomposition",
 			plan.needs_decomposition ? "true" : "false",
 		);
