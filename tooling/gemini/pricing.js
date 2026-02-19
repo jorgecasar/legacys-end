@@ -143,3 +143,15 @@ export function getCheapestModel(modelType) {
 	}
 	return chain[0];
 }
+
+/**
+ * Normalizes a model name to its base category (flash, pro, image).
+ * @param {string} model - The model name or category to normalize.
+ * @returns {string} Normalized category ('flash', 'pro', or 'image').
+ */
+export function normalizeModel(model) {
+	const lower = (model || "flash").toLowerCase();
+	if (lower.includes("pro")) return "pro";
+	if (lower.includes("image")) return "image";
+	return "flash";
+}

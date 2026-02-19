@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { splitTriageCosts } from "../gemini/cost-splitter.js";
+import { normalizeModel } from "../gemini/pricing.js";
 import * as geminiModule from "../gemini/run-cli.js";
 import * as githubModule from "../github/index.js";
 import * as triageAdapterModule from "../github/triage-adapter.js";
@@ -117,13 +118,15 @@ OUTPUT ONLY JSON (a map where keys are issue numbers as strings):
 
 			if (!data || Number.isNaN(number)) continue;
 
+			const normalizedModel = normalizeModel(data.model);
 			console.log(
-				`Syncing #${number}: Priority=${data.priority}, Category=${data.model}`,
+				`Syncing #${number}: Priority=${data.priority}, Category=${normalizedModel}`,
 			);
 			await syncTriageData(
 				JSON.stringify({
 					issue_number: number,
 					...data,
+					model: normalizedModel,
 					usage: {
 						model: result.modelUsed,
 						inputTokens: costItem.inputTokens,

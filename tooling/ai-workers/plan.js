@@ -8,6 +8,7 @@ import {
 	REPO,
 	writeGitHubOutput,
 } from "../config/index.js";
+import { normalizeModel } from "../gemini/pricing.js";
 import { runGeminiCLI } from "../gemini/run-cli.js";
 import {
 	addIssueComment,

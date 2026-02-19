@@ -87,17 +87,17 @@ export async function sync(deps = {}) {
 		Triage: {
 			input: parseInt(env.TRIAGE_INPUT_TOKENS || "0", 10),
 			output: parseInt(env.TRIAGE_OUTPUT_TOKENS || "0", 10),
-			model: "gemini-2.5-flash-lite",
+			model: "flash",
 		},
 		Planning: {
 			input: parseInt(env.PLANNING_INPUT_TOKENS || "0", 10),
 			output: parseInt(env.PLANNING_OUTPUT_TOKENS || "0", 10),
-			model: "gemini-2.5-flash-lite",
+			model: "flash",
 		},
 		Development: {
 			input: parseInt(env.DEVELOPER_INPUT_TOKENS || "0", 10),
 			output: parseInt(env.DEVELOPER_OUTPUT_TOKENS || "0", 10),
-			model: "gemini-2.5-flash-lite",
+			model: "flash",
 		},
 	};
 
@@ -189,12 +189,6 @@ ${newRows.trim()}
 					item.id,
 					FIELD_IDS.cost,
 					totalCumulativeCost,
-				);
-				await updateProjectField(
-					octokit,
-					item.id,
-					FIELD_IDS.model,
-					"gemini-2.5-flash-lite",
 				);
 			} catch (error) {
 				console.warn(
