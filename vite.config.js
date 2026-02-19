@@ -113,10 +113,10 @@ export default defineConfig(({ mode }) => {
 					"src/setup/**",
 				],
 				thresholds: {
-					statements: 50,
+					statements: 64,
 					branches: 45,
 					functions: 50,
-					lines: 50,
+					lines: 66,
 				},
 			},
 		},
