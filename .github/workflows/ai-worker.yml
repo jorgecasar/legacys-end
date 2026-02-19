@@ -31,9 +31,9 @@ jobs:
             - name: Install uv (for MCP tools)
               uses: astral-sh/setup-uv@v5
               with:
-                  cache-dependency-path: ""
+                  enable-cache: false
 
-            - name: Intall dependencies
+            - name: Install dependencies
               run: npm ci || npm install
 
             - name: Generate AI Rules
