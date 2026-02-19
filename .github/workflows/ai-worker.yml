@@ -152,23 +152,25 @@ jobs:
                   git config --global user.name "github-actions[bot]"
                   git config --global user.email "github-actions[bot]@users.noreply.github.com"
                   
-                  # Check if there are changes to commit
-                  if [[ -z $(git status --porcelain) ]]; then
-                    echo "No code changes detected. Skipping commit and PR."
-                    exit 0
+                  # Cleanup AI_COMMIT_MESSAGE if left over
+                  rm -f .github/AI_COMMIT_MESSAGE
+
+                  # Check for uncommitted changes (fallback if agent failed to commit but work is done)
+                  if [[ -n $(git status --porcelain) ]]; then
+                    echo "Uncommitted changes detected. Committing..."
+                    git add .
+                    MSG="${COMMIT_MESSAGE:-feat: resolve #$ISSUE_NUMBER (AI Agent)}"
+                    git commit -m "$MSG"
                   fi
                   
-                  # 1. Stage, Commit, Rebase, and Push
-                  git add .
-                  # Fallback commit message if empty
-                  MSG="${COMMIT_MESSAGE:-feat: resolve #$ISSUE_NUMBER (AI Agent)}"
-                  git commit -m "$MSG"
+                  # Push changes
                   git fetch origin main
                   git pull --rebase origin main
                   git push --force-with-lease origin HEAD
                   
-                  # 2. Create Pull Request
-                  gh pr create --title "$MSG" --body "Automated PR by AI Worker Agent. Resolves #${{ github.event.inputs.issue_number }}. \n\nReviewer feedback: $REVIEWER_TEXT" || echo "PR creation failed or already exists"
+                  # Create Pull Request
+                  LAST_COMMIT_MSG=$(git log -1 --pretty=%s)
+                  gh pr create --title "$LAST_COMMIT_MSG" --body "Automated PR by AI Worker Agent. Resolves #${{ github.event.inputs.issue_number }}. \n\nReviewer feedback: $REVIEWER_TEXT" || echo "PR creation failed or already exists"
                   
             # 3. VERIFICATION
             - name: Install Playwright Browsers

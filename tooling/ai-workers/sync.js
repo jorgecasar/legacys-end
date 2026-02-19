@@ -41,28 +41,38 @@ export async function sync(deps = {}) {
 	}
 
 	const octokit = getOctokit();
-	const items = await fetchProjectItems(octokit);
-	let item = items.find((i) => i.number === issueNumber);
+	let item;
 
-	if (!item) {
-		console.log(`Issue #${issueNumber} not found in project. Adding it...`);
-		const nodeId = await getIssueNodeId(octokit, {
-			owner: OWNER,
-			repo: REPO,
-			issueNumber,
-		});
-		const itemId = await addIssueToProject(octokit, nodeId);
-		item = { id: itemId };
+	try {
+		const items = await fetchProjectItems(octokit);
+		item = items.find((i) => i.number === issueNumber);
+
+		if (!item) {
+			console.log(`Issue #${issueNumber} not found in project. Adding it...`);
+			const nodeId = await getIssueNodeId(octokit, {
+				owner: OWNER,
+				repo: REPO,
+				issueNumber,
+			});
+			const itemId = await addIssueToProject(octokit, nodeId);
+			item = { id: itemId };
+		}
+
+		if (isFailed && item) {
+			console.log(`Marking #${issueNumber} as Paused due to failure.`);
+			await updateProjectField(
+				octokit,
+				item.id,
+				FIELD_IDS.status,
+				OPTION_IDS.status.paused,
+			);
+		}
+	} catch (error) {
+		console.warn(`Project sync failed (non-critical): ${error.message}`);
+		// Continue execution to report metrics in comments
 	}
 
 	if (isFailed) {
-		console.log(`Marking #${issueNumber} as Paused due to failure.`);
-		await updateProjectField(
-			octokit,
-			item.id,
-			FIELD_IDS.status,
-			OPTION_IDS.status.paused,
-		);
 		await addIssueComment(octokit, {
 			owner: OWNER,
 			repo: REPO,
@@ -171,19 +181,27 @@ ${newRows.trim()}
 			console.log("Created new cost report.");
 		}
 
-		// Update Project Field with the CUMULATIVE total
-		await updateProjectField(
-			octokit,
-			item.id,
-			FIELD_IDS.cost,
-			totalCumulativeCost,
-		);
-		await updateProjectField(
-			octokit,
-			item.id,
-			FIELD_IDS.model,
-			"gemini-2.5-flash-lite",
-		);
+		// Update Project Field with the CUMULATIVE total (if project item exists)
+		if (item && item.id) {
+			try {
+				await updateProjectField(
+					octokit,
+					item.id,
+					FIELD_IDS.cost,
+					totalCumulativeCost,
+				);
+				await updateProjectField(
+					octokit,
+					item.id,
+					FIELD_IDS.model,
+					"gemini-2.5-flash-lite",
+				);
+			} catch (error) {
+				console.warn(
+					`Failed to update project fields (non-critical): ${error.message}`,
+				);
+			}
+		}
 	}
 }
 

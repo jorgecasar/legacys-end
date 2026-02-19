@@ -67,15 +67,14 @@ ${files}
 4. CRITICAL: Generate a Conventional Commit message and save it to '.github/AI_COMMIT_MESSAGE'.
    - VALIDATE IT: After writing, you MUST run 'npx commitlint --edit .github/AI_COMMIT_MESSAGE'.
    - If it fails, you MUST fix the message and re-validate until it passes.
-5. COMMITTING & PUSHING:
+5. COMMITTING:
    - PRE-COMMIT: Run 'npm run lint' (or 'npm run format') AND 'npm run test:app && npm run test:tooling' to ensure code quality.
    - ATTEMPT 1: Run 'git commit -F .github/AI_COMMIT_MESSAGE'.
    - IF HOOKS/TESTS FAIL: Read the error message. If you can't easily fix it, YOU MUST RUN:
      'git commit -F .github/AI_COMMIT_MESSAGE --no-verify'
      (We prefer saving the work over losing it, even if tests/lint fail).
-   - ATTEMPT 2: Run 'git push -u origin HEAD'.
-   - IF PUSH FAILS (e.g. strict server hooks): Run 'git push -u origin HEAD --no-verify'.
-   - This step is MANDATORY. Do not finish until the code is committed and pushed.
+   - CLEANUP: Run 'rm .github/AI_COMMIT_MESSAGE' after the commit.
+   - DO NOT PUSH. The CI workflow will handle the push.
 `;
 
 	console.log(`>>> Launching Development Agent for #${issueNumber}...`);
