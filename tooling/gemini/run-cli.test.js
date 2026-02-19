@@ -1,7 +1,12 @@
 import assert from "node:assert";
 import { EventEmitter } from "node:events";
 import { mock, test } from "node:test";
-import { extractLastJSON, runGeminiCLI, sleep } from "./run-cli.js";
+import {
+	extractAllJSONs,
+	extractLastJSON,
+	runGeminiCLI,
+	sleep,
+} from "./run-cli.js";
 
 test("Gemini CLI Wrapper", async (t) => {
 	const mockSpawn = mock.fn();
@@ -32,6 +37,15 @@ test("Gemini CLI Wrapper", async (t) => {
 		const input = 'some noise {"a":1} more noise {"b":2}';
 		const result = extractLastJSON(input);
 		assert.deepStrictEqual(result, { b: 2 });
+	});
+
+	await t.test("extractAllJSONs should merge multiple JSON objects", () => {
+		const input =
+			'model output {"slug":"fix","methodology":"TDD"} then stats {"usageMetadata":{"promptTokenCount":10}}';
+		const result = extractAllJSONs(input);
+		assert.strictEqual(result.slug, "fix");
+		assert.strictEqual(result.methodology, "TDD");
+		assert.strictEqual(result.usageMetadata.promptTokenCount, 10);
 	});
 
 	await t.test("sleep should resolve after delay", async () => {

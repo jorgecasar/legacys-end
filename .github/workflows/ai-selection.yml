@@ -1,10 +1,10 @@
 name: AI Selection Step
 
 on:
-    schedule:
-        - cron: "0 * * * *" # Every hour
-    issues:
-        types: [closed]
+    # schedule:
+    #     - cron: "0 * * * *" # Every hour
+    # issues:
+    #     types: [closed]
     workflow_dispatch:
 
 permissions:

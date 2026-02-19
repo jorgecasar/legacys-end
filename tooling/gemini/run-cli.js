@@ -2,6 +2,67 @@ import { spawn as nodeSpawn } from "node:child_process";
 import { estimateTokens, MODEL_FALLBACK } from "./pricing.js";
 
 /**
+ * Robustly extracts the last valid JSON object from a string.
+ * @param {string} str - String containing JSON candidates
+ * @returns {Object|null} Last parsed JSON object or null
+ */
+export function extractLastJSON(str) {
+	let pos = 0;
+	let lastValid = null;
+	while (true) {
+		pos = str.indexOf("{", pos);
+		if (pos === -1) break;
+		for (
+			let endPos = str.lastIndexOf("}");
+			endPos > pos;
+			endPos = str.lastIndexOf("}", endPos - 1)
+		) {
+			const candidate = str.substring(pos, endPos + 1);
+			try {
+				const parsed = JSON.parse(candidate);
+				lastValid = parsed;
+				pos = endPos;
+				break;
+			} catch (_) {}
+		}
+		pos++;
+	}
+	return lastValid;
+}
+
+/**
+ * Extracts all non-overlapping valid JSON objects from a string and merges them.
+ * This handles cases where the CLI outputs multiple JSON blocks (model response + stats).
+ * @param {string} str - String containing JSON candidates
+ * @returns {Object} Merged JSON object from all found objects
+ */
+export function extractAllJSONs(str) {
+	const objects = [];
+	let pos = 0;
+	while (pos < str.length) {
+		pos = str.indexOf("{", pos);
+		if (pos === -1) break;
+		let found = false;
+		for (
+			let endPos = str.lastIndexOf("}");
+			endPos > pos;
+			endPos = str.lastIndexOf("}", endPos - 1)
+		) {
+			const candidate = str.substring(pos, endPos + 1);
+			try {
+				const parsed = JSON.parse(candidate);
+				objects.push(parsed);
+				pos = endPos + 1;
+				found = true;
+				break;
+			} catch (_) {}
+		}
+		if (!found) pos++;
+	}
+	return objects.reduce((acc, obj) => Object.assign(acc, obj), {});
+}
+
+/**
  * Sleep helper
  * @param {number} ms - Milliseconds to sleep
  * @returns {Promise<void>}
@@ -118,34 +179,7 @@ export async function runGeminiCLI(prompt, options = {}, deps = {}) {
 					child.on("error", onError);
 				});
 
-				const jsonObjects = [];
-				let pos = 0;
-				while (true) {
-					pos = output.indexOf("{", pos);
-					if (pos === -1) break;
-					let found = false;
-					for (
-						let endPos = output.lastIndexOf("}");
-						endPos > pos;
-						endPos = output.lastIndexOf("}", endPos - 1)
-					) {
-						const candidate = output.substring(pos, endPos + 1);
-						try {
-							const parsed = JSON.parse(candidate);
-							jsonObjects.push(parsed);
-							pos = endPos;
-							found = true;
-							break;
-						} catch (_) {}
-					}
-					if (!found) pos++;
-				}
-
-				// Merge all found JSON objects
-				const jsonResult = jsonObjects.reduce(
-					(acc, obj) => Object.assign(acc, obj),
-					{},
-				);
+				const jsonResult = extractAllJSONs(output);
 				let inputTokens = jsonResult?.usageMetadata?.promptTokenCount || 0;
 				let outputTokens = jsonResult?.usageMetadata?.candidatesTokenCount || 0;
 
