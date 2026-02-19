@@ -26,7 +26,7 @@ test("Sync Agent", async (t) => {
 	mockGetOctokit.mock.mockImplementation(() => mockOctokit);
 	mockCalculateCost.mock.mockImplementation(() => ({
 		totalCost: 0.1,
-		model: "gemini-2.5-flash-lite",
+		model: "flash",
 	}));
 
 	const deps = {
@@ -64,7 +64,7 @@ test("Sync Agent", async (t) => {
 	await t.test("should sync planning costs and create new report", async () => {
 		await sync(deps);
 
-		assert.strictEqual(mockUpdateProjectField.mock.callCount(), 2);
+		assert.strictEqual(mockUpdateProjectField.mock.callCount(), 1);
 		assert.strictEqual(mockAddIssueComment.mock.callCount(), 1);
 		const body = mockAddIssueComment.mock.calls[0].arguments[1].body;
 		assert.match(body, /Planning/);
@@ -96,7 +96,7 @@ test("Sync Agent", async (t) => {
 		await sync(deps);
 
 		assert.strictEqual(mockAddIssueToProject.mock.callCount(), 1);
-		assert.strictEqual(mockUpdateProjectField.mock.callCount(), 2);
+		assert.strictEqual(mockUpdateProjectField.mock.callCount(), 1);
 		// Verify update uses new item ID
 		assert.strictEqual(
 			mockUpdateProjectField.mock.calls[0].arguments[1],
