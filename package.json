@@ -70,7 +70,6 @@
 		"@storybook/addon-vitest": "^10.2.4",
 		"@storybook/web-components-vite": "^10.2.4",
 		"@stryker-mutator/core": "^8.7.1",
-		"@stryker-mutator/javascript-mutator": "^4.0.0",
 		"@stryker-mutator/vitest-runner": "^8.7.1",
 		"@tsconfig/strictest": "^2.0.8",
 		"@types/dom-speech-recognition": "^0.0.7",
