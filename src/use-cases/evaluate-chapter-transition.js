@@ -1,5 +1,4 @@
-import { DomainError } from "../core/errors.js";
-import { Result } from "../utils/result.js";
+import { DomainError, Result } from "../core/errors.js";
 
 /**
  * @typedef {Object} TransitionResult
@@ -23,20 +22,20 @@ export class EvaluateChapterTransitionUseCase {
 	 */
 	execute({ quest, currentIndex }) {
 		if (!quest || !quest.chapterIds) {
-			return Result.failure(
+			return Result.error(
 				new DomainError("Invalid quest or missing chapters", "INVALID_QUEST"),
 			);
 		}
 
 		const nextIndex = currentIndex + 1;
 		if (nextIndex < quest.chapterIds.length) {
-			return Result.success({
+			return Result.ok({
 				action: "ADVANCE",
 				nextIndex,
 				nextChapterId: quest.chapterIds[nextIndex] || "",
 			});
 		}
 
-		return Result.success({ action: "COMPLETE" });
+		return Result.ok({ action: "COMPLETE" });
 	}
 }
