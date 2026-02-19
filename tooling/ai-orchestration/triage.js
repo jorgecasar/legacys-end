@@ -76,18 +76,18 @@ ${JSON.stringify(candidates, null, 2)}
 STRATEGY:
 1. Assign Priority: P0 (Critical/Blocker), P1 (High/Feature), P2 (Low/Nice to have).
 2. Assign Type: 'epic' (if it has sub-tasks or is too broad), 'task', or 'bug'.
-3. Assign Model Category: 
-   - 'pro': For architectural changes, complex logic, or tasks affecting multiple files.
-   - 'flash': For simple documentation, small fixes, or isolated components.
+3. Assign Model Category (Default to 'flash'): 
+   - 'flash': Standard features, UI components, unit tests, local refactors, or single-file logic. This is the cost-effective default.
+   - 'pro': Complex architectural shifts, cross-cutting concerns, legacy migrations, or tasks requiring deep reasoning across many logical domains.
 4. Verify if 'ai-triaged' label is appropriate.
 
 OUTPUT ONLY JSON (a map where keys are issue numbers as strings):
 {
-  "${candidates[0].number}": { 
-    "priority": "P0", 
+  "123": { 
+    "priority": "P1", 
     "labels": ["task", "ai-triaged"], 
-    "model": "pro",
-    "reason": "short reason" 
+    "model": "flash",
+    "reason": "Standard component implementation" 
   }
 }
 `;
