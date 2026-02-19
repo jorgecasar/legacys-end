@@ -51,13 +51,13 @@ describe("PositionValidator", () => {
 
 	it("should return Result.Ok for valid position", () => {
 		const result = PositionValidator.validateResult(50, 75);
-		expect(result.isOk()).toBe(true);
+		expect(result.isSuccess).toBe(true);
 		expect(result.value).toEqual({ x: 50, y: 75 });
 	});
 
 	it("should return Result.Err for invalid position", () => {
 		const result = PositionValidator.validateResult(-1, 50);
-		expect(result.isErr()).toBe(true);
+		expect(result.isFailure).toBe(true);
 		expect(result.error).toHaveLength(1);
 	});
 });
@@ -86,7 +86,7 @@ describe("ThemeModeValidator", () => {
 
 	it("should return Result for valid theme", () => {
 		const result = ThemeModeValidator.validateResult(ThemeModes.DARK);
-		expect(result.isOk()).toBe(true);
+		expect(result.isSuccess).toBe(true);
 		expect(result.value).toBe(ThemeModes.DARK);
 	});
 });
@@ -124,7 +124,7 @@ describe("HotSwitchStateValidator", () => {
 
 	it("should return Result for valid state", () => {
 		const result = HotSwitchStateValidator.validateResult(HotSwitchStates.NEW);
-		expect(result.isOk()).toBe(true);
+		expect(result.isSuccess).toBe(true);
 		expect(result.value).toBe(HotSwitchStates.NEW);
 	});
 });
@@ -162,7 +162,7 @@ describe("QuestIdValidator", () => {
 
 	it("should return Result for valid quest ID", () => {
 		const result = QuestIdValidator.validateResult("test-quest");
-		expect(result.isOk()).toBe(true);
+		expect(result.isSuccess).toBe(true);
 		expect(result.value).toBe("test-quest");
 	});
 });

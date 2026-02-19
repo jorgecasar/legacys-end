@@ -1,5 +1,4 @@
-import { DomainError } from "../core/errors.js";
-import { Result } from "../utils/result.js";
+import { DomainError, Result } from "../core/errors.js";
 
 /**
  * @typedef {Object} TransitionResult

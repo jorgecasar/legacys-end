@@ -10,7 +10,7 @@ import {
 	HotSwitchStates,
 	ThemeModes,
 } from "../core/constants.js";
-import { Result } from "./result.js";
+import { Result } from "../core/errors.js";
 
 /**
  * @typedef {import('../types/services.d.js').ThemeMode} ThemeMode
