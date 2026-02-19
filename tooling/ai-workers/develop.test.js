@@ -100,6 +100,48 @@ test("Development Agent", async (t) => {
 		await runDevelopmentAgent(noIssueDeps);
 		assert.strictEqual(mockRunGeminiCLI.mock.callCount(), 0);
 	});
+
+	await t.test(
+		"should include PR review comments in prompt when present",
+		async () => {
+			const prDeps = {
+				...deps,
+				env: {
+					...deps.env,
+					PR_COMMENTS:
+						"Review (CHANGES_REQUESTED): Fix the type error\n---\nComment by reviewer: Missing test coverage",
+				},
+			};
+			mockRunGeminiCLI.mock.mockImplementationOnce(async () => ({
+				inputTokens: 300,
+				outputTokens: 150,
+			}));
+
+			await runDevelopmentAgent(prDeps);
+
+			assert.strictEqual(mockRunGeminiCLI.mock.callCount(), 1);
+			const prompt = mockRunGeminiCLI.mock.calls[0].arguments[0];
+			assert.match(prompt, /PR REVIEW FEEDBACK/);
+			assert.match(prompt, /Fix the type error/);
+			assert.match(prompt, /Missing test coverage/);
+		},
+	);
+
+	await t.test(
+		"should not include PR feedback section when PR_COMMENTS is empty",
+		async () => {
+			mockRunGeminiCLI.mock.mockImplementationOnce(async () => ({
+				inputTokens: 100,
+				outputTokens: 50,
+			}));
+
+			await runDevelopmentAgent(deps);
+
+			assert.strictEqual(mockRunGeminiCLI.mock.callCount(), 1);
+			const prompt = mockRunGeminiCLI.mock.calls[0].arguments[0];
+			assert.doesNotMatch(prompt, /PR REVIEW FEEDBACK/);
+		},
+	);
 });
 
 test("Development Agent Fatal Error Handler", () => {
