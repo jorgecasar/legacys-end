@@ -10,7 +10,7 @@ import {
 	HotSwitchStates,
 	ThemeModes,
 } from "../core/constants.js";
-import { Result } from "./result.js";
+import { Result } from "../core/errors.js";
 
 /**
  * @typedef {import('../types/services.d.js').ThemeMode} ThemeMode
@@ -50,11 +50,11 @@ const createValidationResult = (errors) => ({
 const toResult = (validation, value) => {
 	if (validation.isValid) {
 		return /** @type {Result<T, ValidationError[]>} */ (
-			/** @type {unknown} */ (Result.success(value))
+			/** @type {unknown} */ (Result.ok(value))
 		);
 	}
 	return /** @type {Result<T, ValidationError[]>} */ (
-		Result.failure(validation.errors)
+		Result.error(validation.errors)
 	);
 };
 
