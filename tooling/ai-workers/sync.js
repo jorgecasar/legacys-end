@@ -182,7 +182,7 @@ ${newRows.trim()}
 		}
 
 		// Update Project Field with the CUMULATIVE total (if project item exists)
-		if (item && item.id) {
+		if (item?.id) {
 			try {
 				await updateProjectField(
 					octokit,

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { execSync } from "node:child_process";
+
 import { fileURLToPath } from "node:url";
 import {
 	FIELD_IDS,
@@ -67,7 +67,7 @@ async function createSubtasks(octokit, parentIssueNumber, subTasks) {
 	const parentId = await getIssueNodeId(octokit, {
 		owner: OWNER,
 		repo: REPO,
-		issueNumber: parseInt(parentIssueNumber),
+		issueNumber: parseInt(parentIssueNumber, 10),
 	});
 
 	for (const task of subTasks) {
@@ -111,7 +111,7 @@ export async function createTechnicalPlan({
 		const { data: comments } = await octokit.rest.issues.listComments({
 			owner: OWNER,
 			repo: REPO,
-			issue_number: parseInt(issueNumber),
+			issue_number: parseInt(issueNumber, 10),
 		});
 		const commentContext = comments
 			.map((c) => `User: ${c.user.login}\nBody: ${c.body}`)

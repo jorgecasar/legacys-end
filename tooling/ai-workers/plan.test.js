@@ -213,7 +213,7 @@ describe("ai-worker-plan", () => {
 	it("should return early if missing input", async () => {
 		process.env.NODE_ENV = "test";
 		const consoleErrorMock = mock.method(console, "error", () => {});
-		await createTechnicalPlan({ issueNumber: undefined });
+		await createTechnicalPlan({ issueNumber: undefined, title: undefined });
 		assert.ok(consoleErrorMock.mock.calls.length > 0);
 		consoleErrorMock.mock.restore();
 	});
