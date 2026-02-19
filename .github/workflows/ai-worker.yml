@@ -89,6 +89,23 @@ jobs:
                   echo "Title: $ISSUE_TITLE"
                   echo "Body length: ${{ steps.issue.outputs.body }}" | wc -c
 
+            - name: Set Task to In Progress
+              env:
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+                  ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+              run: |
+                  # Get the project item ID for this issue
+                  # Project ID: PVT_kwHOAA562c4BOtC- (number 2)
+                  # Status field ID: PVTSSF_lAHOAA562c4BOtC-zg9U7KE
+                  # 'In progress' option ID: 47fc9ee4
+                  ITEM_ID=$(gh project item-list 2 --owner jorgecasar --format json | jq -r ".items[] | select(.content.number == $ISSUE_NUMBER) | .id")
+                  if [ -n "$ITEM_ID" ]; then
+                    echo "Setting Issue #$ISSUE_NUMBER (Item $ITEM_ID) to In progress..."
+                    gh project item-edit --id "$ITEM_ID" --project-id PVT_kwHOAA562c4BOtC- --field-id PVTSSF_lAHOAA562c4BOtC-zg9U7KE --single-select-option-id 47fc9ee4
+                  else
+                    echo "Issue #$ISSUE_NUMBER not found in project board. Skipping status update."
+                  fi
+
             - name: Prune Skills for Planning
               run: node tooling/ai-workers/prune-skills.js planning
 
