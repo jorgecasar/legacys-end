@@ -22,6 +22,14 @@ test("Triage Agent", async (t) => {
 		mockFetchProjectItems.mock.resetCalls();
 		mockRunGeminiCLI.mock.resetCalls();
 		mockSyncTriageData.mock.resetCalls();
+
+		// Silence console logs
+		mock.method(console, "log", () => {});
+		mock.method(console, "error", () => {});
+	});
+
+	t.afterEach(() => {
+		mock.restoreAll();
 	});
 
 	await t.test(
@@ -68,18 +76,17 @@ test("Triage Agent", async (t) => {
 		mockFetchProjectItems.mock.mockImplementation(async () => [
 			{ number: 1, labels: ["ai-triaged"] },
 		]);
-		const mockConsoleLog = mock.method(console, "log", () => {});
+		// Spy to check call content (re-mocking since global mock is generic)
+		const logSpy = mock.method(console, "log", () => {});
 
 		await runTriage(deps);
 
 		assert.strictEqual(mockRunGeminiCLI.mock.callCount(), 0);
 		assert.match(
-			mockConsoleLog.mock.calls.find((c) => c.arguments[0].includes("Skipped"))
+			logSpy.mock.calls.find((c) => c.arguments[0].includes("Skipped"))
 				?.arguments[0] || "",
 			/Skipped 1 task/,
 		);
-
-		mockConsoleLog.mock.restore();
 	});
 
 	await t.test(
@@ -108,13 +115,11 @@ test("Triage Agent", async (t) => {
 		mockRunGeminiCLI.mock.mockImplementation(async () => {
 			throw new Error("Gemini Error");
 		});
-		const mockConsoleError = mock.method(console, "error", () => {});
+		const errorSpy = mock.method(console, "error", () => {});
 
 		await runTriage(deps);
 
-		assert.strictEqual(mockConsoleError.mock.callCount(), 1);
-
-		mockConsoleError.mock.restore();
+		assert.strictEqual(errorSpy.mock.callCount(), 1);
 	});
 });
 

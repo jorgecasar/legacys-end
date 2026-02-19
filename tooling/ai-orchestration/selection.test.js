@@ -37,6 +37,14 @@ test("Selection Agent (Orchestrator)", async (t) => {
 		mockExecSync.mock.resetCalls();
 		mockGetIssueNodeId.mock.resetCalls();
 		mockAddIssueToProject.mock.resetCalls();
+
+		// Silence console logs during tests
+		mock.method(console, "log", () => {});
+		mock.method(console, "error", () => {});
+	});
+
+	t.afterEach(() => {
+		mock.restoreAll();
 	});
 
 	await t.test("findLeafCandidates should find leaf nodes recursively", () => {
@@ -137,13 +145,10 @@ test("Selection Agent (Orchestrator)", async (t) => {
 
 	await t.test("should handle no candidates gracefully", async () => {
 		mockFetchProjectItems.mock.mockImplementation(async () => []);
-		const mockConsoleLog = mock.method(console, "log", () => {});
 
 		await orchestrateExecution(deps);
 
 		assert.strictEqual(mockRunGeminiCLI.mock.callCount(), 0);
-
-		mockConsoleLog.mock.restore();
 	});
 
 	await t.test(
@@ -153,13 +158,10 @@ test("Selection Agent (Orchestrator)", async (t) => {
 			mockFetchProjectItems.mock.mockImplementation(async () => [
 				{ number: 1, status: "Todo", state: "CLOSED", subIssues: [] }, // Invalid leaf
 			]);
-			const mockConsoleLog = mock.method(console, "log", () => {});
 
 			await orchestrateExecution(deps);
 
 			assert.strictEqual(mockRunGeminiCLI.mock.callCount(), 0); // No valid leaves
-
-			mockConsoleLog.mock.restore();
 		},
 	);
 
@@ -182,13 +184,9 @@ test("Selection Agent (Orchestrator)", async (t) => {
 			}),
 		}));
 
-		const mockConsoleError = mock.method(console, "error", () => {});
-
 		await orchestrateExecution(deps);
 
 		assert.strictEqual(mockUpdateProjectField.mock.callCount(), 0); // Should not proceed
-
-		mockConsoleError.mock.restore();
 	});
 
 	await t.test("should add to project if item ID is missing", async () => {
@@ -232,18 +230,29 @@ test("Selection Agent (Orchestrator)", async (t) => {
 		mockUpdateProjectField.mock.mockImplementation(async () => {
 			throw new Error("Update failed");
 		});
-		const mockConsoleError = mock.method(console, "error", () => {});
+
+		// We need to spy on console.error specifically here to verify the call,
+		// but since it's already mocked globally, we can just check the mock call count/args directly
+		// on the console object if we had reference to the mock function.
+		// However, node:test mocks replace the method.
+		// Let's rely on the global mock which records calls.
+		// But wait, console.error is mocked in beforeEach as a no-op function.
+		// We can't inspect it easily unless we store the mock reference.
+		// Strategy: Re-mock it here to a spy we can inspect, or just inspect calls if node:test exposes them globally.
+		// Node test mocks on objects are tracked.
+
+		// Let's create a specific spy for this test to assert against
+		const errorSpy = mock.method(console, "error", () => {});
 
 		await orchestrateExecution(deps);
 
-		assert.match(mockConsoleError.mock.calls[0].arguments[0], /Action Failed/);
-
-		mockConsoleError.mock.restore();
+		assert.match(errorSpy.mock.calls[0].arguments[0], /Action Failed/);
 	});
 });
 
 test("Selection Agent Fatal Error Handler", () => {
 	const mockExit = mock.method(process, "exit", () => {});
+	// Mock console.error to silence output
 	const mockConsoleError = mock.method(console, "error", () => {});
 
 	handleFatalError(new Error("Fatal"));
