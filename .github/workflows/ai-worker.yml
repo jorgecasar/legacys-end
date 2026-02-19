@@ -124,8 +124,8 @@ jobs:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
                   ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
               run: |
-                  git config --global user.name "github-actions[bot]"
-                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                  git config --global user.name "Jorge del Casar"
+                  git config --global user.email "948953+jorgecasar@users.noreply.github.com"
                   
                   echo "Searching for existing branch for Issue #$ISSUE_NUMBER..."
                   git fetch --all
@@ -199,66 +199,6 @@ jobs:
                   ISSUE_COMMENTS: ${{ steps.issue.outputs.comments }}
               run: node tooling/ai-workers/develop.js
 
-            - name: Finalize Work (Commit & Create PR)
-              if: steps.planning.outputs.needs_decomposition != 'true'
-              env:
-                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
-                  COMMIT_MESSAGE: ${{ steps.developer.outputs.commit_message }}
-                  REVIEWER_TEXT: ${{ steps.reviewer.outputs.json && fromJson(steps.reviewer.outputs.json).review_text || 'Reviewer Agent failed or was skipped.' }}
-              run: |
-                  git config --global user.name "github-actions[bot]"
-                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
-                  
-                  # Cleanup AI_COMMIT_MESSAGE file from disk
-                  rm -f .github/AI_COMMIT_MESSAGE
-
-                  # Check for uncommitted changes (fallback if agent failed to commit but work is done)
-                  if [[ -n $(git status --porcelain) ]]; then
-                    echo "Uncommitted changes detected. Committing..."
-                    git add .
-                    # Double check we didn't add the message file if it somehow persisted
-                    git reset .github/AI_COMMIT_MESSAGE 2>/dev/null || true
-                    
-                    MSG="${COMMIT_MESSAGE:-feat: resolve #$ISSUE_NUMBER (AI Agent)}"
-                    git commit -m "$MSG"
-                  fi
-                  
-                  # SQUASH COMMITS
-                  # Get the message of the last commit (which should be the AI's conventional commit)
-                  LAST_MSG=$(git log -1 --pretty=%s)
-                  
-                  # Soft reset to origin/main to stage all changes
-                  git reset --soft origin/main
-                  
-                  # Ensure the temporary message file is NOT staged (if it was committed previously)
-                  git reset HEAD .github/AI_COMMIT_MESSAGE 2>/dev/null || true
-                  
-                  # Commit everything as one atomic commit
-                  git commit -m "$LAST_MSG"
-                  
-                  # Push changes
-                  git fetch origin main
-                  git pull --rebase origin main
-                  git push --force-with-lease origin HEAD
-                  
-                  # Create Pull Request
-                  gh pr create --title "$LAST_MSG" --body "Automated PR by AI Worker Agent. Resolves #${{ github.event.inputs.issue_number }}. \n\nReviewer feedback: $REVIEWER_TEXT" || echo "PR creation failed or already exists"
-
-            - name: Request Gemini Review
-              if: steps.planning.outputs.needs_decomposition != 'true'
-              env:
-                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
-                  ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
-              run: |
-                  # Find the PR for this branch
-                  PR_NUMBER=$(gh pr list --head "$(git branch --show-current)" --json number --jq '.[0].number' 2>/dev/null || echo "")
-                  if [ -n "$PR_NUMBER" ]; then
-                    echo "Requesting Gemini review on PR #$PR_NUMBER..."
-                    gh pr comment "$PR_NUMBER" --body "/gemini review"
-                  else
-                    echo "No PR found to request review on."
-                  fi
-                  
             # 3. VERIFICATION
             - name: Install Playwright Browsers
               if: steps.planning.outputs.needs_decomposition != 'true'
@@ -293,6 +233,105 @@ jobs:
 
                       Instruction: Audit this code. Output a JSON object with a single key "review_text". The value should be "APPROVED" if quality is high, otherwise, it should be a string containing a list of issues.
 
+            - name: Finalize Work (Commit & Create PR)
+              if: steps.planning.outputs.needs_decomposition != 'true'
+              env:
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+                  COMMIT_MESSAGE: ${{ steps.developer.outputs.commit_message }}
+                  ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+                  RAW_REVIEW_JSON: ${{ steps.reviewer.outputs.json }}
+              run: |
+                  # Autoría: Jorge del Casar
+                  git config --global user.name "Jorge del Casar"
+                  git config --global user.email "948953+jorgecasar@users.noreply.github.com"
+                  
+                  # Extract review text safely
+                  REVIEWER_TEXT="Reviewer Agent failed or was skipped."
+                  if [ -n "$RAW_REVIEW_JSON" ]; then
+                    EXTRACTED=$(echo "$RAW_REVIEW_JSON" | jq -r '.review_text' 2>/dev/null || echo "")
+                    if [ -n "$EXTRACTED" ] && [ "$EXTRACTED" != "null" ]; then
+                      REVIEWER_TEXT="$EXTRACTED"
+                    fi
+                  fi
+
+                  # Cleanup AI_COMMIT_MESSAGE file from disk
+                  rm -f .github/AI_COMMIT_MESSAGE
+
+                  # Check for uncommitted changes
+                  if [[ -n $(git status --porcelain) ]]; then
+                    echo "Uncommitted changes detected. Committing..."
+                    git add .
+                    git reset .github/AI_COMMIT_MESSAGE 2>/dev/null || true
+                    
+                    MSG="${COMMIT_MESSAGE:-feat: resolve #$ISSUE_NUMBER (AI Agent)}"
+                    if [[ ! "$MSG" =~ "#$ISSUE_NUMBER" ]]; then
+                      MSG="${MSG} (#$ISSUE_NUMBER)"
+                    fi
+                    git commit -m "$MSG"
+                  fi
+                  
+                  # SQUASH COMMITS & PREPARE TITLE
+                  LAST_MSG=$(git log -1 --pretty=%s)
+                  if [[ ! "$LAST_MSG" =~ "#$ISSUE_NUMBER" ]]; then
+                    PR_TITLE="$LAST_MSG (#$ISSUE_NUMBER)"
+                  else
+                    PR_TITLE="$LAST_MSG"
+                  fi
+                  
+                  # Final Atomic Commit
+                  git reset --soft origin/main
+                  git reset HEAD .github/AI_COMMIT_MESSAGE 2>/dev/null || true
+                  git commit -m "$PR_TITLE"
+                  
+                  # Sync & Push
+                  git fetch origin main
+                  git pull --rebase origin main
+                  git push --force-with-lease origin HEAD
+                  
+                  # Create Pull Request with Rich Formatting
+                  PR_BODY="## 🤖 AI Worker Summary
+Resolves #$ISSUE_NUMBER.
+
+### 🔍 Self-Review Feedback
+> $REVIEWER_TEXT
+
+---
+*Automated PR by AI Worker Agent.*"
+
+                  gh pr create --title "$PR_TITLE" --body "$PR_BODY" || echo "PR creation failed or already exists"
+
+            - name: Set Task to Review
+              if: steps.planning.outputs.needs_decomposition != 'true'
+              env:
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+                  ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+              run: |
+                  # Project ID: PVT_kwHOAA562c4BOtC- (number 2)
+                  # Status field ID: PVTSSF_lAHOAA562c4BOtC-zg9U7KE
+                  # 'Review' option ID: 0d3401d0
+                  echo "Setting Issue #$ISSUE_NUMBER to 'Review' in Project #2..."
+                  ITEM_ID=$(gh project item-list 2 --owner jorgecasar --format json | jq -r ".items[] | select(.content.number == ($ISSUE_NUMBER | tonumber)) | .id")
+                  if [ -n "$ITEM_ID" ] && [ "$ITEM_ID" != "null" ]; then
+                    gh project item-edit --id "$ITEM_ID" --project-id PVT_kwHOAA562c4BOtC- --field-id PVTSSF_lAHOAA562c4BOtC-zg9U7KE --single-select-option-id 0d3401d0
+                  else
+                    echo "Issue #$ISSUE_NUMBER not found in project board."
+                  fi
+
+            - name: Request Gemini Review
+              if: steps.planning.outputs.needs_decomposition != 'true'
+              env:
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+                  ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+              run: |
+                  # Find the PR for this branch
+                  PR_NUMBER=$(gh pr list --head "$(git branch --show-current)" --json number --jq '.[0].number' 2>/dev/null || echo "")
+                  if [ -n "$PR_NUMBER" ]; then
+                    echo "Requesting Gemini review on PR #$PR_NUMBER..."
+                    gh pr comment "$PR_NUMBER" --body "/gemini review"
+                  else
+                    echo "No PR found to request review on."
+                  fi
+                  
             - name: Sync Costs
               if: always()
               env:

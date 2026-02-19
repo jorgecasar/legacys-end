@@ -51,7 +51,7 @@ describe("ai-worker-plan", () => {
 	};
 
 	it("should output branch name for workflow checkout", async () => {
-		const { deps, mockOctokit } = createMockDeps();
+		const { deps } = createMockDeps();
 
 		deps.runGeminiCLI.mock.mockImplementation(async () => ({
 			methodology: "Simple Fix",
@@ -231,7 +231,7 @@ describe("ai-worker-plan", () => {
 	});
 
 	it("should post plan comment after successful planning", async () => {
-		const { deps, mockOctokit } = createMockDeps();
+		const { deps } = createMockDeps();
 
 		deps.runGeminiCLI.mock.mockImplementation(async () => ({
 			methodology: "TDD",
