@@ -45,13 +45,18 @@ jobs:
               env:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
               run: |
-                  gh issue view ${{ github.event.inputs.issue_number }} --json title,body > issue.json
+                  gh issue view ${{ github.event.inputs.issue_number }} --json title,body,comments > issue.json
                   echo "title=$(jq -r .title issue.json)" >> $GITHUB_OUTPUT
                   # Handle multiline body safely with random delimiter
                   delimiter="$(openssl rand -hex 8)"
                   echo "body<<$delimiter" >> $GITHUB_OUTPUT
                   jq -r .body issue.json >> $GITHUB_OUTPUT
                   echo "$delimiter" >> $GITHUB_OUTPUT
+                  # Extract issue comments
+                  comments_delimiter="$(openssl rand -hex 8)"
+                  echo "comments<<$comments_delimiter" >> $GITHUB_OUTPUT
+                  jq -r '[.comments[] | "\(.author.login): \(.body)"] | join("\n---\n")' issue.json >> $GITHUB_OUTPUT
+                  echo "$comments_delimiter" >> $GITHUB_OUTPUT
 
             - name: Fetch Pull Request Details
               id: pr
@@ -165,6 +170,7 @@ jobs:
                   FILES: ${{ steps.planning.outputs.files }}
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
                   PR_COMMENTS: ${{ steps.pr.outputs.pr_comments }}
+                  ISSUE_COMMENTS: ${{ steps.issue.outputs.comments }}
               run: node tooling/ai-workers/develop.js
 
             - name: Finalize Work (Commit & Create PR)

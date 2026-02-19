@@ -142,6 +142,47 @@ test("Development Agent", async (t) => {
 			assert.doesNotMatch(prompt, /PR REVIEW FEEDBACK/);
 		},
 	);
+
+	await t.test(
+		"should include issue comments in prompt when present",
+		async () => {
+			const commentDeps = {
+				...deps,
+				env: {
+					...deps.env,
+					ISSUE_COMMENTS:
+						"user1: Can you also update the docs?\n---\nuser2: Looks great so far",
+				},
+			};
+			mockRunGeminiCLI.mock.mockImplementationOnce(async () => ({
+				inputTokens: 200,
+				outputTokens: 100,
+			}));
+
+			await runDevelopmentAgent(commentDeps);
+
+			assert.strictEqual(mockRunGeminiCLI.mock.callCount(), 1);
+			const prompt = mockRunGeminiCLI.mock.calls[0].arguments[0];
+			assert.match(prompt, /ISSUE COMMENTS/);
+			assert.match(prompt, /update the docs/);
+		},
+	);
+
+	await t.test(
+		"should not include issue comments when ISSUE_COMMENTS is empty",
+		async () => {
+			mockRunGeminiCLI.mock.mockImplementationOnce(async () => ({
+				inputTokens: 100,
+				outputTokens: 50,
+			}));
+
+			await runDevelopmentAgent(deps);
+
+			assert.strictEqual(mockRunGeminiCLI.mock.callCount(), 1);
+			const prompt = mockRunGeminiCLI.mock.calls[0].arguments[0];
+			assert.doesNotMatch(prompt, /ISSUE COMMENTS/);
+		},
+	);
 });
 
 test("Development Agent Fatal Error Handler", () => {

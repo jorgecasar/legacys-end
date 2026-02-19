@@ -25,6 +25,7 @@ export async function runDevelopmentAgent(deps = {}) {
 	const methodology = env.METHODOLOGY;
 	const files = env.FILES;
 	const prComments = env.PR_COMMENTS;
+	const issueComments = env.ISSUE_COMMENTS;
 
 	if (!issueNumber) {
 		console.error("Missing required environment variable ISSUE_NUMBER.");
@@ -82,6 +83,14 @@ ${
 PR REVIEW FEEDBACK:
 The following review comments were left on an existing PR. Address ALL of them:
 ${prComments}
+`
+		: ""
+}${
+	issueComments
+		? `
+ISSUE COMMENTS:
+The following comments were left on the issue for additional context:
+${issueComments}
 `
 		: ""
 }

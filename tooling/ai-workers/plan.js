@@ -10,6 +10,7 @@ import {
 } from "../config/index.js";
 import { runGeminiCLI } from "../gemini/run-cli.js";
 import {
+	addIssueComment,
 	addIssueToProject,
 	createSubIssue,
 	getIssueNodeId,
@@ -18,6 +19,9 @@ import {
 	updateProjectField,
 } from "../github/index.js";
 
+/** Marker used to identify AI-generated plan comments */
+export const PLAN_COMMENT_MARKER = "<!-- AI-PLAN -->";
+
 // Default dependencies bundle
 const DEFAULT_DEPS = {
 	getOctokit,
@@ -25,6 +29,7 @@ const DEFAULT_DEPS = {
 	getIssueNodeId,
 	createSubIssue,
 	addIssueToProject,
+	addIssueComment,
 	updateProjectField,
 	runGeminiCLI,
 	writeGitHubOutput,
@@ -126,22 +131,61 @@ export async function createTechnicalPlan({
 
 	const octokit = injectedOctokit || tools.getOctokit();
 
-	// Fetch comments for context to append to body
+	// Fetch comments for context and check for existing plan
 	console.log(`>>> Fetching comments for Issue #${issueNumber}...`);
+	let comments = [];
 	try {
-		const { data: comments } = await octokit.rest.issues.listComments({
+		const response = await octokit.rest.issues.listComments({
 			owner: OWNER,
 			repo: REPO,
 			issue_number: parseInt(issueNumber, 10),
 		});
-		const commentContext = comments
-			.map((c) => `User: ${c.user.login}\nBody: ${c.body}`)
-			.join("\n---\n");
-		if (commentContext) {
-			body += `\n\nExisting Comments:\n${commentContext}`;
-		}
+		comments = response.data;
 	} catch (e) {
 		console.warn(`Warning: Could not fetch comments: ${e.message}`);
+	}
+
+	// Check for existing plan comment
+	const existingPlan = comments.find((c) =>
+		c.body?.startsWith(PLAN_COMMENT_MARKER),
+	);
+	if (existingPlan) {
+		console.log(
+			`>>> Existing plan found in comment #${existingPlan.id}. Skipping LLM call.`,
+		);
+		const methodologyMatch = existingPlan.body.match(
+			/\*\*Methodology:\*\*\s*(.+)/,
+		);
+		const branchMatch = existingPlan.body.match(/\*\*Branch:\*\*\s*`([^`]+)`/);
+		const filesMatch = existingPlan.body.match(/\*\*Files:\*\*\s*(.+)/);
+
+		const methodology = methodologyMatch ? methodologyMatch[1].trim() : "TDD";
+		const branchName = branchMatch ? branchMatch[1].trim() : currentBranch;
+		const files = filesMatch ? filesMatch[1].trim() : "";
+
+		tools.writeGitHubOutput("methodology", methodology);
+		tools.writeGitHubOutput("branch_name", branchName);
+		tools.writeGitHubOutput("files", files);
+		tools.writeGitHubOutput("needs_decomposition", "false");
+		tools.writeGitHubOutput("input_tokens", 0);
+		tools.writeGitHubOutput("output_tokens", 0);
+		console.log("✅ Planning phase complete (cached).");
+		return {
+			data: {
+				methodology,
+				slug: branchName,
+				files_to_touch: files.split(" "),
+				needs_decomposition: false,
+			},
+		};
+	}
+
+	// Append comments context to body
+	const commentContext = comments
+		.map((c) => `User: ${c.user.login}\nBody: ${c.body}`)
+		.join("\n---\n");
+	if (commentContext) {
+		body += `\n\nExisting Comments:\n${commentContext}`;
 	}
 
 	// Set branch context based on current branch
@@ -352,6 +396,30 @@ export async function createTechnicalPlan({
 			"needs_decomposition",
 			plan.needs_decomposition ? "true" : "false",
 		);
+
+		// 4. Post plan as comment with marker for future detection
+		try {
+			const branchName =
+				currentBranch === "main"
+					? `task/issue-${issueNumber}-${plan.slug || "work"}`
+					: currentBranch;
+			const planComment = `${PLAN_COMMENT_MARKER}
+## 🗺️ AI Plan
+**Methodology:** ${plan.methodology || "TDD"}
+**Branch:** \`${branchName}\`
+**Files:** ${(plan.files_to_touch || []).join(", ")}
+**Decomposition:** ${plan.needs_decomposition ? "Yes" : "No"}`;
+
+			await tools.addIssueComment(octokit, {
+				owner: OWNER,
+				repo: REPO,
+				issueNumber: parseInt(issueNumber, 10),
+				body: planComment,
+			});
+			console.log("📝 Plan comment posted to issue.");
+		} catch (err) {
+			console.warn(`Warning: Could not post plan comment: ${err.message}`);
+		}
 
 		console.log("✅ Planning phase complete.");
 		return { data: plan };

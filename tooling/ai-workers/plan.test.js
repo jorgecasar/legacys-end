@@ -184,4 +184,86 @@ describe("ai-worker-plan", () => {
 
 		consoleLogMock.mock.restore();
 	});
+
+	it("should skip planning when existing plan comment found", async () => {
+		const { deps, mockOctokit } = createMockDeps();
+
+		// Mock comments to include an existing plan
+		mockOctokit.rest.issues.listComments.mock.mockImplementation(async () => ({
+			data: [
+				{
+					id: 42,
+					user: { login: "bot" },
+					body: `<!-- AI-PLAN -->\n## 🗺️ AI Plan\n**Methodology:** Cached TDD\n**Branch:** \`task/issue-5-cached\`\n**Files:** src/a.js, src/b.js\n**Decomposition:** No`,
+				},
+			],
+		}));
+
+		const consoleLogMock = mock.method(console, "log", () => {});
+		await createTechnicalPlan({
+			issueNumber: 5,
+			title: "Cached Issue",
+			body: "Already planned.",
+			deps,
+		});
+
+		// Should NOT call runGeminiCLI
+		assert.strictEqual(
+			deps.runGeminiCLI.mock.callCount(),
+			0,
+			"Should skip LLM call",
+		);
+
+		// Should output cached values
+		const methodologyCall = deps.writeGitHubOutput.mock.calls.find(
+			(c) => c.arguments[0] === "methodology",
+		);
+		assert.ok(methodologyCall, "Should output methodology");
+		assert.strictEqual(methodologyCall.arguments[1], "Cached TDD");
+
+		const branchCall = deps.writeGitHubOutput.mock.calls.find(
+			(c) => c.arguments[0] === "branch_name",
+		);
+		assert.ok(branchCall, "Should output branch_name");
+		assert.strictEqual(branchCall.arguments[1], "task/issue-5-cached");
+
+		consoleLogMock.mock.restore();
+	});
+
+	it("should post plan comment after successful planning", async () => {
+		const { deps, mockOctokit } = createMockDeps();
+
+		deps.runGeminiCLI.mock.mockImplementation(async () => ({
+			methodology: "TDD",
+			slug: "new-feature",
+			files_to_touch: ["src/new.js"],
+			needs_decomposition: false,
+			inputTokens: 10,
+			outputTokens: 10,
+		}));
+
+		deps.addIssueComment = mock.fn(async () => ({}));
+
+		const consoleLogMock = mock.method(console, "log", () => {});
+		await createTechnicalPlan({
+			issueNumber: 7,
+			title: "New Feature",
+			body: "Implement this.",
+			deps,
+		});
+
+		assert.strictEqual(
+			deps.addIssueComment.mock.callCount(),
+			1,
+			"Should post plan comment",
+		);
+		const commentBody = deps.addIssueComment.mock.calls[0].arguments[1].body;
+		assert.ok(
+			commentBody.startsWith("<!-- AI-PLAN -->"),
+			"Comment should start with marker",
+		);
+		assert.match(commentBody, /TDD/);
+
+		consoleLogMock.mock.restore();
+	});
 });
