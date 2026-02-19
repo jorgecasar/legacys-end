@@ -24,6 +24,7 @@ export async function runDevelopmentAgent(deps = {}) {
 	let body = env.ISSUE_BODY;
 	const methodology = env.METHODOLOGY;
 	const files = env.FILES;
+	const prComments = env.PR_COMMENTS;
 
 	if (!issueNumber) {
 		console.error("Missing required environment variable ISSUE_NUMBER.");
@@ -75,6 +76,15 @@ ${files}
      (We prefer saving the work over losing it, even if tests/lint fail).
    - CLEANUP: Run 'rm .github/AI_COMMIT_MESSAGE' after the commit.
    - DO NOT PUSH. The CI workflow will handle the push.
+${
+	prComments
+		? `
+PR REVIEW FEEDBACK:
+The following review comments were left on an existing PR. Address ALL of them:
+${prComments}
+`
+		: ""
+}
 `;
 
 	console.log(`>>> Launching Development Agent for #${issueNumber}...`);

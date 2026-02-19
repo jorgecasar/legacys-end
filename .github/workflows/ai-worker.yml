@@ -53,6 +53,30 @@ jobs:
                   jq -r .body issue.json >> $GITHUB_OUTPUT
                   echo "$delimiter" >> $GITHUB_OUTPUT
 
+            - name: Fetch Pull Request Details
+              id: pr
+              env:
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+                  ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+              run: |
+                  # Find PR associated with this issue
+                  PR_NUMBER=$(gh pr list --search "issue:$ISSUE_NUMBER" --json number --jq '.[0].number' 2>/dev/null || echo "")
+                  
+                  if [ -n "$PR_NUMBER" ]; then
+                    echo "Found PR #$PR_NUMBER for Issue #$ISSUE_NUMBER"
+                    echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+                    
+                    # Fetch PR review comments and reviews
+                    delimiter="$(openssl rand -hex 8)"
+                    echo "pr_comments<<$delimiter" >> $GITHUB_OUTPUT
+                    gh pr view "$PR_NUMBER" --json comments,reviews --jq '([.reviews[] | "Review (\(.state)): \(.body)"] + [.comments[] | "Comment by \(.author.login): \(.body)"]) | join("\n---\n")' >> $GITHUB_OUTPUT
+                    echo "$delimiter" >> $GITHUB_OUTPUT
+                  else
+                    echo "No PR found for Issue #$ISSUE_NUMBER"
+                    echo "pr_number=" >> $GITHUB_OUTPUT
+                    echo "pr_comments=" >> $GITHUB_OUTPUT
+                  fi
+
             - name: Debug Context
               env:
                   ISSUE_TITLE: ${{ steps.issue.outputs.title }}
@@ -140,6 +164,7 @@ jobs:
                   METHODOLOGY: ${{ steps.planning.outputs.methodology }}
                   FILES: ${{ steps.planning.outputs.files }}
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
+                  PR_COMMENTS: ${{ steps.pr.outputs.pr_comments }}
               run: node tooling/ai-workers/develop.js
 
             - name: Finalize Work (Commit & Create PR)
@@ -186,6 +211,21 @@ jobs:
                   
                   # Create Pull Request
                   gh pr create --title "$LAST_MSG" --body "Automated PR by AI Worker Agent. Resolves #${{ github.event.inputs.issue_number }}. \n\nReviewer feedback: $REVIEWER_TEXT" || echo "PR creation failed or already exists"
+
+            - name: Request Gemini Review
+              if: steps.planning.outputs.needs_decomposition != 'true'
+              env:
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+                  ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+              run: |
+                  # Find the PR for this branch
+                  PR_NUMBER=$(gh pr list --head "$(git branch --show-current)" --json number --jq '.[0].number' 2>/dev/null || echo "")
+                  if [ -n "$PR_NUMBER" ]; then
+                    echo "Requesting Gemini review on PR #$PR_NUMBER..."
+                    gh pr comment "$PR_NUMBER" --body "/gemini review"
+                  else
+                    echo "No PR found to request review on."
+                  fi
                   
             # 3. VERIFICATION
             - name: Install Playwright Browsers
