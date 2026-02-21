@@ -204,10 +204,12 @@ jobs:
               env:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
                   COMMIT_MESSAGE: ${{ steps.developer.outputs.commit_message }}
+                  ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
                   REVIEWER_TEXT: ${{ steps.reviewer.outputs.json && fromJson(steps.reviewer.outputs.json).review_text || 'Reviewer Agent failed or was skipped.' }}
               run: |
-                  git config --global user.name "github-actions[bot]"
-                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                  # Use the user's git config if provided, otherwise fallback to bot
+                  git config --global user.name "Jorge del Casar"
+                  git config --global user.email "948953+jorgecasar@users.noreply.github.com"
                   
                   # Cleanup AI_COMMIT_MESSAGE file from disk
                   rm -f .github/AI_COMMIT_MESSAGE
@@ -219,13 +221,24 @@ jobs:
                     # Double check we didn't add the message file if it somehow persisted
                     git reset .github/AI_COMMIT_MESSAGE 2>/dev/null || true
                     
+                    # Ensure MSG has the issue number
                     MSG="${COMMIT_MESSAGE:-feat: resolve #$ISSUE_NUMBER (AI Agent)}"
+                    if [[ ! "$MSG" =~ "#$ISSUE_NUMBER" ]]; then
+                      MSG="${MSG} (#$ISSUE_NUMBER)"
+                    fi
                     git commit -m "$MSG"
                   fi
                   
                   # SQUASH COMMITS
                   # Get the message of the last commit (which should be the AI's conventional commit)
                   LAST_MSG=$(git log -1 --pretty=%s)
+                  
+                  # Ensure LAST_MSG has the issue number for the PR title
+                  if [[ ! "$LAST_MSG" =~ "#$ISSUE_NUMBER" ]]; then
+                    PR_TITLE="$LAST_MSG (#$ISSUE_NUMBER)"
+                  else
+                    PR_TITLE="$LAST_MSG"
+                  fi
                   
                   # Soft reset to origin/main to stage all changes
                   git reset --soft origin/main
@@ -234,7 +247,7 @@ jobs:
                   git reset HEAD .github/AI_COMMIT_MESSAGE 2>/dev/null || true
                   
                   # Commit everything as one atomic commit
-                  git commit -m "$LAST_MSG"
+                  git commit -m "$PR_TITLE"
                   
                   # Push changes
                   git fetch origin main
@@ -242,7 +255,7 @@ jobs:
                   git push --force-with-lease origin HEAD
                   
                   # Create Pull Request
-                  gh pr create --title "$LAST_MSG" --body "Automated PR by AI Worker Agent. Resolves #${{ github.event.inputs.issue_number }}. \n\nReviewer feedback: $REVIEWER_TEXT" || echo "PR creation failed or already exists"
+                  gh pr create --title "$PR_TITLE" --body "Automated PR by AI Worker Agent. Resolves #$ISSUE_NUMBER. \n\nReviewer feedback: $REVIEWER_TEXT" || echo "PR creation failed or already exists"
 
             - name: Request Gemini Review
               if: steps.planning.outputs.needs_decomposition != 'true'
