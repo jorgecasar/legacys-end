@@ -249,13 +249,17 @@ jobs:
                   # Commit everything as one atomic commit
                   git commit -m "$PR_TITLE"
                   
-                  # Push changes
-                  git fetch origin main
-                  git pull --rebase origin main
-                  git push --force-with-lease origin HEAD
+                  # Create Pull Request with better formatting
+                  PR_BODY="## 🤖 AI Worker Summary
+Resolves #$ISSUE_NUMBER.
+
+### 🔍 Self-Review Feedback
+> $REVIEWER_TEXT
+
+---
+*Automated PR by AI Worker Agent.*"
                   
-                  # Create Pull Request
-                  gh pr create --title "$PR_TITLE" --body "Automated PR by AI Worker Agent. Resolves #$ISSUE_NUMBER. \n\nReviewer feedback: $REVIEWER_TEXT" || echo "PR creation failed or already exists"
+                  gh pr create --title "$PR_TITLE" --body "$PR_BODY" || echo "PR creation failed or already exists"
 
             - name: Set Task to Review
               if: steps.planning.outputs.needs_decomposition != 'true'
