@@ -8,7 +8,6 @@ import {
 	REPO,
 	writeGitHubOutput,
 } from "../config/index.js";
-import { normalizeModel } from "../gemini/pricing.js";
 import { runGeminiCLI } from "../gemini/run-cli.js";
 import {
 	addIssueComment,
@@ -273,7 +272,7 @@ export async function createTechnicalPlan({
 				if (cleanResponse.startsWith("{")) {
 					parsedPlan = JSON.parse(cleanResponse);
 				}
-			} catch (e) {
+			} catch (_e) {
 				console.warn("Warning: Could not parse plan from response field.");
 			}
 		}
