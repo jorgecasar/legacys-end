@@ -30,4 +30,21 @@
  * @property {string} [serviceName] - The name of the remote service providing this profile (e.g., 'GitHub', 'Google').
  */
 
+/**
+ * @typedef {Object} Chapter
+ * @property {string} id
+ * @property {string} title
+ * @property {string} description
+ * @property {string} objective
+ */
+
+/**
+ * @typedef {Object} Quest
+ * @property {string} id
+ * @property {string} title
+ * @property {string} description
+ * @property {Chapter[]} chapters
+ * @property {QuestState} state
+ */
+
 export {};
