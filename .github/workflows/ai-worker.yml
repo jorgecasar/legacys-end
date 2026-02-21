@@ -257,6 +257,23 @@ jobs:
                   # Create Pull Request
                   gh pr create --title "$PR_TITLE" --body "Automated PR by AI Worker Agent. Resolves #$ISSUE_NUMBER. \n\nReviewer feedback: $REVIEWER_TEXT" || echo "PR creation failed or already exists"
 
+            - name: Set Task to Review
+              if: steps.planning.outputs.needs_decomposition != 'true'
+              env:
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+                  ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+              run: |
+                  # Project ID: PVT_kwHOAA562c4BOtC- (number 2)
+                  # Status field ID: PVTSSF_lAHOAA562c4BOtC-zg9U7KE
+                  # 'Review' option ID: 0d3401d0
+                  echo "Setting Issue #$ISSUE_NUMBER to 'Review' in Project #2..."
+                  ITEM_ID=$(gh project item-list 2 --owner jorgecasar --format json | jq -r ".items[] | select(.content.number == ($ISSUE_NUMBER | tonumber)) | .id")
+                  if [ -n "$ITEM_ID" ] && [ "$ITEM_ID" != "null" ]; then
+                    gh project item-edit --id "$ITEM_ID" --project-id PVT_kwHOAA562c4BOtC- --field-id PVTSSF_lAHOAA562c4BOtC-zg9U7KE --single-select-option-id 0d3401d0
+                  else
+                    echo "Issue #$ISSUE_NUMBER not found in project board."
+                  fi
+
             - name: Request Gemini Review
               if: steps.planning.outputs.needs_decomposition != 'true'
               env:
