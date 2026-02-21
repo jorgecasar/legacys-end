@@ -46,7 +46,10 @@ Project Context:
 - Forbidden: Python, Java, C#, or any non-JS backend logic unless explicitly requested for tooling.
 
 Output Requirements:
-- Return a JSON object matching this schema:
+- RETURN ONLY A RAW JSON OBJECT. 
+- DO NOT use markdown blocks like \`\`\`json.
+- DO NOT use any tools (write_file, etc.) during this phase.
+- Schema:
 {
   "methodology": "STRING", // The technical approach or steps (e.g., TDD).
   "slug": "STRING", // URL-friendly branch identifier (kebab-case).
@@ -258,20 +261,36 @@ export async function createTechnicalPlan({
 		inputTokens = result.inputTokens;
 		outputTokens = result.outputTokens;
 
-		// The CLI tool already returns the parsed JSON object (merged with stats)
-		// But we should ensure we extract the plan part correctly even if it's inside 'response'.
-		let parsedPlan = result;
+		// Robust plan extraction
+		let parsedPlan = null;
+
+		// 1. Try parsing from response field (clearing markdown if present)
 		if (result.response) {
 			try {
 				const cleanResponse = result.response
 					.replace(/```json\s*|```\s*/g, "")
 					.trim();
-				parsedPlan = JSON.parse(cleanResponse);
+				if (cleanResponse.startsWith("{")) {
+					parsedPlan = JSON.parse(cleanResponse);
+				}
 			} catch (e) {
-				console.warn(
-					"Warning: Could not parse plan from response field, using result object as fallback.",
-				);
+				console.warn("Warning: Could not parse plan from response field.");
 			}
+		}
+
+		// 2. If result object itself has the required fields, use it
+		if (!parsedPlan || !parsedPlan.slug) {
+			if (result.slug) {
+				parsedPlan = result;
+			}
+		}
+
+		if (!parsedPlan || !parsedPlan.slug) {
+			console.error(
+				"Debug - Full CLI Output:",
+				JSON.stringify(result, null, 2),
+			);
+			throw new Error("Invalid plan structure: Missing 'slug' field.");
 		}
 
 		const {
