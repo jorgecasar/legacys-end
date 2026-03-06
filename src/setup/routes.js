@@ -9,7 +9,7 @@ import { ROUTES } from "../constants/routes.js";
 /**
  * Setup application routes
  * @param {Router} router
- * @param {IGameContext} context
+ * @param {{ questController?: import('../controllers/quest-controller.js').QuestController }} context
  */
 export function setupRoutes(router, context) {
 	router.addRoute(ROUTES.HUB, () => {

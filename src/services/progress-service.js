@@ -50,6 +50,10 @@ export class ProgressService {
 		this.storageKey = StorageKeys.PROGRESS;
 		/** @type {ProgressState} */
 		this.progress = this._initializeProgress();
+
+		// Evaluate and unlock any new quests that might have been added to the game
+		// and have their prerequisites met (or no prerequisites).
+		this.unlockNewQuests();
 	}
 
 	/**
@@ -261,6 +265,8 @@ export class ProgressService {
 	 * Unlock new quests based on prerequisites.
 	 */
 	unlockNewQuests() {
+		if (typeof this.registry?.getAllQuests !== "function") return;
+
 		const allQuests = this.registry.getAllQuests();
 		for (const quest of allQuests) {
 			if (this.progress.unlockedQuests.includes(quest.id)) continue;

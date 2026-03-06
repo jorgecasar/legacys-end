@@ -529,7 +529,9 @@ export class QuestController {
 			);
 
 		if (action === "COMPLETE") {
-			this.completeQuest();
+			if (!this.currentChapter.exitZone) {
+				this.completeQuest();
+			}
 		} else {
 			// Advance ONLY if there is NO exit zone.
 			// If there is an exit zone, the CollisionController will call advanceChapter when the player walks into it.

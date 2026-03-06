@@ -32,6 +32,7 @@ import { themeContext } from "../../contexts/theme-context.js";
 import { voiceContext } from "../../contexts/voice-context.js";
 import { QuestController } from "../../controllers/quest-controller.js";
 import { ThemeModes } from "../../core/constants.js";
+import { setupRoutes } from "../../setup/routes.js";
 import { Router } from "../../utils/router.js";
 import { legacysEndAppStyles } from "./LegacysEndApp.styles.js";
 import "@awesome.me/webawesome/dist/styles/webawesome.css";
@@ -216,6 +217,7 @@ export class LegacysEndApp extends SignalWatcher(LitElement) {
 				router: this.router,
 			});
 
+			setupRoutes(this.router, { questController: this.questController });
 			this.router.init();
 
 			if (window.location.pathname === "/" || window.location.pathname === "") {
