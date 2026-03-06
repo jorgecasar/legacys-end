@@ -1,19 +1,23 @@
 # Suggested Commands
 
 ## Development
-- `npm run dev`: Start development server.
-- `npm run build`: Build for production.
-- `npm run preview`: Preview production build.
+- `npm run dev`: Start Vite development server.
+- `npm run storybook`: Start Storybook.
+- `npm run localize:build`: Build localization files (runs automatically on postinstall).
 
-## Quality
-- `npm run lint`: Run all linters.
-- `npm run format`: Fix formatting issues.
-- `npm test`: Run unit tests.
-- `npm run test:e2e`: Run E2E tests.
+## Quality Control
+- `npm run lint`: Run all linters (Biome, Lit, TSC).
+- `npm run format`: Fix formatting and simple lint issues with Biome.
+- `npm run size`: Check bundle size limits.
 
-## Localization
-- `npm run localize:extract`: Extract strings for translation.
-- `npm run localize:build`: Build localized bundles.
+## Testing
+- `npm test`: Run all tests (App, Tooling, E2E).
+- `npm run test:app`: Run Vitest unit tests.
+- `npm run test:app:coverage`: Run unit tests with coverage report.
+- `npm run test:tooling`: Run node-based tooling tests.
+- `npm run test:e2e`: Run Playwright E2E tests.
 
-## Other
-- `rulesync generate`: Update project settings and rules.
+## Build & Deploy
+- `npm run build`: Build the application for production.
+- `npm run preview`: Preview the production build locally.
+- `npm run build-storybook`: Build static Storybook.

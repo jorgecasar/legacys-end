@@ -27,6 +27,8 @@ project_name: "legacys-end"
 # Note that when using the JetBrains backend, language servers are not used and this list is correspondingly ignored.
 languages:
 - typescript
+- bash
+- markdown
 
 # the encoding used by text files in the project
 # For a list of possible encodings, see https://docs.python.org/3.11/library/codecs.html#standard-encodings
@@ -109,4 +111,18 @@ default_modes:
 
 # initial prompt for the project. It will always be given to the LLM upon activating the project
 # (contrary to the memories, which are loaded on demand).
-initial_prompt: ""
+initial_prompt: "You are working on Legacy's End, an RPG using a Clean Architecture
+  (Domain, UseCases, Adapters, UI). Prefer strict adherence to the Result Pattern
+  in src/core/errors.js instead of exceptions. Follow the 'Jorge Casar' persona: clean,
+  reactive, and simple code."
+
+# override of the corresponding setting in serena_config.yml, see the documentation there.
+# If null or missing, the value from the global config is used.
+symbol_info_budget:
+
+# The language backend to use for this project.
+# If not set, the global setting from serena_config.yml is used.
+# Valid values: LSP, JetBrains
+# Note: the backend is fixed at startup. If a project with a different backend
+# is activated post-init, an error will be returned.
+language_backend:

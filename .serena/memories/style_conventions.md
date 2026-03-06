@@ -1,18 +1,27 @@
-# Code Style and Conventions
-Follow the "Jorge Casar" developer persona: Senior Frontend Architect.
+# Style & Conventions
 
-## General
-- Indentation: Tabs
-- Strings: Double quotes
-- Semicolons: Yes
-- Trailing commas: Yes
+## Code Style
+- **Indentation**: Tabs (Biome standard).
+- **Quotes**: Double Quotes.
+- **Semicolons**: Always used.
+- **Trailing Commas**: Always used.
+- **Naming**: 
+  - Classes: PascalCase.
+  - Variables/Functions: camelCase.
+  - Booleans: prefixed with `is`, `has`, `can`.
+  - Event Handlers: prefixed with `handle`.
+  - Private Members: use `#private` syntax.
 
-## JavaScript/Lit
-- Use native `#privateField` for private members.
-- Use `accessor` keyword for decorated fields (e.g., `@state() accessor name = ""`).
-- Boolean naming: `is`, `has`, `can` prefixes.
-- Event handlers: `handle` prefix.
-- Prefer early returns to avoid nesting.
-- Use Result Pattern for Use Cases and Services.
-- Components should be "Dumb" (presentation only) when possible.
-- Separate styles into `[ComponentName].styles.js`.
+## Lit Standards
+- **Decorators**: Use standard TC39 Decorators.
+- **Properties**: Use `accessor` keyword for decorated fields.
+- **Styles**: Separate styles into `[ComponentName].styles.js`.
+- **Template**: Use declarative Lit templates.
+
+## Error Handling
+- **Result Pattern**: Use the `Result` class from `src/core/errors.js` for all domain and use case logic.
+- **Exceptions**: Only for unexpected system failures, never for business logic.
+
+## Documentation
+- Use JSDoc for types and documentation.
+- Maintain `GEMINI.md` rules if present.
