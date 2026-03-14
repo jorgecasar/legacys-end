@@ -11,7 +11,7 @@ import { levelDialogStyles } from "../../LevelDialog.styles.js";
  */
 export class LevelDialogSlideProblem extends SignalWatcher(LitElement) {
 	/**
-	 * @type {string | import('lit').TemplateResult}
+	 * @type {string | import('lit').TemplateResult | undefined}
 	 * @public
 	 */
 	@property({ type: Object })
