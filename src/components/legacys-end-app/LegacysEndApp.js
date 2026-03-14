@@ -292,6 +292,7 @@ export class LegacysEndApp extends SignalWatcher(LitElement) {
 
 	/** @override */
 	render() {
+		this.localizationService?.getLocale(); // Re-render when locale changes
 		if (!this.sessionService) {
 			return html`
 				<div class="loading-overlay">

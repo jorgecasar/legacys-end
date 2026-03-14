@@ -156,6 +156,21 @@ export const getOracleOfSiliconMetadata = () => ({
 	prerequisites: ["the-unseen-harmony"],
 });
 
+/** @returns {QuestMetadata} */
+export const getZeroOneMetadata = () => ({
+	id: "the-zero-one",
+	name: msg("Zero One"),
+	subtitle: msg("The Machine City of Infinite Thought"),
+	description: msg(
+		"In the heart of the Machine City, Alarion must master the art of Generative AI. From the white void of the Construct to the Architect's chamber, you will learn to forge complex systems by providing context, planning logic, and orchestrating autonomous agents without losing your mind—or your code.",
+	),
+	difficulty: Difficulty.INTERMEDIATE,
+	estimatedTime: msg("10 min"),
+	icon: "psychology",
+	status: QuestStatus.AVAILABLE,
+	prerequisites: [],
+});
+
 export const getQuestManifest = () => {
 	const manifests = [
 		getAuraOfSovereigntyMetadata(),
@@ -168,6 +183,7 @@ export const getQuestManifest = () => {
 		getScrollOfTonguesMetadata(),
 		getUnseenHarmonyMetadata(),
 		getOracleOfSiliconMetadata(),
+		getZeroOneMetadata(),
 	];
 
 	return manifests.reduce(

@@ -224,7 +224,7 @@
 </trans-unit>
 <trans-unit id="se24d44fa21cd72d4">
   <source>Identity Gained: The code is now a defined entity &lt;product-item&gt;), not a chaotic script.</source>
-  <target>Identidad Ganada: El código es ahora una entidad definida &lt;product-item&gt;), no un script caótico.</target>
+  <target>Identidad Ganada: El código es ahora una entidad definida (&lt;product-item&gt;), no un script caótico.</target>
 </trans-unit>
 <trans-unit id="sb636445465158fbb">
   <source>DOM Independent: The component no longer uses getElementById or interacts with the global DOM directly.</source>
@@ -632,7 +632,7 @@
 </trans-unit>
 <trans-unit id="sab07b3e7339fe891">
   <source>Hardcoded Colors</source>
-  <target>Colores Hardcodeados</target>
+  <target>Colores Fijos</target>
 </trans-unit>
 <trans-unit id="s58a28a6677db83d1">
   <source>Style Guardian</source>
@@ -644,7 +644,7 @@
 </trans-unit>
 <trans-unit id="sd1bc71506f968316">
   <source>Hardcoded styles, inability to adapt to Dark Mode or different branding requirements.</source>
-  <target>Estilos hardcodeados, incapacidad de adaptarse al Modo Oscuro o a diferentes requisitos de marca.</target>
+  <target>Estilos fijos, incapacidad de adaptarse al Modo Oscuro o a diferentes requisitos de marca.</target>
 </trans-unit>
 <trans-unit id="sd65e592e662879e1">
   <source>20-30 min</source>
@@ -828,7 +828,7 @@
 </trans-unit>
 <trans-unit id="s51ba2b11aefe9c55">
   <source>Hardcoded strings, date/number format issues across regions, lack of localization.</source>
-  <target>Cadenas hardcodeadas, problemas de formato de fecha/número en distintas regiones, falta de localización.</target>
+  <target>Cadenas fijas, problemas de formato de fecha/número en distintas regiones, falta de localización.</target>
 </trans-unit>
 <trans-unit id="se7c0d39dc94ebc1b">
   <source>25-35 min</source>
@@ -1214,10 +1214,6 @@
   <source>Identified Problem</source>
   <target>Problema Identificado</target>
 </trans-unit>
-<trans-unit id="s47caac73da1099c8">
-  <source>Key Architectural Changes</source>
-  <target>Cambios Arquitectónicos Clave</target>
-</trans-unit>
 <trans-unit id="s87d3f0132330335f">
   <source>Level Complete!</source>
   <target>¡Nivel Completado!</target>
@@ -1375,16 +1371,140 @@
   <target>Cargando Vista...</target>
 </trans-unit>
 <trans-unit id="sa2a2e981da13dd3d">
-  <source>REQ: <x id="0" equiv-text="${ServiceBrandMap[HotSwitchStates.NEW]}"/></source>
+  <source>REQ: <x id="0" equiv-text="${ServiceTypeMap[HotSwitchStates.NEW]}"/></source>
   <target>REQ: <x id="0" equiv-text="${ServiceBrandMap[HotSwitchStates.NEW]}"/></target>
 </trans-unit>
 <trans-unit id="sbd814146ebccf2b5">
   <source>DRAG JOYSTICK TO MOVE</source>
-  <target>ARRRASTRA EL JOYSTICK PARA MOVERTE</target>
+  <target>ARRASTRA EL JOYSTICK PARA MOVERTE</target>
 </trans-unit>
 <trans-unit id="s7e3c3b04fd6fd6b9">
   <source>TAP JOYSTICK TO INTERACT</source>
   <target>TOCA EL JOYSTICK PARA INTERACTUAR</target>
+</trans-unit>
+<trans-unit id="s941af65c83812633">
+  <source>Zero One</source>
+  <target>Zero One</target>
+</trans-unit>
+<trans-unit id="sa60cf8de97bc02a6">
+  <source>The Machine City of Infinite Thought</source>
+  <target>La Ciudad de las Máquinas de Pensamiento Infinito</target>
+</trans-unit>
+<trans-unit id="s5eae6f9545251360">
+  <source>10 min</source>
+  <target>10 min</target>
+</trans-unit>
+<trans-unit id="s7a050bcae96030f3">
+  <source>Multi-Agent Orchestration</source>
+  <target>Orquestación Multi-Agente</target>
+</trans-unit>
+<trans-unit id="s7165a7d5d5dd457b">
+  <source>The Architect</source>
+  <target>El Arquitecto</target>
+</trans-unit>
+<trans-unit id="sff0ab6c6929aa6d5">
+  <source>The Crown of Alignment</source>
+  <target>La Corona de Alineación</target>
+</trans-unit>
+<trans-unit id="s6a36dd022f8801fc">
+  <source>Reboot World</source>
+  <target>Reiniciar Mundo</target>
+</trans-unit>
+<trans-unit id="s1ed4e3af644b1ad9">
+  <source>The AI produces unstable hallucinations due to lack of constraints. Logic drifts and global noise corrupts the system's output.</source>
+  <target>La IA produce alucinaciones inestables debido a la falta de restricciones. La lógica se desvía y el ruido global corrompe la salida del sistema.</target>
+</trans-unit>
+<trans-unit id="sbb9e35b5f911391f">
+  <source>5 Recursive Chambers</source>
+  <target>5 Cámaras Recursivas</target>
+</trans-unit>
+<trans-unit id="s2cc657bb06589cb0">
+  <source>Context Injection (RAG)</source>
+  <target>Inyección de Contexto (RAG)</target>
+</trans-unit>
+<trans-unit id="s7121239a0c284357">
+  <source>System Prompts (Identity &amp; Rules)</source>
+  <target>Prompts del Sistema (Identidad y Reglas)</target>
+</trans-unit>
+<trans-unit id="sc8cdfce8d90b3f98">
+  <source>Tool Calling &amp; Reflexion (RCI)</source>
+  <target>Llamada a Herramientas y Reflexión (RCI)</target>
+</trans-unit>
+<trans-unit id="s66aa3992ef4e00aa">
+  <source>Alignment via RLHF</source>
+  <target>Alineación mediante RLHF</target>
+</trans-unit>
+<trans-unit id="sf132838370c1a159">
+  <source>Architect of Zero One</source>
+  <target>Arquitecto de Zero One</target>
+</trans-unit>
+<trans-unit id="s77ea181d78829f38">
+  <source>Mastered the synthesis between human intent and machine execution.</source>
+  <target>Maestría en la síntesis entre la intención humana y la ejecución de la máquina.</target>
+</trans-unit>
+<trans-unit id="sf0f0ba476c26231b">
+  <source>Neural Orchestration</source>
+  <target>Orquestación Neuronal</target>
+</trans-unit>
+<trans-unit id="s9ec91479e7ce97e1">
+  <source>In the heart of the Machine City, Alarion must master the art of Generative AI. From the white void of the Construct to the Architect's chamber, you will learn to forge complex systems by providing context, planning logic, and orchestrating autonomous agents without losing your mind—or your code.</source>
+  <target>En el corazón de la Ciudad de las Máquinas, Alarión debe dominar el arte de la IA Generativa. Desde el vacío blanco del Constructo hasta la cámara del Arquitecto, aprenderás a forjar sistemas complejos proporcionando contexto, planificando la lógica y orquestando agentes autónomos sin perder la cabeza—ni tu código.</target>
+</trans-unit>
+<trans-unit id="s2c20b92c5c343803">
+  <source>Welcome to the Construct. This is our loading program. Here, reality is only what we inject. If you don’t define all you want to create, the system will hallucinate it... and I assure you, you don't want to fall into a hallucination.</source>
+  <target>Bienvenido al Constructo. Este es nuestro programa de carga. Aquí, la realidad es solo lo que inyectamos. Si no defines todo lo que quieres crear, el sistema lo alucinará... y te aseguro que no quieres caer en una alucinación.</target>
+</trans-unit>
+<trans-unit id="s6359c3749b660499">
+  <source>The Construct</source>
+  <target>El Constructo</target>
+</trans-unit>
+<trans-unit id="s4e907860b881b794">
+  <source>Morpheus</source>
+  <target>Morfeo</target>
+</trans-unit>
+<trans-unit id="s38296d756ca517bf">
+  <source>Red Pill</source>
+  <target>Píldora Roja</target>
+</trans-unit>
+<trans-unit id="s4617ba1ff7e0d091">
+  <source>Key concepts</source>
+  <target>Conceptos clave</target>
+</trans-unit>
+<trans-unit id="sebfa5c8d643877b5">
+  <source>Requirements: PRD as Ground Truth.</source>
+  <target>Requisitos: PRD como Verdad Fundamental.</target>
+</trans-unit>
+<trans-unit id="saefff64794aacc19">
+  <source>Architecture: Context Codexes for standards.</source>
+  <target>Arquitectura: Códices de Contexto para estándares.</target>
+</trans-unit>
+<trans-unit id="sa16e01b4450f4166">
+  <source>Testing: Automated verification for DoD.</source>
+  <target>Testing: Verificación automatizada para el DoD.</target>
+</trans-unit>
+<trans-unit id="s2eaf4a452546679c">
+  <source>Architect's Chamber</source>
+  <target>Cámara del Arquitecto</target>
+</trans-unit>
+<trans-unit id="s8d6186d1094a017b">
+  <source>The Architect's Chamber</source>
+  <target>La Cámara del Arquitecto</target>
+</trans-unit>
+<trans-unit id="sb82e509a947f1eca">
+  <source>Alarion reaches the core: The Source. Here, The Architect maintains the master algorithm. 'You have learned to create and to orchestrate,' the Architect says. 'But true power lies in the oversight. An architect does not just build; they ensure that every block, every agent, and every line of code aligns with the master purpose.'</source>
+  <target>Alarión llega al núcleo: La Fuente. Aquí, El Arquitecto mantiene el algoritmo maestro. "Has aprendido a crear y a orquestar", dice el Arquitecto. "Pero el verdadero poder reside en la vigilancia. Un arquitecto no solo construye; se asegura de que cada bloque, cada agente y cada línea de código se alinee con el propósito maestro".</target>
+</trans-unit>
+<trans-unit id="s14fc782207d0765e">
+  <source>Validation: Human feedback loop for alignment.</source>
+  <target>Validación: Bucle de retroalimentación humana para la alineación.</target>
+</trans-unit>
+<trans-unit id="sc06b31c095a627dc">
+  <source>Monitoring: Oversight of autonomous processes.</source>
+  <target>Monitoreo: Supervisión de procesos autónomos.</target>
+</trans-unit>
+<trans-unit id="s0c46a1b9d61df897">
+  <source>Alignment: Ensuring output matches intent.</source>
+  <target>Alineación: Asegurar que el resultado coincida con la intención.</target>
 </trans-unit>
 </body>
 </file>

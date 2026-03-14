@@ -43,6 +43,8 @@ const QUEST_LOADERS = {
 		import("./the-oracle-of-silicon/index.js").then((m) =>
 			m.getOracleOfSiliconQuest(),
 		),
+	"the-zero-one": () =>
+		import("./the-zero-one/index.js").then((m) => m.getZeroOneQuest()),
 };
 
 /**

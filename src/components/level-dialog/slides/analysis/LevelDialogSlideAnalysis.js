@@ -35,7 +35,7 @@ export class LevelDialogSlideAnalysis extends SignalWatcher(LitElement) {
 	/** @override */
 	render() {
 		return html`
-			<h6 class="slide-title-analysis">${msg("Key Architectural Changes")}</h6>
+			<h6 class="slide-title-analysis">${msg("Key concepts")}</h6>
 			<div class="analysis-list">
 				${this.architecturalChanges?.map(
 					(change) => html`

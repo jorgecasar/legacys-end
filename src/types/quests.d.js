@@ -66,8 +66,8 @@
  * @property {string} id - Unique identifier for the chapter.
  * @property {string} title - Display title of the chapter.
  * @property {string} description - Brief description of the chapter's goal.
- * @property {string} problemTitle - Title of the problem being solved.
- * @property {string | import('lit').TemplateResult} problemDesc - Detailed description of the problem.
+ * @property {string} [problemTitle] - Title of the problem being solved.
+ * @property {string | import('lit').TemplateResult} [problemDesc] - Detailed description of the problem.
  * @property {string} [solutionTitle] - Title of the solution explanation.
  * @property {string} [solutionDesc] - Detailed explanation of the solution.
  * @property {string[]} [architecturalChanges] - List of architectural improvements introduced.
