@@ -268,10 +268,10 @@ describe("LevelDialog Interactions", () => {
 		await footer?.updateComplete;
 		const buttons = footer?.shadowRoot?.querySelectorAll("wa-button");
 		if (!buttons || buttons.length === 0) throw new Error("Buttons not found");
-		const actionBtn = buttons[buttons.length - 1]; // "EVOLVE" or "COMPLETE"
+		const actionBtn = buttons[buttons.length - 1]; // "ACQUIRE" or "COMPLETE"
 
 		if (actionBtn) {
-			expect(actionBtn.textContent?.trim()).toMatch(/EVOLVE|COMPLETE/);
+			expect(actionBtn.textContent?.trim()).toMatch(/ACQUIRE|COMPLETE/);
 			actionBtn.click();
 			expect(completeSpy).toHaveBeenCalled();
 		}
