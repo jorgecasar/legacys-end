@@ -41,7 +41,7 @@ These terms represent technical concepts but are personified as magical items or
 | **The Aura of Sovereignty** | El Aura de Soberanía | Encapsulation / Isolation |
 | **The Chromatic Loom** | El Telar Cromático | Theming / Design Tokens |
 | **The Orb of Inquiry** | El Orbe de la Consulta | Dependency Injection / IoC |
-| **The Flowing Heartstone** | La Piedra del Corazón Fluido | Reactivity / Signals |
+| **The Flowing Heartstone** | El Núcleo Fluyente | Reactivity / Signals |
 | **The Watcher's Bastion** | El Bastión del Vigilante | Auth / Security |
 | **The Mirror of Veracity** | El Espejo de la Verdad | Testing / Verification |
 | **The Crimson Altar** | El Altar Carmesí | Error Handling |
