@@ -1674,7 +1674,7 @@
 </trans-unit>
 <trans-unit id="s479bc4a7f279d868">
   <source>The sensor's state was tied to the root of the UI tree through a global context. As a result, every interaction forced the framework to unnecessarily re-evaluate and re-render the entire intersection.</source>
-  <target>El estado del sensor estaba atado a la raíz del árbol de UI mediante un contexto global. Como consecuencia, cada interacción forzaba al framework a re-evaluar y re-renderizar la intersección entera de forma innecesaria.</target>
+  <target>El estado del sensor estaba encadenado a la raíz del árbol de UI mediante un contexto global masivo. Como consecuencia, cada pequeña interacción detonaba una onda expansiva que forzaba al framework a re-evaluar y re-renderizar la intersección entera de forma crítica e innecesaria.</target>
 </trans-unit>
 <trans-unit id="s4682fee376352188">
   <source>Signal.State: A pure reactive container that mutates in absolute silence.</source>
@@ -1686,11 +1686,11 @@
 </trans-unit>
 <trans-unit id="seb8562d6d25447cd">
   <source>I have a detector on the crosswalk, and every time you step on it you force me to rebuild the entire intersection. Step out of the crosswalk so the traffic light turns green and we can talk calmly!</source>
-  <target>Tengo un detector en el paso de cebra, y cada vez que lo pisas me obligas a reconstruir toda la intersección. ¡Sal del paso para que el semáforo cambie a verde y podamos hablar con calma!</target>
+  <target>Tengo un detector en el paso de cebra, y cada pisotón me obliga a reconstruir la matriz de toda la intersección. ¡Sal del paso para que el semáforo cambie a verde y podamos hablar sin sobrecargar el sistema!</target>
 </trans-unit>
 <trans-unit id="sa56a2029adf6c1b3">
   <source>The legacy system calculated derived values eagerly on every lifecycle tick, wasting CPU cycles even if no monitors were active.</source>
-  <target>El sistema antiguo recalculaba valores derivados ansiosamente (eagerly) en cada ciclo de vida, desperdiciando ciclos de CPU aunque ningún monitor estuviera encendido.</target>
+  <target>El viejo sistema padecía de un consumo ansioso (eager evaluation), recalculando pesadas derivadas de estado en cada latido del ciclo de vida, drenando valiosos ciclos de CPU incluso cuando los monitores estaban apagados.</target>
 </trans-unit>
 <trans-unit id="sf16af8b6b1ed0468">
   <source>Signal.Computed: Derived data with native memoization.</source>
@@ -1702,7 +1702,7 @@
 </trans-unit>
 <trans-unit id="scc689500ece247e6">
   <source>The legacy framework performed massive 'diffing' by comparing hundreds of virtual nodes just to realize it only needed to update the text of a single &lt;span&gt;.</source>
-  <target>El framework antiguo realizaba un 'diffing' masivo comparando cientos de nodos virtuales solo para darse cuenta de que debía cambiar el texto de un único &lt;span&gt; final.</target>
+  <target>El framework legado desencadenaba un 'diffing' destructivo, comparando ciegamente cientos de nodos virtuales solo para descubrir que la única mutación requerida era alterar el texto de un minúsculo &lt;span&gt; en la periferia.</target>
 </trans-unit>
 <trans-unit id="s4d99b34a4aecfdfe">
   <source>Signal.subtle.Watcher: Tracks dependencies to trigger targeted effects.</source>
@@ -1714,7 +1714,7 @@
 </trans-unit>
 <trans-unit id="s7a00f24a1957dee7">
   <source>Updating variables separately triggered the framework twice in a chaotic order, generating visual 'tearing' (an invalid intermediate state on screen).</source>
-  <target>Actualizar las variables por separado disparaba el framework dos veces seguidas en orden caótico, generando 'tearing' visual (un estado inválido intermedio en pantalla).</target>
+  <target>Las mutaciones aisladas de estado disparaban el framework en múltiples pasadas caóticas, provocando un peligroso 'tearing' visual donde la pantalla mostraba fotogramas de estado inválidos y corrompidos.</target>
 </trans-unit>
 <trans-unit id="s1aa5eeedadf1c946">
   <source>DAG (Directed Acyclic Graph): Perfectly structures dependencies without cycles.</source>
@@ -1726,7 +1726,7 @@
 </trans-unit>
 <trans-unit id="se51fa5966f75d159">
   <source>A completely public and mutable global state. Any component could overwrite the source of truth, causing impossible-to-track bugs.</source>
-  <target>Un estado global completamente público y mutable. Cualquier componente de la aplicación podía sobrescribir la fuente de verdad y causar bugs imposibles de rastrear.</target>
+  <target>Un estado global expuesto y altamente mutable. Cualquier nodo periférico de la aplicación tenía poder para sobreescribir la fuente de verdad, engendrando fallos en cascada casi imposibles de rastrear.</target>
 </trans-unit>
 <trans-unit id="s354d5d31d597d9f7">
   <source>Private State: The real state is shielded in JS (#cars) so it cannot be mutated from the outside.</source>
@@ -1738,23 +1738,23 @@
 </trans-unit>
 <trans-unit id="s04ed916305e73196">
   <source>I'm isolating this pressure sensor. It was so coupled to the general state that, every time you stepped on it, you forced me to render the entire intersection! Look, I'll show you how to fix it.</source>
-  <target>Estoy aislando este sensor de presión. Estaba tan acoplado al estado general que, cada vez que lo pisabas, ¡me obligabas a renderizar la intersección completa! Mira, te enseño cómo solucionarlo.</target>
+  <target>Estoy aislando este sensor de presión. Estaba tan encadenado a la red central que un simple pisotón provocaba el colapso y redibujado de la intersección entera. Acércate, te enseñaré a desacoplarlo.</target>
 </trans-unit>
 <trans-unit id="scbc08fedfc53271c">
   <source>What a disaster! The system calculates the traffic level incessantly even when nobody is paying attention. I'll show you how to build a lazy intermediate module that sleeps until someone explicitly asks for the data.</source>
-  <target>¡Menudo desastre! El sistema calcula el nivel de tráfico incesantemente aunque nadie esté prestando atención. Te enseñaré a construir un módulo intermedio perezoso que duerma hasta que alguien pida los datos de forma explícita.</target>
+  <target>¡Menudo desastre de eficiencia! El núcleo gasta energía calculando la densidad del tráfico de forma incesante, incluso cuando las calles están vacías. Voy a mostrarte cómo forjar un nodo intermedio reactivo que permanezca latente hasta que alguien exija los datos.</target>
 </trans-unit>
 <trans-unit id="s934af9c10db1c83e">
   <source>Why yell to the whole city just to change one bulb? I'm threading a direct fiber optic cable to that traffic light. Let me teach you how to bypass the framework's massive diffing.</source>
-  <target>¿Por qué gritarle a toda la ciudad solo para cambiar una bombilla? Estoy tirando un cable de fibra óptica directo a ese semáforo. Déjame enseñarte a esquivar el 'diffing' masivo del framework.</target>
+  <target>¿Por qué gritarle a toda la ciudad solo para encender un semáforo? Estoy canalizando un filamento de fibra óptica directamente hasta su lente. Déjame enseñarte a esquivar el caótico 'diffing' masivo del framework.</target>
 </trans-unit>
 <trans-unit id="sd3d710d8fe613264">
   <source>Two simultaneous events are tearing our UI apart! We've got an ambulance and heavy traffic. I'm stabilizing the grid so the state updates atomically. Watch closely!</source>
-  <target>¡Dos eventos simultáneos están destrozando nuestra UI! Tenemos una ambulancia y tráfico denso. Estoy estabilizando la red para que el estado se actualice de forma atómica. ¡Observa atentamente!</target>
+  <target>¡La concurrencia de eventos está fracturando nuestra interfaz! Una ambulancia y un pico de tráfico han colisionado en la memoria. Estoy estabilizando el nodo principal para garantizar actualizaciones atómicas sin desgarros. ¡Aprende!</target>
 </trans-unit>
 <trans-unit id="s0c602244d399ea65">
   <source>Security breach! The traffic network is wide open. Any rookie component can mutate the raw data anywhere. Let's lock this fuse box and expose only safe, read-only mirrors.</source>
-  <target>¡Brecha de seguridad! La red de tráfico está completamente abierta. Cualquier componente novato puede mutar los datos en bruto. Vamos a blindar esta caja de fusibles y exponer solo espejos seguros de solo lectura.</target>
+  <target>¡Brecha de integridad detectada! La red principal está expuesta; cualquier módulo inexperto podría sobreescribir los datos de tráfico en crudo. Ayúdame a blindar esta caja de fusibles y expondremos únicamente espejos reactivos de solo lectura.</target>
 </trans-unit>
 </body>
 </file>
