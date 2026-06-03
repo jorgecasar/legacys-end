@@ -20,7 +20,7 @@ export const getTheFlowingHeartstoneChapters = () => ({
 		id: "the-pressure-sensor",
 		title: msg("The Pedestrian Crossing"),
 		description: msg(
-			"I'm isolating this pressure sensor. It was so coupled to the general state that, every time you stepped on it, you forced me to render the entire intersection! Look, I'll show you how to fix it.",
+			"I'm isolating this pressure sensor. It was so chained to the core grid that a simple footstep caused the entire intersection to collapse and redraw. Step closer, I'll teach you how to decouple it.",
 		),
 		zones: [
 			{
@@ -58,7 +58,7 @@ export const getTheFlowingHeartstoneChapters = () => ({
 		],
 		problemTitle: msg("Before: Massive Re-rendering"),
 		problemDesc: msg(
-			"The sensor's state was tied to the root of the UI tree through a global context. As a result, every interaction forced the framework to unnecessarily re-evaluate and re-render the entire intersection.",
+			"The sensor's state was shackled to the root of the UI tree through a massive global context. Consequently, every minor interaction detonated a shockwave that forced the framework to critically and unnecessarily re-render the entire intersection.",
 		),
 		solutionTitle: msg("After: The Autonomous Data"),
 		architecturalChanges: [
@@ -232,7 +232,7 @@ class PedestrianSensor extends LitElement {
 				trafficLightState: {
 					value: TrafficLightStates.GREEN,
 					message: msg(
-						"I have a detector on the crosswalk, and every time you step on it you force me to rebuild the entire intersection. Step out of the crosswalk so the traffic light turns green and we can talk calmly!",
+						"I have a detector on the crosswalk, and every footstep forces me to rebuild the entire intersection's matrix. Step out of the crosswalk so the light turns green and we can talk without overloading the system!",
 					),
 				},
 			},
@@ -249,11 +249,11 @@ class PedestrianSensor extends LitElement {
 		id: "the-turn-automator",
 		title: msg("The Turn Automator"),
 		description: msg(
-			"What a disaster! The system calculates the traffic level incessantly even when nobody is paying attention. I'll show you how to build a lazy intermediate module that sleeps until someone explicitly asks for the data.",
+			"What a disaster of efficiency! The core wastes energy calculating traffic density incessantly, even when the streets are empty. I'll show you how to forge a reactive intermediate node that remains dormant until its data is explicitly demanded.",
 		),
 		problemTitle: msg("Before: Eager Computation"),
 		problemDesc: msg(
-			"The legacy system calculated derived values eagerly on every lifecycle tick, wasting CPU cycles even if no monitors were active.",
+			"The legacy system suffered from eager evaluation, aggressively recalculating heavy derived state on every lifecycle heartbeat, draining precious CPU cycles even when all monitors were offline.",
 		),
 		solutionTitle: msg("After: Lazy Mirrors"),
 		architecturalChanges: [
@@ -355,11 +355,11 @@ class TrafficMonitor extends SignalWatcher(LitElement) {
 		id: "the-fiber-optic-cable",
 		title: msg("The Fiber Optic Cable"),
 		description: msg(
-			"Why yell to the whole city just to change one bulb? I'm threading a direct fiber optic cable to that traffic light. Let me teach you how to bypass the framework's massive diffing.",
+			"Why yell to the whole city just to turn on a single traffic light? I'm threading a direct fiber optic filament right into its lens. Let me teach you how to bypass the framework's chaotic massive diffing.",
 		),
 		problemTitle: msg("Before: VDOM Diffing"),
 		problemDesc: msg(
-			"The legacy framework performed massive 'diffing' by comparing hundreds of virtual nodes just to realize it only needed to update the text of a single <span>.",
+			"The legacy framework unleashed destructive 'diffing', blindly comparing hundreds of virtual nodes only to discover the sole required mutation was altering the text of a tiny <span> on the periphery.",
 		),
 		solutionTitle: msg("After: Surgical Notification"),
 		architecturalChanges: [
@@ -465,11 +465,11 @@ class TrafficLight extends LitElement {
 		id: "the-ambulance-hub",
 		title: msg("The Ambulance Hub"),
 		description: msg(
-			"Two simultaneous events are tearing our UI apart! We've got an ambulance and heavy traffic. I'm stabilizing the grid so the state updates atomically. Watch closely!",
+			"Event concurrency is fracturing our interface! An ambulance and a traffic spike have collided in memory. I'm stabilizing the main node to guarantee tear-free atomic updates. Watch closely!",
 		),
 		problemTitle: msg("Before: Glitchy Renders (Tearing)"),
 		problemDesc: msg(
-			"Updating variables separately triggered the framework twice in a chaotic order, generating visual 'tearing' (an invalid intermediate state on screen).",
+			"Isolated state mutations triggered the framework in multiple chaotic passes, causing dangerous visual 'tearing' where the screen displayed invalid and corrupted state frames.",
 		),
 		solutionTitle: msg("After: Atomic Consistency"),
 		architecturalChanges: [
@@ -560,11 +560,11 @@ class Dispatcher extends LitElement {
 		id: "the-fuse-box",
 		title: msg("The Locked Fuse Box"),
 		description: msg(
-			"Security breach! The traffic network is wide open. Any rookie component can mutate the raw data anywhere. Let's lock this fuse box and expose only safe, read-only mirrors.",
+			"Integrity breach detected! The main network is fully exposed; any rookie module could overwrite raw traffic data. Help me lock this fuse box, and we'll expose only safe, read-only reactive mirrors.",
 		),
 		problemTitle: msg("Before: Global Mutable State"),
 		problemDesc: msg(
-			"A completely public and mutable global state. Any component could overwrite the source of truth, causing impossible-to-track bugs.",
+			"A dangerously exposed and highly mutable global state. Any peripheral node in the application had the power to overwrite the source of truth, spawning near-impossible-to-track cascading failures.",
 		),
 		solutionTitle: msg("After: Store Governance"),
 		architecturalChanges: [
