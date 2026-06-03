@@ -233,6 +233,11 @@ export class GameViewport extends SignalWatcher(
 
 		if (!this.heroState) return;
 
+		// Clear any lingering locked messages when the player moves
+		if (this.questState?.lockedMessage.get() !== null) {
+			this.questState?.setLockedMessage(null);
+		}
+
 		const current = this.heroState.pos.get();
 		const nextX = Math.max(0, Math.min(100, current.x + dx));
 		const nextY = Math.max(0, Math.min(100, current.y + dy));
@@ -445,6 +450,21 @@ export class GameViewport extends SignalWatcher(
 					.zones="${config?.zones}"
 				></game-zone-indicator>
 
+				<game-zone-indicator
+					.type="${ZoneTypes.TRAFFIC_LIGHT_CHANGE}"
+					.zones="${config?.zones}"
+				></game-zone-indicator>
+
+				<game-zone-indicator
+					.type="${ZoneTypes.TRAFFIC_LIGHT_RED}"
+					.zones="${config?.zones}"
+				></game-zone-indicator>
+
+				<game-zone-indicator
+					.type="${ZoneTypes.TRAFFIC_LIGHT_GREEN}"
+					.zones="${config?.zones}"
+				></game-zone-indicator>
+
 				<game-exit-zone></game-exit-zone>
 
 				${this._renderNPC()}
@@ -485,6 +505,7 @@ export class GameViewport extends SignalWatcher(
 				.x="${config.npc.position.x}"
 				.y="${config.npc.position.y}"
 				.isClose="${isCloseToTarget}"
+				style="${config.npc.scale || config.scale ? `width: ${config.npc.scale || config.scale}%;` : ""}"
 			></npc-element>
 		`;
 	}
@@ -520,13 +541,15 @@ export class GameViewport extends SignalWatcher(
 				.x="${x}"
 				.y="${y}"
 				class=${classMap({ [this.rewardAnimState || ""]: this.isAnimatingReward })}
+				style="${(config.reward.scale || config.scale) && !this.isAnimatingReward ? `width: ${config.reward.scale || config.scale}%;` : ""}"
 			></reward-element>
 		`;
 	}
 
 	_renderHero() {
+		const config = this.questController?.currentChapter;
 		return html`
-			<hero-profile></hero-profile>
+			<hero-profile style="${config?.hero?.scale || config?.scale ? `width: ${config?.hero?.scale || config?.scale}%;` : ""}"></hero-profile>
 		`;
 	}
 }

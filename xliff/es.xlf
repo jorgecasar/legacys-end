@@ -102,10 +102,6 @@
   <source>The Flowing Heartstone</source>
   <target>La Piedra Corazón Fluida</target>
 </trans-unit>
-<trans-unit id="s5b980d8d301f3d6f">
-  <source>Channeling the River of State</source>
-  <target>Canalizando el Río del Estado</target>
-</trans-unit>
 <trans-unit id="s8ea1bcd834cfb92a">
   <source>The Watcher's Bastion</source>
   <target>El Bastión del Vigilante</target>
@@ -674,45 +670,9 @@
   <source>Visual Adaptation</source>
   <target>Adaptación Visual</target>
 </trans-unit>
-<trans-unit id="s3920d50711b279a0">
-  <source>Prop drilling, unpredictable global state mutation, and excessive re-renders due to poor reactivity.</source>
-  <target>Prop drilling, mutación impredecible del estado global y re-renderizados excesivos debido a una reactividad deficiente.</target>
-</trans-unit>
 <trans-unit id="se178cc8466dd49f1">
   <source>30-40 min</source>
   <target>30-40 min</target>
-</trans-unit>
-<trans-unit id="s15fad8f9b309db1d">
-  <source>Reactive Patterns</source>
-  <target>Patrones Reactivos</target>
-</trans-unit>
-<trans-unit id="s3d3b4f88fa2273ee">
-  <source>Signals</source>
-  <target>Signals</target>
-</trans-unit>
-<trans-unit id="sac335058bc37c05e">
-  <source>Observable Stores</source>
-  <target>Almacenes Observables</target>
-</trans-unit>
-<trans-unit id="se8fe905ea6d44e86">
-  <source>Context API (for Stores)</source>
-  <target>Context API (para Almacenes)</target>
-</trans-unit>
-<trans-unit id="s8d816573d0674c87">
-  <source>Unidirectional Data Flow</source>
-  <target>Flujo de Datos Unidireccional</target>
-</trans-unit>
-<trans-unit id="s246b8bc6be509180">
-  <source>State Master</source>
-  <target>Maestro del Estado</target>
-</trans-unit>
-<trans-unit id="s68992ea539645d1c">
-  <source>Reactive, predictable component without prop drilling</source>
-  <target>Componente reactivo y predecible sin prop drilling</target>
-</trans-unit>
-<trans-unit id="sfe0e3ab1cb2f3f07">
-  <source>State Predictability</source>
-  <target>Predecibilidad del Estado</target>
 </trans-unit>
 <trans-unit id="sb70fef79e7c5676c">
   <source>Scattered authentication logic, repetitive `isLoggedIn()` checks, and vulnerable redirection flows.</source>
@@ -1226,10 +1186,6 @@
   <source>PREV</source>
   <target>ANTERIOR</target>
 </trans-unit>
-<trans-unit id="sc776f66d33e8b210">
-  <source>EVOLVE</source>
-  <target>EVOLUCIONAR</target>
-</trans-unit>
 <trans-unit id="sfa236dc6043a5fe8">
   <source>NEXT</source>
   <target>SIGUIENTE</target>
@@ -1245,10 +1201,6 @@
 <trans-unit id="s51c87d409e952710">
   <source>To understand the outside world, Alarion must learn to observe without interfering. The Orb of Inquiry reveals how to accept data through Attributes and Properties, reacting to changes like a reflection in water.</source>
   <target>Para entender el mundo exterior, Alarión debe aprender a observar sin interferir. El Orbe de la Indagación revela cómo aceptar datos a través de Attributes y Properties, reaccionando a los cambios como un reflejo en el agua.</target>
-</trans-unit>
-<trans-unit id="s2c86e25fd47416e5">
-  <source>Deep within the Crystal Caverns lies the Heartstone, pulsing with energy. Alarion must learn to channel this energy (State) downstream to his children, ensuring the flow is unidirectional and controlled. Reactive Data Flow.</source>
-  <target>En lo profundo de las Cavernas de Cristal yace la Piedra Corazón, pulsando con energía. Alarión debe aprender a canalizar esta energía (State) hacia sus hijos, asegurando que el flujo sea unidireccional y controlado. Flujo de Datos Reactivo.</target>
 </trans-unit>
 <trans-unit id="sf8027c610f91f880">
   <source>The Watchers demand proof of identity. Alarion must learn to speak for himself, dispatching Custom Events to notify the world of his actions, without checking who is listening. The principle of 'Fire and Forget'.</source>
@@ -1402,10 +1354,6 @@
   <source>The Architect</source>
   <target>El Arquitecto</target>
 </trans-unit>
-<trans-unit id="sff0ab6c6929aa6d5">
-  <source>The Crown of Alignment</source>
-  <target>La Corona de Alineación</target>
-</trans-unit>
 <trans-unit id="s6a36dd022f8801fc">
   <source>Reboot World</source>
   <target>Reiniciar Mundo</target>
@@ -1441,10 +1389,6 @@
 <trans-unit id="s77ea181d78829f38">
   <source>Mastered the synthesis between human intent and machine execution.</source>
   <target>Maestría en la síntesis entre la intención humana y la ejecución de la máquina.</target>
-</trans-unit>
-<trans-unit id="sf0f0ba476c26231b">
-  <source>Neural Orchestration</source>
-  <target>Orquestación Neuronal</target>
 </trans-unit>
 <trans-unit id="s9ec91479e7ce97e1">
   <source>In the heart of the Machine City, Alarion must master the art of Generative AI. From the white void of the Construct to the Architect's chamber, you will learn to forge complex systems by providing context, planning logic, and orchestrating autonomous agents without losing your mind—or your code.</source>
@@ -1505,6 +1449,312 @@
 <trans-unit id="s0c46a1b9d61df897">
   <source>Alignment: Ensuring output matches intent.</source>
   <target>Alineación: Asegurar que el resultado coincida con la intención.</target>
+</trans-unit>
+<trans-unit id="sac483d2392236a66">
+  <source>Surgical Reactivity with Signals</source>
+  <target>Reactividad Quirúrgica con Señales</target>
+</trans-unit>
+<trans-unit id="sd883dc9580163967">
+  <source>Welcome to the Silicon Metropolis. The city's CPU is at 100% due to legacy infrastructure. Alarion must cut the cables of the past and redesign the city using surgical reactivity (TC39 Signals) to end massive rendering.</source>
+  <target>Bienvenido a la Metrópolis de Silicio. La CPU de la ciudad está al 100% debido a la infraestructura heredada. Alarión debe cortar los cables del pasado y rediseñar la ciudad utilizando reactividad quirúrgica (Señales TC39) para acabar con el renderizado masivo.</target>
+</trans-unit>
+<trans-unit id="s84e31f2d867d62c2">
+  <source>Before: Massive Re-rendering</source>
+  <target>Antes: Renderizado Masivo</target>
+</trans-unit>
+<trans-unit id="sd25ad067c70af312">
+  <source>After: The Autonomous Data</source>
+  <target>Después: Los Datos Autónomos</target>
+</trans-unit>
+<trans-unit id="s0fbf6dc6a1966408">
+  <source>Next</source>
+  <target>Siguiente</target>
+</trans-unit>
+<trans-unit id="s3586fb29d252f5a5">
+  <source>The Wiretapper</source>
+  <target>La Pincha-Cables</target>
+</trans-unit>
+<trans-unit id="s8991cb98bf852530">
+  <source>Isolated Sensor</source>
+  <target>Sensor Aislado</target>
+</trans-unit>
+<trans-unit id="s881e8d17596ddae5">
+  <source>The Turn Automator</source>
+  <target>El Automatizador de Giros</target>
+</trans-unit>
+<trans-unit id="s32e1972bb5f693e7">
+  <source>Before: Eager Computation</source>
+  <target>Antes: Computación Ansiosa</target>
+</trans-unit>
+<trans-unit id="s5f15938d1971f429">
+  <source>After: Lazy Mirrors</source>
+  <target>Después: Espejos Perezosos</target>
+</trans-unit>
+<trans-unit id="s2fea7e51f95f5cb7">
+  <source>The Idle Engineer</source>
+  <target>El Ingeniero Inactivo</target>
+</trans-unit>
+<trans-unit id="s331f051b123eedd7">
+  <source>The Lazy Smart Chip</source>
+  <target>El Chip Inteligente Perezoso</target>
+</trans-unit>
+<trans-unit id="se81385c1ccdaf48e">
+  <source>The Fiber Optic Cable</source>
+  <target>El Cable de Fibra Óptica</target>
+</trans-unit>
+<trans-unit id="sabd2143d1bf9201b">
+  <source>Before: VDOM Diffing</source>
+  <target>Antes: Diffing del VDOM</target>
+</trans-unit>
+<trans-unit id="s3c1e1a3a034d0768">
+  <source>After: Surgical Notification</source>
+  <target>Después: Notificación Quirúrgica</target>
+</trans-unit>
+<trans-unit id="seb1c4807a9fdae42">
+  <source>The Fiber Weaver</source>
+  <target>El Tejedor de Fibra</target>
+</trans-unit>
+<trans-unit id="s0773bfcfa0fc93ff">
+  <source>The Surgical Laser Splicer</source>
+  <target>El Empalmador Láser Quirúrgico</target>
+</trans-unit>
+<trans-unit id="s82da55eeffe28e01">
+  <source>The Ambulance Hub</source>
+  <target>El Centro de Ambulancias</target>
+</trans-unit>
+<trans-unit id="sad378998514281b6">
+  <source>After: Atomic Consistency</source>
+  <target>Después: Consistencia Atómica</target>
+</trans-unit>
+<trans-unit id="sae73890e53c01d57">
+  <source>The Chrono-Dispatcher</source>
+  <target>La Cronomarcadora</target>
+</trans-unit>
+<trans-unit id="sa15b24b4ea8eff55">
+  <source>The Atomic Chronometer</source>
+  <target>El Cronómetro Atómico</target>
+</trans-unit>
+<trans-unit id="s809ffabeabd8a15e">
+  <source>The Locked Fuse Box</source>
+  <target>La Caja de Fusibles Bloqueada</target>
+</trans-unit>
+<trans-unit id="sf84597ab978dbec0">
+  <source>Before: Global Mutable State</source>
+  <target>Antes: Estado Mutable Global</target>
+</trans-unit>
+<trans-unit id="s533108d69b4b53f0">
+  <source>After: Store Governance</source>
+  <target>Después: Gobernanza del Store</target>
+</trans-unit>
+<trans-unit id="s6a3ca1bab350ee7c">
+  <source>The Cyber Guardian</source>
+  <target>El Ciberguardián</target>
+</trans-unit>
+<trans-unit id="sb0100d09faaa3465">
+  <source>The Encrypted Master Key</source>
+  <target>La Llave Maestra Encriptada</target>
+</trans-unit>
+<trans-unit id="s6cb2a72bdd31966c">
+  <source>Massive re-rendering of entire components when a single localized data point changes.</source>
+  <target>Re-renderizado masivo de componentes enteros cuando un único punto de datos localizado cambia.</target>
+</trans-unit>
+<trans-unit id="s56492fa9a5f67c9d">
+  <source>Surgical Reactivity</source>
+  <target>Reactividad Quirúrgica</target>
+</trans-unit>
+<trans-unit id="se0fa76aaa7d95ead">
+  <source>Mastery over fine-grained reactive state without VDOM rendering overhead.</source>
+  <target>Dominio sobre el estado reactivo de grano fino sin la sobrecarga del renderizado del VDOM.</target>
+</trans-unit>
+<trans-unit id="s8795ffe17b93f5a0">
+  <source>Glitch-Free State Flow</source>
+  <target>Flujo de Estado sin Glitches</target>
+</trans-unit>
+<trans-unit id="sae1c2c18c524c483">
+  <source>Source Code Vision</source>
+  <target>Visión de Código Fuente</target>
+</trans-unit>
+<trans-unit id="s331ac80f05f92e7a">
+  <source>Agentic Intent Manifestation</source>
+  <target>Manifestación de Intención Agéntica</target>
+</trans-unit>
+<trans-unit id="scdca4372f70d25eb">
+  <source>The Pedestrian Crossing</source>
+</trans-unit>
+<trans-unit id="sefda69885e68e84f">
+  <source>Legacy React (Context)</source>
+</trans-unit>
+<trans-unit id="s6dc93a983eaaf665">
+  <source>Legacy Lit (Events &amp; Props)</source>
+</trans-unit>
+<trans-unit id="s8a3a0e4b61537e08">
+  <source>Modern React (TC39 Signals)</source>
+</trans-unit>
+<trans-unit id="sc61f773bc2340f1e">
+  <source>Modern Lit (TC39 Signals)</source>
+</trans-unit>
+<trans-unit id="s10804bbc452401c6">
+  <source>Legacy React (Eager)</source>
+</trans-unit>
+<trans-unit id="s8d0561de2501a950">
+  <source>Legacy Lit (Eager)</source>
+</trans-unit>
+<trans-unit id="sfde61714740c99d5">
+  <source>Modern React (Lazy Computed)</source>
+</trans-unit>
+<trans-unit id="sf9739ad4ee8e17d3">
+  <source>Modern Lit (Lazy Computed)</source>
+</trans-unit>
+<trans-unit id="s13350e44089fc302">
+  <source>Legacy React (VDOM)</source>
+</trans-unit>
+<trans-unit id="s70ba45b680d5499f">
+  <source>Legacy Lit (Template Diffing)</source>
+</trans-unit>
+<trans-unit id="s0b08302d1aacb2a7">
+  <source>Modern React (Direct Ref Mutation)</source>
+</trans-unit>
+<trans-unit id="saa4307c0c7fc135e">
+  <source>Modern Lit (Watch Directive)</source>
+</trans-unit>
+<trans-unit id="s9405433ab66f246e">
+  <source>Before: Glitchy Renders (Tearing)</source>
+</trans-unit>
+<trans-unit id="s2e151aa0a079fd42">
+  <source>Legacy React (Tearing)</source>
+</trans-unit>
+<trans-unit id="s3c71d18677741460">
+  <source>Legacy Lit (Tearing)</source>
+</trans-unit>
+<trans-unit id="s97aad3261f070b3b">
+  <source>Modern React (Atomic Graph)</source>
+</trans-unit>
+<trans-unit id="s2708f7f1b77a9c71">
+  <source>Modern Lit (Atomic Graph)</source>
+</trans-unit>
+<trans-unit id="s97d4a0bd6d1d32d8">
+  <source>Legacy React (Global Mutable State)</source>
+</trans-unit>
+<trans-unit id="sa47be39e79b3edba">
+  <source>Legacy Lit (Global Mutable State)</source>
+</trans-unit>
+<trans-unit id="sc91f84de3025c295">
+  <source>Modern React (Store Governance)</source>
+</trans-unit>
+<trans-unit id="sd53d3db142c5095b">
+  <source>Modern Lit (Store Governance)</source>
+</trans-unit>
+<trans-unit id="s7b07ef55e99a3fd0">
+  <source>Dark Theme</source>
+  <target>Tema Oscuro</target>
+</trans-unit>
+<trans-unit id="s587adf7955f74f3a">
+  <source>Light Theme</source>
+  <target>Tema Claro</target>
+</trans-unit>
+<trans-unit id="s6b686d1e36e6abbe">
+  <source>Legacy</source>
+  <target>Legado</target>
+</trans-unit>
+<trans-unit id="s589d370649a877a7">
+  <source>New API V2</source>
+  <target>Nueva API V2</target>
+</trans-unit>
+<trans-unit id="sc53d214bb6133980">
+  <source>LegacyUserService</source>
+  <target>ServicioUsuarioLegado</target>
+</trans-unit>
+<trans-unit id="sdd41e222e2d89195">
+  <source>NewUserService</source>
+  <target>NuevoServicioUsuario</target>
+</trans-unit>
+<trans-unit id="sa5e828e03ba1efb3">
+  <source>ACQUIRE</source>
+  <target>ADQUIRIR</target>
+</trans-unit>
+<trans-unit id="s479bc4a7f279d868">
+  <source>The sensor's state was tied to the root of the UI tree through a global context. As a result, every interaction forced the framework to unnecessarily re-evaluate and re-render the entire intersection.</source>
+  <target>El estado del sensor estaba atado a la raíz del árbol de UI mediante un contexto global. Como consecuencia, cada interacción forzaba al framework a re-evaluar y re-renderizar la intersección entera de forma innecesaria.</target>
+</trans-unit>
+<trans-unit id="s4682fee376352188">
+  <source>Signal.State: A pure reactive container that mutates in absolute silence.</source>
+  <target>Signal.State: Un contenedor reactivo puro que muta en absoluto silencio.</target>
+</trans-unit>
+<trans-unit id="s333939ac564e2e0a">
+  <source>State outside the UI: Data lives in memory independently of the DOM lifecycle.</source>
+  <target>Estado fuera de la UI: Los datos viven en memoria independientemente del ciclo de vida del DOM.</target>
+</trans-unit>
+<trans-unit id="seb8562d6d25447cd">
+  <source>I have a detector on the crosswalk, and every time you step on it you force me to rebuild the entire intersection. Step out of the crosswalk so the traffic light turns green and we can talk calmly!</source>
+  <target>Tengo un detector en el paso de cebra, y cada vez que lo pisas me obligas a reconstruir toda la intersección. ¡Sal del paso para que el semáforo cambie a verde y podamos hablar con calma!</target>
+</trans-unit>
+<trans-unit id="sa56a2029adf6c1b3">
+  <source>The legacy system calculated derived values eagerly on every lifecycle tick, wasting CPU cycles even if no monitors were active.</source>
+  <target>El sistema antiguo recalculaba valores derivados ansiosamente (eagerly) en cada ciclo de vida, desperdiciando ciclos de CPU aunque ningún monitor estuviera encendido.</target>
+</trans-unit>
+<trans-unit id="sf16af8b6b1ed0468">
+  <source>Signal.Computed: Derived data with native memoization.</source>
+  <target>Signal.Computed: Datos derivados con memoización nativa.</target>
+</trans-unit>
+<trans-unit id="sc62d6243b1dc8dc4">
+  <source>Lazy Evaluation: The computational cost is ZERO if nobody extracts the computed value.</source>
+  <target>Evaluación perezosa (Lazy): El coste computacional es CERO si nadie extrae el valor del computed.</target>
+</trans-unit>
+<trans-unit id="scc689500ece247e6">
+  <source>The legacy framework performed massive 'diffing' by comparing hundreds of virtual nodes just to realize it only needed to update the text of a single &lt;span&gt;.</source>
+  <target>El framework antiguo realizaba un 'diffing' masivo comparando cientos de nodos virtuales solo para darse cuenta de que debía cambiar el texto de un único &lt;span&gt; final.</target>
+</trans-unit>
+<trans-unit id="s4d99b34a4aecfdfe">
+  <source>Signal.subtle.Watcher: Tracks dependencies to trigger targeted effects.</source>
+  <target>Signal.subtle.Watcher: Rastrea dependencias para disparar efectos.</target>
+</trans-unit>
+<trans-unit id="s08f1df09676b7f3d">
+  <source>Direct DOM Mutation: We bypass framework re-renders, updating the element with O(1) cost.</source>
+  <target>Mutación Directa del DOM: Nos saltamos los re-renders del framework, actualizando el elemento con coste O(1).</target>
+</trans-unit>
+<trans-unit id="s7a00f24a1957dee7">
+  <source>Updating variables separately triggered the framework twice in a chaotic order, generating visual 'tearing' (an invalid intermediate state on screen).</source>
+  <target>Actualizar las variables por separado disparaba el framework dos veces seguidas en orden caótico, generando 'tearing' visual (un estado inválido intermedio en pantalla).</target>
+</trans-unit>
+<trans-unit id="s1aa5eeedadf1c946">
+  <source>DAG (Directed Acyclic Graph): Perfectly structures dependencies without cycles.</source>
+  <target>DAG (Directed Acyclic Graph): Estructura perfectamente las dependencias sin ciclos.</target>
+</trans-unit>
+<trans-unit id="s255e260055760ae3">
+  <source>Push/Pull Algorithm: Stabilizes the graph in blocks, guaranteeing the DOM updates only once atomically.</source>
+  <target>Push/Pull Algorithm: Estabiliza el grafo en bloques, garantizando que el DOM se actualice una sola vez de forma atómica.</target>
+</trans-unit>
+<trans-unit id="se51fa5966f75d159">
+  <source>A completely public and mutable global state. Any component could overwrite the source of truth, causing impossible-to-track bugs.</source>
+  <target>Un estado global completamente público y mutable. Cualquier componente de la aplicación podía sobrescribir la fuente de verdad y causar bugs imposibles de rastrear.</target>
+</trans-unit>
+<trans-unit id="s354d5d31d597d9f7">
+  <source>Private State: The real state is shielded in JS (#cars) so it cannot be mutated from the outside.</source>
+  <target>Estado Privado: El estado real se blinda en JS (#cars) para que no pueda mutarse desde fuera.</target>
+</trans-unit>
+<trans-unit id="s34e7ebde93c7d745">
+  <source>Read-only Projections: Computed signals are exposed as safe, immutable mirrors for the UI.</source>
+  <target>Proyecciones Read-only: Se exponen señales calculadas como espejos inmutables y seguros para la UI.</target>
+</trans-unit>
+<trans-unit id="s04ed916305e73196">
+  <source>I'm isolating this pressure sensor. It was so coupled to the general state that, every time you stepped on it, you forced me to render the entire intersection! Look, I'll show you how to fix it.</source>
+  <target>Estoy aislando este sensor de presión. Estaba tan acoplado al estado general que, cada vez que lo pisabas, ¡me obligabas a renderizar la intersección completa! Mira, te enseño cómo solucionarlo.</target>
+</trans-unit>
+<trans-unit id="scbc08fedfc53271c">
+  <source>What a disaster! The system calculates the traffic level incessantly even when nobody is paying attention. I'll show you how to build a lazy intermediate module that sleeps until someone explicitly asks for the data.</source>
+  <target>¡Menudo desastre! El sistema calcula el nivel de tráfico incesantemente aunque nadie esté prestando atención. Te enseñaré a construir un módulo intermedio perezoso que duerma hasta que alguien pida los datos de forma explícita.</target>
+</trans-unit>
+<trans-unit id="s934af9c10db1c83e">
+  <source>Why yell to the whole city just to change one bulb? I'm threading a direct fiber optic cable to that traffic light. Let me teach you how to bypass the framework's massive diffing.</source>
+  <target>¿Por qué gritarle a toda la ciudad solo para cambiar una bombilla? Estoy tirando un cable de fibra óptica directo a ese semáforo. Déjame enseñarte a esquivar el 'diffing' masivo del framework.</target>
+</trans-unit>
+<trans-unit id="sd3d710d8fe613264">
+  <source>Two simultaneous events are tearing our UI apart! We've got an ambulance and heavy traffic. I'm stabilizing the grid so the state updates atomically. Watch closely!</source>
+  <target>¡Dos eventos simultáneos están destrozando nuestra UI! Tenemos una ambulancia y tráfico denso. Estoy estabilizando la red para que el estado se actualice de forma atómica. ¡Observa atentamente!</target>
+</trans-unit>
+<trans-unit id="s0c602244d399ea65">
+  <source>Security breach! The traffic network is wide open. Any rookie component can mutate the raw data anywhere. Let's lock this fuse box and expose only safe, read-only mirrors.</source>
+  <target>¡Brecha de seguridad! La red de tráfico está completamente abierta. Cualquier componente novato puede mutar los datos en bruto. Vamos a blindar esta caja de fusibles y exponer solo espejos seguros de solo lectura.</target>
 </trans-unit>
 </body>
 </file>

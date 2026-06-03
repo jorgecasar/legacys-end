@@ -158,5 +158,16 @@ export class GameZoneController {
 				this.#heroState.setHotSwitchState(contextChange.payload);
 			}
 		}
+
+		// Handle TRAFFIC_LIGHT_CHANGE (Last one wins if multiple)
+		const trafficLightChange = [...results]
+			.reverse()
+			.find((r) => r.type === ZoneTypes.TRAFFIC_LIGHT_CHANGE);
+		if (trafficLightChange && this.#heroState) {
+			const currentState = this.#heroState.trafficLightState.get();
+			if (currentState !== trafficLightChange.payload) {
+				this.#heroState.setTrafficLightState(trafficLightChange.payload);
+			}
+		}
 	}
 }

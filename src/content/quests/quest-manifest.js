@@ -55,14 +55,14 @@ export const getOrbOfInquiryMetadata = () => ({
 export const getStateManagementRaidMetadata = () => ({
 	id: "the-flowing-heartstone",
 	name: msg("The Flowing Heartstone"),
-	subtitle: msg("Channeling the River of State"),
+	subtitle: msg("Surgical Reactivity with Signals"),
 	description: msg(
-		"Deep within the Crystal Caverns lies the Heartstone, pulsing with energy. Alarion must learn to channel this energy (State) downstream to his children, ensuring the flow is unidirectional and controlled. Reactive Data Flow.",
+		"Welcome to the Silicon Metropolis. The city's CPU is at 100% due to legacy infrastructure. Alarion must cut the cables of the past and redesign the city using surgical reactivity (TC39 Signals) to end massive rendering.",
 	),
 	difficulty: Difficulty.INTERMEDIATE,
 	estimatedTime: msg("30-40 min"),
 	icon: "hexagon-nodes",
-	status: QuestStatus.COMING_SOON,
+	status: QuestStatus.AVAILABLE,
 	prerequisites: ["the-orb-of-inquiry"],
 });
 

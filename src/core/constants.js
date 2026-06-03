@@ -50,6 +50,9 @@ export const GameConstants = {
 export const ZoneTypes = {
 	THEME_CHANGE: "THEME_CHANGE",
 	CONTEXT_CHANGE: "CONTEXT_CHANGE",
+	TRAFFIC_LIGHT_CHANGE: "TRAFFIC_LIGHT_CHANGE",
+	TRAFFIC_LIGHT_RED: "TRAFFIC_LIGHT_RED",
+	TRAFFIC_LIGHT_GREEN: "TRAFFIC_LIGHT_GREEN",
 	NONE: "NONE",
 };
 
@@ -62,6 +65,16 @@ export const QuestStatus = {
 	AVAILABLE: "available",
 	COMING_SOON: "coming_soon",
 	LOCKED: "locked",
+};
+
+/**
+ * Traffic Light States
+ * @readonly
+ * @enum {string}
+ */
+export const TrafficLightStates = {
+	GREEN: "GREEN",
+	RED: "RED",
 };
 
 /**

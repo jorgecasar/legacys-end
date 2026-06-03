@@ -1,29 +1,38 @@
 import { msg } from "@lit/localize";
 import { getStateManagementRaidMetadata } from "../quest-manifest.js";
-import { getFlowingHeartstoneChapters } from "./chapters.js";
 
-/** @returns {import("../quest-types.js").Quest} */
+import { getTheFlowingHeartstoneChapters } from "./chapters.js";
+
 export const getStateManagementRaidQuest = () => ({
 	...getStateManagementRaidMetadata(),
 	legacyProblem: msg(
-		"Prop drilling, unpredictable global state mutation, and excessive re-renders due to poor reactivity.",
+		"Massive re-rendering of entire components when a single localized data point changes.",
 	),
 	shortcuts: /** @type {string[]} */ ([]),
 	concepts: [
-		msg("Reactive Patterns"),
-		msg("Signals"),
-		msg("Observable Stores"),
-		msg("Context API (for Stores)"),
-		msg("Unidirectional Data Flow"),
+		"Signals",
+		"Signal.State",
+		"Signal.Computed",
+		"Signal.subtle.Watcher",
+		"DAG (Directed Acyclic Graph)",
+		"Push/Pull Algorithm",
+		"Fine-grained Reactivity",
+		"Store Governance",
 	],
-	chapterIds: /** @type {string[]} */ ([]),
+	chapterIds: [
+		"the-pressure-sensor",
+		"the-turn-automator",
+		"the-fiber-optic-cable",
+		"the-ambulance-hub",
+		"the-fuse-box",
+	],
 	// Chapter data
-	chapters: getFlowingHeartstoneChapters(),
+	chapters: getTheFlowingHeartstoneChapters(),
 	reward: {
-		badge: msg("State Master"),
-		description: msg("Reactive, predictable component without prop drilling"),
-		ability: msg("State Predictability"),
+		badge: msg("Surgical Reactivity"),
+		description: msg(
+			"Mastery over fine-grained reactive state without VDOM rendering overhead.",
+		),
+		ability: msg("Glitch-Free State Flow"),
 	},
 });
-
-// No static exports here to ensure reactivity via functions.

@@ -151,6 +151,7 @@ export class InteractionController {
 			level: currentChapter?.id || "",
 			heroPos: this.#heroState.pos.get(),
 			hotSwitchState: this.#heroState.hotSwitchState.get(),
+			trafficLightState: this.#heroState.trafficLightState.get(),
 			hasCollectedItem: this.#questState.hasCollectedItem.get(),
 		};
 

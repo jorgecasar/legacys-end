@@ -3,6 +3,7 @@ import { Signal } from "@lit-labs/signals";
 
 /**
  * @typedef {import('../types/game.d.js').HotSwitchState} HotSwitchState
+ * @typedef {import('../types/game.d.js').TrafficLightState} TrafficLightState
  */
 
 /**
@@ -28,6 +29,9 @@ class HeroStore {
 		this.hotSwitchState = new Signal.State(
 			/** @type {HotSwitchState} */ (null),
 		);
+		this.trafficLightState = new Signal.State(
+			/** @type {TrafficLightState} */ (null),
+		);
 		this.isEvolving = new Signal.State(false);
 		this.imageSrc = new Signal.State("");
 	}
@@ -45,6 +49,13 @@ class HeroStore {
 	 */
 	setHotSwitchState(state) {
 		this.hotSwitchState.set(state);
+	}
+
+	/**
+	 * @param {TrafficLightState} state
+	 */
+	setTrafficLightState(state) {
+		this.trafficLightState.set(state);
 	}
 
 	/**

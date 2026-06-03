@@ -1,5 +1,6 @@
 /**
  * @typedef {typeof import('../core/constants.js').HotSwitchStates[keyof typeof import('../core/constants.js').HotSwitchStates] | null} HotSwitchState
+ * @typedef {typeof import('../core/constants.js').TrafficLightStates[keyof typeof import('../core/constants.js').TrafficLightStates] | null} TrafficLightState
  */
 
 /**
@@ -12,10 +13,12 @@
  * @typedef {Object} IHeroStateService
  * @property {{ get(): {x: number, y: number} }} pos - Reactive state for the hero's position (Vector2).
  * @property {{ get(): HotSwitchState }} hotSwitchState - Reactive state for character swapping mechanics.
+ * @property {{ get(): TrafficLightState }} trafficLightState - Reactive state for the traffic light context.
  * @property {{ get(): boolean }} isEvolving - Reactive state indicating if the hero is currently evolving/animating.
  * @property {{ get(): string }} imageSrc - Reactive state for the current sprite or image source.
  * @property {(x: number, y: number) => void} setPos - Updates the hero's position.
  * @property {(state: HotSwitchState) => void} setHotSwitchState - Updates the hot-switch state.
+ * @property {(state: TrafficLightState) => void} setTrafficLightState - Updates the traffic light state.
  * @property {(evolving: boolean) => void} setIsEvolving - Sets the evolving flag.
  * @property {(src: string) => void} setImageSrc - Updates the hero's image source.
  */

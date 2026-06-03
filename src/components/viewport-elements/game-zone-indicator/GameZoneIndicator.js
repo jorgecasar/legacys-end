@@ -1,6 +1,8 @@
 import { consume } from "@lit/context";
+import { msg } from "@lit/localize";
 import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement, nothing } from "lit";
+import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { loggerContext } from "../../../contexts/logger-context.js";
 import { questControllerContext } from "../../../contexts/quest-controller-context.js";
@@ -8,6 +10,7 @@ import { themeContext } from "../../../contexts/theme-context.js";
 import {
 	HotSwitchStates,
 	ThemeModes,
+	TrafficLightStates,
 	ZoneTypes,
 } from "../../../core/constants.js";
 import { gameStoreContext } from "../../../state/game-store.js";
@@ -91,7 +94,7 @@ export class GameZoneIndicator extends SignalWatcher(LitElement) {
 	 */
 	renderThemeZone(zone) {
 		const isDark = zone.payload === ThemeModes.DARK;
-		const label = isDark ? "Dark Theme" : "Light Theme";
+		const label = isDark ? msg("Dark Theme") : msg("Light Theme");
 		const className = isDark ? "zone-theme-dark" : "zone-theme-light";
 
 		return html`
@@ -109,8 +112,8 @@ export class GameZoneIndicator extends SignalWatcher(LitElement) {
 
 		const isLegacy = zone.payload === HotSwitchStates.LEGACY;
 		const baseClass = isLegacy ? "zone-context-legacy" : "zone-context-new";
-		const title = isLegacy ? "Legacy" : "New API V2";
-		const sub = isLegacy ? "LegacyUserService" : "NewUserService";
+		const title = isLegacy ? msg("Legacy") : msg("New API V2");
+		const sub = isLegacy ? msg("LegacyUserService") : msg("NewUserService");
 
 		// Match original colors
 		const legacyColorInactive = "#991b1b"; // Red 800
@@ -145,6 +148,54 @@ export class GameZoneIndicator extends SignalWatcher(LitElement) {
 		`;
 	}
 
+	/**
+	 * @param {Zone} zone
+	 * @param {TrafficLightStates?} lightState
+	 */
+	renderTrafficLightZone(zone, lightState = null) {
+		const currentState = this.heroState?.trafficLightState.get();
+
+		if (lightState !== null) {
+			const isOn = currentState === lightState;
+			const colorClass =
+				lightState === TrafficLightStates.GREEN ? "zone-safe" : "zone-danger";
+			const dynamicStyles = {
+				...this.getStyle(zone),
+				opacity: isOn ? "1" : "0.1",
+			};
+
+			return html`
+				<div class="zone zone-traffic-light ${colorClass}" style="${styleMap(dynamicStyles)}"></div>
+			`;
+		}
+
+		if (zone.payload === TrafficLightStates.RED) {
+			// Crosswalk zone (Pedestrian button)
+			const isSafe = currentState === TrafficLightStates.RED;
+			const stateClass = classMap({
+				"zone-safe": isSafe,
+				"zone-danger": !isSafe,
+			});
+
+			return html`
+				<div class="zone zone-crosswalk ${stateClass}" style="${styleMap(this.getStyle(zone))}"></div>
+			`;
+		} else if (zone.payload === null) {
+			// Cars zone
+			const isSafe = currentState === TrafficLightStates.GREEN;
+			const stateClass = classMap({
+				"zone-safe": isSafe,
+				"zone-danger": !isSafe,
+			});
+
+			return html`
+				<div class="zone zone-traffic-light ${stateClass}" style="${styleMap(this.getStyle(zone))}"></div>
+			`;
+		}
+
+		return nothing;
+	}
+
 	/** @override */
 	render() {
 		/** @type {Zone[]} */
@@ -159,6 +210,12 @@ export class GameZoneIndicator extends SignalWatcher(LitElement) {
 					return this.renderThemeZone(zone);
 				if (this.type === ZoneTypes.CONTEXT_CHANGE)
 					return this.renderContextZone(zone);
+				if (this.type === ZoneTypes.TRAFFIC_LIGHT_CHANGE)
+					return this.renderTrafficLightZone(zone);
+				if (this.type === ZoneTypes.TRAFFIC_LIGHT_RED)
+					return this.renderTrafficLightZone(zone, TrafficLightStates.RED);
+				if (this.type === ZoneTypes.TRAFFIC_LIGHT_GREEN)
+					return this.renderTrafficLightZone(zone, TrafficLightStates.GREEN);
 				return nothing;
 			})}
 		`;

@@ -160,15 +160,19 @@ describe("GameViewport", () => {
 			),
 		);
 
+		const trafficLightState = new Signal.State("red");
+
 		return {
 			pos,
 			imageSrc,
 			isEvolving: { get: vi.fn(() => isEvolving.get()) },
 			hotSwitchState: { get: vi.fn(() => hotSwitchState.get()) },
+			trafficLightState: { get: vi.fn(() => trafficLightState.get()) },
 			setPos: vi.fn((p) => pos.set(p)),
 			setImageSrc: vi.fn((s) => imageSrc.set(s)),
 			setIsEvolving: vi.fn((e) => isEvolving.set(e)),
 			setHotSwitchState: vi.fn((h) => hotSwitchState.set(h)),
+			setTrafficLightState: vi.fn((s) => trafficLightState.set(s)),
 		};
 	};
 

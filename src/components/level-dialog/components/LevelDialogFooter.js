@@ -52,13 +52,13 @@ export class LevelDialogFooter extends SignalWatcher(LitElement) {
 					this.currentSlideIndex === this.slides.length - 1
 						? html`
 						<wa-button 
-							id="evolve-btn"
+							id="acquire-btn"
 							.variant="${"brand"}"
 							class="complete-btn"
 							@click="${() => this.dispatchEvent(new CustomEvent("complete"))}"
 							style="--border-radius: 0; animation: bounce 1s infinite;"
 						>
-							<span>${msg("EVOLVE")} <wa-icon slot="end" name="arrow-right"></wa-icon></span>
+							<span>${msg("ACQUIRE")} <wa-icon slot="end" name="arrow-right"></wa-icon></span>
 						</wa-button>
 					`
 						: html`

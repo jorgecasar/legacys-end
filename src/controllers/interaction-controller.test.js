@@ -51,6 +51,7 @@ describe("InteractionController", () => {
 		const mockHeroState = {
 			pos: { get: vi.fn().mockReturnValue({ x: 0, y: 0 }) },
 			hotSwitchState: { get: vi.fn().mockReturnValue(HotSwitchStates.LEGACY) },
+			trafficLightState: { get: vi.fn().mockReturnValue(null) },
 		};
 
 		const mockQuestState = {

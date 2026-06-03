@@ -58,6 +58,8 @@ describe("GameZoneController", () => {
 				pos: heroPos,
 				hotSwitchState: new Signal.State(HotSwitchStates.LEGACY),
 				setHotSwitchState: vi.fn(),
+				trafficLightState: new Signal.State(null),
+				setTrafficLightState: vi.fn(),
 			},
 			quest: {
 				hasCollectedItem: hasCollectedItem,

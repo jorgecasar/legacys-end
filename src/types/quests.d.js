@@ -21,6 +21,7 @@
  * @property {string} [name] - Optional display name.
  * @property {string} image - The asset path for the main image/sprite.
  * @property {string} [icon] - Optional icon asset path (e.g., for minimap or UI).
+ * @property {number} [scale] - Optional custom scale percentage relative to the viewport (e.g., 15 for 15%).
  */
 
 /**
@@ -84,6 +85,7 @@
  * @property {HeroConfig} [hero] - Hero override configuration.
  * @property {Zone[]} [zones] - List of interactive zones in the level.
  * @property {Rect[]} [obstacles] - List of collision obstacles.
+ * @property {number} [scale] - Global scale percentage for all entities in the chapter. Can be overridden individually.
  */
 
 /**
