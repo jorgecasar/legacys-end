@@ -100,7 +100,7 @@ test.describe("Quest Journey E2E", () => {
 		// Helper to click through dialog
 		const handleDialog = async () => {
 			const nextBtn = dialog.locator("#next-btn");
-			const evolveBtn = dialog.locator("#evolve-btn");
+			const evolveBtn = dialog.locator("#acquire-btn");
 
 			while (await nextBtn.isVisible()) {
 				await nextBtn.click({ force: true });

@@ -450,17 +450,17 @@ export class GameViewport extends SignalWatcher(
 					.zones="${config?.zones}"
 				></game-zone-indicator>
 
-				<game-zone-indicator
+				<game-zone-indicator 
 					.type="${ZoneTypes.TRAFFIC_LIGHT_CHANGE}"
 					.zones="${config?.zones}"
 				></game-zone-indicator>
 
-				<game-zone-indicator
+				<game-zone-indicator 
 					.type="${ZoneTypes.TRAFFIC_LIGHT_RED}"
 					.zones="${config?.zones}"
 				></game-zone-indicator>
 
-				<game-zone-indicator
+				<game-zone-indicator 
 					.type="${ZoneTypes.TRAFFIC_LIGHT_GREEN}"
 					.zones="${config?.zones}"
 				></game-zone-indicator>
