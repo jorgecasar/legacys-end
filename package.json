@@ -10,7 +10,7 @@
 		"preview": "vite preview",
 		"lint": "npm run lint:biome && npm run lint:lit && npm run lint:tsc",
 		"lint:biome": "biome check .",
-		"lint:lit": "lit-analyzer src",
+		"lint:lit": "lit-analyzer",
 		"lint:tsc": "tsc --noEmit",
 		"format": "biome check --write .",
 		"test": "npm run test:app && npm run test:tooling && npm run test:e2e",
