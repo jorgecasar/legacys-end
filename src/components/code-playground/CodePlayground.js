@@ -43,7 +43,7 @@ export class CodePlayground extends LitElement {
 		return html`
 			<playground-ide 
 				?lineNumbers=${true} 
-				sandboxBaseUrl="/" 
+				.sandboxBaseUrl=${import.meta.env.BASE_URL} 
 				.config=${config}
 				@keydown="${(/** @type {KeyboardEvent} */ e) => e.stopPropagation()}"
 			></playground-ide>
