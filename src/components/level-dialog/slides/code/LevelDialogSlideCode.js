@@ -54,12 +54,13 @@ export class LevelDialogSlideCode extends SignalWatcher(LitElement) {
 			language = "js",
 			interactive,
 			files,
+			projectSrc,
 		} = snippet;
 
-		if (interactive && files) {
+		if (interactive && (files || projectSrc)) {
 			return html`
 				<h6 class="slide-title code-${this.type}">${title}</h6>
-				<code-playground .files=${files}></code-playground>
+				<code-playground .files=${files || {}} .projectSrc=${projectSrc || ""}></code-playground>
 			`;
 		}
 

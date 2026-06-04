@@ -1,27 +1,5 @@
 import { msg } from "@lit/localize";
 import { TrafficLightStates, ZoneTypes } from "../../../core/constants.js";
-import TheAmbulanceHubLegacyIndexHtml from "./demos/the-ambulance-hub/legacy/index.html?raw";
-import TheAmbulanceHubLegacyIndexJs from "./demos/the-ambulance-hub/legacy/index.js?raw";
-import TheAmbulanceHubModernIndexHtml from "./demos/the-ambulance-hub/modern/index.html?raw";
-import TheAmbulanceHubModernIndexJs from "./demos/the-ambulance-hub/modern/index.js?raw";
-import TheFiberOpticCableLegacyIndexHtml from "./demos/the-fiber-optic-cable/legacy/index.html?raw";
-import TheFiberOpticCableLegacyIndexJs from "./demos/the-fiber-optic-cable/legacy/index.js?raw";
-import TheFiberOpticCableModernIndexHtml from "./demos/the-fiber-optic-cable/modern/index.html?raw";
-import TheFiberOpticCableModernIndexJs from "./demos/the-fiber-optic-cable/modern/index.js?raw";
-import TheFuseBoxLegacyIndexHtml from "./demos/the-fuse-box/legacy/index.html?raw";
-import TheFuseBoxLegacyIndexJs from "./demos/the-fuse-box/legacy/index.js?raw";
-import TheFuseBoxLegacyStoreJs from "./demos/the-fuse-box/legacy/store.js?raw";
-import TheFuseBoxModernIndexHtml from "./demos/the-fuse-box/modern/index.html?raw";
-import TheFuseBoxModernIndexJs from "./demos/the-fuse-box/modern/index.js?raw";
-import TheFuseBoxModernStoreJs from "./demos/the-fuse-box/modern/store.js?raw";
-import ThePressureSensorLegacyIndexHtml from "./demos/the-pressure-sensor/legacy/index.html?raw";
-import ThePressureSensorLegacyIndexJs from "./demos/the-pressure-sensor/legacy/index.js?raw";
-import ThePressureSensorModernIndexHtml from "./demos/the-pressure-sensor/modern/index.html?raw";
-import ThePressureSensorModernIndexJs from "./demos/the-pressure-sensor/modern/index.js?raw";
-import TheTurnAutomatorLegacyIndexHtml from "./demos/the-turn-automator/legacy/index.html?raw";
-import TheTurnAutomatorLegacyIndexJs from "./demos/the-turn-automator/legacy/index.js?raw";
-import TheTurnAutomatorModernIndexHtml from "./demos/the-turn-automator/modern/index.html?raw";
-import TheTurnAutomatorModernIndexJs from "./demos/the-turn-automator/modern/index.js?raw";
 
 /**
  * The Flowing Heartstone Quest - Chapter Data
@@ -96,20 +74,18 @@ export const getTheFlowingHeartstoneChapters = () => ({
 				{
 					title: msg("Legacy Lit (Events and Props)"),
 					interactive: true,
-					files: {
-						"index.js": ThePressureSensorLegacyIndexJs,
-						"index.html": ThePressureSensorLegacyIndexHtml,
-					},
+					projectSrc:
+						import.meta.env.BASE_URL +
+						"quests/the-flowing-heartstone/demos/the-pressure-sensor/legacy/project.json",
 				},
 			],
 			end: [
 				{
 					title: msg("Modern Lit (TC39 Signals)"),
 					interactive: true,
-					files: {
-						"index.js": ThePressureSensorModernIndexJs,
-						"index.html": ThePressureSensorModernIndexHtml,
-					},
+					projectSrc:
+						import.meta.env.BASE_URL +
+						"quests/the-flowing-heartstone/demos/the-pressure-sensor/modern/project.json",
 				},
 			],
 		},
@@ -161,20 +137,18 @@ export const getTheFlowingHeartstoneChapters = () => ({
 				{
 					title: msg("Legacy Lit (Eager)"),
 					interactive: true,
-					files: {
-						"index.js": TheTurnAutomatorLegacyIndexJs,
-						"index.html": TheTurnAutomatorLegacyIndexHtml,
-					},
+					projectSrc:
+						import.meta.env.BASE_URL +
+						"quests/the-flowing-heartstone/demos/the-turn-automator/legacy/project.json",
 				},
 			],
 			end: [
 				{
 					title: msg("Modern Lit (Lazy Computed)"),
 					interactive: true,
-					files: {
-						"index.js": TheTurnAutomatorModernIndexJs,
-						"index.html": TheTurnAutomatorModernIndexHtml,
-					},
+					projectSrc:
+						import.meta.env.BASE_URL +
+						"quests/the-flowing-heartstone/demos/the-turn-automator/modern/project.json",
 				},
 			],
 		},
@@ -220,20 +194,18 @@ export const getTheFlowingHeartstoneChapters = () => ({
 				{
 					title: msg("Legacy Lit (Template Diffing)"),
 					interactive: true,
-					files: {
-						"index.js": TheFiberOpticCableLegacyIndexJs,
-						"index.html": TheFiberOpticCableLegacyIndexHtml,
-					},
+					projectSrc:
+						import.meta.env.BASE_URL +
+						"quests/the-flowing-heartstone/demos/the-fiber-optic-cable/legacy/project.json",
 				},
 			],
 			end: [
 				{
 					title: msg("Modern Lit (Watch Directive)"),
 					interactive: true,
-					files: {
-						"index.js": TheFiberOpticCableModernIndexJs,
-						"index.html": TheFiberOpticCableModernIndexHtml,
-					},
+					projectSrc:
+						import.meta.env.BASE_URL +
+						"quests/the-flowing-heartstone/demos/the-fiber-optic-cable/modern/project.json",
 				},
 			],
 		},
@@ -279,20 +251,18 @@ export const getTheFlowingHeartstoneChapters = () => ({
 				{
 					title: msg("Legacy Lit (Tearing)"),
 					interactive: true,
-					files: {
-						"index.js": TheAmbulanceHubLegacyIndexJs,
-						"index.html": TheAmbulanceHubLegacyIndexHtml,
-					},
+					projectSrc:
+						import.meta.env.BASE_URL +
+						"quests/the-flowing-heartstone/demos/the-ambulance-hub/legacy/project.json",
 				},
 			],
 			end: [
 				{
 					title: msg("Modern Lit (Atomic Graph)"),
 					interactive: true,
-					files: {
-						"index.js": TheAmbulanceHubModernIndexJs,
-						"index.html": TheAmbulanceHubModernIndexHtml,
-					},
+					projectSrc:
+						import.meta.env.BASE_URL +
+						"quests/the-flowing-heartstone/demos/the-ambulance-hub/modern/project.json",
 				},
 			],
 		},
@@ -336,22 +306,18 @@ export const getTheFlowingHeartstoneChapters = () => ({
 				{
 					title: msg("Legacy Lit (Global Mutable State)"),
 					interactive: true,
-					files: {
-						"store.js": TheFuseBoxLegacyStoreJs,
-						"index.js": TheFuseBoxLegacyIndexJs,
-						"index.html": TheFuseBoxLegacyIndexHtml,
-					},
+					projectSrc:
+						import.meta.env.BASE_URL +
+						"quests/the-flowing-heartstone/demos/the-fuse-box/legacy/project.json",
 				},
 			],
 			end: [
 				{
 					title: msg("Modern Lit (Store Governance)"),
 					interactive: true,
-					files: {
-						"store.js": TheFuseBoxModernStoreJs,
-						"index.js": TheFuseBoxModernIndexJs,
-						"index.html": TheFuseBoxModernIndexHtml,
-					},
+					projectSrc:
+						import.meta.env.BASE_URL +
+						"quests/the-flowing-heartstone/demos/the-fuse-box/modern/project.json",
 				},
 			],
 		},

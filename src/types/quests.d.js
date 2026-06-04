@@ -52,6 +52,7 @@
  * @property {string} [code] - The actual code content (for static snippets).
  * @property {string} [language] - Programming language for syntax highlighting (e.g., 'javascript', 'html').
  * @property {boolean} [interactive] - If true, renders an interactive playground instead of a static block.
+ * @property {string} [projectSrc] - Path to a project.json file for the playground IDE.
  * @property {Record<string, string>} [files] - Files for the playground, e.g. { "index.html": "...", "script.js": "..." }.
  */
 

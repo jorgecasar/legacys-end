@@ -18,6 +18,14 @@ export class CodePlayground extends LitElement {
 	@property({ type: Object })
 	accessor files = {};
 
+	/**
+	 * Path to the project manifest file for playground-elements IDE.
+	 * @type {string}
+	 * @public
+	 */
+	@property({ type: String })
+	accessor projectSrc = "";
+
 	/** @type {import('playground-elements/playground-ide.js').PlaygroundIde | null} */
 	@query("playground-ide")
 	accessor _ide = null;
@@ -44,6 +52,7 @@ export class CodePlayground extends LitElement {
 			<playground-ide 
 				?lineNumbers=${true} 
 				.sandboxBaseUrl=${import.meta.env.BASE_URL} 
+				.projectSrc=${this.projectSrc || undefined}
 				.config=${config}
 				@keydown="${(/** @type {KeyboardEvent} */ e) => e.stopPropagation()}"
 			></playground-ide>
