@@ -20,6 +20,7 @@ export const gameViewportStyles = [
 			/* Center the square */
 			margin: 0 auto;
 			transition: background 1s ease-in-out;
+			overflow: hidden;
 		}
 
 		.game-area-bg {
