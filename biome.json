@@ -12,7 +12,9 @@
 			"!**/dist",
 			"!**/node_modules",
 			"!**/coverage",
-			"!**/.gemini"
+			"!**/.gemini",
+			"!public/playground-*.js",
+			"!public/playground-*.html"
 		]
 	},
 	"formatter": {
