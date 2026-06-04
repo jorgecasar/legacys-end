@@ -5,6 +5,7 @@ import { property } from "lit/decorators.js";
 import "syntax-highlight-element";
 import { escapeHtml } from "../../../../utils/html-utils.js";
 import { levelDialogStyles } from "../../LevelDialog.styles.js";
+import "../../../code-playground/CodePlayground.js";
 
 /** @typedef {import('../../../../content/quests/quest-types.js').LevelConfig} LevelConfig */
 /** @typedef {import('../../../../content/quests/quest-types.js').CodeSnippet} CodeSnippet */
@@ -46,11 +47,20 @@ export class LevelDialogSlideCode extends SignalWatcher(LitElement) {
 	/**
 	 * @param {CodeSnippet} snippet
 	 */
-	#renderCode({ title = msg("Identified Problem"), code, language = "js" }) {
+	#renderCode(snippet) {
+		const { title = msg("Identified Problem"), code, language = "js", interactive, files } = snippet;
+
+		if (interactive && files) {
+			return html`
+				<h6 class="slide-title code-${this.type}">${title}</h6>
+				<code-playground .files=${files}></code-playground>
+			`;
+		}
+
 		return html`
 			<h6 class="slide-title code-${this.type}">${title}</h6>
 			<!-- @ts-ignore -->
-			<syntax-highlight language="${language}" class="code-${this.type}" .innerHTML=${escapeHtml(code)}></syntax-highlight>
+			<syntax-highlight language="${language}" class="code-${this.type}" .innerHTML=${escapeHtml(code || "")}></syntax-highlight>
 		`;
 	}
 

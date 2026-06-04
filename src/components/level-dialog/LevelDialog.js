@@ -125,6 +125,11 @@ export class LevelDialog extends SignalWatcher(LitElement) {
 	 * @param {KeyboardEvent} e
 	 */
 	#handleKeyDown = (e) => {
+		if (!this.worldState?.showDialog?.get()) return;
+
+		// Ignore keyboard shortcuts (except shift)
+		if (e.ctrlKey || e.metaKey || e.altKey) return;
+
 		if (e.key === "ArrowRight" || e.code === "Space") {
 			e.stopPropagation();
 			this.nextSlide();

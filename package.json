@@ -51,6 +51,7 @@
 		"@octokit/rest": "^22.0.1",
 		"@speed-highlight/core": "^1.2.12",
 		"lit": "^3.3.2",
+		"playground-elements": "^0.21.2",
 		"syntax-highlight-element": "^1.2.0"
 	},
 	"devDependencies": {

@@ -46,7 +46,7 @@ describe("KeyboardController", () => {
 	});
 
 	it("should call host.handleMove for arrow keys", () => {
-		const event = { key: "ArrowUp", preventDefault: vi.fn() };
+		const event = { key: "ArrowUp", preventDefault: vi.fn(), composedPath: () => [] };
 		eventMap.keydown?.(event);
 
 		expect(event.preventDefault).toHaveBeenCalled();
@@ -54,7 +54,7 @@ describe("KeyboardController", () => {
 	});
 
 	it("should call host.handleMove for WASD keys", () => {
-		const event = { key: "d", preventDefault: vi.fn() };
+		const event = { key: "d", preventDefault: vi.fn(), composedPath: () => [] };
 		eventMap.keydown?.(event);
 
 		expect(event.preventDefault).toHaveBeenCalled();
@@ -62,7 +62,7 @@ describe("KeyboardController", () => {
 	});
 
 	it("should call host.handleInteract() on Space", () => {
-		const event = { code: "Space", preventDefault: vi.fn() };
+		const event = { code: "Space", preventDefault: vi.fn(), composedPath: () => [] };
 		eventMap.keydown?.(event);
 
 		expect(event.preventDefault).toHaveBeenCalled();
@@ -70,7 +70,7 @@ describe("KeyboardController", () => {
 	});
 
 	it("should call host.handlePause() on Escape", () => {
-		const event = { code: "Escape", preventDefault: vi.fn() };
+		const event = { code: "Escape", preventDefault: vi.fn(), composedPath: () => [] };
 		eventMap.keydown?.(event);
 
 		expect(event.preventDefault).toHaveBeenCalled();
@@ -84,7 +84,7 @@ describe("KeyboardController", () => {
 		customController.hostConnected();
 
 		// WASD 'd' (Right)
-		const event = { key: "d", preventDefault: vi.fn() };
+		const event = { key: "d", preventDefault: vi.fn(), composedPath: () => [] };
 		eventMap.keydown?.(event);
 
 		expect(host.handleMove).toHaveBeenCalledWith(5.0, 0);

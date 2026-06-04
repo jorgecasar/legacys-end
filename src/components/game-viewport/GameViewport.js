@@ -227,6 +227,8 @@ export class GameViewport extends SignalWatcher(
 	 * @param {boolean} [isAuto] - Whether this is auto-movement
 	 */
 	handleMove(dx, dy, isAuto = false) {
+		if (!isAuto && this.worldState?.showDialog?.get()) return;
+
 		if (!isAuto) {
 			this.stopAutoMove();
 		}

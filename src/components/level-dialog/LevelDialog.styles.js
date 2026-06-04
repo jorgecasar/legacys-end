@@ -14,7 +14,7 @@ export const levelDialogStyles = [
         --body-spacing: 0;
     }
 
-    wa-dialog::part(panel) {
+    wa-dialog::part(dialog) {
         width: 100%;
         height: 100%;
         max-height: 100vh;
@@ -23,12 +23,14 @@ export const levelDialogStyles = [
         margin: 0;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
     }
     wa-dialog::part(body) {
         flex: 1;
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        min-height: 0;
     }
 
     .dialog-content {
@@ -37,6 +39,7 @@ export const levelDialogStyles = [
         flex-direction: column;
         height: 100%;
         overflow: hidden;
+        min-height: 0;
     }
 
     .indicators {
@@ -56,8 +59,34 @@ export const levelDialogStyles = [
     .indicator.inactive { background-color: #d1d5db; }
 
     .content-container {
-      overflow-y: hidden; /* Scroll handled by children (code-block) */
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden; /* Scroll handled by children (code-block) */
       animation: fadeIn 0.3s ease-in-out;
+      min-height: 0;
+    }
+
+    level-dialog-slide-code,
+    level-dialog-slide-problem,
+    level-dialog-slide-narrative,
+    level-dialog-slide-analysis,
+    level-dialog-slide-confirmation {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      height: 100%;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    code-playground {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      margin-top: var(--wa-space-m);
+      min-height: 0;
     }
 
     .dialog-footer {
@@ -159,7 +188,7 @@ export const levelDialogStyles = [
       animation: bounce 1s infinite;
       --border-radius: 0;
     }
-    
+
     /* Optional: Re-implement 3D effect if desired, but for now let's stick to a clean brand button */
     /* wa-button::part(base) { ... } */
 
@@ -182,7 +211,7 @@ export const levelDialogStyles = [
     .slide-title-analysis {
       color: var(--wa-color-brand-fill-loud);
     }
-    
+
     .slide-title-narrative {
       color: var(--wa-color-neutral-fill-loud);
     }
@@ -263,7 +292,7 @@ export const levelDialogStyles = [
     .status-dot.new {
       background-color: var(--wa-color-success-fill-loud);
     }
-    
+
     .pulse {
       animation: pulse 2s infinite;
     }
@@ -292,7 +321,7 @@ export const levelDialogStyles = [
     .spacer-top {
       padding-top: var(--wa-space-m);
     }
-    
+
     @keyframes pulse {
       50% { opacity: .5; }
     }

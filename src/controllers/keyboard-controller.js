@@ -55,6 +55,9 @@ export class KeyboardController {
 	 * @param {KeyboardEvent} e
 	 */
 	#handleKeyDown = (e) => {
+		// Ignore keyboard shortcuts (except shift)
+		if (e.ctrlKey || e.metaKey || e.altKey) return;
+
 		// Handle Pause (Escape) - Always allowed
 		if (e.code === "Escape") {
 			e.preventDefault();

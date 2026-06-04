@@ -49,8 +49,10 @@
  * A snippet of code to be displayed or used in a coding challenge.
  * @typedef {Object} CodeSnippet
  * @property {string} title - The title or filename of the snippet.
- * @property {string} code - The actual code content.
+ * @property {string} [code] - The actual code content (for static snippets).
  * @property {string} [language] - Programming language for syntax highlighting (e.g., 'javascript', 'html').
+ * @property {boolean} [interactive] - If true, renders an interactive playground instead of a static block.
+ * @property {Record<string, string>} [files] - Files for the playground, e.g. { "index.html": "...", "script.js": "..." }.
  */
 
 /**

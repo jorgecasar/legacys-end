@@ -56,7 +56,9 @@
 		// Register Service Worker for caching (solves GitHub Pages cache policy)
 		if ('serviceWorker' in navigator) {
 			window.addEventListener('load', () => {
-				navigator.serviceWorker.register('/legacys-end/sw.js')
+				const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+				const swPath = isDev ? '/sw.js' : '/legacys-end/sw.js';
+				navigator.serviceWorker.register(swPath)
 					.then(() => console.log('✅ Service Worker registered'))
 					.catch(err => console.warn('❌ SW registration failed:', err));
 			});

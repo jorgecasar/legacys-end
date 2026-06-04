@@ -6,6 +6,23 @@ import { imagetools } from "vite-imagetools";
 import babel from "vite-plugin-babel";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 
+const playgroundDevServerPlugin = () => ({
+	name: "playground-dev-server",
+	configureServer(server) {
+		server.middlewares.use((req, res, next) => {
+			if (req.url) {
+				const pathname = req.url.split("?")[0];
+				if (pathname.startsWith("/session-")) {
+					res.statusCode = 404;
+					res.end("Playground session file not found on server.");
+					return;
+				}
+			}
+			next();
+		});
+	},
+});
+
 export default defineConfig(({ mode }) => {
 	loadEnv(mode, ".", "");
 	return {
@@ -26,6 +43,7 @@ export default defineConfig(({ mode }) => {
 			},
 		},
 		plugins: [
+			playgroundDevServerPlugin(),
 			minifyHTML({
 				exclude: ["node_modules/**"],
 			}),
@@ -69,6 +87,7 @@ export default defineConfig(({ mode }) => {
 			},
 		},
 		optimizeDeps: {
+			exclude: ["playground-elements"],
 			include: ["@awesome.me/webawesome/dist/components/spinner/spinner.js"],
 			esbuildOptions: {
 				target: "es2022",
