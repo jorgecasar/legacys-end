@@ -31,7 +31,7 @@ class RookieComponent extends LitElement {
 			store.cars.set(-9999);
 		} catch (e) {
 			console.error("Hackeo prevenido por el Store!", e.message);
-			alert("⚠️ Error: " + e.message);
+			alert(`⚠️ Error: ${e.message}`);
 		}
 	}
 

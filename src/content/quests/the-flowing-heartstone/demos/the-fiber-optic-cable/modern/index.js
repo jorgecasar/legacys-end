@@ -1,4 +1,4 @@
-import { SignalWatcher, watch } from "@lit-labs/signals";
+import { watch } from "@lit-labs/signals";
 import { html, LitElement } from "lit";
 import { Signal } from "signal-polyfill";
 
