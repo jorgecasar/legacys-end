@@ -90,7 +90,7 @@ class CityApp extends LitElement {
 
   // 2. Re-evalúa el template entero para pasar la prop hacia abajo
   render() {
-	console.log('render CiryApp');
+  	console.log('render CiryApp');
     return html\`
       <traffic-light .isRed=\${this.pedestrians}></traffic-light>
       <pedestrian-sensor @presence=\${(e) => this.pedestrians = e.detail}></pedestrian-sensor>
@@ -161,7 +161,7 @@ export const pedestriansWaiting = new Signal.State(false);
 // 2. CityApp ya NO tiene estado. NUNCA sufre re-render.
 class CityApp extends LitElement {
   render() {
-	console.log('render CiryApp');
+  	console.log('render CiryApp');
     return html\`
       <traffic-light></traffic-light>
       <pedestrian-sensor></pedestrian-sensor>
@@ -289,7 +289,7 @@ class TrafficMonitor extends LitElement {
       this.isJam = calculateHeavyTrafficRules(globalCars);
     }, 1000);
   }
-
+  
   disconnectedCallback() {
     super.disconnectedCallback();
     clearInterval(this.timer);
@@ -310,7 +310,7 @@ class TrafficMonitor extends LitElement {
           (Monitor Apagado)
         </div>
       \`}
-
+      
       <div class="logs">Abre la consola (F12). Observa cómo la CPU se sigue desperdiciando aunque el monitor esté apagado.</div>
     \`;
   }
@@ -655,7 +655,7 @@ class CityDispatcher extends LitElement {
     store.addEventListener('change', () => {
       // 2. Evaluamos el estado derivado en cuanto cambia el store
       const isEmergency = store.ambulance && store.traffic;
-
+      
       let explanation = "";
       if (store.ambulance === true && store.traffic === false) {
         explanation = "❌ ¡GLITCH! La app reacciona antes de tiempo a un estado a medias.";
@@ -669,10 +669,10 @@ class CityDispatcher extends LitElement {
 
   onEmergency() {
     this.logs = []; // Limpiamos para ver el efecto
-
+    
     // 3. Mutamos las dos propiedades de forma síncrona, una detrás de otra
     store.setAmbulance(true);
-    // 🚨 GLITCH ("Tearing"): Al ejecutar la línea anterior, el evento YA saltó.
+    // 🚨 GLITCH ("Tearing"): Al ejecutar la línea anterior, el evento YA saltó. 
     // El sistema ya calculó el estado roto (A=true, T=false) antes de llegar aquí abajo.
     store.setTraffic(true);
   }
@@ -689,7 +689,7 @@ class CityDispatcher extends LitElement {
         </div>
       </div>
       <div class="logs">
-        Al estar basado en eventos síncronos, la app reacciona en el exacto milisegundo en el que cambia la ambulancia.
+        Al estar basado en eventos síncronos, la app reacciona en el exacto milisegundo en el que cambia la ambulancia. 
         Calcula y renderiza todo usando un estado intermedio roto (true/false) antes de que al código le dé tiempo a ejecutar la siguiente línea (tráfico). Esto gasta el doble de CPU y genera "glitches" visuales.
       </div>
     \`;
@@ -741,13 +741,13 @@ class CityDispatcher extends SignalWatcher(LitElement) {
   onEmergency() {
     // Reiniciamos todo para ver el efecto
     ambulance.set(false); traffic.set(false); evaluationCount = 0;
-
+    
     // Mutamos los dos estados uno detrás del otro de forma síncrona
     ambulance.set(true);
     traffic.set(true);
-
+    
     // ✅ Consistencia Atómica ✅: Las señales marcan los nodos como sucios (Push),
-    // pero NO disparan ejecuciones descontroladas.
+    // pero NO disparan ejecuciones descontroladas. 
     // El sistema espera a estabilizarse (Pull).
   }
 
@@ -755,7 +755,7 @@ class CityDispatcher extends SignalWatcher(LitElement) {
     // Al pedir el valor (Pull), el grafo entero se evalúa.
     // La función Computed se ejecuta UNA sola vez con el estado final consistente.
     const emergencyValue = isEmergency.get();
-
+    
     return html\`
       <div class="hub">
         <h2>Centro de Control (Signals)</h2>

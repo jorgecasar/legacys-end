@@ -16,7 +16,7 @@ export const codePlaygroundStyles = css`
 
 	playground-ide {
 		height: 100%;
-
+		
 		/* General Layout & Fonts */
 		--playground-border: transparent;
 		--playground-code-background: #18181b; /* Zinc 900 */

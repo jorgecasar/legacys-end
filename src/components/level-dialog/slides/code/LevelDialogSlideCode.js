@@ -49,7 +49,7 @@ export class LevelDialogSlideCode extends SignalWatcher(LitElement) {
 	 */
 	#renderCode(snippet) {
 		const { title = msg("Identified Problem"), code, language = "js", interactive, files } = snippet;
-
+		
 		if (interactive && files) {
 			return html`
 				<h6 class="slide-title code-${this.type}">${title}</h6>

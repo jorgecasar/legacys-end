@@ -35,9 +35,9 @@ export class CodePlayground extends LitElement {
 		};
 
 		return html`
-			<playground-ide
-				line-numbers
-				sandbox-base-url="/"
+			<playground-ide 
+				line-numbers 
+				sandbox-base-url="/" 
 				.config=${config}
 				@keydown="${(/** @type {KeyboardEvent} */ e) => e.stopPropagation()}"
 			></playground-ide>
