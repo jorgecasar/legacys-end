@@ -14,7 +14,8 @@
 			"!**/coverage",
 			"!**/.gemini",
 			"!public/playground-*.js",
-			"!public/playground-*.html"
+			"!public/playground-*.html",
+			"!public/internal"
 		]
 	},
 	"formatter": {
