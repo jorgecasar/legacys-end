@@ -12,11 +12,7 @@ export const codePlaygroundStyles = css`
 		overflow: hidden;
 		background: var(--surface-2, #1e1e1e);
 		border: 1px solid var(--border-color, #333);
-	}
 
-	playground-ide {
-		height: 100%;
-		
 		/* General Layout & Fonts */
 		--playground-border: transparent;
 		--playground-code-background: #18181b; /* Zinc 900 */
@@ -50,19 +46,73 @@ export const codePlaygroundStyles = css`
 		--playground-code-meta-color: #f472b6; /* Pink 400 */
 	}
 
+	.layout {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		width: 100%;
+	}
+
+	@media (min-width: 1024px) {
+		.layout {
+			flex-direction: row;
+		}
+	}
+
+	.editor-pane {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-width: 0;
+		min-height: 0;
+		border-bottom: 1px solid var(--playground-tab-bar-background);
+	}
+
+	@media (min-width: 1024px) {
+		.editor-pane {
+			border-bottom: none;
+			border-right: 1px solid var(--playground-tab-bar-background);
+		}
+	}
+
+	.preview-pane {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-width: 0;
+		min-height: 0;
+	}
+
+	playground-tab-bar {
+		flex: 0 0 auto;
+	}
+
+	playground-file-editor {
+		flex: 1;
+		min-height: 0;
+	}
+
+	playground-preview {
+		flex: 1;
+		min-height: 0;
+		width: 100%;
+		height: 100%;
+		background: var(--playground-preview-background);
+	}
+
 	/* Style tab buttons to ensure good contrast inside the Shadow DOM */
-	playground-ide::part(tab) {
+	playground-tab-bar::part(tab) {
 		color: #a1a1aa !important;
 		font-weight: 500;
 		transition: color 0.2s, background-color 0.2s;
 	}
 
-	playground-ide::part(tab):hover {
+	playground-tab-bar::part(tab):hover {
 		color: #ffffff !important;
 		background-color: #202023 !important;
 	}
 
-	playground-ide::part(active-tab) {
+	playground-tab-bar::part(active-tab) {
 		color: #ffffff !important;
 		background-color: #18181b !important;
 		box-shadow: inset 0 -2px 0 var(--wa-color-brand-fill-loud, #0f766e);

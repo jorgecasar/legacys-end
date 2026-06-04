@@ -16,10 +16,10 @@ describe("CodePlayground", () => {
 		el.remove();
 	});
 
-	it("renders the playground-ide element", async () => {
+	it("renders the playground-project element", async () => {
 		await el.updateComplete;
-		const ide = el.shadowRoot?.querySelector("playground-ide");
-		expect(ide).not.toBeNull();
+		const project = el.shadowRoot?.querySelector("playground-project");
+		expect(project).not.toBeNull();
 	});
 
 	it("passes files configuration to the playground project", async () => {
@@ -31,11 +31,11 @@ describe("CodePlayground", () => {
 
 		await el.updateComplete;
 
-		const ide =
-			/** @type {import('playground-elements/playground-ide.js').PlaygroundIde} */ (
-				el.shadowRoot?.querySelector("playground-ide")
+		const project =
+			/** @type {import('playground-elements/playground-project.js').PlaygroundProject} */ (
+				el.shadowRoot?.querySelector("playground-project")
 			);
-		expect(ide).not.toBeNull();
-		expect(ide?.config).toBeDefined();
+		expect(project).not.toBeNull();
+		expect(project?.config).toBeDefined();
 	});
 });

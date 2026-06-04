@@ -1,6 +1,10 @@
 import { html, LitElement } from "lit";
 import { customElement, property, query } from "lit/decorators.js";
-import "playground-elements/playground-ide.js";
+import { ifDefined } from "lit/directives/if-defined.js";
+import "playground-elements/playground-project.js";
+import "playground-elements/playground-tab-bar.js";
+import "playground-elements/playground-file-editor.js";
+import "playground-elements/playground-preview.js";
 import { codePlaygroundStyles } from "./CodePlayground.styles.js";
 
 /**
@@ -26,36 +30,48 @@ export class CodePlayground extends LitElement {
 	@property({ type: String })
 	accessor projectSrc = "";
 
-	/** @type {import('playground-elements/playground-ide.js').PlaygroundIde | null} */
-	@query("playground-ide")
-	accessor _ide = null;
+	/** @type {import('playground-elements/playground-project.js').PlaygroundProject | null} */
+	@query("playground-project")
+	accessor _project = null;
 
 	/** @override */
 	static styles = codePlaygroundStyles;
 
 	/** @override */
 	render() {
-		const config = {
-			files: Object.entries(this.files || {}).reduce(
-				(
-					/** @type {Record<string, {content: string}>} */ acc,
-					[name, content],
-				) => {
-					acc[name] = { content };
-					return acc;
-				},
-				{},
-			),
-		};
+		const hasFiles = Object.keys(this.files || {}).length > 0;
+		const config = hasFiles
+			? {
+					files: Object.entries(this.files || {}).reduce(
+						(
+							/** @type {Record<string, {content: string}>} */ acc,
+							[name, content],
+						) => {
+							acc[name] = { content };
+							return acc;
+						},
+						{},
+					),
+				}
+			: undefined;
 
 		return html`
-			<playground-ide 
-				?lineNumbers=${true} 
+			<playground-project 
+				id="project"
 				.sandboxBaseUrl=${import.meta.env.BASE_URL} 
-				.projectSrc=${this.projectSrc || undefined}
-				.config=${config}
-				@keydown="${(/** @type {KeyboardEvent} */ e) => e.stopPropagation()}"
-			></playground-ide>
+				.projectSrc=${ifDefined(this.projectSrc || undefined)}
+				.config=${ifDefined(config)}
+			></playground-project>
+
+			<div class="layout" @keydown="${(/** @type {KeyboardEvent} */ e) => e.stopPropagation()}">
+				<div class="editor-pane">
+					<playground-tab-bar .project=${"project"} .editor=${"editor"}></playground-tab-bar>
+					<playground-file-editor id="editor" .project=${"project"} line-numbers></playground-file-editor>
+				</div>
+				<div class="preview-pane">
+					<playground-preview .project=${"project"}></playground-preview>
+				</div>
+			</div>
 		`;
 	}
 }

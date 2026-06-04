@@ -1,32 +1,27 @@
+import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement } from "lit";
 import { cityState } from "./store.js";
 
-class FuseBox extends LitElement {
-	static properties = {
-		_cars: { type: Number },
-	};
-
-	constructor() {
-		super();
-		this._cars = cityState.cars;
-	}
-
+class FuseBox extends SignalWatcher(LitElement) {
 	connectedCallback() {
 		super.connectedCallback();
 		this.timer = setInterval(() => {
-			// Simula el tráfico normal, pero si alguien más mutó el store,
-			// el valor estará corrupto permanentemente.
-			cityState.cars += 1;
-			this._cars = cityState.cars;
+			// Simula el tráfico normal mutando el signal directamente
+			cityState.cars.set(cityState.cars.get() + 1);
 		}, 1000);
 	}
 
+	disconnectedCallback() {
+		super.disconnectedCallback();
+		clearInterval(this.timer);
+	}
+
 	render() {
-		const isHacked = this._cars < 0;
+		const isHacked = cityState.cars.get() < 0;
 		return html`
       <div class="box">
         <h3>Panel de Control Principal</h3>
-        <h2>Coches registrados: <span class="${isHacked ? "hacked" : ""}">${this._cars}</span></h2>
+        <h2>Coches registrados: <span class="${isHacked ? "hacked" : ""}">${cityState.cars.get()}</span></h2>
       </div>
     `;
 	}
@@ -35,8 +30,8 @@ customElements.define("fuse-box", FuseBox);
 
 class RookieComponent extends LitElement {
 	breakCity() {
-		// 🚨 Un componente periférico novato puede destruir la fuente de verdad
-		cityState.cars = -9999;
+		// 🚨 Un componente periférico novato puede hacer set a un signal expuesto públicamente
+		cityState.cars.set(-9999);
 	}
 
 	render() {

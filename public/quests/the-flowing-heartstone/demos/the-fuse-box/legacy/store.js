@@ -1,4 +1,6 @@
-// Un estado global expuesto y altamente mutable
+import { Signal } from "signal-polyfill";
+
+// Un estado global expuesto e inseguro usando Signals
 export const cityState = {
-	cars: 0,
+	cars: new Signal.State(0),
 };

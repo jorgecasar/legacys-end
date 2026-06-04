@@ -288,9 +288,9 @@ export const getTheFlowingHeartstoneChapters = () => ({
 		description: msg(
 			"Integrity breach detected! The main network is fully exposed; any rookie module could overwrite raw traffic data. Help me lock this fuse box, and we'll expose only safe, read-only reactive mirrors.",
 		),
-		problemTitle: msg("Before: Global Mutable State"),
+		problemTitle: msg("Before: Unprotected Signals"),
 		problemDesc: msg(
-			"A dangerously exposed and highly mutable global state. Any peripheral node in the application had the power to overwrite the source of truth, spawning near-impossible-to-track cascading failures.",
+			"A dangerously exposed global signal state. Migrating to signals doesn't automatically protect your state; any peripheral node could still overwrite the source of truth by calling .set() on an exposed Signal.",
 		),
 		solutionTitle: msg("After: Store Governance"),
 		architecturalChanges: [
@@ -304,7 +304,7 @@ export const getTheFlowingHeartstoneChapters = () => ({
 		codeSnippets: {
 			start: [
 				{
-					title: msg("Legacy Lit (Global Mutable State)"),
+					title: msg("Unprotected Signals"),
 					interactive: true,
 					projectSrc:
 						import.meta.env.BASE_URL +
@@ -313,7 +313,7 @@ export const getTheFlowingHeartstoneChapters = () => ({
 			],
 			end: [
 				{
-					title: msg("Modern Lit (Store Governance)"),
+					title: msg("Protected Signals (Store Governance)"),
 					interactive: true,
 					projectSrc:
 						import.meta.env.BASE_URL +

@@ -36,7 +36,7 @@ export class LevelDialogFooter extends SignalWatcher(LitElement) {
 					?disabled="${this.currentSlideIndex === 0}"
 					@click="${() => this.dispatchEvent(new CustomEvent("prev"))}"
 				>
-					<wa-icon slot="start" name="arrow-left"></wa-icon> ${msg("PREV")}
+					<wa-icon name="arrow-left"></wa-icon>
 				</wa-button>
 				
 				<!-- Indicators -->
@@ -67,7 +67,7 @@ export class LevelDialogFooter extends SignalWatcher(LitElement) {
 							.variant="${"brand"}"
 							@click="${() => this.dispatchEvent(new CustomEvent("next"))}"
 						>
-							<span>${msg("NEXT")} <wa-icon slot="end" name="arrow-right"></wa-icon></span>
+							<wa-icon name="arrow-right"></wa-icon>
 						</wa-button>
 					`
 				}
