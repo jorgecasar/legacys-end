@@ -7,7 +7,10 @@ import "@awesome.me/webawesome/dist/components/icon/icon.js";
 import "../about-slides/about-slides.js";
 import "../language-selector/language-selector.js";
 import "./components/quest-card/quest-card.js";
+import { SignalWatcher } from "@lit-labs/signals";
 import { loggerContext } from "../../contexts/logger-context.js";
+import { themeContext } from "../../contexts/theme-context.js";
+import { ThemeModes } from "../../core/constants.js";
 import { UIEvents } from "../../core/events.js";
 
 /**
@@ -33,7 +36,7 @@ import { UIEvents } from "../../core/events.js";
  * @fires quest-continue - Fired when a quest is continued
  * @fires reset-progress - Fired when progress reset is requested
  */
-export class QuestHub extends LitElement {
+export class QuestHub extends SignalWatcher(LitElement) {
 	/** @override */
 	static styles = questHubStyles;
 
@@ -50,6 +53,12 @@ export class QuestHub extends LitElement {
 	accessor logger = /** @type {ILoggerService} */ (
 		/** @type {unknown} */ (null)
 	);
+
+	@consume({ context: themeContext, subscribe: true })
+	accessor themeService =
+		/** @type {import('../../services/theme-service.js').ThemeService} */ (
+			/** @type {unknown} */ (null)
+		);
 
 	constructor() {
 		super();
@@ -96,9 +105,25 @@ export class QuestHub extends LitElement {
 		this.showFullDescription = !this.showFullDescription;
 	}
 
+	/**
+	 * Toggles the theme
+	 */
+	#toggleTheme() {
+		this.themeService?.toggleTheme();
+	}
+
+	/** @override */
 	/** @override */
 	/** @override */
 	render() {
+		const theme = this.themeService?.themeMode.get() || ThemeModes.SYSTEM;
+		const themeIcon =
+			{
+				[ThemeModes.LIGHT]: "sun",
+				[ThemeModes.DARK]: "moon",
+				[ThemeModes.SYSTEM]: "desktop",
+			}[theme] ?? "desktop";
+
 		return html`
 			<div class="hub-container">
 				<header class="hub-header">
@@ -107,6 +132,10 @@ export class QuestHub extends LitElement {
 						<wa-button variant="brand" @click="${this.#dispatchOpenAbout}">
 						<wa-icon slot="start" name="user"></wa-icon>
 						${msg("About")}
+						</wa-button>
+						<wa-button variant="neutral" @click="${this.#toggleTheme}">
+							<wa-icon slot="start" name="${themeIcon}"></wa-icon>
+							${theme.charAt(0).toUpperCase() + theme.slice(1)}
 						</wa-button>
 						<wa-button @click="${this.#toggleFullscreen}">
 						<wa-icon slot="start" name="${this.isFullscreen ? "compress" : "expand"}"></wa-icon>
