@@ -6,7 +6,7 @@
 	"scripts": {
 		"postinstall": "npm run localize:build",
 		"dev": "vite",
-		"build": "npm run localize:build && vite build",
+		"build": "npm run localize:build && vite build && cp node_modules/playground-elements/playground-typescript-worker.js dist/assets/ && cp -r node_modules/playground-elements/internal dist/assets/internal",
 		"preview": "vite preview",
 		"lint": "npm run lint:biome && npm run lint:lit && npm run lint:tsc",
 		"lint:biome": "biome check .",
