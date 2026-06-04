@@ -5,6 +5,7 @@ import { defineConfig, loadEnv } from "vite";
 import { imagetools } from "vite-imagetools";
 import babel from "vite-plugin-babel";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
+import { VitePWA } from "vite-plugin-pwa";
 
 const playgroundDevServerPlugin = () => ({
 	name: "playground-dev-server",
@@ -76,6 +77,43 @@ export default defineConfig(({ mode }) => {
 					gzipSize: true,
 					brotliSize: true,
 				}),
+			VitePWA({
+				registerType: "autoUpdate",
+				includeAssets: [
+					"favicon.ico",
+					"apple-touch-icon.png",
+					"assets/**/*.png",
+					"assets/**/*.jpg",
+					"assets/**/*.mp3",
+				],
+				workbox: {
+					globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,jpg,mp3}"],
+					// Do not cache the playground service worker generated files
+					navigateFallbackDenylist: [/^\/__playground_swfs_/],
+					maximumFileSizeToCacheInBytes: 5000000,
+				},
+				manifest: {
+					name: "Legacy's End",
+					short_name: "Legacy's End",
+					description: "A programming puzzle game",
+					theme_color: "#0f172a",
+					background_color: "#0f172a",
+					display: "standalone",
+					orientation: "portrait",
+					icons: [
+						{
+							src: "icons/pwa-192x192.png",
+							sizes: "192x192",
+							type: "image/png",
+						},
+						{
+							src: "icons/pwa-512x512.png",
+							sizes: "512x512",
+							type: "image/png",
+						},
+					],
+				},
+			}),
 		],
 		build: {
 			target: "es2022",
