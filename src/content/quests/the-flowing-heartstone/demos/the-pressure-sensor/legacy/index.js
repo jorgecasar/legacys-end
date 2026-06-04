@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { html, LitElement } from "lit";
 
 // 1. El componente raíz guarda el estado para compartirlo
@@ -15,6 +16,7 @@ class CityApp extends LitElement {
 	render() {
 		console.log("render CiryApp");
 		return html`
+      <!-- lit-analyzer-disable-next-line -->
       <traffic-light .isRed=${this.pedestrians}></traffic-light>
       <pedestrian-sensor @presence=${(e) => (this.pedestrians = e.detail)}></pedestrian-sensor>
     `;
@@ -23,6 +25,10 @@ class CityApp extends LitElement {
 customElements.define("city-app", CityApp);
 
 // 3. El semáforo espera dócilmente a que su padre le pase la prop
+/**
+ * @element traffic-light
+ * @prop {boolean} isRed
+ */
 class TrafficLight extends LitElement {
 	static properties = {
 		isRed: { type: Boolean },
