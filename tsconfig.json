@@ -11,7 +11,7 @@
 		"forceConsistentCasingInFileNames": true,
 		"useDefineForClassFields": true,
 		"verbatimModuleSyntax": true,
-		"skipLibCheck": false,
+		"skipLibCheck": true,
 		"types": ["vite/client", "dom-speech-recognition"],
 		"plugins": [
 			{

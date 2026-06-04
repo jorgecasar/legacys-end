@@ -6,7 +6,9 @@ describe("CodePlayground", () => {
 	let el;
 
 	beforeEach(() => {
-		el = document.createElement("code-playground");
+		el = /** @type {import('./CodePlayground.js').CodePlayground} */ (
+			document.createElement("code-playground")
+		);
 		document.body.appendChild(el);
 	});
 
@@ -16,7 +18,7 @@ describe("CodePlayground", () => {
 
 	it("renders the playground-ide element", async () => {
 		await el.updateComplete;
-		const ide = el.shadowRoot.querySelector("playground-ide");
+		const ide = el.shadowRoot?.querySelector("playground-ide");
 		expect(ide).not.toBeNull();
 	});
 
@@ -29,8 +31,11 @@ describe("CodePlayground", () => {
 
 		await el.updateComplete;
 
-		const ide = el.shadowRoot.querySelector("playground-ide");
+		const ide =
+			/** @type {import('playground-elements/playground-ide.js').PlaygroundIde} */ (
+				el.shadowRoot?.querySelector("playground-ide")
+			);
 		expect(ide).not.toBeNull();
-		expect(ide.config).toBeDefined();
+		expect(ide?.config).toBeDefined();
 	});
 });

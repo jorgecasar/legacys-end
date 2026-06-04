@@ -20,7 +20,7 @@ export class CodePlayground extends LitElement {
 
 	/** @type {import('playground-elements/playground-ide.js').PlaygroundIde | null} */
 	@query("playground-ide")
-	accessor _ide;
+	accessor _ide = null;
 
 	/** @override */
 	static styles = codePlaygroundStyles;
@@ -28,10 +28,16 @@ export class CodePlayground extends LitElement {
 	/** @override */
 	render() {
 		const config = {
-			files: Object.entries(this.files || {}).reduce((acc, [name, content]) => {
-				acc[name] = { content };
-				return acc;
-			}, {}),
+			files: Object.entries(this.files || {}).reduce(
+				(
+					/** @type {Record<string, {content: string}>} */ acc,
+					[name, content],
+				) => {
+					acc[name] = { content };
+					return acc;
+				},
+				{},
+			),
 		};
 
 		return html`
