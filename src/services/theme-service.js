@@ -63,13 +63,18 @@ export class ThemeService {
 	}
 
 	/**
-	 * Toggles between light and dark mode.
-	 * System mode is ignored in toggle.
+	 * Toggles between system, light, and dark mode.
 	 */
 	toggleTheme() {
 		const current = this.themeMode.get();
-		const next =
-			current === ThemeModes.DARK ? ThemeModes.LIGHT : ThemeModes.DARK;
+		let next;
+		if (current === ThemeModes.SYSTEM) {
+			next = ThemeModes.LIGHT;
+		} else if (current === ThemeModes.LIGHT) {
+			next = ThemeModes.DARK;
+		} else {
+			next = ThemeModes.SYSTEM;
+		}
 		this.setTheme(next);
 	}
 

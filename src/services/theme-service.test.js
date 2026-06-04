@@ -82,9 +82,14 @@ describe("ThemeService", () => {
 		);
 	});
 
-	it("should toggle theme", () => {
-		mockStorage.getItem.mockReturnValue("light");
+	it("should toggle theme through system -> light -> dark -> system", () => {
+		mockStorage.getItem.mockReturnValue("system");
 		service = new ThemeService({ storage: mockStorage });
+
+		service.toggleTheme();
+
+		expect(service.themeMode.get()).toBe("light");
+		expect(document.documentElement.classList.contains("wa-light")).toBe(true);
 
 		service.toggleTheme();
 
@@ -93,8 +98,7 @@ describe("ThemeService", () => {
 
 		service.toggleTheme();
 
-		expect(service.themeMode.get()).toBe("light");
-		expect(document.documentElement.classList.contains("wa-light")).toBe(true);
+		expect(service.themeMode.get()).toBe("system");
 	});
 
 	it("should fallback to system preference if theme is 'system'", () => {
