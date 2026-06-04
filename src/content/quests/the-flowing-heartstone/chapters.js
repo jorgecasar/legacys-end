@@ -1,5 +1,27 @@
 import { msg } from "@lit/localize";
 import { TrafficLightStates, ZoneTypes } from "../../../core/constants.js";
+import TheAmbulanceHubLegacyIndexHtml from "./demos/the-ambulance-hub/legacy/index.html?raw";
+import TheAmbulanceHubLegacyIndexJs from "./demos/the-ambulance-hub/legacy/index.js?raw";
+import TheAmbulanceHubModernIndexHtml from "./demos/the-ambulance-hub/modern/index.html?raw";
+import TheAmbulanceHubModernIndexJs from "./demos/the-ambulance-hub/modern/index.js?raw";
+import TheFiberOpticCableLegacyIndexHtml from "./demos/the-fiber-optic-cable/legacy/index.html?raw";
+import TheFiberOpticCableLegacyIndexJs from "./demos/the-fiber-optic-cable/legacy/index.js?raw";
+import TheFiberOpticCableModernIndexHtml from "./demos/the-fiber-optic-cable/modern/index.html?raw";
+import TheFiberOpticCableModernIndexJs from "./demos/the-fiber-optic-cable/modern/index.js?raw";
+import TheFuseBoxLegacyIndexHtml from "./demos/the-fuse-box/legacy/index.html?raw";
+import TheFuseBoxLegacyIndexJs from "./demos/the-fuse-box/legacy/index.js?raw";
+import TheFuseBoxLegacyStoreJs from "./demos/the-fuse-box/legacy/store.js?raw";
+import TheFuseBoxModernIndexHtml from "./demos/the-fuse-box/modern/index.html?raw";
+import TheFuseBoxModernIndexJs from "./demos/the-fuse-box/modern/index.js?raw";
+import TheFuseBoxModernStoreJs from "./demos/the-fuse-box/modern/store.js?raw";
+import ThePressureSensorLegacyIndexHtml from "./demos/the-pressure-sensor/legacy/index.html?raw";
+import ThePressureSensorLegacyIndexJs from "./demos/the-pressure-sensor/legacy/index.js?raw";
+import ThePressureSensorModernIndexHtml from "./demos/the-pressure-sensor/modern/index.html?raw";
+import ThePressureSensorModernIndexJs from "./demos/the-pressure-sensor/modern/index.js?raw";
+import TheTurnAutomatorLegacyIndexHtml from "./demos/the-turn-automator/legacy/index.html?raw";
+import TheTurnAutomatorLegacyIndexJs from "./demos/the-turn-automator/legacy/index.js?raw";
+import TheTurnAutomatorModernIndexHtml from "./demos/the-turn-automator/modern/index.html?raw";
+import TheTurnAutomatorModernIndexJs from "./demos/the-turn-automator/modern/index.js?raw";
 
 /**
  * The Flowing Heartstone Quest - Chapter Data
@@ -75,74 +97,8 @@ export const getTheFlowingHeartstoneChapters = () => ({
 					title: msg("Legacy Lit (Events and Props)"),
 					interactive: true,
 					files: {
-						"index.js": `import { LitElement, html } from 'lit';
-
-// 1. El componente raíz guarda el estado para compartirlo
-class CityApp extends LitElement {
-  static properties = {
-    pedestrians: { state: true }
-  };
-
-  constructor() {
-    super();
-    this.pedestrians = false;
-  }
-
-  // 2. Re-evalúa el template entero para pasar la prop hacia abajo
-  render() {
-  	console.log('render CiryApp');
-    return html\`
-      <traffic-light .isRed=\${this.pedestrians}></traffic-light>
-      <pedestrian-sensor @presence=\${(e) => this.pedestrians = e.detail}></pedestrian-sensor>
-    \`;
-  }
-}
-customElements.define('city-app', CityApp);
-
-// 3. El semáforo espera dócilmente a que su padre le pase la prop
-class TrafficLight extends LitElement {
-  static properties = {
-    isRed: { type: Boolean }
-  };
-
-  constructor() {
-    super();
-    this.isRed = false;
-  }
-
-  render() { return html\`<div class="light">\${this.isRed ? '🔴' : '🟢'}</div>\`; }
-}
-customElements.define('traffic-light', TrafficLight);
-
-// 4. El sensor manda la petición hacia arriba mediante eventos
-class PedestrianSensor extends LitElement {
-  render() {
-    return html\`
-      <div class="crosswalk-zone"
-        @mouseenter=\${() => this.dispatchEvent(new CustomEvent('presence', {detail: true, bubbles: true, composed: true}))}
-        @mouseleave=\${() => this.dispatchEvent(new CustomEvent('presence', {detail: false, bubbles: true, composed: true}))}>
-        Hover to trigger sensor
-      </div>
-    \`;
-  }
-}
-customElements.define('pedestrian-sensor', PedestrianSensor);
-`,
-						"index.html": `<!DOCTYPE html>
-<html>
-  <head>
-    <script type="module" src="./index.js"></script>
-    <style>
-      body { font-family: system-ui; background: #222; color: white; padding: 2rem; margin: 0; }
-      .crosswalk-zone { padding: 2rem; border: 2px dashed #666; cursor: pointer; user-select: none; }
-      .crosswalk-zone:hover { border-color: #0f0; background: rgba(0,255,0,0.1); }
-      .light { font-size: 4rem; text-align: center; margin-bottom: 2rem; }
-    </style>
-  </head>
-  <body>
-    <city-app></city-app>
-  </body>
-</html>`,
+						"index.js": ThePressureSensorLegacyIndexJs,
+						"index.html": ThePressureSensorLegacyIndexHtml,
 					},
 				},
 			],
@@ -151,62 +107,8 @@ customElements.define('pedestrian-sensor', PedestrianSensor);
 					title: msg("Modern Lit (TC39 Signals)"),
 					interactive: true,
 					files: {
-						"index.js": `import { LitElement, html } from 'lit';
-import { SignalWatcher } from '@lit-labs/signals';
-import { Signal } from 'signal-polyfill';
-
-// 1. El estado vive de forma autónoma y global
-export const pedestriansWaiting = new Signal.State(false);
-
-// 2. CityApp ya NO tiene estado. NUNCA sufre re-render.
-class CityApp extends LitElement {
-  render() {
-  	console.log('render CiryApp');
-    return html\`
-      <traffic-light></traffic-light>
-      <pedestrian-sensor></pedestrian-sensor>
-    \`;
-  }
-}
-customElements.define('city-app', CityApp);
-
-// 3. El semáforo reacciona independientemente a la señal
-class TrafficLight extends SignalWatcher(LitElement) {
-  render() {
-    return html\`<div class="light">\${pedestriansWaiting.get() ? '🔴' : '🟢'}</div>\`;
-  }
-}
-customElements.define('traffic-light', TrafficLight);
-
-// 4. El sensor muta la señal de forma local
-class PedestrianSensor extends LitElement {
-  render() {
-    return html\`
-      <div class="crosswalk-zone"
-        @mouseenter=\${() => pedestriansWaiting.set(true)}
-        @mouseleave=\${() => pedestriansWaiting.set(false)}>
-        Hover to trigger sensor
-      </div>
-    \`;
-  }
-}
-customElements.define('pedestrian-sensor', PedestrianSensor);
-`,
-						"index.html": `<!DOCTYPE html>
-<html>
-  <head>
-    <script type="module" src="./index.js"></script>
-    <style>
-      body { font-family: system-ui; background: #222; color: white; padding: 2rem; margin: 0; }
-      .crosswalk-zone { padding: 2rem; border: 2px dashed #666; cursor: pointer; user-select: none; }
-      .crosswalk-zone:hover { border-color: #0f0; background: rgba(0,255,0,0.1); }
-      .light { font-size: 4rem; text-align: center; margin-bottom: 2rem; }
-    </style>
-  </head>
-  <body>
-    <city-app></city-app>
-  </body>
-</html>`,
+						"index.js": ThePressureSensorModernIndexJs,
+						"index.html": ThePressureSensorModernIndexHtml,
 					},
 				},
 			],
@@ -260,158 +162,21 @@ customElements.define('pedestrian-sensor', PedestrianSensor);
 					title: msg("Legacy Lit (Eager)"),
 					interactive: true,
 					files: {
-						"index.js": `import { LitElement, html, css } from 'lit';
-
-let globalCars = 0;
-setInterval(() => { globalCars = Math.floor(Math.random() * 100); }, 2000);
-
-function calculateHeavyTrafficRules(cars) {
-  console.log("Calculando reglas pesadas... (Evaluado incondicionalmente)");
-  return cars > 50;
-}
-
-class TrafficMonitor extends LitElement {
-  static properties = {
-    isJam: { type: Boolean },
-    showTraffic: { type: Boolean }
-  };
-
-  constructor() {
-    super();
-    this.isJam = false;
-    this.showTraffic = true;
-  }
-
-  connectedCallback() {
-    super.connectedCallback();
-    // 🔴 Desperdicia CPU: Evalúa la lógica constantemente aunque nadie lo esté mirando
-    this.timer = setInterval(() => {
-      this.isJam = calculateHeavyTrafficRules(globalCars);
-    }, 1000);
-  }
-  
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    clearInterval(this.timer);
-  }
-
-  render() {
-    return html\`
-      <button @click=\${() => this.showTraffic = !this.showTraffic}>
-        \${this.showTraffic ? 'Ocultar Tráfico' : 'Mostrar Tráfico'}
-      </button>
-
-      \${this.showTraffic ? html\`
-        <div class="monitor">
-          Status: \${this.isJam ? '🔴 JAM' : '🟢 OK'}
-        </div>
-      \` : html\`
-        <div class="monitor off">
-          (Monitor Apagado)
-        </div>
-      \`}
-      
-      <div class="logs">Abre la consola (F12). Observa cómo la CPU se sigue desperdiciando aunque el monitor esté apagado.</div>
-    \`;
-  }
-}
-customElements.define('traffic-monitor', TrafficMonitor);
-`,
-						"index.html": `<!DOCTYPE html>
-<html>
-  <head>
-    <script type="module" src="./index.js"></script>
-    <style>
-      body { font-family: system-ui; background: #222; color: white; padding: 2rem; margin: 0; }
-      button { background: #555; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; margin-bottom: 1rem; }
-      .monitor { font-size: 2rem; padding: 2rem; border: 2px dashed #666; text-align: center; }
-      .monitor.off { color: #555; border-color: #333; }
-      .logs { margin-top: 1rem; color: #a1a1aa; font-family: monospace; text-align: center; max-width: 300px; }
-    </style>
-  </head>
-  <body>
-    <traffic-monitor></traffic-monitor>
-  </body>
-</html>`
-					}
-				}
+						"index.js": TheTurnAutomatorLegacyIndexJs,
+						"index.html": TheTurnAutomatorLegacyIndexHtml,
+					},
+				},
 			],
 			end: [
 				{
 					title: msg("Modern Lit (Lazy Computed)"),
 					interactive: true,
 					files: {
-						"index.js": `import { LitElement, html } from 'lit';
-import { SignalWatcher } from '@lit-labs/signals';
-import { Signal } from 'signal-polyfill';
-
-const carCount = new Signal.State(0);
-// Simulamos que los datos subyacentes cambian constantemente en segundo plano
-setInterval(() => { carCount.set(Math.floor(Math.random() * 100)); }, 2000);
-
-function calculateHeavyTrafficRules(cars) {
-  console.log("✅ Calculando reglas pesadas... (Solo ocurre cuando alguien lee el Computed!)");
-  return cars > 50;
-}
-
-// 🟢 Computed es Perezoso (Lazy): NO evalúa nada hasta que alguien hace .get()
-const isTrafficJam = new Signal.Computed(() => {
-  return calculateHeavyTrafficRules(carCount.get());
-});
-
-class TrafficMonitor extends SignalWatcher(LitElement) {
-  static properties = {
-    showTraffic: { type: Boolean }
-  };
-
-  constructor() {
-    super();
-    this.showTraffic = true;
-  }
-
-  render() {
-    return html\`
-      <button @click=\${() => this.showTraffic = !this.showTraffic}>
-        \${this.showTraffic ? 'Ocultar Tráfico' : 'Mostrar Tráfico'}
-      </button>
-
-      \${this.showTraffic ? html\`
-        <div class="monitor">
-          <!-- Al hacer .get(), Lit se suscribe y el Computed se evalúa de forma perezosa -->
-          Status: \${isTrafficJam.get() ? '🔴 JAM' : '🟢 OK'}
-        </div>
-      \` : html\`
-        <div class="monitor off">
-          <!-- Aquí NUNCA llamamos a isTrafficJam.get(), así que la CPU se ahorra al 100% -->
-          (Monitor Apagado)
-        </div>
-      \`}
-
-      <div class="logs">Abre la consola (F12). Apaga el monitor y verás cómo el cálculo se detiene mágicamente, aunque los coches sigan cambiando en segundo plano.</div>
-    \`;
-  }
-}
-customElements.define('traffic-monitor', TrafficMonitor);
-`,
-						"index.html": `<!DOCTYPE html>
-<html>
-  <head>
-    <script type="module" src="./index.js"></script>
-    <style>
-      body { font-family: system-ui; background: #222; color: white; padding: 2rem; margin: 0; }
-      button { background: #0f766e; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; margin-bottom: 1rem; }
-      .monitor { font-size: 2rem; padding: 2rem; border: 2px dashed #0f766e; text-align: center; }
-      .monitor.off { color: #1f3a3d; border-color: #1a2f30; }
-      .logs { margin-top: 1rem; color: #34d399; font-family: monospace; text-align: center; max-width: 320px; }
-    </style>
-  </head>
-  <body>
-    <traffic-monitor></traffic-monitor>
-  </body>
-</html>`
-					}
-				}
-			]
+						"index.js": TheTurnAutomatorModernIndexJs,
+						"index.html": TheTurnAutomatorModernIndexHtml,
+					},
+				},
+			],
 		},
 		scale: 40,
 		stats: { maintainability: 10, portability: 10, performance: 40 },
@@ -456,127 +221,20 @@ customElements.define('traffic-monitor', TrafficMonitor);
 					title: msg("Legacy Lit (Template Diffing)"),
 					interactive: true,
 					files: {
-						"index.js": `import { LitElement, html } from 'lit';
-
-class CityIntersection extends LitElement {
-  static properties = {
-    isJam: { type: Boolean }
-  };
-
-  constructor() {
-    super();
-    this.isJam = false;
-    this.renderCount = 0;
-  }
-
-  connectedCallback() {
-    super.connectedCallback();
-    setInterval(() => {
-      this.isJam = !this.isJam;
-    }, 1500);
-  }
-
-  render() {
-    this.renderCount++;
-    console.log("Renderizado TODO el árbol del componente. Count:", this.renderCount);
-
-    // Generar cientos de nodos inútiles para simular una UI pesada
-    const heavyTree = Array(100).fill(0).map(() => html\`<div class="node"></div>\`);
-
-    return html\`
-      <div class="intersection">
-        <h3>Intersección Central</h3>
-        <div>\${heavyTree}</div>
-        <span class="light">\${this.isJam ? '🔴' : '🟢'}</span>
-        <div>\${heavyTree}</div>
-      </div>
-      <div class="logs">Render count: \${this.renderCount}<br>El framework debe procesar cientos de nodos en cada render, solo para cambiar un emoji.</div>
-    \`;
-  }
-}
-customElements.define('city-intersection', CityIntersection);
-`,
-						"index.html": `<!DOCTYPE html>
-<html>
-  <head>
-    <script type="module" src="./index.js"></script>
-    <style>
-      body { font-family: system-ui; background: #222; color: white; padding: 2rem; margin: 0; }
-      .intersection { border: 2px solid #555; padding: 2rem; border-radius: 10px; text-align: center; }
-      .light { font-size: 3rem; margin: 1rem 0; display: block; }
-      .node { display: inline-block; width: 10px; height: 10px; background: #444; margin: 2px; }
-      .logs { margin-top: 1rem; color: #a1a1aa; font-family: monospace; max-width: 400px; text-align: center; }
-    </style>
-  </head>
-  <body>
-    <city-intersection></city-intersection>
-  </body>
-</html>`
-					}
-				}
+						"index.js": TheFiberOpticCableLegacyIndexJs,
+						"index.html": TheFiberOpticCableLegacyIndexHtml,
+					},
+				},
 			],
 			end: [
 				{
 					title: msg("Modern Lit (Watch Directive)"),
 					interactive: true,
 					files: {
-						"index.js": `import { LitElement, html } from 'lit';
-import { SignalWatcher, watch } from '@lit-labs/signals';
-import { Signal } from 'signal-polyfill';
-
-const isTrafficJam = new Signal.State(false);
-setInterval(() => {
-  isTrafficJam.set(!isTrafficJam.get());
-}, 1500);
-
-class CityIntersection extends LitElement {
-  constructor() {
-    super();
-    this.renderCount = 0;
-  }
-
-  render() {
-    this.renderCount++;
-    console.log("Renderizado TODO el árbol del componente. Count:", this.renderCount);
-
-    // Generar cientos de nodos inútiles
-    const heavyTree = Array(100).fill(0).map(() => html\`<div class="node"></div>\`);
-
-    // watch() conecta el Signal directamente al text node en concreto.
-    // Lit reacciona al signal actualizando SOLO esa pequeña parte, sin volver a llamar a render()!
-    const lightSignal = new Signal.Computed(() => isTrafficJam.get() ? '🔴' : '🟢');
-
-    return html\`
-      <div class="intersection">
-        <h3>Intersección Central</h3>
-        <div>\${heavyTree}</div>
-        <span class="light">\${watch(lightSignal)}</span>
-        <div>\${heavyTree}</div>
-      </div>
-      <div class="logs">Render count: \${this.renderCount}<br>El componente se renderiza UNA sola vez. Luego la señal altera directamente el DOM del emoji con coste O(1).</div>
-    \`;
-  }
-}
-customElements.define('city-intersection', CityIntersection);
-`,
-						"index.html": `<!DOCTYPE html>
-<html>
-  <head>
-    <script type="module" src="./index.js"></script>
-    <style>
-      body { font-family: system-ui; background: #222; color: white; padding: 2rem; margin: 0; }
-      .intersection { border: 2px solid #0f766e; padding: 2rem; border-radius: 10px; text-align: center; }
-      .light { font-size: 3rem; margin: 1rem 0; display: block; }
-      .node { display: inline-block; width: 10px; height: 10px; background: #444; margin: 2px; }
-      .logs { margin-top: 1rem; color: #34d399; font-family: monospace; max-width: 400px; text-align: center; }
-    </style>
-  </head>
-  <body>
-    <city-intersection></city-intersection>
-  </body>
-</html>`
-					}
-				}
+						"index.js": TheFiberOpticCableModernIndexJs,
+						"index.html": TheFiberOpticCableModernIndexHtml,
+					},
+				},
 			],
 		},
 		scale: 30,
@@ -622,178 +280,20 @@ customElements.define('city-intersection', CityIntersection);
 					title: msg("Legacy Lit (Tearing)"),
 					interactive: true,
 					files: {
-						"index.js": `import { LitElement, html } from 'lit';
-
-// 1. Un Store global clásico basado en eventos (muy común en Legacy)
-class NaiveStore extends EventTarget {
-  constructor() {
-    super();
-    this.ambulance = false;
-    this.traffic = false;
-  }
-  setAmbulance(val) {
-    this.ambulance = val;
-    this.dispatchEvent(new Event('change')); // Notifica síncronamente
-  }
-  setTraffic(val) {
-    this.traffic = val;
-    this.dispatchEvent(new Event('change')); // Notifica síncronamente
-  }
-}
-const store = new NaiveStore();
-
-class CityDispatcher extends LitElement {
-  static properties = { logs: { type: Array } };
-
-  constructor() {
-    super();
-    this.logs = [];
-  }
-
-  connectedCallback() {
-    super.connectedCallback();
-    store.addEventListener('change', () => {
-      // 2. Evaluamos el estado derivado en cuanto cambia el store
-      const isEmergency = store.ambulance && store.traffic;
-      
-      let explanation = "";
-      if (store.ambulance === true && store.traffic === false) {
-        explanation = "❌ ¡GLITCH! La app reacciona antes de tiempo a un estado a medias.";
-      } else if (store.ambulance === true && store.traffic === true) {
-        explanation = "✅ Estado final correcto alcanzado.";
-      }
-
-      this.logs = [...this.logs, \`Ambulancia: \${store.ambulance}, Tráfico: \${store.traffic} -> 🚨 Emergencia: \${isEmergency} | \${explanation}\`];
-    });
-  }
-
-  onEmergency() {
-    this.logs = []; // Limpiamos para ver el efecto
-    
-    // 3. Mutamos las dos propiedades de forma síncrona, una detrás de otra
-    store.setAmbulance(true);
-    // 🚨 GLITCH ("Tearing"): Al ejecutar la línea anterior, el evento YA saltó. 
-    // El sistema ya calculó el estado roto (A=true, T=false) antes de llegar aquí abajo.
-    store.setTraffic(true);
-  }
-
-  render() {
-    return html\`
-      <div class="hub">
-        <h2>Centro de Control (Legacy)</h2>
-        <p style="font-style: italic; color: #a1a1aa; font-size: 0.9rem">(Regla: Emergencia requiere que Ambulancia y Tráfico sean TRUE)</p>
-        <button @click=\${this.onEmergency}>Desatar Emergencia (Síncrona)</button>
-        <div class="history">
-          <h4>Evaluaciones del Sistema:</h4>
-          \${this.logs.map(l => html\`<p>\${l}</p>\`)}
-        </div>
-      </div>
-      <div class="logs">
-        Al estar basado en eventos síncronos, la app reacciona en el exacto milisegundo en el que cambia la ambulancia. 
-        Calcula y renderiza todo usando un estado intermedio roto (true/false) antes de que al código le dé tiempo a ejecutar la siguiente línea (tráfico). Esto gasta el doble de CPU y genera "glitches" visuales.
-      </div>
-    \`;
-  }
-}
-customElements.define('city-dispatcher', CityDispatcher);
-`,
-						"index.html": `<!DOCTYPE html>
-<html>
-  <head>
-    <script type="module" src="./index.js"></script>
-    <style>
-      body { font-family: system-ui; background: #222; color: white; padding: 2rem; margin: 0; }
-      .hub { border: 2px solid #555; padding: 2rem; border-radius: 10px; text-align: center; width: 600px; }
-      button { background: #f43f5e; color: white; border: none; padding: 1rem 2rem; font-size: 1.2rem; border-radius: 8px; cursor: pointer; margin-top: 1rem; }
-      button:active { transform: scale(0.95); }
-      .history { margin-top: 2rem; text-align: left; background: #111; padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.9rem; }
-      .logs { margin-top: 1rem; color: #a1a1aa; font-family: monospace; max-width: 600px; text-align: left; }
-    </style>
-  </head>
-  <body>
-    <city-dispatcher></city-dispatcher>
-  </body>
-</html>`
-					}
-				}
+						"index.js": TheAmbulanceHubLegacyIndexJs,
+						"index.html": TheAmbulanceHubLegacyIndexHtml,
+					},
+				},
 			],
 			end: [
 				{
 					title: msg("Modern Lit (Atomic Graph)"),
 					interactive: true,
 					files: {
-						"index.js": `import { LitElement, html } from 'lit';
-import { SignalWatcher } from '@lit-labs/signals';
-import { Signal } from 'signal-polyfill';
-
-const ambulance = new Signal.State(false);
-const traffic = new Signal.State(false);
-
-let evaluationCount = 0;
-
-// El DAG de señales garantiza consistencia atómica sin tearing
-const isEmergency = new Signal.Computed(() => {
-  evaluationCount++;
-  return ambulance.get() && traffic.get();
-});
-
-class CityDispatcher extends SignalWatcher(LitElement) {
-  onEmergency() {
-    // Reiniciamos todo para ver el efecto
-    ambulance.set(false); traffic.set(false); evaluationCount = 0;
-    
-    // Mutamos los dos estados uno detrás del otro de forma síncrona
-    ambulance.set(true);
-    traffic.set(true);
-    
-    // ✅ Consistencia Atómica ✅: Las señales marcan los nodos como sucios (Push),
-    // pero NO disparan ejecuciones descontroladas. 
-    // El sistema espera a estabilizarse (Pull).
-  }
-
-  render() {
-    // Al pedir el valor (Pull), el grafo entero se evalúa.
-    // La función Computed se ejecuta UNA sola vez con el estado final consistente.
-    const emergencyValue = isEmergency.get();
-    
-    return html\`
-      <div class="hub">
-        <h2>Centro de Control (Signals)</h2>
-        <p style="font-style: italic; color: #34d399; font-size: 0.9rem">(Regla: Emergencia requiere que Ambulancia y Tráfico sean TRUE)</p>
-        <button @click=\${this.onEmergency}>Desatar Emergencia (Síncrona)</button>
-        <div class="history">
-          <h4>Evaluación Única y Atómica:</h4>
-          <p>Ambulancia: \${ambulance.get()}, Tráfico: \${traffic.get()} -> 🚨 Emergencia: \${emergencyValue} | ✅ Estado final correcto alcanzado.</p>
-          <p style="color: #34d399">Nº de veces que la Computed reevaluó la regla pesada: \${evaluationCount}</p>
-        </div>
-      </div>
-      <div class="logs">
-        Al pulsar el botón, las dos mutaciones simplemente ensucian el grafo. La Computed de emergencia "espera" de forma inteligente y evalúa el resultado UNA SOLA VEZ con los datos finales. No hay glitches ni cálculos a medias, ahorrando CPU y previniendo errores.
-      </div>
-    \`;
-  }
-}
-customElements.define('city-dispatcher', CityDispatcher);
-`,
-						"index.html": `<!DOCTYPE html>
-<html>
-  <head>
-    <script type="module" src="./index.js"></script>
-    <style>
-      body { font-family: system-ui; background: #222; color: white; padding: 2rem; margin: 0; }
-      .hub { border: 2px solid #0f766e; padding: 2rem; border-radius: 10px; text-align: center; width: 600px; }
-      button { background: #0f766e; color: white; border: none; padding: 1rem 2rem; font-size: 1.2rem; border-radius: 8px; cursor: pointer; margin-top: 1rem; }
-      button:active { transform: scale(0.95); }
-      .history { margin-top: 2rem; text-align: left; background: #111; padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.9rem; }
-      .logs { margin-top: 1rem; color: #34d399; font-family: monospace; max-width: 600px; text-align: left; }
-    </style>
-  </head>
-  <body>
-    <city-dispatcher></city-dispatcher>
-  </body>
-</html>`
-					}
-				}
+						"index.js": TheAmbulanceHubModernIndexJs,
+						"index.html": TheAmbulanceHubModernIndexHtml,
+					},
+				},
 			],
 		},
 		stats: { maintainability: 30, portability: 10, performance: 20 },
@@ -837,175 +337,23 @@ customElements.define('city-dispatcher', CityDispatcher);
 					title: msg("Legacy Lit (Global Mutable State)"),
 					interactive: true,
 					files: {
-						"store.js": `// Un estado global expuesto y altamente mutable
-export const cityState = {
-  cars: 0
-};`,
-						"index.js": `import { LitElement, html } from 'lit';
-import { cityState } from './store.js';
-
-class FuseBox extends LitElement {
-  static properties = {
-    _cars: { type: Number }
-  };
-
-  constructor() {
-    super();
-    this._cars = cityState.cars;
-  }
-
-  connectedCallback() {
-    super.connectedCallback();
-    this.timer = setInterval(() => {
-      // Simula el tráfico normal, pero si alguien más mutó el store,
-      // el valor estará corrupto permanentemente.
-      cityState.cars += 1;
-      this._cars = cityState.cars;
-    }, 1000);
-  }
-
-  render() {
-    const isHacked = this._cars < 0;
-    return html\`
-      <div class="box">
-        <h3>Panel de Control Principal</h3>
-        <h2>Coches registrados: <span class="\${isHacked ? 'hacked' : ''}">\${this._cars}</span></h2>
-      </div>
-    \`;
-  }
-}
-customElements.define('fuse-box', FuseBox);
-
-class RookieComponent extends LitElement {
-  breakCity() {
-    // 🚨 Un componente periférico novato puede destruir la fuente de verdad
-    cityState.cars = -9999;
-  }
-
-  render() {
-    return html\`
-      <div style="margin-top: 2rem; text-align: center;">
-        <p>Módulo de Control Externo</p>
-        <button @click=\${this.breakCity}>Sobreescribir datos sin permiso</button>
-      </div>
-    \`;
-  }
-}
-customElements.define('rookie-component', RookieComponent);
-`,
-						"index.html": `<!DOCTYPE html>
-<html>
-  <head>
-    <script type="module" src="./index.js"></script>
-    <style>
-      body { font-family: system-ui; background: #222; color: white; padding: 2rem; margin: 0; }
-      .box { border: 2px solid #555; padding: 2rem; border-radius: 10px; text-align: center; }
-      .hacked { color: #f43f5e; font-weight: bold; }
-      button { background: #f43f5e; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; margin-top: 1rem; }
-      .logs { margin-top: 1rem; color: #a1a1aa; font-family: monospace; max-width: 400px; text-align: center; }
-    </style>
-  </head>
-  <body>
-    <fuse-box></fuse-box>
-    <rookie-component></rookie-component>
-  </body>
-</html>`
-					}
-				}
+						"store.js": TheFuseBoxLegacyStoreJs,
+						"index.js": TheFuseBoxLegacyIndexJs,
+						"index.html": TheFuseBoxLegacyIndexHtml,
+					},
+				},
 			],
 			end: [
 				{
 					title: msg("Modern Lit (Store Governance)"),
 					interactive: true,
 					files: {
-						"store.js": `import { Signal } from 'signal-polyfill';
-
-export class TrafficStore {
-  // 🛡️ El estado real se encapsula privadamente (#)
-  #cars = new Signal.State(0);
-
-  constructor() {
-    // 🛡️ Se expone un espejo seguro (Computed) de solo lectura
-    this.cars = new Signal.Computed(() => this.#cars.get());
-  }
-
-  // Único método autorizado para mutar el estado
-  registerVehicle() {
-    this.#cars.set(this.#cars.get() + 1);
-  }
-}
-
-export const store = new TrafficStore();
-`,
-						"index.js": `import { LitElement, html } from 'lit';
-import { SignalWatcher } from '@lit-labs/signals';
-import { store } from './store.js';
-
-class FuseBox extends SignalWatcher(LitElement) {
-  connectedCallback() {
-    super.connectedCallback();
-    this.timer = setInterval(() => {
-      // Usamos el método oficial del Store
-      store.registerVehicle();
-    }, 1000);
-  }
-
-  render() {
-    return html\`
-      <div class="box">
-        <h3>Panel de Control Principal</h3>
-        <h2>Coches registrados: <span>\${store.cars.get()}</span></h2>
-      </div>
-    \`;
-  }
-}
-customElements.define('fuse-box', FuseBox);
-
-class RookieComponent extends LitElement {
-  breakCity() {
-    try {
-      // 🚨 Intento fallido de hackeo:
-      // Property '#cars' is not accessible.
-      // store.cars es un Computed, NO TIENE .set()!
-      store.cars.set(-9999);
-    } catch (e) {
-      console.error("Hackeo prevenido por el Store!", e.message);
-      alert("⚠️ Error: " + e.message);
-    }
-  }
-
-  render() {
-    return html\`
-      <div style="margin-top: 2rem; text-align: center;">
-        <p>Módulo de Control Externo</p>
-        <button @click=\${this.breakCity}>Intentar hackear el Store</button>
-      </div>
-      <div class="logs">El state original está protegido. Solo exponemos espejos seguros.</div>
-    \`;
-  }
-}
-customElements.define('rookie-component', RookieComponent);
-`,
-						"index.html": `<!DOCTYPE html>
-<html>
-  <head>
-    <script type="module" src="./index.js"></script>
-    <style>
-      body { font-family: system-ui; background: #222; color: white; padding: 2rem; margin: 0; }
-      .box { border: 2px solid #0f766e; padding: 2rem; border-radius: 10px; text-align: center; }
-      button { background: #0f766e; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; margin-top: 1rem; }
-      button:active { transform: scale(0.95); }
-      .logs { margin-top: 1rem; color: #34d399; font-family: monospace; max-width: 400px; text-align: center; }
-    </style>
-  </head>
-  <body>
-    <fuse-box></fuse-box>
-    <rookie-component></rookie-component>
-  </body>
-</html>`
-					}
-				}
-			]
+						"store.js": TheFuseBoxModernStoreJs,
+						"index.js": TheFuseBoxModernIndexJs,
+						"index.html": TheFuseBoxModernIndexHtml,
+					},
+				},
+			],
 		},
 		scale: 30,
 		stats: { maintainability: 50, portability: 10, performance: 10 },

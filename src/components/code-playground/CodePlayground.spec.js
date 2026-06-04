@@ -26,7 +26,7 @@ describe("CodePlayground", () => {
 			"script.js": "console.log(1);",
 		};
 		el.files = files;
-		
+
 		await el.updateComplete;
 
 		const ide = el.shadowRoot.querySelector("playground-ide");
