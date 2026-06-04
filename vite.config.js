@@ -81,7 +81,6 @@ export default defineConfig(({ mode }) => {
 				registerType: "autoUpdate",
 				includeAssets: [
 					"favicon.ico",
-					"apple-touch-icon.png",
 					"assets/**/*.png",
 					"assets/**/*.jpg",
 					"assets/**/*.mp3",
@@ -96,22 +95,10 @@ export default defineConfig(({ mode }) => {
 					name: "Legacy's End",
 					short_name: "Legacy's End",
 					description: "A programming puzzle game",
-					theme_color: "#0f172a",
-					background_color: "#0f172a",
+					theme_color: "#000000",
+					background_color: "#000000",
 					display: "standalone",
 					orientation: "portrait",
-					icons: [
-						{
-							src: "icons/pwa-192x192.png",
-							sizes: "192x192",
-							type: "image/png",
-						},
-						{
-							src: "icons/pwa-512x512.png",
-							sizes: "512x512",
-							type: "image/png",
-						},
-					],
 				},
 			}),
 		],
