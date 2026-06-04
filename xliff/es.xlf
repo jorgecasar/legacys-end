@@ -1580,69 +1580,47 @@
 </trans-unit>
 <trans-unit id="scdca4372f70d25eb">
   <source>The Pedestrian Crossing</source>
-</trans-unit>
-<trans-unit id="sefda69885e68e84f">
-  <source>Legacy React (Context)</source>
-</trans-unit>
-<trans-unit id="s6dc93a983eaaf665">
-  <source>Legacy Lit (Events &amp; Props)</source>
-</trans-unit>
-<trans-unit id="s8a3a0e4b61537e08">
-  <source>Modern React (TC39 Signals)</source>
+  <target>El Paso de Peatones</target>
 </trans-unit>
 <trans-unit id="sc61f773bc2340f1e">
   <source>Modern Lit (TC39 Signals)</source>
-</trans-unit>
-<trans-unit id="s10804bbc452401c6">
-  <source>Legacy React (Eager)</source>
+  <target>Lit Moderno (Señales TC39)</target>
 </trans-unit>
 <trans-unit id="s8d0561de2501a950">
   <source>Legacy Lit (Eager)</source>
-</trans-unit>
-<trans-unit id="sfde61714740c99d5">
-  <source>Modern React (Lazy Computed)</source>
+  <target>Lit Antiguo (Ansioso)</target>
 </trans-unit>
 <trans-unit id="sf9739ad4ee8e17d3">
   <source>Modern Lit (Lazy Computed)</source>
-</trans-unit>
-<trans-unit id="s13350e44089fc302">
-  <source>Legacy React (VDOM)</source>
+  <target>Lit Moderno (Computado Perezoso)</target>
 </trans-unit>
 <trans-unit id="s70ba45b680d5499f">
   <source>Legacy Lit (Template Diffing)</source>
-</trans-unit>
-<trans-unit id="s0b08302d1aacb2a7">
-  <source>Modern React (Direct Ref Mutation)</source>
+  <target>Lit Antiguo (Diferenciación de Plantillas)</target>
 </trans-unit>
 <trans-unit id="saa4307c0c7fc135e">
   <source>Modern Lit (Watch Directive)</source>
+  <target>Lit Moderno (Directiva Watch)</target>
 </trans-unit>
 <trans-unit id="s9405433ab66f246e">
   <source>Before: Glitchy Renders (Tearing)</source>
-</trans-unit>
-<trans-unit id="s2e151aa0a079fd42">
-  <source>Legacy React (Tearing)</source>
+  <target>Antes: Renderizados Defectuosos (Tearing)</target>
 </trans-unit>
 <trans-unit id="s3c71d18677741460">
   <source>Legacy Lit (Tearing)</source>
-</trans-unit>
-<trans-unit id="s97aad3261f070b3b">
-  <source>Modern React (Atomic Graph)</source>
+  <target>Lit Antiguo (Tearing)</target>
 </trans-unit>
 <trans-unit id="s2708f7f1b77a9c71">
   <source>Modern Lit (Atomic Graph)</source>
-</trans-unit>
-<trans-unit id="s97d4a0bd6d1d32d8">
-  <source>Legacy React (Global Mutable State)</source>
+  <target>Lit Moderno (Grafo Atómico)</target>
 </trans-unit>
 <trans-unit id="sa47be39e79b3edba">
   <source>Legacy Lit (Global Mutable State)</source>
-</trans-unit>
-<trans-unit id="sc91f84de3025c295">
-  <source>Modern React (Store Governance)</source>
+  <target>Lit Antiguo (Estado Global Mutable)</target>
 </trans-unit>
 <trans-unit id="sd53d3db142c5095b">
   <source>Modern Lit (Store Governance)</source>
+  <target>Lit Moderno (Gobernanza del Store)</target>
 </trans-unit>
 <trans-unit id="s7b07ef55e99a3fd0">
   <source>Dark Theme</source>
@@ -1714,36 +1692,51 @@
 </trans-unit>
 <trans-unit id="s0eaee920452e46af">
   <source>I'm isolating this pressure sensor. It was so chained to the core grid that a simple footstep caused the entire intersection to collapse and redraw. Step closer, I'll teach you how to decouple it.</source>
+  <target>Estoy aislando este sensor de presión. Estaba tan encadenado a la red central que un simple paso causaba que toda la intersección colapsara y se redibujara. Acércate, te enseñaré cómo desacoplarlo.</target>
 </trans-unit>
 <trans-unit id="s96d6c7c5e1050026">
   <source>The sensor's state was shackled to the root of the UI tree through a massive global context. Consequently, every minor interaction detonated a shockwave that forced the framework to critically and unnecessarily re-render the entire intersection.</source>
+  <target>El estado del sensor estaba encadenado a la raíz del árbol de UI a través de un contexto global masivo. En consecuencia, cada interacción menor detonaba una onda de choque que obligaba al framework a re-renderizar de forma crítica e innecesaria toda la intersección.</target>
 </trans-unit>
 <trans-unit id="sb766fbf65df0e727">
   <source>I have a detector on the crosswalk, and every footstep forces me to rebuild the entire intersection's matrix. Step out of the crosswalk so the light turns green and we can talk without overloading the system!</source>
+  <target>¡Tengo un detector en el paso de cebra, y cada pisada me obliga a reconstruir toda la matriz de la intersección! ¡Sal del paso de cebra para que el semáforo se ponga verde y podamos hablar sin sobrecargar el sistema!</target>
 </trans-unit>
 <trans-unit id="sbe5a268b25060903">
   <source>What a disaster of efficiency! The core wastes energy calculating traffic density incessantly, even when the streets are empty. I'll show you how to forge a reactive intermediate node that remains dormant until its data is explicitly demanded.</source>
+  <target>¡Qué desastre de eficiencia! El núcleo desperdicia energía calculando incesantemente la densidad del tráfico, incluso cuando las calles están vacías. Te mostraré cómo forjar un nodo intermedio reactivo que permanezca inactivo hasta que se exijan explícitamente sus datos.</target>
 </trans-unit>
 <trans-unit id="s753f4e8bef6cd933">
   <source>The legacy system suffered from eager evaluation, aggressively recalculating heavy derived state on every lifecycle heartbeat, draining precious CPU cycles even when all monitors were offline.</source>
+  <target>El sistema antiguo sufría de evaluación ansiosa, recalculando agresivamente pesados estados derivados en cada latido del ciclo de vida, drenando preciosos ciclos de CPU incluso cuando todos los monitores estaban fuera de línea.</target>
 </trans-unit>
 <trans-unit id="s7f6270c61a4a4d94">
   <source>Why yell to the whole city just to turn on a single traffic light? I'm threading a direct fiber optic filament right into its lens. Let me teach you how to bypass the framework's chaotic massive diffing.</source>
+  <target>¿Por qué gritarle a toda la ciudad solo para encender un simple semáforo? Estoy enhebrando un filamento directo de fibra óptica justo en su lente. Déjame enseñarte cómo eludir la caótica diferenciación masiva del framework.</target>
 </trans-unit>
 <trans-unit id="s8b734a7402dc38a8">
   <source>The legacy framework unleashed destructive 'diffing', blindly comparing hundreds of virtual nodes only to discover the sole required mutation was altering the text of a tiny &lt;span&gt; on the periphery.</source>
+  <target>El framework antiguo desataba una destructiva 'diferenciación', comparando a ciegas cientos de nodos virtuales solo para descubrir que la única mutación requerida era alterar el texto de un minúsculo &lt;span&gt; en la periferia.</target>
 </trans-unit>
 <trans-unit id="s5b884e43c7db541e">
   <source>Event concurrency is fracturing our interface! An ambulance and a traffic spike have collided in memory. I'm stabilizing the main node to guarantee tear-free atomic updates. Watch closely!</source>
+  <target>¡La concurrencia de eventos está fracturando nuestra interfaz! Una ambulancia y un pico de tráfico han colisionado en la memoria. Estoy estabilizando el nodo principal para garantizar actualizaciones atómicas sin rasgaduras. ¡Observa atentamente!</target>
 </trans-unit>
 <trans-unit id="s306da3f69c272bfa">
   <source>Isolated state mutations triggered the framework in multiple chaotic passes, causing dangerous visual 'tearing' where the screen displayed invalid and corrupted state frames.</source>
+  <target>Las mutaciones aisladas del estado disparaban el framework en múltiples pasadas caóticas, causando peligrosas 'rasgaduras' visuales (tearing) donde la pantalla mostraba cuadros de estado inválidos y corruptos.</target>
 </trans-unit>
 <trans-unit id="s9be273c7c8fd86fc">
   <source>Integrity breach detected! The main network is fully exposed; any rookie module could overwrite raw traffic data. Help me lock this fuse box, and we'll expose only safe, read-only reactive mirrors.</source>
+  <target>¡Brecha de integridad detectada! La red principal está totalmente expuesta; cualquier módulo novato podría sobreescribir los datos crudos de tráfico. Ayúdame a cerrar esta caja de fusibles, y expondremos únicamente espejos reactivos seguros y de solo lectura.</target>
 </trans-unit>
 <trans-unit id="sb20396df1c46049f">
   <source>A dangerously exposed and highly mutable global state. Any peripheral node in the application had the power to overwrite the source of truth, spawning near-impossible-to-track cascading failures.</source>
+  <target>Un estado global peligrosamente expuesto y altamente mutable. Cualquier nodo periférico de la aplicación tenía el poder de sobreescribir la fuente de la verdad, engendrando fallos en cascada casi imposibles de rastrear.</target>
+</trans-unit>
+<trans-unit id="s229b40710b6109a8">
+  <source>Legacy Lit (Events and Props)</source>
+  <target>Lit Antiguo (Eventos y Props)</target>
 </trans-unit>
 </body>
 </file>
