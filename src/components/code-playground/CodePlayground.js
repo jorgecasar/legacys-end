@@ -1,6 +1,5 @@
 import { html, LitElement } from "lit";
 import { customElement, property, query } from "lit/decorators.js";
-import { ifDefined } from "lit/directives/if-defined.js";
 import "playground-elements/playground-project.js";
 import "playground-elements/playground-tab-bar.js";
 import "playground-elements/playground-file-editor.js";
@@ -59,14 +58,14 @@ export class CodePlayground extends LitElement {
 			<playground-project 
 				id="project"
 				.sandboxBaseUrl=${import.meta.env.BASE_URL} 
-				.projectSrc=${ifDefined(this.projectSrc || undefined)}
-				.config=${ifDefined(config)}
+				.projectSrc=${this.projectSrc || undefined}
+				.config=${config}
 			></playground-project>
 
 			<div class="layout" @keydown="${(/** @type {KeyboardEvent} */ e) => e.stopPropagation()}">
 				<div class="editor-pane">
 					<playground-tab-bar .project=${"project"} .editor=${"editor"}></playground-tab-bar>
-					<playground-file-editor id="editor" .project=${"project"} line-numbers></playground-file-editor>
+					<playground-file-editor id="editor" .project=${"project"} ?lineNumbers=${true}></playground-file-editor>
 				</div>
 				<div class="preview-pane">
 					<playground-preview .project=${"project"}></playground-preview>

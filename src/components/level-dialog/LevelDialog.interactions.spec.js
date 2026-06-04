@@ -162,8 +162,8 @@ describe("LevelDialog Interactions", () => {
 		await footer?.updateComplete;
 		const buttons = footer?.shadowRoot?.querySelectorAll("wa-button");
 		if (!buttons || buttons.length === 0) throw new Error("Buttons not found");
-		const nextBtn = Array.from(buttons).find((b) =>
-			b.textContent?.trim().includes("NEXT"),
+		const nextBtn = /** @type {HTMLElement | null} */ (
+			footer?.shadowRoot?.querySelector("#next-btn")
 		);
 
 		if (nextBtn) {
@@ -219,10 +219,11 @@ describe("LevelDialog Interactions", () => {
 		await footer?.updateComplete;
 		const buttons = footer?.shadowRoot?.querySelectorAll("wa-button");
 		if (!buttons || buttons.length === 0) throw new Error("Buttons not found");
-		const prevBtn = buttons[0]; // First button is PREV
+		const prevBtn = /** @type {HTMLElement} */ (buttons[0]); // First button is PREV
 
 		if (prevBtn) {
-			expect(prevBtn.textContent?.trim()).toContain("PREV");
+			const icon = prevBtn.querySelector("wa-icon");
+			expect(icon?.getAttribute("name")).toBe("arrow-left");
 			prevBtn.click();
 			await element.updateComplete;
 			expect(worldStateMock.currentSlideIndex.get()).toBe(0);
