@@ -29,13 +29,13 @@ class CityDispatcher extends LitElement {
 	connectedCallback() {
 		super.connectedCallback();
 		store.addEventListener("change", () => {
-			// 2. Evaluamos el estado derivado en cuanto cambia el store
+			// 2. We evaluate derived state as soon as the store changes
 			const isEmergency = store.ambulance && store.traffic;
 
 			let explanation = "";
 			if (store.ambulance === true && store.traffic === false) {
 				explanation =
-					"❌ ¡GLITCH! La app reacciona antes de tiempo a un estado a medias.";
+					"❌ GLITCH! The app reacts prematurely to a half-baked state.";
 			} else if (store.ambulance === true && store.traffic === true) {
 				explanation = "✅ Correct final state reached.";
 			}
@@ -48,7 +48,7 @@ class CityDispatcher extends LitElement {
 	}
 
 	onEmergency() {
-		this.logs = []; // Limpiamos para ver el efecto
+		this.logs = []; // Clear to see the effect
 
 		// 3. We synchronously mutate both properties, one after the other
 		store.setAmbulance(true);
@@ -60,11 +60,11 @@ class CityDispatcher extends LitElement {
 	render() {
 		return html`
       <div class="hub">
-        <h2>Centro de Control (Legacy)</h2>
+        <h2>Control Center (Legacy)</h2>
         <p style="font-style: italic; color: #a1a1aa; font-size: 0.9rem">(Rule: Emergency requires both Ambulance and Traffic to be TRUE)</p>
         <button @click=${this.onEmergency}>Trigger Emergency (Synchronous)</button>
         <div class="history">
-          <h4>Evaluaciones del Sistema:</h4>
+          <h4>System Evaluations:</h4>
           ${this.logs.map((l) => html`<p>${l}</p>`)}
         </div>
       </div>

@@ -3,14 +3,14 @@ import { html, LitElement } from "lit";
 import { Signal } from "signal-polyfill";
 
 const carCount = new Signal.State(0);
-// Simulamos que los datos subyacentes cambian constantemente en segundo plano
+// Simulate underlying data changing constantly in the background
 setInterval(() => {
 	carCount.set(Math.floor(Math.random() * 100));
 }, 2000);
 
 function calculateHeavyTrafficRules(cars) {
 	console.log(
-		"✅ Calculando reglas pesadas... (Solo ocurre cuando alguien lee el Computed!)",
+		"✅ Calculating heavy rules... (Only happens when someone reads the Computed!)",
 	);
 	return cars > 50;
 }
@@ -46,13 +46,13 @@ class TrafficMonitor extends SignalWatcher(LitElement) {
       `
 					: html`
         <div class="monitor off">
-          <!-- Aquí NUNCA llamamos a isTrafficJam.get(), así que la CPU se ahorra al 100% -->
-          (Monitor Apagado)
+          <!-- We NEVER call isTrafficJam.get() here, so CPU is 100% saved -->
+          (Monitor Off)
         </div>
       `
 			}
 
-      <div class="logs">Abre la consola (F12). Apaga el monitor y verás cómo el cálculo se detiene mágicamente, aunque los coches sigan cambiando en segundo plano.</div>
+      <div class="logs">Open the console (F12). Turn off the monitor and watch how the calculation magically stops, even while cars keep changing in the background.</div>
     `;
 	}
 }

@@ -6,7 +6,7 @@ setInterval(() => {
 }, 2000);
 
 function calculateHeavyTrafficRules(cars) {
-	console.log("Calculando reglas pesadas... (Evaluado incondicionalmente)");
+	console.log("Calculating heavy rules... (Evaluated unconditionally)");
 	return cars > 50;
 }
 
@@ -50,7 +50,7 @@ class TrafficMonitor extends LitElement {
       `
 					: html`
         <div class="monitor off">
-          (Monitor Apagado)
+          (Monitor Off)
         </div>
       `
 			}

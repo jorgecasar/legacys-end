@@ -5,7 +5,7 @@ import { Signal } from "signal-polyfill";
 // 1. State lives autonomously and globally
 export const pedestriansWaiting = new Signal.State(false);
 
-// 2. CityApp ya NO tiene estado. NUNCA sufre re-render.
+// 2. CityApp has NO state. It NEVER re-renders.
 class CityApp extends LitElement {
 	render() {
 		return html`

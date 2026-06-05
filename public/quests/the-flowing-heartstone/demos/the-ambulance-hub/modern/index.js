@@ -15,7 +15,7 @@ const isEmergency = new Signal.Computed(() => {
 
 class CityDispatcher extends SignalWatcher(LitElement) {
 	onEmergency() {
-		// Reiniciamos todo para ver el efecto
+		// Reset everything to see the effect
 		ambulance.set(false);
 		traffic.set(false);
 		evaluationCount = 0;
@@ -25,8 +25,8 @@ class CityDispatcher extends SignalWatcher(LitElement) {
 		traffic.set(true);
 
 		// ✅ Atomic Consistency ✅: Signals mark nodes as dirty (Push phase),
-		// pero NO disparan ejecuciones descontroladas.
-		// El sistema espera a estabilizarse (Pull).
+		// but they DO NOT trigger uncontrolled executions.
+		// The system waits to stabilize (Pull phase).
 	}
 
 	render() {
@@ -36,7 +36,7 @@ class CityDispatcher extends SignalWatcher(LitElement) {
 
 		return html`
       <div class="hub">
-        <h2>Centro de Control (Signals)</h2>
+        <h2>Control Center (Signals)</h2>
         <p style="font-style: italic; color: #34d399; font-size: 0.9rem">(Rule: Emergency requires both Ambulance and Traffic to be TRUE)</p>
         <button @click=${this.onEmergency}>Trigger Emergency (Synchronous)</button>
         <div class="history">
