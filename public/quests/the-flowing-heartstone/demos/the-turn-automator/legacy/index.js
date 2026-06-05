@@ -6,7 +6,8 @@ setInterval(() => {
 }, 2000);
 
 function calculateHeavyTrafficRules(cars) {
-	console.log("Calculating heavy rules... (Evaluated unconditionally)");
+	const log = console.log;
+	log("Calculating heavy rules... (Evaluated unconditionally)");
 	return cars > 50;
 }
 

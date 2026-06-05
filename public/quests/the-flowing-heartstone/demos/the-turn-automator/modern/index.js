@@ -9,7 +9,8 @@ setInterval(() => {
 }, 2000);
 
 function calculateHeavyTrafficRules(cars) {
-	console.log(
+	const log = console.log;
+	log(
 		"✅ Calculating heavy rules... (Only happens when someone reads the Computed!)",
 	);
 	return cars > 50;
