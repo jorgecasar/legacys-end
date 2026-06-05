@@ -30,28 +30,34 @@ class TrafficMonitor extends SignalWatcher(LitElement) {
 		this.showTraffic = true;
 	}
 
+	renderMonitorOn() {
+		return html`
+	  <div class="monitor">
+		  Status: ${isTrafficJam.get() ? "🔴 JAM" : "🟢 OK"}
+		</div>
+		`;
+	}
+
+	renderMonitorOff() {
+		return html`
+	  <div class="monitor off">
+		  (Monitor Off)
+		</div>
+		`;
+	}
+
+	renderButton() {
+		return html`
+	  <button @click=${() => (this.showTraffic = !this.showTraffic)}>
+		${this.showTraffic ? "Hide Traffic" : "Show Traffic"}
+	  </button>
+	`;
+	}
+
 	render() {
 		return html`
-      <button @click=${() => (this.showTraffic = !this.showTraffic)}>
-        ${this.showTraffic ? "Hide Traffic" : "Show Traffic"}
-      </button>
-
-      ${
-				this.showTraffic
-					? html`
-        <div class="monitor">
-          <!-- By calling .get(), Lit subscribes and the Computed evaluates lazily -->
-          Status: ${isTrafficJam.get() ? "🔴 JAM" : "🟢 OK"}
-        </div>
-      `
-					: html`
-        <div class="monitor off">
-          <!-- We NEVER call isTrafficJam.get() here, so CPU is 100% saved -->
-          (Monitor Off)
-        </div>
-      `
-			}
-
+      ${this.renderButton()}
+      ${this.showTraffic ? this.renderMonitorOn() : this.renderMonitorOff()}
       <div class="logs">Open the console (F12). Turn off the monitor and watch how the calculation magically stops, even while cars keep changing in the background.</div>
     `;
 	}

@@ -35,28 +35,36 @@ class TrafficMonitor extends LitElement {
 		clearInterval(this.timer);
 	}
 
+	renderMonitorOn() {
+		return html`
+	  <div class="monitor">
+		  Status: ${this.isJam ? "🔴 JAM" : "🟢 OK"}
+	  </div>
+		`;
+	}
+
+	renderMonitorOff() {
+		return html`
+	  <div class="monitor off">
+		(Monitor Off)
+	  </div>
+	`;
+	}
+
+	renderButton() {
+		return html`
+			<button @click=${() => (this.showTraffic = !this.showTraffic)}>
+				  ${this.showTraffic ? "Hide Traffic" : "Show Traffic"}
+			  </button>
+		`;
+	}
+
 	render() {
 		return html`
-      <button @click=${() => (this.showTraffic = !this.showTraffic)}>
-        ${this.showTraffic ? "Hide Traffic" : "Show Traffic"}
-      </button>
-
-      ${
-				this.showTraffic
-					? html`
-        <div class="monitor">
-          Status: ${this.isJam ? "🔴 JAM" : "🟢 OK"}
-        </div>
-      `
-					: html`
-        <div class="monitor off">
-          (Monitor Off)
-        </div>
-      `
-			}
-      
-      <div class="logs">Open the console (F12). Watch how CPU is still wasted even when the monitor is turned off.</div>
-    `;
+			${this.renderButton()}
+			${this.showTraffic ? this.renderMonitorOn() : this.renderMonitorOff()}
+			<div class="logs">Open the console (F12). Watch how CPU is still wasted even when the monitor is turned off.</div>
+		`;
 	}
 }
 customElements.define("traffic-monitor", TrafficMonitor);
