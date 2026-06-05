@@ -15,7 +15,7 @@ function calculateHeavyTrafficRules(cars) {
 	return cars > 50;
 }
 
-// 🟢 Computed es Perezoso (Lazy): NO evalúa nada hasta que alguien hace .get()
+// 🟢 Computed is Lazy: It evaluates NOTHING until someone calls .get()
 const isTrafficJam = new Signal.Computed(() => {
 	return calculateHeavyTrafficRules(carCount.get());
 });
@@ -33,14 +33,14 @@ class TrafficMonitor extends SignalWatcher(LitElement) {
 	render() {
 		return html`
       <button @click=${() => (this.showTraffic = !this.showTraffic)}>
-        ${this.showTraffic ? "Ocultar Tráfico" : "Mostrar Tráfico"}
+        ${this.showTraffic ? "Hide Traffic" : "Show Traffic"}
       </button>
 
       ${
 				this.showTraffic
 					? html`
         <div class="monitor">
-          <!-- Al hacer .get(), Lit se suscribe y el Computed se evalúa de forma perezosa -->
+          <!-- By calling .get(), Lit subscribes and the Computed evaluates lazily -->
           Status: ${isTrafficJam.get() ? "🔴 JAM" : "🟢 OK"}
         </div>
       `

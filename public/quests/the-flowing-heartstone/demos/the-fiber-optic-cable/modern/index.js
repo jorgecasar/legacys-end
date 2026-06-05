@@ -12,7 +12,7 @@ class CityIntersection extends LitElement {
 		super();
 		this.renderCount = 0;
 
-		// BUENA PRÁCTICA: Cacheamos el mapa de la ciudad
+		// GOOD PRACTICE: We cache the static city map
 		this.staticCityGrid = Array(1000)
 			.fill(0)
 			.map((_, i) => html`<div class="node" title="Sector ${i}"></div>`);
@@ -27,16 +27,16 @@ class CityIntersection extends LitElement {
 
 		return html`
 			<div class="intersection">
-				<h3>Intersección Central</h3>
+				<h3>Central Intersection</h3>
 				<div class="grid-container">
 					${this.staticCityGrid}
 				</div>
-				<!-- watch() actúa como un cable de fibra óptica directo a este nodo -->
+				<!-- watch() acts as a direct fiber optic cable to this exact node -->
 				<span class="light">${watch(lightSignal)}</span>
 			</div>
 			<div class="logs">
 				Render count: ${this.renderCount}<br>
-				Con Signals, render() se ejecuta UNA SOLA VEZ. La luz cambia a través del cable de fibra óptica ("watch") directo al DOM, esquivando completamente la iteración de los 1000 nodos. O(1) puro.
+				With Signals, render() executes exactly ONCE. The light state travels through the "watch" fiber optic cable directly to the DOM, completely bypassing the 1000-node iteration. Pure O(1) updates.
 			</div>
 		`;
 	}

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { html, LitElement } from "lit";
 
-// 1. El componente raíz guarda el estado para compartirlo
+// 1. The root component holds state to share it
 class CityApp extends LitElement {
 	static properties = {
 		pedestrians: { state: true },
@@ -12,7 +12,7 @@ class CityApp extends LitElement {
 		this.pedestrians = false;
 	}
 
-	// 2. Re-evalúa el template entero para pasar la prop hacia abajo
+	// 2. Re-evaluates the entire template to pass the prop down
 	render() {
 		return html`
       <!-- lit-analyzer-disable-next-line -->
@@ -23,7 +23,7 @@ class CityApp extends LitElement {
 }
 customElements.define("city-app", CityApp);
 
-// 3. El semáforo espera dócilmente a que su padre le pase la prop
+// 3. The traffic light obediently waits for its parent to pass the prop
 /**
  * @element traffic-light
  * @prop {boolean} isRed
@@ -44,7 +44,7 @@ class TrafficLight extends LitElement {
 }
 customElements.define("traffic-light", TrafficLight);
 
-// 4. El sensor manda la petición hacia arriba mediante eventos
+// 4. The sensor sends the request upwards via events
 class PedestrianSensor extends LitElement {
 	render() {
 		return html`

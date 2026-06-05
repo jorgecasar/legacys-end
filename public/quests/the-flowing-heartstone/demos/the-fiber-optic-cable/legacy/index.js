@@ -10,8 +10,8 @@ class CityIntersection extends LitElement {
 		this.isJam = false;
 		this.renderCount = 0;
 
-		// BUENA PRÁCTICA: Cacheamos el árbol estático para no generar nuevos objetos en cada render.
-		// Sin embargo, Lit tiene que iterar sobre los 1000 elementos para comprobar si han cambiado.
+		// GOOD PRACTICE: We cache the static tree to avoid generating new objects on each render.
+		// However, Lit still needs to iterate over all 1000 items to verify nothing changed.
 		this.staticCityGrid = Array(1000)
 			.fill(0)
 			.map((_, i) => html`<div class="node" title="Sector ${i}"></div>`);
@@ -34,16 +34,16 @@ class CityIntersection extends LitElement {
 
 		return html`
 			<div class="intersection">
-				<h3>Intersección Central</h3>
+				<h3>Central Intersection</h3>
 				<div class="grid-container">
 					${this.staticCityGrid}
 				</div>
-				<!-- Este es el único nodo que realmente necesita cambiar -->
+				<!-- This is the only node that actually needs to update -->
 				<span class="light">${this.isJam ? "🔴" : "🟢"}</span>
 			</div>
 			<div class="logs">
 				Render count: ${this.renderCount}<br>
-				Incluso cacheando los 1000 nodos estáticos (buena práctica), el framework debe iterar y compararlos todos en cada ciclo solo para cambiar este semáforo periférico.
+				Even when caching 1000 static nodes (a good practice), the framework must still iterate and diff all of them on every cycle just to update this peripheral traffic light.
 			</div>
 		`;
 	}

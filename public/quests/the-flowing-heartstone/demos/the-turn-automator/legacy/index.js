@@ -24,7 +24,7 @@ class TrafficMonitor extends LitElement {
 
 	connectedCallback() {
 		super.connectedCallback();
-		// 🔴 Desperdicia CPU: Evalúa la lógica constantemente aunque nadie lo esté mirando
+		// 🔴 Wastes CPU: Evaluates logic constantly even if no one is looking
 		this.timer = setInterval(() => {
 			this.isJam = calculateHeavyTrafficRules(globalCars);
 		}, 1000);
@@ -38,7 +38,7 @@ class TrafficMonitor extends LitElement {
 	render() {
 		return html`
       <button @click=${() => (this.showTraffic = !this.showTraffic)}>
-        ${this.showTraffic ? "Ocultar Tráfico" : "Mostrar Tráfico"}
+        ${this.showTraffic ? "Hide Traffic" : "Show Traffic"}
       </button>
 
       ${
@@ -55,7 +55,7 @@ class TrafficMonitor extends LitElement {
       `
 			}
       
-      <div class="logs">Abre la consola (F12). Observa cómo la CPU se sigue desperdiciando aunque el monitor esté apagado.</div>
+      <div class="logs">Open the console (F12). Watch how CPU is still wasted even when the monitor is turned off.</div>
     `;
 	}
 }

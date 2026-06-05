@@ -1,6 +1,6 @@
 import { html, LitElement } from "lit";
 
-// 1. Un Store global clásico basado en eventos (muy común en Legacy)
+// 1. A classic event-based global Store (very common in Legacy)
 class NaiveStore extends EventTarget {
 	constructor() {
 		super();
@@ -9,11 +9,11 @@ class NaiveStore extends EventTarget {
 	}
 	setAmbulance(val) {
 		this.ambulance = val;
-		this.dispatchEvent(new Event("change")); // Notifica síncronamente
+		this.dispatchEvent(new Event("change")); // Synchronous notification
 	}
 	setTraffic(val) {
 		this.traffic = val;
-		this.dispatchEvent(new Event("change")); // Notifica síncronamente
+		this.dispatchEvent(new Event("change")); // Synchronous notification
 	}
 }
 const store = new NaiveStore();
@@ -37,12 +37,12 @@ class CityDispatcher extends LitElement {
 				explanation =
 					"❌ ¡GLITCH! La app reacciona antes de tiempo a un estado a medias.";
 			} else if (store.ambulance === true && store.traffic === true) {
-				explanation = "✅ Estado final correcto alcanzado.";
+				explanation = "✅ Correct final state reached.";
 			}
 
 			this.logs = [
 				...this.logs,
-				`Ambulancia: ${store.ambulance}, Tráfico: ${store.traffic} -> 🚨 Emergencia: ${isEmergency} | ${explanation}`,
+				`Ambulance: ${store.ambulance}, Traffic: ${store.traffic} -> 🚨 Emergency: ${isEmergency} | ${explanation}`,
 			];
 		});
 	}
@@ -50,10 +50,10 @@ class CityDispatcher extends LitElement {
 	onEmergency() {
 		this.logs = []; // Limpiamos para ver el efecto
 
-		// 3. Mutamos las dos propiedades de forma síncrona, una detrás de otra
+		// 3. We synchronously mutate both properties, one after the other
 		store.setAmbulance(true);
-		// 🚨 GLITCH ("Tearing"): Al ejecutar la línea anterior, el evento YA saltó.
-		// El sistema ya calculó el estado roto (A=true, T=false) antes de llegar aquí abajo.
+		// 🚨 GLITCH ("Tearing"): When the previous line runs, the event has ALREADY fired.
+		// The system already calculated the broken state (A=true, T=false) before reaching this line.
 		store.setTraffic(true);
 	}
 
@@ -61,16 +61,16 @@ class CityDispatcher extends LitElement {
 		return html`
       <div class="hub">
         <h2>Centro de Control (Legacy)</h2>
-        <p style="font-style: italic; color: #a1a1aa; font-size: 0.9rem">(Regla: Emergencia requiere que Ambulancia y Tráfico sean TRUE)</p>
-        <button @click=${this.onEmergency}>Desatar Emergencia (Síncrona)</button>
+        <p style="font-style: italic; color: #a1a1aa; font-size: 0.9rem">(Rule: Emergency requires both Ambulance and Traffic to be TRUE)</p>
+        <button @click=${this.onEmergency}>Trigger Emergency (Synchronous)</button>
         <div class="history">
           <h4>Evaluaciones del Sistema:</h4>
           ${this.logs.map((l) => html`<p>${l}</p>`)}
         </div>
       </div>
       <div class="logs">
-        Al estar basado en eventos síncronos, la app reacciona en el exacto milisegundo en el que cambia la ambulancia. 
-        Calcula y renderiza todo usando un estado intermedio roto (true/false) antes de que al código le dé tiempo a ejecutar la siguiente línea (tráfico). Esto gasta el doble de CPU y genera "glitches" visuales.
+        Being based on synchronous events, the app reacts the exact millisecond the ambulance state changes. 
+        It calculates and renders everything using a broken intermediate state (true/false) before the code has time to execute the next line (traffic). This doubles CPU usage and causes visual tearing.
       </div>
     `;
 	}

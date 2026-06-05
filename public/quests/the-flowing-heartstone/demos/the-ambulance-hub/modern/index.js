@@ -7,7 +7,7 @@ const traffic = new Signal.State(false);
 
 let evaluationCount = 0;
 
-// El DAG de señales garantiza consistencia atómica sin tearing
+// The Signal DAG guarantees atomic consistency without tearing
 const isEmergency = new Signal.Computed(() => {
 	evaluationCount++;
 	return ambulance.get() && traffic.get();
@@ -20,33 +20,33 @@ class CityDispatcher extends SignalWatcher(LitElement) {
 		traffic.set(false);
 		evaluationCount = 0;
 
-		// Mutamos los dos estados uno detrás del otro de forma síncrona
+		// We mutate both states synchronously, one after the other
 		ambulance.set(true);
 		traffic.set(true);
 
-		// ✅ Consistencia Atómica ✅: Las señales marcan los nodos como sucios (Push),
+		// ✅ Atomic Consistency ✅: Signals mark nodes as dirty (Push phase),
 		// pero NO disparan ejecuciones descontroladas.
 		// El sistema espera a estabilizarse (Pull).
 	}
 
 	render() {
-		// Al pedir el valor (Pull), el grafo entero se evalúa.
-		// La función Computed se ejecuta UNA sola vez con el estado final consistente.
+		// When reading the value (Pull phase), the entire graph evaluates.
+		// The Computed function executes EXACTLY ONCE with the final consistent state.
 		const emergencyValue = isEmergency.get();
 
 		return html`
       <div class="hub">
         <h2>Centro de Control (Signals)</h2>
-        <p style="font-style: italic; color: #34d399; font-size: 0.9rem">(Regla: Emergencia requiere que Ambulancia y Tráfico sean TRUE)</p>
-        <button @click=${this.onEmergency}>Desatar Emergencia (Síncrona)</button>
+        <p style="font-style: italic; color: #34d399; font-size: 0.9rem">(Rule: Emergency requires both Ambulance and Traffic to be TRUE)</p>
+        <button @click=${this.onEmergency}>Trigger Emergency (Synchronous)</button>
         <div class="history">
-          <h4>Evaluación Única y Atómica:</h4>
-          <p>Ambulancia: ${ambulance.get()}, Tráfico: ${traffic.get()} -> 🚨 Emergencia: ${emergencyValue} | ✅ Estado final correcto alcanzado.</p>
-          <p style="color: #34d399">Nº de veces que la Computed reevaluó la regla pesada: ${evaluationCount}</p>
+          <h4>Single Atomic Evaluation:</h4>
+          <p>Ambulance: ${ambulance.get()}, Traffic: ${traffic.get()} -> 🚨 Emergency: ${emergencyValue} | ✅ Correct final state reached.</p>
+          <p style="color: #34d399">Number of times the Computed re-evaluated the heavy rule: ${evaluationCount}</p>
         </div>
       </div>
       <div class="logs">
-        Al pulsar el botón, las dos mutaciones simplemente ensucian el grafo. La Computed de emergencia "espera" de forma inteligente y evalúa el resultado UNA SOLA VEZ con los datos finales. No hay glitches ni cálculos a medias, ahorrando CPU y previniendo errores.
+        When clicking the button, both mutations simply mark the graph as dirty. The emergency Computed smartly "waits" and evaluates the result EXACTLY ONCE with the final data. No glitches, no half-baked calculations, saving CPU and preventing errors.
       </div>
     `;
 	}

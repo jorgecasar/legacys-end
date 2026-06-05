@@ -9,7 +9,7 @@ export class TrafficStore {
 		this.cars = new Signal.Computed(() => this.#cars.get());
 	}
 
-	// Único método autorizado para mutar el estado
+	// The only authorized method to mutate state
 	registerVehicle() {
 		this.#cars.set(this.#cars.get() + 1);
 	}

@@ -6,7 +6,7 @@ class FuseBox extends SignalWatcher(LitElement) {
 	connectedCallback() {
 		super.connectedCallback();
 		this.timer = setInterval(() => {
-			// Simula el tráfico normal mutando el signal directamente
+			// Simulates normal traffic by mutating the signal directly
 			cityState.cars.set(cityState.cars.get() + 1);
 		}, 1000);
 	}
@@ -30,14 +30,14 @@ customElements.define("fuse-box", FuseBox);
 
 class RookieComponent extends LitElement {
 	breakCity() {
-		// 🚨 Un componente periférico novato puede hacer set a un signal expuesto públicamente
+		// 🚨 A rogue peripheral component can call .set() on a publicly exposed signal
 		cityState.cars.set(-9999);
 	}
 
 	render() {
 		return html`
       <div style="margin-top: 2rem; text-align: center;">
-        <p>Módulo de Control Externo</p>
+        <p>External Control Module</p>
         <button @click=${this.breakCity}>Sobreescribir datos sin permiso</button>
       </div>
     `;

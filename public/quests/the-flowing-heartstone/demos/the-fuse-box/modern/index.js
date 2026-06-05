@@ -6,7 +6,7 @@ class FuseBox extends SignalWatcher(LitElement) {
 	connectedCallback() {
 		super.connectedCallback();
 		this.timer = setInterval(() => {
-			// Usamos el método oficial del Store
+			// Using the official Store method
 			store.registerVehicle();
 		}, 1000);
 	}
@@ -38,10 +38,10 @@ class RookieComponent extends LitElement {
 	render() {
 		return html`
       <div style="margin-top: 2rem; text-align: center;">
-        <p>Módulo de Control Externo</p>
+        <p>External Control Module</p>
         <button @click=${this.breakCity}>Intentar hackear el Store</button>
       </div>
-      <div class="logs">El state original está protegido. Solo exponemos espejos seguros.</div>
+      <div class="logs">The original state is protected. We only expose safe mirrors.</div>
     `;
 	}
 }

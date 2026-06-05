@@ -2,7 +2,7 @@ import { SignalWatcher } from "@lit-labs/signals";
 import { html, LitElement } from "lit";
 import { Signal } from "signal-polyfill";
 
-// 1. El estado vive de forma autónoma y global
+// 1. State lives autonomously and globally
 export const pedestriansWaiting = new Signal.State(false);
 
 // 2. CityApp ya NO tiene estado. NUNCA sufre re-render.
@@ -16,7 +16,7 @@ class CityApp extends LitElement {
 }
 customElements.define("city-app", CityApp);
 
-// 3. El semáforo reacciona independientemente a la señal
+// 3. The traffic light reacts independently to the signal
 class TrafficLight extends SignalWatcher(LitElement) {
 	render() {
 		return html`<div class="light">${pedestriansWaiting.get() ? "🔴" : "🟢"}</div>`;
@@ -24,7 +24,7 @@ class TrafficLight extends SignalWatcher(LitElement) {
 }
 customElements.define("traffic-light", TrafficLight);
 
-// 4. El sensor muta la señal de forma local
+// 4. The sensor mutates the signal locally
 class PedestrianSensor extends LitElement {
 	render() {
 		return html`
