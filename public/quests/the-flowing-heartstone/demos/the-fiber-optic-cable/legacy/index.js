@@ -25,10 +25,12 @@ class CityIntersection extends LitElement {
 			this.renderCount,
 		);
 
-		// Generar cientos de nodos inútiles para simular una UI pesada
-		const heavyTree = Array(100)
+		// Simular una UI pesada forzando a Lit a recalcular nodos en cada render
+		const heavyTree = Array(500)
 			.fill(0)
-			.map(() => html`<div class="node"></div>`);
+			.map(
+				() => html`<div class="node" data-update-id="${Math.random()}"></div>`,
+			);
 
 		return html`
       <div class="intersection">
@@ -37,7 +39,7 @@ class CityIntersection extends LitElement {
         <span class="light">${this.isJam ? "🔴" : "🟢"}</span>
         <div>${heavyTree}</div>
       </div>
-      <div class="logs">Render count: ${this.renderCount}<br>El framework debe procesar cientos de nodos en cada render, solo para cambiar un emoji.</div>
+      <div class="logs">Render count: ${this.renderCount}<br>El framework debe recalcular toda la plantilla (incluyendo componentes pesados) en cada render, solo para cambiar un emoji.</div>
     `;
 	}
 }

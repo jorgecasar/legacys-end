@@ -20,10 +20,12 @@ class CityIntersection extends LitElement {
 			this.renderCount,
 		);
 
-		// Generar cientos de nodos inútiles
-		const heavyTree = Array(100)
+		// UI pesada (nodos que cambiarían si se re-renderizara)
+		const heavyTree = Array(500)
 			.fill(0)
-			.map(() => html`<div class="node"></div>`);
+			.map(
+				() => html`<div class="node" data-update-id="${Math.random()}"></div>`,
+			);
 
 		// watch() conecta el Signal directamente al text node en concreto.
 		// Lit reacciona al signal actualizando SOLO esa pequeña parte, sin volver a llamar a render()!

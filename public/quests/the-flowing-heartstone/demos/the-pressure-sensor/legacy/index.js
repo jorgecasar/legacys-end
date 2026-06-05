@@ -14,7 +14,6 @@ class CityApp extends LitElement {
 
 	// 2. Re-evalúa el template entero para pasar la prop hacia abajo
 	render() {
-		console.log("render CiryApp");
 		return html`
       <!-- lit-analyzer-disable-next-line -->
       <traffic-light .isRed=${this.pedestrians}></traffic-light>

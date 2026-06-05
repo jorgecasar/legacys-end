@@ -8,7 +8,6 @@ export const pedestriansWaiting = new Signal.State(false);
 // 2. CityApp ya NO tiene estado. NUNCA sufre re-render.
 class CityApp extends LitElement {
 	render() {
-		console.log("render CiryApp");
 		return html`
       <traffic-light></traffic-light>
       <pedestrian-sensor></pedestrian-sensor>
