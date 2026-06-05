@@ -2,12 +2,12 @@ import { html, LitElement } from "lit";
 
 class CityIntersection extends LitElement {
 	static properties = {
-		activeCars: { type: Number },
+		isJam: { type: Boolean },
 	};
 
 	constructor() {
 		super();
-		this.activeCars = 0;
+		this.isJam = false;
 		this.renderCount = 0;
 
 		// BUENA PRÁCTICA: Cacheamos el árbol estático para no generar nuevos objetos en cada render.
@@ -19,10 +19,9 @@ class CityIntersection extends LitElement {
 
 	connectedCallback() {
 		super.connectedCallback();
-		// Simular actualizaciones de alta frecuencia (60 fps)
 		this.interval = setInterval(() => {
-			this.activeCars = (this.activeCars + 1) % 1000;
-		}, 16);
+			this.isJam = !this.isJam;
+		}, 1500);
 	}
 
 	disconnectedCallback() {
@@ -35,15 +34,16 @@ class CityIntersection extends LitElement {
 
 		return html`
 			<div class="intersection">
-				<h3>Control de Tráfico</h3>
-				<p>Coches activos: <strong>${this.activeCars}</strong></p>
+				<h3>Intersección Central</h3>
 				<div class="grid-container">
 					${this.staticCityGrid}
 				</div>
+				<!-- Este es el único nodo que realmente necesita cambiar -->
+				<span class="light">${this.isJam ? "🔴" : "🟢"}</span>
 			</div>
 			<div class="logs">
 				Render count: ${this.renderCount}<br>
-				Incluso cacheando el HTML (buena práctica), actualizar el contador a 60fps fuerza a Lit a ejecutar render() e iterar sobre los 1000 nodos estáticos en cada ciclo.
+				Incluso cacheando los 1000 nodos estáticos (buena práctica), el framework debe iterar y compararlos todos en cada ciclo solo para cambiar este semáforo periférico.
 			</div>
 		`;
 	}
